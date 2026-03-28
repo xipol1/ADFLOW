@@ -6,6 +6,24 @@ const morgan = require('morgan');
 const path = require('path');
 const fs = require('fs');
 
+// Pre-load route modules with per-module error capture.
+// Static require() literals are needed so Vercel's file tracer
+// includes all backend files in the serverless function bundle.
+const _preload = (mod) => { try { return require(mod); } catch (e) { return e; } };
+const _routes = {
+  './routes/auth':          _preload('./routes/auth'),
+  './routes/channels':      _preload('./routes/channels'),
+  './routes/canales':       _preload('./routes/canales'),
+  './routes/campaigns':     _preload('./routes/campaigns'),
+  './routes/transacciones': _preload('./routes/transacciones'),
+  './routes/estadisticas':  _preload('./routes/estadisticas'),
+  './routes/lists':         _preload('./routes/lists'),
+  './routes/partnerApi':    _preload('./routes/partnerApi'),
+  './routes/anuncios':      _preload('./routes/anuncios'),
+  './routes/notifications': _preload('./routes/notifications'),
+  './routes/files':         _preload('./routes/files'),
+};
+
 const app = express();
 
 const ENV = process.env.NODE_ENV || 'development';
@@ -100,16 +118,17 @@ app.get('/r/:campaignId', async (req, res) => {
 });
 
 const safeMount = (mountPath, modulePath) => {
-  let mountError = null;
-  try {
-    const router = require(modulePath);
-    if (router) {
-      app.use(mountPath, router);
-      return;
-    }
-  } catch (e) {
-    mountError = e;
-    console.error(`SAFE MOUNT ERROR (${mountPath} -> ${modulePath}):`, e);
+  const preloaded = _routes[modulePath];
+  const router = (preloaded instanceof Error) ? null : preloaded;
+  const mountError = (preloaded instanceof Error) ? preloaded : null;
+
+  if (router) {
+    app.use(mountPath, router);
+    return;
+  }
+
+  if (mountError) {
+    console.error(`SAFE MOUNT ERROR (${mountPath} -> ${modulePath}):`, mountError);
   }
 
   app.use(mountPath, (req, res) => {
