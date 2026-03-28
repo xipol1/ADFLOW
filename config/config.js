@@ -64,5 +64,10 @@ module.exports = {
   demo: {
     enabled: toBool(process.env.DEMO_MODE, false),
     password: process.env.DEMO_PASSWORD || 'demo'
+  },
+  files: {
+    uploadPath: process.env.UPLOADS_PATH || './uploads',
+    maxFileSize: toInt(process.env.MAX_FILE_SIZE, 10 * 1024 * 1024),
+    allowedTypes: (process.env.ALLOWED_FILE_TYPES || 'image/jpeg,image/png,image/gif,image/webp,application/pdf').split(',')
   }
 };
