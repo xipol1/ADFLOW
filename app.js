@@ -6,23 +6,22 @@ const morgan = require('morgan');
 const path = require('path');
 const fs = require('fs');
 
-// Pre-load route modules with per-module error capture.
-// Static require() literals are needed so Vercel's file tracer
-// includes all backend files in the serverless function bundle.
-const _preload = (mod) => { try { return require(mod); } catch (e) { return e; } };
-const _routes = {
-  './routes/auth':          _preload('./routes/auth'),
-  './routes/channels':      _preload('./routes/channels'),
-  './routes/canales':       _preload('./routes/canales'),
-  './routes/campaigns':     _preload('./routes/campaigns'),
-  './routes/transacciones': _preload('./routes/transacciones'),
-  './routes/estadisticas':  _preload('./routes/estadisticas'),
-  './routes/lists':         _preload('./routes/lists'),
-  './routes/partnerApi':    _preload('./routes/partnerApi'),
-  './routes/anuncios':      _preload('./routes/anuncios'),
-  './routes/notifications': _preload('./routes/notifications'),
-  './routes/files':         _preload('./routes/files'),
-};
+// Pre-load every route module so Vercel's static tracer can bundle
+// them. Each require() is a literal string at the top level so the
+// nft/esbuild tracer sees it. Errors are captured per-module so a
+// single failing route doesn't crash the whole application.
+const _routes = {};
+try { _routes['./routes/auth']          = require('./routes/auth');          } catch (e) { _routes['./routes/auth']          = e; }
+try { _routes['./routes/channels']      = require('./routes/channels');      } catch (e) { _routes['./routes/channels']      = e; }
+try { _routes['./routes/canales']       = require('./routes/canales');       } catch (e) { _routes['./routes/canales']       = e; }
+try { _routes['./routes/campaigns']     = require('./routes/campaigns');     } catch (e) { _routes['./routes/campaigns']     = e; }
+try { _routes['./routes/transacciones'] = require('./routes/transacciones'); } catch (e) { _routes['./routes/transacciones'] = e; }
+try { _routes['./routes/estadisticas']  = require('./routes/estadisticas');  } catch (e) { _routes['./routes/estadisticas']  = e; }
+try { _routes['./routes/lists']         = require('./routes/lists');         } catch (e) { _routes['./routes/lists']         = e; }
+try { _routes['./routes/partnerApi']    = require('./routes/partnerApi');    } catch (e) { _routes['./routes/partnerApi']    = e; }
+try { _routes['./routes/anuncios']      = require('./routes/anuncios');      } catch (e) { _routes['./routes/anuncios']      = e; }
+try { _routes['./routes/notifications'] = require('./routes/notifications'); } catch (e) { _routes['./routes/notifications'] = e; }
+try { _routes['./routes/files']         = require('./routes/files');         } catch (e) { _routes['./routes/files']         = e; }
 
 const app = express();
 
