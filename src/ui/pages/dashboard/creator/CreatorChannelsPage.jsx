@@ -5,7 +5,7 @@ import {
   BarChart3, Eye, Zap, Globe, Instagram, Youtube, Twitter, Link2,
   Star, Shield, AlertCircle, ArrowUpRight, Tag,
 } from 'lucide-react'
-import { MOCK_CHANNELS, PLATFORM_COLORS } from './mockDataCreator'
+import { PLATFORM_COLORS } from './mockDataCreator'
 import apiService from '../../../../../services/api'
 
 // ─── Design tokens ──────────────────────────────────────────────────────────
@@ -1236,19 +1236,9 @@ export default function CreatorChannelsPage() {
       const res = await apiService.getMyChannels()
       if (res?.success) {
         const items = Array.isArray(res.data) ? res.data : res.data?.items || []
-        setChannels(items.length > 0 ? items : MOCK_CHANNELS.map(c => ({
-          _id: c.id, nombreCanal: c.name, plataforma: c.platform, categoria: c.category,
-          estadisticas: { seguidores: c.audience }, precio: c.pricePerPost, estado: 'activo',
-          descripcion: c.description, url: '', disponible: true,
-        })))
+        setChannels(items)
       }
-    } catch {
-      setChannels(MOCK_CHANNELS.map(c => ({
-        _id: c.id, nombreCanal: c.name, plataforma: c.platform, categoria: c.category,
-        estadisticas: { seguidores: c.audience }, precio: c.pricePerPost, estado: 'activo',
-        descripcion: c.description, url: '', disponible: true,
-      })))
-    }
+    } catch { /* empty state */ }
     finally { setLoading(false) }
   }
 

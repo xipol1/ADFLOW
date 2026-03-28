@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Wallet, TrendingUp, ArrowDownLeft, ArrowUpRight, Download, Plus, X, CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react'
 import apiService from '../../../../../services/api'
-import { MOCK_TRANSACTIONS, MOCK_MONTHLY_SPEND } from './mockData'
 
 const A  = '#8b5cf6'
 const AG = (o) => `rgba(139,92,246,${o})`
@@ -83,8 +83,32 @@ function TxIcon({ type }) {
 const RechargeModal = ({ onClose }) => {
   const [amount, setAmount] = useState(500)
   const [step, setStep]     = useState(1)
+  const [processing, setProcessing] = useState(false)
+  const [error, setError] = useState('')
 
   const PRESETS = [100, 250, 500, 1000]
+
+  const handleRecharge = async () => {
+    setProcessing(true)
+    setError('')
+    try {
+      const res = await apiService.createCheckoutSession(amount)
+      if (res?.success) {
+        if (res.simulated) {
+          // Stripe not configured — show success screen
+          setStep(2)
+        } else if (res.url) {
+          // Redirect to Stripe Checkout
+          window.location.href = res.url
+        }
+      } else {
+        setError(res?.message || 'Error al procesar el pago')
+      }
+    } catch {
+      setError('No se pudo conectar con el servidor de pagos')
+    }
+    setProcessing(false)
+  }
 
   if (step === 2) {
     return (
@@ -177,11 +201,19 @@ const RechargeModal = ({ onClose }) => {
             <button onClick={onClose} style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '11px', padding: '13px', fontSize: '14px', cursor: 'pointer', color: 'var(--text)', fontFamily: F }}>
               Cancelar
             </button>
-            <button onClick={() => setStep(2)} style={{ flex: 2, background: A, border: 'none', borderRadius: '11px', padding: '13px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', color: '#fff', fontFamily: F, boxShadow: `0 4px 14px ${AG(0.35)}`, transition: 'transform .15s' }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)' }}
+            {error && (
+              <div style={{ color: '#ef4444', fontSize: '12px', marginBottom: '8px', textAlign: 'center', width: '100%' }}>
+                {error}
+              </div>
+            )}
+            <button
+              onClick={handleRecharge}
+              disabled={processing}
+              style={{ flex: 2, background: processing ? AG(0.6) : A, border: 'none', borderRadius: '11px', padding: '13px', fontSize: '14px', fontWeight: 700, cursor: processing ? 'not-allowed' : 'pointer', color: '#fff', fontFamily: F, boxShadow: `0 4px 14px ${AG(0.35)}`, transition: 'transform .15s' }}
+              onMouseEnter={e => { if (!processing) e.currentTarget.style.transform = 'translateY(-1px)' }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'none' }}
             >
-              Recargar €{amount}
+              {processing ? 'Procesando...' : `Recargar €${amount}`}
             </button>
           </div>
         </div>
@@ -223,8 +255,7 @@ function buildMonthlySpend(transactions) {
     if (!months[key]) months[key] = { label: `${labels[d.getMonth()]}`, value: 0, ts: d.getTime() }
     if (tx.type !== 'refund') months[key].value += Math.abs(tx.amount || 0)
   })
-  const sorted = Object.values(months).sort((a, b) => a.ts - b.ts).slice(-12)
-  return sorted.length > 0 ? sorted : MOCK_MONTHLY_SPEND
+  return Object.values(months).sort((a, b) => a.ts - b.ts).slice(-12)
 }
 
 // ─── Spending breakdown from transactions ─────────────────────────────────────
@@ -251,11 +282,22 @@ function buildPlatformBreakdown(transactions) {
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function FinancesPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [showRecharge, setShowRecharge] = useState(false)
+  const [showRechargeSuccess, setShowRechargeSuccess] = useState(false)
   const [txFilter, setTxFilter] = useState('todos')
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [rawTx, setRawTx] = useState([])
+
+  // Handle Stripe redirect callback
+  useEffect(() => {
+    const recharge = searchParams.get('recharge')
+    if (recharge === 'success') {
+      setShowRechargeSuccess(true)
+      setSearchParams({}, { replace: true })
+    }
+  }, [])
 
   useEffect(() => {
     let mounted = true
@@ -263,34 +305,24 @@ export default function FinancesPage() {
       try {
         const res = await apiService.getMyTransactions()
         if (!mounted) return
-        if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
-          setRawTx(res.data)
-          setTransactions(res.data.map(normalizeTx))
-        } else {
-          setTransactions(MOCK_TRANSACTIONS)
+        if (res?.success) {
+          const items = Array.isArray(res.data) ? res.data : Array.isArray(res.data?.items) ? res.data.items : []
+          setRawTx(items)
+          setTransactions(items.map(normalizeTx))
         }
-      } catch {
-        if (mounted) setTransactions(MOCK_TRANSACTIONS)
-      }
+      } catch { /* empty state */ }
       if (mounted) setLoading(false)
     }
     load()
     return () => { mounted = false }
   }, [])
 
-  const isReal = rawTx.length > 0
-  const balance     = isReal ? rawTx.filter(t => t.status === 'paid').reduce((s, t) => s + (t.amount || 0), 0) : 1470
+  const balance     = rawTx.filter(t => t.status === 'paid').reduce((s, t) => s + (t.amount || 0), 0)
   const totalSpend  = transactions.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0)
   const txCount     = transactions.length
 
-  const monthlyData = isReal ? buildMonthlySpend(rawTx) : MOCK_MONTHLY_SPEND
-  const platformBreakdown = isReal ? buildPlatformBreakdown(rawTx) : [
-    { label: 'Telegram', pct: 38, color: '#2aabee', amount: 1240 },
-    { label: 'Instagram', pct: 26, color: '#e1306c', amount: 860 },
-    { label: 'Newsletter', pct: 19, color: WARN, amount: 620 },
-    { label: 'Discord', pct: 15, color: '#5865f2', amount: 480 },
-    { label: 'Otros', pct: 2, color: '#94a3b8', amount: 60 },
-  ]
+  const monthlyData = buildMonthlySpend(rawTx)
+  const platformBreakdown = buildPlatformBreakdown(rawTx)
 
   const filteredTx = transactions.filter(tx => {
     if (txFilter === 'todos') return true

@@ -5,7 +5,7 @@ import {
   Filter, SlidersHorizontal, ChevronDown, ExternalLink, Zap,
   ImagePlus, Trash2, FileImage,
 } from 'lucide-react'
-import { MOCK_CHANNELS, PLATFORM_COLORS } from './mockData'
+import { PLATFORM_COLORS } from './mockData'
 import apiService from '../../../../../services/api'
 
 const A  = '#8b5cf6'
@@ -1177,16 +1177,18 @@ export default function ExplorePage() {
   const [showFilters, setShowFilters] = useState(false)
   const [modalCh, setModalCh]       = useState(null)
   const [hireCh, setHireCh]         = useState(null)
-  const [channels, setChannels]     = useState(MOCK_CHANNELS)
+  const [channels, setChannels]     = useState([])
   const [apiLoaded, setApiLoaded]   = useState(false)
+  const [channelsLoading, setChannelsLoading] = useState(true)
 
-  // Fetch channels from API, fallback to MOCK_CHANNELS
+  // Fetch channels from API
   useEffect(() => {
     let cancelled = false
     const load = async () => {
+      setChannelsLoading(true)
       try {
         const res = await apiService.searchChannels({ limite: 50 })
-        if (!cancelled && res?.success && Array.isArray(res.data) && res.data.length > 0) {
+        if (!cancelled && res?.success && Array.isArray(res.data)) {
           const mapped = res.data.map(ch => ({
             id: ch.id || ch._id,
             name: ch.nombre || ch.name || '',
@@ -1200,11 +1202,13 @@ export default function ExplorePage() {
             freq: ch.freq || '3 posts/semana',
             demo: ch.demo || 'General',
             rating: ch.rating || 4.6,
+            score: ch.score || null,
           }))
           setChannels(mapped)
           setApiLoaded(true)
         }
-      } catch { /* use mock fallback */ }
+      } catch { /* empty state */ }
+      if (!cancelled) setChannelsLoading(false)
     }
     load()
     return () => { cancelled = true }

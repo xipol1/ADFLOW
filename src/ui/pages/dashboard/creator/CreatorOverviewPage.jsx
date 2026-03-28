@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Radio, Inbox, DollarSign, TrendingUp, Plus, ChevronRight, Clock, Check, X, Zap, Activity } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
-import { MOCK_CHANNELS, MOCK_REQUESTS, MOCK_EARNINGS, MOCK_MONTHLY_EARNINGS } from './mockDataCreator'
 import apiService from '../../../../../services/api'
 
 const WA  = '#25d366'
@@ -254,11 +253,11 @@ export default function CreatorOverviewPage() {
         apiService.getCreatorCampaigns().catch(() => null),
       ])
       if (!mounted) return
-      const chData = chRes?.success && Array.isArray(chRes.data) ? chRes.data : []
+      const chData = chRes?.success ? (Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || []) : []
       const adsData = adsRes?.success && Array.isArray(adsRes.data) ? adsRes.data : []
-      const cmpData = cmpRes?.success && Array.isArray(cmpRes.data) ? cmpRes.data : []
-      setChannels(chData.length > 0 ? chData : MOCK_CHANNELS)
-      setRequests(adsData.length > 0 ? adsData : MOCK_REQUESTS)
+      const cmpData = cmpRes?.success ? (Array.isArray(cmpRes.data) ? cmpRes.data : cmpRes.data?.items || []) : []
+      setChannels(chData)
+      setRequests(adsData)
       setCreatorCampaigns(cmpData)
     }
     load()

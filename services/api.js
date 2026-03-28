@@ -589,12 +589,53 @@ class ApiService {
   }
 
   /**
+   * Obtener campañas donde el usuario es creador (tiene el canal)
+   */
+  async getCreatorCampaigns() {
+    return this.request('/campaigns?role=creator');
+  }
+
+  /**
    * Crear campaña
    */
   async createCampaign(payload) {
     return this.request('/campaigns', {
       method: 'POST',
       body: JSON.stringify(payload),
+    });
+  }
+
+  /**
+   * Crear campaña con archivo multimedia (FormData)
+   */
+  async createCampaignWithMedia(formData) {
+    return this.request('/campaigns', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${this.getAuthToken()}`,
+        // No Content-Type — browser sets multipart boundary automatically
+      },
+    });
+  }
+
+  /**
+   * Crear Stripe Checkout Session para recarga de saldo
+   */
+  async createCheckoutSession(amount) {
+    return this.request('/transacciones/create-checkout-session', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    });
+  }
+
+  /**
+   * Crear Stripe PaymentIntent para pago de campaña
+   */
+  async createPaymentIntent(transaccionId) {
+    return this.request('/transacciones/create-payment-intent', {
+      method: 'POST',
+      body: JSON.stringify({ transaccionId }),
     });
   }
 

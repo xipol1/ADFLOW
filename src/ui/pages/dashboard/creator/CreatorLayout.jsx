@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, Radio, Inbox, Wallet, Settings, LogOut, Menu, Bell } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
-import { MOCK_REQUESTS } from './mockDataCreator'
 import apiService from '../../../../../services/api'
 
 const A   = '#25d366'
@@ -109,7 +108,7 @@ export default function CreatorLayout() {
   const email    = user?.email  || ''
   const initials = nombre.slice(0, 2).toUpperCase()
 
-  const [requests, setRequests] = useState(MOCK_REQUESTS)
+  const [requests, setRequests] = useState([])
   const [notifications, setNotifications] = useState([])
 
   useEffect(() => {
@@ -121,7 +120,7 @@ export default function CreatorLayout() {
           apiService.getMyNotifications().catch(() => null),
         ])
         if (cancelled) return
-        if (reqRes?.success && Array.isArray(reqRes.data) && reqRes.data.length > 0) {
+        if (reqRes?.success && Array.isArray(reqRes.data)) {
           setRequests(reqRes.data.map(a => ({
             id: a._id || a.id,
             advertiser: a.anunciante?.nombre || a.advertiser || 'Anunciante',
@@ -138,7 +137,7 @@ export default function CreatorLayout() {
         if (notifRes?.success && Array.isArray(notifRes.data)) {
           setNotifications(notifRes.data)
         }
-      } catch { /* use mock fallback */ }
+      } catch { /* empty state */ }
     }
     load()
     // Poll notifications every 30s

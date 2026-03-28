@@ -6,9 +6,7 @@ import {
   Activity, Target, Zap, Clock, ChevronRight, ExternalLink,
 } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
-import {
-  MOCK_ADS, MOCK_MONTHLY_SPEND, MOCK_USER, PLATFORM_COLORS,
-} from './mockData'
+import { PLATFORM_COLORS } from './mockData'
 import apiService from '../../../../../services/api'
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -338,30 +336,43 @@ export default function OverviewPage() {
   const navigate = useNavigate()
   const [campaigns, setCampaigns] = useState([])
   const [loading, setLoading] = useState(true)
-  const [monthlySpend, setMonthlySpend] = useState(MOCK_MONTHLY_SPEND)
+  const [monthlySpend, setMonthlySpend] = useState([])
 
   useEffect(() => {
     let mounted = true
     const load = async () => {
       try {
-        const res = await apiService.getMyCampaigns()
+        const [campsRes, txRes] = await Promise.all([
+          apiService.getMyCampaigns().catch(() => null),
+          apiService.getMyTransactions().catch(() => null),
+        ])
         if (!mounted) return
-        if (res?.success) {
-          const items = Array.isArray(res.data) ? res.data : Array.isArray(res.data?.items) ? res.data.items : []
-          setCampaigns(items.length > 0 ? items : MOCK_ADS)
-        } else {
-          setCampaigns(MOCK_ADS)
+        if (campsRes?.success) {
+          const items = Array.isArray(campsRes.data) ? campsRes.data : Array.isArray(campsRes.data?.items) ? campsRes.data.items : []
+          setCampaigns(items)
         }
-      } catch {
-        if (mounted) setCampaigns(MOCK_ADS)
-      }
+        if (txRes?.success) {
+          const txItems = Array.isArray(txRes.data) ? txRes.data : Array.isArray(txRes.data?.items) ? txRes.data.items : []
+          const labels = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
+          const buckets = {}
+          txItems.forEach(tx => {
+            const d = new Date(tx.paidAt || tx.createdAt)
+            if (isNaN(d.getTime())) return
+            const key = `${d.getFullYear()}-${d.getMonth()}`
+            if (!buckets[key]) buckets[key] = { label: labels[d.getMonth()], value: 0, ts: d.getTime() }
+            buckets[key].value += Math.abs(tx.amount || 0)
+          })
+          const sorted = Object.values(buckets).sort((a, b) => a.ts - b.ts).slice(-6)
+          if (sorted.length > 0) setMonthlySpend(sorted)
+        }
+      } catch { /* use empty state */ }
       if (mounted) setLoading(false)
     }
     load()
     return () => { mounted = false }
   }, [])
 
-  const nombre   = user?.nombre || MOCK_USER.name
+  const nombre   = user?.nombre || user?.name || 'Usuario'
   const greeting = getGreeting(nombre.split(' ')[0])
 
   // Compute KPIs from real campaign data
@@ -461,7 +472,7 @@ export default function OverviewPage() {
               </div>
             </div>
             <div style={{ padding: '16px 24px 20px' }}>
-              <BarChart data={MOCK_MONTHLY_SPEND} />
+              <BarChart data={monthlySpend.length > 0 ? monthlySpend : []} />
             </div>
           </div>
 

@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { User, Bell, Lock, FileText, Key, Shield, Check, Eye, EyeOff, Copy, RefreshCw, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
-import { MOCK_USER } from './mockData'
 
 const A  = '#8b5cf6'
 const AG = (o) => `rgba(139,92,246,${o})`
@@ -215,7 +214,7 @@ export default function SettingsPage() {
           <Card title="Foto de perfil">
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
               <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: AG(0.18), border: `2px solid ${AG(0.4)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: D, fontWeight: 800, fontSize: '26px', color: A, flexShrink: 0, letterSpacing: '-0.02em', boxShadow: `0 0 0 4px ${AG(0.08)}` }}>
-                {(user?.nombre || MOCK_USER.name).slice(0, 2).toUpperCase()}
+                {(user?.nombre || 'Usuario').slice(0, 2).toUpperCase()}
               </div>
               <div>
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
@@ -231,10 +230,10 @@ export default function SettingsPage() {
           <Card title="Información personal" subtitle="Datos básicos de tu cuenta de anunciante">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                <Field label="Nombre completo" value={user?.nombre || MOCK_USER.name} required />
-                <Field label="Email" type="email" value={user?.email || MOCK_USER.email} required />
+                <Field label="Nombre completo" value={user?.nombre || 'Usuario'} required />
+                <Field label="Email" type="email" value={user?.email || ''} required />
               </div>
-              <Field label="Empresa" value={MOCK_USER.company} placeholder="Nombre de tu empresa u organización" />
+              <Field label="Empresa" value={user?.perfilAnunciante?.nombreEmpresa || ''} placeholder="Nombre de tu empresa u organización" />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <Field label="Teléfono" placeholder="+34 600 000 000" />
                 <Field label="Zona horaria" value="Europe/Madrid (GMT+1)" />
@@ -345,7 +344,7 @@ export default function SettingsPage() {
           <Card title="Datos de facturación" subtitle="Información que aparecerá en tus facturas">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                <Field label="Nombre / Razón social" value={MOCK_USER.company} required />
+                <Field label="Nombre / Razón social" value={user?.perfilAnunciante?.nombreEmpresa || ''} required />
                 <Field label="NIF / CIF" placeholder="B12345678" required />
               </div>
               <Field label="Dirección" placeholder="Calle, número, piso, puerta" />
@@ -354,7 +353,7 @@ export default function SettingsPage() {
                 <Field label="Ciudad" placeholder="Madrid" />
                 <Field label="País" value="España" />
               </div>
-              <Field label="Email de facturación" type="email" value={user?.email || MOCK_USER.email} hint="Recibirás las facturas en este email" />
+              <Field label="Email de facturación" type="email" value={user?.email || ''} hint="Recibirás las facturas en este email" />
             </div>
           </Card>
 

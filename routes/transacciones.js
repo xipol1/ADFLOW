@@ -1,18 +1,42 @@
 const express = require('express');
-const { param } = require('express-validator');
+const { param, body } = require('express-validator');
 const { autenticar } = require('../middleware/auth');
 const { validarCampos } = require('../middleware/validarCampos');
 const transaccionController = require('../controllers/transaccionController');
 
 const router = express.Router();
 
-router.post('/', autenticar, transaccionController.crearTransaccion);
-router.post('/webhook', transaccionController.webhookPago);
+// Stripe webhook — raw body required for signature verification
+router.post('/webhook', express.raw({ type: 'application/json' }), transaccionController.webhookPago);
 
+// Create Stripe Checkout Session for wallet top-up
+router.post(
+  '/create-checkout-session',
+  autenticar,
+  [body('amount').isFloat({ min: 5 }).withMessage('Importe mínimo: 5')],
+  validarCampos,
+  transaccionController.crearCheckoutSession
+);
+
+// Create Stripe PaymentIntent for campaign escrow
+router.post(
+  '/create-payment-intent',
+  autenticar,
+  [body('transaccionId').isMongoId().withMessage('ID de transacción inválido')],
+  validarCampos,
+  transaccionController.crearPaymentIntent
+);
+
+// Manual transaction creation
+router.post('/', autenticar, transaccionController.crearTransaccion);
+
+// List user transactions
 router.get('/', autenticar, transaccionController.obtenerMisTransacciones);
 
+// Financial stats
 router.get('/estadisticas', autenticar, transaccionController.obtenerEstadisticasFinancieras);
 
+// Get single transaction
 router.get(
   '/:id',
   autenticar,
@@ -21,7 +45,7 @@ router.get(
   transaccionController.obtenerTransaccion
 );
 
-// POST /api/transacciones/:id/pay — simulated payment
+// Simulate payment (when Stripe not configured)
 router.post(
   '/:id/pay',
   autenticar,

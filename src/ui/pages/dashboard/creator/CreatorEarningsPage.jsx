@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { Download, Wallet, TrendingUp, DollarSign, ArrowUpRight, Clock } from 'lucide-react'
-import { MOCK_EARNINGS, MOCK_MONTHLY_EARNINGS, MOCK_CHANNELS } from './mockDataCreator'
 import apiService from '../../../../../services/api'
 
 const A  = '#8b5cf6'
@@ -397,16 +396,12 @@ export default function CreatorEarningsPage() {
   const realEarnings = completedCampaigns.reduce((s, c) => s + (c.netAmount || 0), 0)
   const pendingEarnings = paidCampaigns.reduce((s, c) => s + (c.netAmount || 0), 0)
 
-  // Use real data or fall back to mocks
-  const hasRealData = campaigns.length > 0
-  const mockChannelData = MOCK_CHANNELS
+  const balance = realEarnings
+  const totalEarnings = realEarnings
+  const thisMonth = realEarnings
 
-  const balance = hasRealData ? realEarnings : 930
-  const totalEarnings = hasRealData ? realEarnings : mockChannelData.reduce((s, c) => s + c.totalEarnings, 0)
-  const thisMonth = hasRealData ? realEarnings : mockChannelData.reduce((s, c) => s + c.earningsThisMonth, 0)
-
-  // Build monthly chart from real data or mock
-  const monthlyData = hasRealData ? (() => {
+  // Build monthly chart from real data
+  const monthlyData = (() => {
     const months = {}
     const now = new Date()
     for (let i = 5; i >= 0; i--) {
@@ -420,11 +415,10 @@ export default function CreatorEarningsPage() {
       if (months[key]) months[key].value += (c.netAmount || 0)
     })
     return Object.values(months).map(m => ({ ...m, value: Math.round(m.value) }))
-  })() : MOCK_MONTHLY_EARNINGS
+  })()
 
-  // Build earnings list from campaigns or use mock
-  const earningsList = hasRealData
-    ? filteredCampaigns.map(c => ({
+  // Build earnings list from campaigns
+  const earningsList = filteredCampaigns.map(c => ({
         id: c._id,
         campaignId: c._id,
         date: new Date(c.completedAt || c.createdAt).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' }),
@@ -434,7 +428,6 @@ export default function CreatorEarningsPage() {
         commissionRate: c.commissionRate || 0,
         status: c.status === 'COMPLETED' ? 'completado' : c.status === 'PUBLISHED' ? 'publicado' : c.status === 'CANCELLED' ? 'cancelado' : 'pendiente',
       }))
-    : MOCK_EARNINGS
 
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1060px' }}>
