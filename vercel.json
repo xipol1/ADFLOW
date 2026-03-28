@@ -4,13 +4,13 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/**/*.js": {
-      "memory": 512,
-      "maxDuration": 10
+    "api/index.js": {
+      "memory": 1024,
+      "maxDuration": 30
     }
   },
   "rewrites": [
-    { "source": "/demo", "destination": "/demo-mockup/index.html" },
-    { "source": "/((?!api/|demo-mockup/).*)", "destination": "/index.html" }
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

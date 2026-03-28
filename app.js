@@ -18,6 +18,8 @@ app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true);
     if (ENV !== 'production') return cb(null, true);
+    // Allow Vercel preview and production deployments
+    if (origin.endsWith('.vercel.app')) return cb(null, true);
     if (FRONTEND_URL && origin === FRONTEND_URL) return cb(null, true);
     return cb(new Error('Origin no permitido por CORS'));
   },
