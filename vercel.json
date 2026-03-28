@@ -5,8 +5,8 @@
   "outputDirectory": "dist",
   "functions": {
     "api/index.js": {
-      "memory": 1024,
-      "maxDuration": 30
+      "maxDuration": 30,
+      "includeFiles": "routes/**,controllers/**,models/**,middleware/**,lib/**,services/**,config/**,app.js"
     }
   },
   "rewrites": [
