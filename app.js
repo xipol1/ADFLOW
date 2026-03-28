@@ -134,7 +134,7 @@ const safeMount = (mountPath, modulePath) => {
     res.status(503).json({
       success: false,
       message: 'Servicio no disponible',
-      ...(mountError ? { error: mountError.message || String(mountError), stack: mountError.stack } : {})
+      ...(ENV === 'development' && mountError ? { error: mountError.message || String(mountError) } : {})
     });
   });
 };
