@@ -1,0 +1,38 @@
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+*.zip
+.vercel/
+_server_fatal.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+
+# Old project iterations (kept locally as backups)
+Adflow 1.0/
+adflow-unified/
+plataforma-*/
+
+# Planning spreadsheets (kept locally)
+*.xlsx
+
+# Data files (generated at runtime)
+data/*.json
+!data/.gitkeep
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Settings
+settings.local.json

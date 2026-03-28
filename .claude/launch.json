@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Backend (Express + Nodemon)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5000
+    },
+    {
+      "name": "Frontend (Vite React)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "frontend:dev"],
+      "port": 3000
+    },
+    {
+      "name": "Full Stack (Backend + Frontend)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:full"],
+      "port": 3000
+    }
+  ]
+}

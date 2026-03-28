@@ -1,0 +1,623 @@
+/**
+ * Servicio de API para la plataforma de monetización
+ * Centraliza todas las llamadas al backend
+ */
+
+const normalizeBase = (value) => {
+  if (!value) return '';
+  return String(value).trim().replace(/\/+$/, '');
+};
+
+const readEnv = () => {
+  const fromVite = typeof import.meta !== 'undefined' && import.meta.env
+    ? import.meta.env.VITE_API_URL || import.meta.env.NEXT_PUBLIC_API_URL
+    : '';
+  const fromDefine = typeof process !== 'undefined' && process.env ? process.env.NEXT_PUBLIC_API_URL : '';
+  return normalizeBase(fromVite || fromDefine);
+};
+
+export const CONFIGURED_API_URL = readEnv();
+export const CONFIGURED_API_BASE_URL = CONFIGURED_API_URL
+  ? (CONFIGURED_API_URL.endsWith('/api') ? CONFIGURED_API_URL : `${CONFIGURED_API_URL}/api`)
+  : '/api';
+export const CONFIGURED_API_ORIGIN = CONFIGURED_API_URL
+  ? CONFIGURED_API_URL.replace(/\/api$/, '')
+  : '';
+
+class ApiService {
+  constructor() {
+    this.baseURL = CONFIGURED_API_BASE_URL;
+  }
+
+  /**
+   * Obtener el token de autenticación
+   */
+  getAuthToken() {
+    return localStorage.getItem('token');
+  }
+
+  /**
+   * Configurar headers por defecto
+   */
+  getHeaders(includeAuth = true) {
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    if (includeAuth) {
+      const token = this.getAuthToken();
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+    }
+
+    return headers;
+  }
+
+  /**
+   * Realizar petición HTTP
+   */
+  async request(endpoint, options = {}) {
+    const url = `${this.baseURL}${endpoint}`;
+    const config = {
+      headers: this.getHeaders(options.auth !== false),
+      ...options,
+    };
+
+    try {
+      const response = await fetch(url, config);
+      const contentType = response.headers?.get?.('content-type') || '';
+      const text = await response.text();
+      const hasBody = text != null && text !== '';
+
+      let parsed = null;
+      if (hasBody) {
+        if (contentType.includes('application/json')) {
+          try {
+            parsed = JSON.parse(text);
+          } catch {
+            parsed = null;
+          }
+        } else {
+          try {
+            parsed = JSON.parse(text);
+          } catch {
+            parsed = null;
+          }
+        }
+      }
+
+      if (response.ok) {
+        if (parsed != null) return parsed;
+        return { success: true };
+      }
+
+      if (parsed && typeof parsed === 'object') return parsed;
+      return { success: false, message: hasBody ? text : 'Error del servidor', status: response.status };
+    } catch (error) {
+      return { success: false, message: 'No se pudo conectar con el servidor', error: error?.message };
+    }
+  }
+
+  // ==========================================
+  // MÉTODOS DE AUTENTICACIÓN
+  // ==========================================
+
+  /**
+   * Iniciar sesión
+   */
+  async login(credentials) {
+    return this.request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+      auth: false,
+    });
+  }
+
+  /**
+   * Registrar usuario
+   */
+  async register(userData) {
+    return this.request('/auth/registro', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+      auth: false,
+    });
+  }
+
+  /**
+   * Verificar token
+   */
+  async verifyToken() {
+    return this.request('/auth/verificar-token');
+  }
+
+  /**
+   * Cerrar sesión
+   */
+  async logout() {
+    return this.request('/auth/logout', {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * Solicitar restablecimiento de contraseña
+   */
+  async requestPasswordReset(email) {
+    return this.request('/auth/solicitar-restablecimiento', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+      auth: false,
+    });
+  }
+
+  /**
+   * Restablecer contraseña
+   */
+  async resetPassword(token, newPassword) {
+    return this.request(`/auth/restablecer-password/${token}`, {
+      method: 'POST',
+      body: JSON.stringify({ password: newPassword }),
+      auth: false,
+    });
+  }
+
+  async verifyEmail(token) {
+    return this.request(`/auth/verificar-email/${token}`, { method: 'GET' });
+  }
+
+  async resendVerificationEmail(email) {
+    return this.request('/auth/reenviar-verificacion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  // ==========================================
+  // MÉTODOS DE CANALES
+  // ==========================================
+
+  /**
+   * Obtener mis canales
+   */
+  async getMyChannels(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/canales${queryString ? `?${queryString}` : ''}`);
+  }
+
+  /**
+   * Obtener canal por ID
+   */
+  async getChannel(id) {
+    return this.request(`/canales/${id}`);
+  }
+
+  /**
+   * Crear nuevo canal
+   */
+  async createChannel(channelData) {
+    return this.request('/canales', {
+      method: 'POST',
+      body: JSON.stringify(channelData),
+    });
+  }
+
+  /**
+   * Actualizar canal
+   */
+  async updateChannel(id, channelData) {
+    return this.request(`/canales/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(channelData),
+    });
+  }
+
+  /**
+   * Eliminar canal
+   */
+  async deleteChannel(id) {
+    return this.request(`/canales/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  /**
+   * Verificar canal
+   */
+  async verifyChannel(id, verificationData) {
+    return this.request(`/canales/${id}/verificar`, {
+      method: 'POST',
+      body: JSON.stringify(verificationData),
+    });
+  }
+
+  /**
+   * Buscar canales públicos
+   */
+  async searchChannels(params = {}) {
+    const normalized = { ...params };
+    if (normalized.limite == null && normalized.limit != null) normalized.limite = normalized.limit;
+    if (normalized.pagina == null && normalized.page != null) normalized.pagina = normalized.page;
+    if (normalized.verificado == null && normalized.verified != null) {
+      normalized.verificado = normalized.verified === true || normalized.verified === 'true' ? 'true' : 'false';
+    }
+    if (normalized.plataforma == null && normalized.platform != null) normalized.plataforma = normalized.platform;
+    if (normalized.categoria == null && normalized.category != null) normalized.categoria = normalized.category;
+    if (normalized.ordenPor == null && normalized.sort != null) normalized.ordenPor = normalized.sort;
+    delete normalized.limit;
+    delete normalized.page;
+    delete normalized.verified;
+    delete normalized.platform;
+    delete normalized.category;
+    delete normalized.sort;
+
+    const queryString = new URLSearchParams(normalized).toString();
+    return this.request(`/channels${queryString ? `?${queryString}` : ''}`, { auth: false });
+  }
+
+  // ==========================================
+  // MÉTODOS DE ANUNCIOS
+  // ==========================================
+
+  /**
+   * Obtener mis anuncios
+   */
+  async getMyAds(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/anuncios${queryString ? `?${queryString}` : ''}`);
+  }
+
+  /**
+   * Obtener anuncios para creador
+   */
+  async getAdsForCreator(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/anuncios/creador${queryString ? `?${queryString}` : ''}`);
+  }
+
+  /**
+   * Obtener anuncio por ID
+   */
+  async getAd(id) {
+    return this.request(`/anuncios/${id}`);
+  }
+
+  /**
+   * Crear nuevo anuncio
+   */
+  async createAd(adData) {
+    return this.request('/anuncios', {
+      method: 'POST',
+      body: JSON.stringify(adData),
+    });
+  }
+
+  /**
+   * Actualizar anuncio
+   */
+  async updateAd(id, adData) {
+    return this.request(`/anuncios/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(adData),
+    });
+  }
+
+  /**
+   * Eliminar anuncio
+   */
+  async deleteAd(id) {
+    return this.request(`/anuncios/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  /**
+   * Enviar anuncio para aprobación
+   */
+  async submitAdForApproval(id) {
+    return this.request(`/anuncios/${id}/enviar-aprobacion`, {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * Responder a solicitud de aprobación
+   */
+  async respondToAdApproval(id, response) {
+    return this.request(`/anuncios/${id}/responder-aprobacion`, {
+      method: 'POST',
+      body: JSON.stringify(response),
+    });
+  }
+
+  /**
+   * Activar anuncio
+   */
+  async activateAd(id) {
+    return this.request(`/anuncios/${id}/activar`, {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * Completar anuncio
+   */
+  async completeAd(id, completionData) {
+    return this.request(`/anuncios/${id}/completar`, {
+      method: 'POST',
+      body: JSON.stringify(completionData),
+    });
+  }
+
+  /**
+   * Obtener estadísticas de anuncios
+   */
+  async getAdStatistics(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/anuncios/estadisticas${queryString ? `?${queryString}` : ''}`);
+  }
+
+  /**
+   * Optimizar campaña (Auto-buy)
+   */
+  async optimizeCampaign(data) {
+    return this.request('/campaigns/optimize', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  /**
+   * Lanzar campaña automática (Launch-auto)
+   */
+  async launchAutoCampaign(data) {
+    return this.request('/campaigns/launch-auto', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // ==========================================
+  // MÉTODOS DE LISTAS DE CANALES
+  // ==========================================
+
+  /**
+   * Obtener mis listas de canales
+   */
+  async getMyLists() {
+    return this.request('/lists');
+  }
+
+  /**
+   * Crear nueva lista de canales
+   */
+  async createList(data) {
+    return this.request('/lists', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  /**
+   * Agregar canal a lista
+   */
+  async addChannelToList(listId, channelId) {
+    return this.request(`/lists/${listId}/add-channel`, {
+      method: 'POST',
+      body: JSON.stringify({ channelId }),
+    });
+  }
+
+  /**
+   * Eliminar canal de lista
+   */
+  async removeChannelFromList(listId, channelId) {
+    return this.request(`/lists/${listId}/remove-channel/${channelId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // ==========================================
+  // MÉTODOS DE TRANSACCIONES
+  // ==========================================
+
+  /**
+   * Obtener mis transacciones
+   */
+  async getMyTransactions(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/transacciones${queryString ? `?${queryString}` : ''}`);
+  }
+
+  /**
+   * Obtener transacción por ID
+   */
+  async getTransaction(id) {
+    return this.request(`/transacciones/${id}`);
+  }
+
+  /**
+   * Crear nueva transacción
+   */
+  async createTransaction(transactionData) {
+    return this.request('/transacciones', {
+      method: 'POST',
+      body: JSON.stringify(transactionData),
+    });
+  }
+
+  /**
+   * Procesar pago
+   */
+  async processPayment(paymentData) {
+    return this.request('/transacciones/pagar', {
+      method: 'POST',
+      body: JSON.stringify(paymentData),
+    });
+  }
+
+  /**
+   * Solicitar retiro
+   */
+  async requestWithdrawal(withdrawalData) {
+    return this.request('/transacciones/retiro', {
+      method: 'POST',
+      body: JSON.stringify(withdrawalData),
+    });
+  }
+
+  // ==========================================
+  // MÉTODOS DE ESTADÍSTICAS
+  // ==========================================
+
+  /**
+   * Obtener estadísticas generales
+   */
+  async getGeneralStats() {
+    return this.request('/estadisticas/generales');
+  }
+
+  /**
+   * Obtener estadísticas del dashboard
+   */
+  async getDashboardStats() {
+    return this.request('/estadisticas/dashboard');
+  }
+
+  /**
+   * Obtener estadísticas de un canal
+   */
+  async getChannelStats(id) {
+    return this.request(`/estadisticas/canales/${id}`);
+  }
+
+  /**
+   * Obtener estadísticas de un anuncio
+   */
+  async getAdStats(id) {
+    return this.request(`/estadisticas/anuncios/${id}`);
+  }
+
+  // ==========================================
+  // MÉTODOS DE NOTIFICACIONES
+  // ==========================================
+
+  /**
+   * Obtener mis notificaciones
+   */
+  async getMyNotifications(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/notifications${queryString ? `?${queryString}` : ''}`);
+  }
+
+  /**
+   * Marcar notificación como leída
+   */
+  async markNotificationAsRead(id) {
+    return this.request(`/notifications/${id}/leer`, {
+      method: 'PUT',
+    });
+  }
+
+  /**
+   * Marcar todas las notificaciones como leídas
+   */
+  async markAllNotificationsAsRead() {
+    return this.request('/notifications/leer-todas', {
+      method: 'PUT',
+    });
+  }
+
+  /**
+   * Eliminar notificación
+   */
+  async deleteNotification(id) {
+    return this.request(`/notifications/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // ==========================================
+  // MÉTODOS DE ARCHIVOS
+  // ==========================================
+
+  /**
+   * Subir archivo
+   */
+  async uploadFile(file, type = 'general') {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+
+    return this.request('/files/upload', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${this.getAuthToken()}`,
+        // No incluir Content-Type para FormData
+      },
+    });
+  }
+
+  /**
+   * Obtener archivo
+   */
+  async getFile(id) {
+    return this.request(`/files/${id}`);
+  }
+
+  /**
+   * Eliminar archivo
+   */
+  async deleteFile(id) {
+    return this.request(`/files/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // ==========================================
+  // MÉTODOS DE CAMPAÑAS
+  // ==========================================
+
+  /**
+   * Obtener campañas del usuario autenticado
+   */
+  async getMyCampaigns() {
+    return this.request('/campaigns');
+  }
+
+  /**
+   * Crear campaña
+   */
+  async createCampaign(payload) {
+    return this.request('/campaigns', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getTransacciones(params = {}) {
+    const q = new URLSearchParams(params).toString();
+    return this.request(`/transacciones${q ? '?' + q : ''}`);
+  }
+
+  async getNotifications(params = {}) {
+    const q = new URLSearchParams(params).toString();
+    return this.request(`/notifications${q ? '?' + q : ''}`);
+  }
+
+  async markNotificationRead(id) {
+    return this.request(`/notifications/${id}/leer`, { method: 'PUT' });
+  }
+
+  async markAllNotificationsRead() {
+    return this.request('/notifications/leer-todas', { method: 'PUT' });
+  }
+}
+
+// Crear instancia única del servicio
+const apiService = new ApiService();
+
+export default apiService;

@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "installCommand": "npm install --include=dev",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/**/*.js": {
+      "memory": 512,
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    { "source": "/demo", "destination": "/demo-mockup/index.html" },
+    { "source": "/((?!api/|demo-mockup/).*)", "destination": "/index.html" }
+  ]
+}

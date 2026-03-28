@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adflow — Demo interactiva</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="icon" href="/favicon.ico" />
+    <style>
+      #back-to-adflow {
+        position: fixed;
+        bottom: 18px;
+        right: 18px;
+        z-index: 999;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(11,16,32,0.85);
+        backdrop-filter: blur(12px);
+        color: rgba(255,255,255,0.75);
+        font-size: 13px;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        text-decoration: none;
+        transition: all .15s;
+      }
+      #back-to-adflow:hover {
+        border-color: rgba(124,58,237,0.6);
+        color: #fff;
+        background: rgba(124,58,237,0.18);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <a id="back-to-adflow" href="/">← Volver a Adflow</a>
+    <script type="module" src="./index.js"></script>
+  </body>
+</html>
