@@ -468,6 +468,10 @@ class ApiService {
     });
   }
 
+  async getMyRetiros() {
+    return this.request('/transacciones/retiros');
+  }
+
   // ==========================================
   // MÉTODOS DE ESTADÍSTICAS
   // ==========================================

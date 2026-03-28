@@ -49,6 +49,13 @@ const FALLBACK_LISTINGS = [
 
 const PLATFORMS = ['Todos', 'WhatsApp', 'Telegram', 'Discord', 'YouTube', 'Instagram', 'TikTok']
 const CATEGORIES = ['Todas', 'Ecommerce', 'Fitness', 'Marketing', 'Gaming', 'IA & Tech', 'Educación', 'Tecnologia', 'Finanzas', 'Negocios']
+const SORT_OPTIONS = [
+  { value: 'createdAt', label: 'Más recientes' },
+  { value: 'audiencia', label: 'Mayor audiencia' },
+  { value: 'precio', label: 'Mayor precio' },
+  { value: 'score', label: 'Mejor puntuación' },
+]
+const PAGE_SIZE = 20
 
 const fmtAudience = (n) => {
   if (!n) return '0'
@@ -64,11 +71,14 @@ export default function MarketplacePage() {
   const [searchInput, setSearchInput] = useState(searchParams.get('q') || '')
   const [hovCard, setHovCard] = useState(null)
   const [apiChannels, setApiChannels] = useState(null)
+  const [pagination, setPagination] = useState(null) // { total, totalPaginas }
   const [loading, setLoading] = useState(true)
 
   const activePlatform = searchParams.get('platform') || 'Todos'
   const activeCategory = searchParams.get('category') || 'Todas'
   const activeQ = searchParams.get('q') || ''
+  const activeSort = searchParams.get('sort') || 'createdAt'
+  const activePage = Math.max(1, Number(searchParams.get('page') || 1))
 
   const F = "'Inter', system-ui, sans-serif"
   const D = "'Sora', system-ui, sans-serif"
@@ -77,7 +87,7 @@ export default function MarketplacePage() {
   const fetchChannels = useCallback(async () => {
     setLoading(true)
     try {
-      const params = {}
+      const params = { page: activePage, limit: PAGE_SIZE, sort: activeSort }
       if (activePlatform !== 'Todos') params.platform = activePlatform.toLowerCase()
       if (activeCategory !== 'Todas') params.category = activeCategory.toLowerCase()
       if (activeQ) params.q = activeQ
@@ -85,19 +95,39 @@ export default function MarketplacePage() {
       const res = await apiService.searchChannels(params)
       if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
         setApiChannels(res.data)
+        setPagination(res.pagination || null)
       } else {
-        setApiChannels(null) // will use fallback
+        setApiChannels(null)
+        setPagination(null)
       }
     } catch {
       setApiChannels(null)
+      setPagination(null)
     } finally {
       setLoading(false)
     }
-  }, [activePlatform, activeCategory, activeQ])
+  }, [activePlatform, activeCategory, activeQ, activeSort, activePage])
 
   useEffect(() => {
     fetchChannels()
   }, [fetchChannels])
+
+  // Reset to page 1 when filters change
+  const prevFiltersRef = React.useRef({ activePlatform, activeCategory, activeQ, activeSort })
+  useEffect(() => {
+    const prev = prevFiltersRef.current
+    const filtersChanged =
+      prev.activePlatform !== activePlatform ||
+      prev.activeCategory !== activeCategory ||
+      prev.activeQ !== activeQ ||
+      prev.activeSort !== activeSort
+    if (filtersChanged) {
+      prevFiltersRef.current = { activePlatform, activeCategory, activeQ, activeSort }
+      const next = new URLSearchParams(searchParams)
+      next.delete('page')
+      setSearchParams(next)
+    }
+  }, [activePlatform, activeCategory, activeQ, activeSort]) // eslint-disable-line
 
   // Merge API data with fallback
   const listings = useMemo(() => {
@@ -146,12 +176,21 @@ export default function MarketplacePage() {
 
   const setFilter = (key, value) => {
     const next = new URLSearchParams(searchParams)
+    next.delete('page') // reset pagination when filters change
     if ((key === 'platform' && value === 'Todos') || (key === 'category' && value === 'Todas')) {
       next.delete(key)
     } else {
       next.set(key, value)
     }
     setSearchParams(next)
+  }
+
+  const setPage = (p) => {
+    const next = new URLSearchParams(searchParams)
+    if (p <= 1) next.delete('page')
+    else next.set('page', String(p))
+    setSearchParams(next)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleSearch = () => {
@@ -178,9 +217,26 @@ export default function MarketplacePage() {
           <h1 style={{ fontFamily: D, fontSize: '28px', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '6px' }}>
             Explorar canales
           </h1>
-          <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '20px' }}>
-            {loading ? 'Cargando canales...' : `${listings.length} canales disponibles`}
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
+            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: 0 }}>
+              {loading ? 'Cargando canales...' : pagination ? `${pagination.total} canales disponibles` : `${listings.length} canales disponibles`}
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 500 }}>Ordenar:</span>
+              <select
+                value={activeSort}
+                onChange={e => setFilter('sort', e.target.value)}
+                style={{
+                  background: 'var(--surface)', color: 'var(--text)',
+                  border: '1px solid var(--border-med)', borderRadius: '8px',
+                  padding: '5px 10px', fontSize: '13px', cursor: 'pointer', outline: 'none',
+                  fontFamily: F,
+                }}
+              >
+                {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+          </div>
 
           {/* Search bar */}
           <div style={{
@@ -378,6 +434,56 @@ export default function MarketplacePage() {
             })}
           </div>
         )}
+        {/* Pagination */}
+        {!loading && pagination && pagination.totalPaginas > 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '40px', paddingBottom: '8px' }}>
+            <button
+              onClick={() => setPage(activePage - 1)}
+              disabled={activePage <= 1}
+              style={{
+                background: 'var(--surface)', color: activePage <= 1 ? 'var(--muted2)' : 'var(--text)',
+                border: '1px solid var(--border)', borderRadius: '8px',
+                padding: '7px 14px', fontSize: '13px', fontWeight: 600,
+                cursor: activePage <= 1 ? 'not-allowed' : 'pointer',
+              }}
+            >← Anterior</button>
+
+            {Array.from({ length: pagination.totalPaginas }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === pagination.totalPaginas || Math.abs(p - activePage) <= 2)
+              .reduce((acc, p, idx, arr) => {
+                if (idx > 0 && p - arr[idx - 1] > 1) acc.push('…')
+                acc.push(p)
+                return acc
+              }, [])
+              .map((p, idx) =>
+                p === '…' ? (
+                  <span key={`ellipsis-${idx}`} style={{ fontSize: '13px', color: 'var(--muted)', padding: '0 4px' }}>…</span>
+                ) : (
+                  <button key={p} onClick={() => setPage(p)} style={{
+                    background: p === activePage ? A : 'var(--surface)',
+                    color: p === activePage ? '#fff' : 'var(--text)',
+                    border: `1px solid ${p === activePage ? A : 'var(--border)'}`,
+                    borderRadius: '8px', padding: '7px 12px',
+                    fontSize: '13px', fontWeight: p === activePage ? 700 : 500,
+                    cursor: 'pointer', minWidth: '36px',
+                  }}>{p}</button>
+                )
+              )
+            }
+
+            <button
+              onClick={() => setPage(activePage + 1)}
+              disabled={activePage >= pagination.totalPaginas}
+              style={{
+                background: 'var(--surface)', color: activePage >= pagination.totalPaginas ? 'var(--muted2)' : 'var(--text)',
+                border: '1px solid var(--border)', borderRadius: '8px',
+                padding: '7px 14px', fontSize: '13px', fontWeight: 600,
+                cursor: activePage >= pagination.totalPaginas ? 'not-allowed' : 'pointer',
+              }}
+            >Siguiente →</button>
+          </div>
+        )}
+
       </div>
     </div>
   )

@@ -1,4 +1,5 @@
 const Transaccion = require('../models/Transaccion');
+const Retiro = require('../models/Retiro');
 const Campaign = require('../models/Campaign');
 const { ensureDb } = require('../lib/ensureDb');
 
@@ -315,6 +316,88 @@ const obtenerEstadisticasFinancieras = async (req, res, next) => {
   }
 };
 
+// ─── POST /api/transacciones/retiro ─────────────────────────────────────────
+// Creator requests a payout/withdrawal
+const solicitarRetiro = async (req, res, next) => {
+  try {
+    const ok = await ensureDb();
+    if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
+
+    const userId = req.usuario?.id;
+    if (!userId) return next(httpError(401, 'No autorizado'));
+
+    const amount = Number(req.body?.amount);
+    const method = req.body?.method || 'bank';
+
+    if (!Number.isFinite(amount) || amount < 10) {
+      return next(httpError(400, 'Importe mínimo de retiro: €10'));
+    }
+    if (!['bank', 'paypal'].includes(method)) {
+      return next(httpError(400, 'Método de pago inválido. Usa bank o paypal'));
+    }
+
+    // Compute creator's available balance from completed campaigns
+    const mongoose = require('mongoose');
+    const creatorId = new mongoose.Types.ObjectId(userId);
+
+    const [completedEarnings, pendingRetiros] = await Promise.all([
+      Campaign.aggregate([
+        { $match: { creator: creatorId, status: 'COMPLETED' } },
+        { $group: { _id: null, total: { $sum: '$netAmount' } } },
+      ]),
+      Retiro.aggregate([
+        { $match: { creator: creatorId, status: { $in: ['pending', 'processing'] } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+    ]);
+
+    const totalEarned = completedEarnings[0]?.total || 0;
+    const reservedForRetiro = pendingRetiros[0]?.total || 0;
+    const availableBalance = totalEarned - reservedForRetiro;
+
+    if (availableBalance < amount) {
+      return next(httpError(400, `Saldo insuficiente. Disponible: €${availableBalance.toFixed(2)}`));
+    }
+
+    const retiro = await Retiro.create({
+      creator: userId,
+      amount,
+      method,
+      paypalEmail: req.body?.paypalEmail || null,
+      bankAccount: req.body?.bankAccount || null,
+      status: 'pending',
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: retiro,
+      message: `Retiro de €${amount} solicitado. Se procesará en 2-3 días hábiles.`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── GET /api/transacciones/retiros ─────────────────────────────────────────
+// List creator's withdrawal history
+const obtenerMisRetiros = async (req, res, next) => {
+  try {
+    const ok = await ensureDb();
+    if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
+
+    const userId = req.usuario?.id;
+    if (!userId) return next(httpError(401, 'No autorizado'));
+
+    const items = await Retiro.find({ creator: userId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.json({ success: true, data: { items } });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   obtenerMisTransacciones,
   obtenerTransaccion,
@@ -324,4 +407,6 @@ module.exports = {
   crearPaymentIntent,
   webhookPago,
   obtenerEstadisticasFinancieras,
+  solicitarRetiro,
+  obtenerMisRetiros,
 };

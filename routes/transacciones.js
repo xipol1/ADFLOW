@@ -27,6 +27,21 @@ router.post(
   transaccionController.crearPaymentIntent
 );
 
+// Creator withdrawal request
+router.post(
+  '/retiro',
+  autenticar,
+  [
+    body('amount').isFloat({ min: 10 }).withMessage('Importe mínimo de retiro: 10'),
+    body('method').optional().isIn(['bank', 'paypal']).withMessage('Método inválido'),
+  ],
+  validarCampos,
+  transaccionController.solicitarRetiro
+);
+
+// List creator's withdrawal history
+router.get('/retiros', autenticar, transaccionController.obtenerMisRetiros);
+
 // Manual transaction creation
 router.post('/', autenticar, transaccionController.crearTransaccion);
 

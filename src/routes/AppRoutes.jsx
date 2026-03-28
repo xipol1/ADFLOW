@@ -4,6 +4,7 @@ import ProtectedRoute from '../ui/routing/ProtectedRoute'
 import AppLayout from '../ui/layouts/AppLayout'
 import LoginPage from '../ui/pages/auth/LoginPage'
 import RegisterPage from '../ui/pages/auth/RegisterPage'
+import VerifyEmailPage from '../ui/pages/auth/VerifyEmailPage'
 import LandingPage from '../ui/pages/landing/LandingPage'
 import DashboardPage from '../ui/pages/dashboard/DashboardPage'
 import MarketplacePage from '../ui/pages/marketplace/MarketplacePage'
@@ -47,6 +48,7 @@ export default function AppRoutes() {
           path="auth/register"
           element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
         />
+        <Route path="verificar-email/:token" element={<VerifyEmailPage />} />
 
         {/* Creator / Admin dashboard (uses public NavBar layout) */}
         <Route
