@@ -26,7 +26,6 @@ try { _routes['./routes/disputes']      = require('./routes/disputes');      } c
 try { _routes['./routes/userLists']     = require('./routes/userLists');     } catch (e) { _routes['./routes/userLists']     = e; }
 try { _routes['./routes/autobuy']       = require('./routes/autobuy');       } catch (e) { _routes['./routes/autobuy']       = e; }
 try { _routes['./routes/partnerWebhook'] = require('./routes/partnerWebhook'); } catch (e) { _routes['./routes/partnerWebhook'] = e; }
-try { _routes['./routes/adminProvision'] = require('./routes/adminProvision'); } catch (e) { _routes['./routes/adminProvision'] = e; }
 
 const app = express();
 
@@ -172,7 +171,6 @@ const enabledRoutes = [
   ['/api/files', './routes/files'],
   ['/api/disputes', './routes/disputes'],
   ['/api/autobuy', './routes/autobuy'],
-  ['/api/admin', './routes/adminProvision'],
 ];
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));
