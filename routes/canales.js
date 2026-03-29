@@ -45,4 +45,15 @@ router.delete(
   canalController.eliminarCanal
 );
 
+// ── Availability (creator updates their publication calendar) ──
+const channelsController = require('../controllers/channelsController');
+
+router.put(
+  '/:id/availability',
+  autenticar,
+  [param('id').isMongoId().withMessage('ID inválido')],
+  validarCampos,
+  channelsController.updateChannelAvailability
+);
+
 module.exports = router;

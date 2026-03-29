@@ -21,4 +21,7 @@ router.get(
 
 router.get('/:id', limitadorAPI, channelsController.getChannelById);
 
+// Calendar / availability (public — no auth required for read)
+router.get('/:id/availability', limitadorAPI, channelsController.getChannelAvailability);
+
 module.exports = router;

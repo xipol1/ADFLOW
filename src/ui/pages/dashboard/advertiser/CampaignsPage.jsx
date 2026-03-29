@@ -141,13 +141,13 @@ const Avatar = ({ name, color = V, size = 28 }) => {
 }
 
 /* ── Pro chat panel ────────────────────────────────────────────────────────── */
-const ChatPanel = ({ campaign, onUpdate, myRole = 'advertiser' }) => {
+const ChatPanel = ({ campaign, myRole = 'advertiser' }) => {
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
   const [expanded, setExpanded] = useState(true)
+  const [messages, setMessages] = useState([])
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
-  const messages = campaign?.chat || []
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -156,24 +156,30 @@ const ChatPanel = ({ campaign, onUpdate, myRole = 'advertiser' }) => {
     }
   }, [messages.length, expanded])
 
-  // Poll for new messages every 8 seconds
+  // Load messages on mount + poll every 8 seconds
   useEffect(() => {
     if (!campaign?._id || !expanded) return
-    const poll = setInterval(async () => {
+    let active = true
+    const fetchMessages = async () => {
       try {
-        const res = await apiService.getCampaignChat(campaign._id)
-        if (res?.success && res.data) onUpdate?.(res.data)
+        const res = await apiService.getCampaignMessages(campaign._id)
+        if (res?.success && active) setMessages(res.data || [])
       } catch {}
-    }, 8000)
-    return () => clearInterval(poll)
-  }, [campaign?._id, expanded, onUpdate])
+    }
+    fetchMessages()
+    const poll = setInterval(fetchMessages, 8000)
+    return () => { active = false; clearInterval(poll) }
+  }, [campaign?._id, expanded])
 
   const send = async () => {
     if (!draft.trim() || sending) return
     setSending(true)
     try {
       const res = await apiService.sendCampaignChat(campaign._id, draft.trim())
-      if (res?.success) { onUpdate?.(res.data); setDraft('') }
+      if (res?.success) {
+        setMessages(prev => [...prev, res.data])
+        setDraft('')
+      }
     } catch { /* silent */ }
     setSending(false)
     inputRef.current?.focus()
@@ -286,7 +292,7 @@ const ChatPanel = ({ campaign, onUpdate, myRole = 'advertiser' }) => {
                       </div>
                     )}
                     <div style={{ fontSize: '13px', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
-                      {msg.message}
+                      {msg.text || msg.message}
                     </div>
                     <div style={{
                       fontSize: '10px', marginTop: '4px', textAlign: 'right',
@@ -535,7 +541,7 @@ export default function CampaignsPage() {
             {filtered.map(c => {
               const isActive = sel?._id === c._id
               const channelName = c.channel?.nombreCanal || c.channel?.plataforma || 'Canal'
-              const chatCount = (c.chat || []).length
+              const chatCount = c.messageCount || 0
               const cfg = STATUS_CFG[c.status] || STATUS_CFG.DRAFT
 
               return (
@@ -681,8 +687,8 @@ export default function CampaignsPage() {
                 )}
 
                 {/* Chat */}
-                {['PAID', 'PUBLISHED', 'COMPLETED'].includes(sel.status) && (
-                  <ChatPanel campaign={sel} onUpdate={handleChatUpdate} myRole="advertiser" />
+                {['DRAFT', 'PAID', 'PUBLISHED', 'COMPLETED'].includes(sel.status) && (
+                  <ChatPanel campaign={sel} myRole="advertiser" />
                 )}
 
                 {/* Actions */}

@@ -114,32 +114,38 @@ const ChatPanel = ({ campaign, onSent }) => {
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
   const [showTpl, setShowTpl] = useState(false)
+  const [msgs, setMsgs] = useState([])
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
-  const msgs = campaign?.chat || []
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
   }, [msgs.length])
 
-  // Poll for new messages every 8 seconds
+  // Load messages + poll every 8 seconds
   useEffect(() => {
     if (!campaign?._id) return
-    const poll = setInterval(async () => {
+    let active = true
+    const fetchMessages = async () => {
       try {
-        const r = await apiService.getCampaignChat(campaign._id)
-        if (r?.success && r.data) onSent?.(r.data)
+        const r = await apiService.getCampaignMessages(campaign._id)
+        if (r?.success && active) setMsgs(r.data || [])
       } catch {}
-    }, 8000)
-    return () => clearInterval(poll)
-  }, [campaign?._id, onSent])
+    }
+    fetchMessages()
+    const poll = setInterval(fetchMessages, 8000)
+    return () => { active = false; clearInterval(poll) }
+  }, [campaign?._id])
 
   const send = async () => {
     if (!draft.trim() || sending) return
     setSending(true)
     try {
       const r = await apiService.sendCampaignChat(campaign._id, draft.trim())
-      if (r?.success) { onSent?.(r.data); setDraft('') }
+      if (r?.success) {
+        setMsgs(prev => [...prev, r.data])
+        setDraft('')
+      }
     } catch {}
     setSending(false)
     inputRef.current?.focus()
@@ -195,7 +201,7 @@ const ChatPanel = ({ campaign, onSent }) => {
                 boxShadow: isMe ? `0 2px 8px ${VG(0.2)}` : '0 1px 3px rgba(0,0,0,0.04)',
               }}>
                 {showAv && <div style={{ fontSize: '11px', fontWeight: 700, marginBottom: '3px', color: isMe ? 'rgba(255,255,255,0.7)' : `${BLUE}cc` }}>{m.senderName || m.senderRole}</div>}
-                <div style={{ fontSize: '13px', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>{m.message}</div>
+                <div style={{ fontSize: '13px', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>{m.text || m.message}</div>
                 <div style={{ fontSize: '10px', marginTop: '4px', textAlign: 'right', color: isMe ? 'rgba(255,255,255,0.5)' : 'var(--muted2)' }}>{fmtFull(m.createdAt)}</div>
               </div>
             </div>

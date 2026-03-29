@@ -556,55 +556,162 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
     }
   }
 
-  // ── Success screen ──
+  // ── Success screen with instant payment ──
+  const [paying, setPaying] = React.useState(false)
+  const [payResult, setPayResult] = React.useState(null)
+
+  const handlePayNow = async () => {
+    if (!result?.campaign?._id || paying) return
+    setPaying(true)
+    try {
+      const res = await apiService.payCampaign(result.campaign._id)
+      if (res?.success) {
+        setPayResult('success')
+      } else {
+        setPayResult('error')
+      }
+    } catch {
+      setPayResult('error')
+    }
+    setPaying(false)
+  }
+
   if (result?.success) {
     return (
       <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(6px)' }}
         onClick={e => { if (e.target === e.currentTarget) { onSuccess?.(); onClose() } }}>
-        <div style={{ background: 'var(--surface)', borderRadius: '24px', width: '100%', maxWidth: '500px', padding: '44px 36px', textAlign: 'center', boxShadow: '0 32px 80px rgba(0,0,0,0.4)', animation: 'hm-scale .3s ease' }}>
+        <div style={{ background: 'var(--surface)', borderRadius: '24px', width: '100%', maxWidth: '520px', padding: '44px 36px', textAlign: 'center', boxShadow: '0 32px 80px rgba(0,0,0,0.4)', animation: 'hm-scale .3s ease' }}>
           <style>{`@keyframes hm-scale { from { transform:scale(.95); opacity:0 } to { transform:none; opacity:1 } }`}</style>
-          <div style={{
-            width: '80px', height: '80px', borderRadius: '50%',
-            background: 'rgba(16,185,129,0.1)', border: '2px solid rgba(16,185,129,0.35)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 22px',
-          }}>
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </div>
-          <h2 style={{ fontFamily: D, fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px', letterSpacing: '-0.03em' }}>Solicitud creada</h2>
-          <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '6px', lineHeight: 1.5 }}>
-            Tu solicitud para <strong style={{ color: 'var(--text)' }}>{ch.name}</strong> esta lista.
-          </p>
-          <div style={{ display: 'inline-flex', gap: '16px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '14px 22px', margin: '16px 0 8px' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</div>
-              <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: A }}>€{totalFromDates}</div>
-            </div>
-            <div style={{ width: '1px', background: 'var(--border)' }} />
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fechas</div>
-              <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: '#64748b' }}>{selectedDates.length}</div>
-            </div>
-            <div style={{ width: '1px', background: 'var(--border)' }} />
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Estado</div>
-              <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: '#64748b' }}>Borrador</div>
-            </div>
-          </div>
-          <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '14px 0 24px', lineHeight: 1.6, maxWidth: '360px', marginLeft: 'auto', marginRight: 'auto' }}>
-            Ve a <strong>Mis Campanas</strong> para pagar y activar el escrow. El creador recibira la solicitud y podras chatear con el.
-          </p>
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-            <button onClick={() => { onSuccess?.(); onClose() }} style={{
-              background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px',
-              padding: '12px 24px', fontSize: '13px', cursor: 'pointer', color: 'var(--text)', fontFamily: F, fontWeight: 500,
-            }}>Seguir explorando</button>
-            <button onClick={() => { onSuccess?.(); onClose(); window.location.href = '/advertiser/campaigns' }} style={{
-              background: A, color: '#fff', border: 'none', borderRadius: '12px',
-              padding: '12px 24px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: F,
-              boxShadow: `0 4px 14px ${AG(0.3)}`, transition: 'all .15s',
-            }}>Ver mis campanas</button>
-          </div>
+
+          {payResult === 'success' ? (
+            <>
+              <div style={{
+                width: '80px', height: '80px', borderRadius: '50%',
+                background: 'rgba(16,185,129,0.1)', border: '2px solid rgba(16,185,129,0.35)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 22px',
+              }}>
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <h2 style={{ fontFamily: D, fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px', letterSpacing: '-0.03em' }}>Pago activado</h2>
+              <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px', lineHeight: 1.5 }}>
+                El escrow esta activo. El creador recibira la notificacion y podra aceptar tu campana.
+              </p>
+
+              {/* Pipeline visual */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0', margin: '20px 0', padding: '0 10px' }}>
+                {[
+                  { label: 'Borrador', done: true },
+                  { label: 'Pagada', done: true },
+                  { label: 'Aprobada', done: false },
+                  { label: 'Publicada', done: false },
+                  { label: 'Completada', done: false },
+                ].map((s, i, arr) => (
+                  <React.Fragment key={s.label}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                      <div style={{
+                        width: '28px', height: '28px', borderRadius: '50%',
+                        background: s.done ? '#10b981' : 'var(--bg)',
+                        border: s.done ? 'none' : '2px solid var(--border)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {s.done && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                      </div>
+                      <span style={{ fontSize: '10px', color: s.done ? '#10b981' : 'var(--muted)', fontWeight: s.done ? 600 : 400 }}>{s.label}</span>
+                    </div>
+                    {i < arr.length - 1 && <div style={{ flex: 1, height: '2px', background: s.done && arr[i+1]?.done ? '#10b981' : 'var(--border)', minWidth: '20px', marginBottom: '20px' }} />}
+                  </React.Fragment>
+                ))}
+              </div>
+
+              <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '14px 0 24px', lineHeight: 1.6 }}>
+                Cuando el creador acepte, tu anuncio sera publicado. Podras chatear y dar seguimiento desde <strong>Mis Campanas</strong>.
+              </p>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                <button onClick={() => { onSuccess?.(); onClose() }} style={{
+                  background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px',
+                  padding: '12px 24px', fontSize: '13px', cursor: 'pointer', color: 'var(--text)', fontFamily: F, fontWeight: 500,
+                }}>Seguir explorando</button>
+                <button onClick={() => { onSuccess?.(); onClose(); window.location.href = '/advertiser/campaigns' }} style={{
+                  background: A, color: '#fff', border: 'none', borderRadius: '12px',
+                  padding: '12px 24px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: F,
+                  boxShadow: `0 4px 14px ${AG(0.3)}`, transition: 'all .15s',
+                }}>Ver mis campanas</button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{
+                width: '80px', height: '80px', borderRadius: '50%',
+                background: 'rgba(16,185,129,0.1)', border: '2px solid rgba(16,185,129,0.35)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 22px',
+              }}>
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <h2 style={{ fontFamily: D, fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px', letterSpacing: '-0.03em' }}>Solicitud creada</h2>
+              <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '6px', lineHeight: 1.5 }}>
+                Tu solicitud para <strong style={{ color: 'var(--text)' }}>{ch.name}</strong> esta lista.
+              </p>
+              <div style={{ display: 'inline-flex', gap: '16px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '14px 22px', margin: '16px 0 8px' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</div>
+                  <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: A }}>€{totalFromDates}</div>
+                </div>
+                <div style={{ width: '1px', background: 'var(--border)' }} />
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fechas</div>
+                  <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: '#64748b' }}>{selectedDates.length}</div>
+                </div>
+                <div style={{ width: '1px', background: 'var(--border)' }} />
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Estado</div>
+                  <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: '#64748b' }}>Borrador</div>
+                </div>
+              </div>
+
+              {/* Escrow explanation */}
+              <div style={{
+                background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.15)',
+                borderRadius: '12px', padding: '14px 18px', margin: '16px 0 8px', textAlign: 'left',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#3b82f6' }}>Pago seguro con escrow</span>
+                </div>
+                <p style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5, margin: 0 }}>
+                  Tu pago queda retenido de forma segura hasta que la campana se complete. Si el creador no publica, recibiras un reembolso automatico.
+                </p>
+              </div>
+
+              {payResult === 'error' && (
+                <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '10px 14px', margin: '8px 0', fontSize: '12px', color: '#ef4444' }}>
+                  Error al procesar el pago. Puedes intentarlo de nuevo o pagar desde Mis Campanas.
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
+                <button onClick={() => { onSuccess?.(); onClose(); window.location.href = '/advertiser/campaigns' }} style={{
+                  background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px',
+                  padding: '12px 20px', fontSize: '13px', cursor: 'pointer', color: 'var(--text)', fontFamily: F, fontWeight: 500,
+                }}>Pagar despues</button>
+                <button
+                  onClick={handlePayNow}
+                  disabled={paying}
+                  style={{
+                    background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '12px',
+                    padding: '12px 28px', fontSize: '14px', fontWeight: 700, cursor: paying ? 'not-allowed' : 'pointer', fontFamily: F,
+                    boxShadow: '0 4px 16px rgba(59,130,246,0.35)', transition: 'all .15s',
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    opacity: paying ? 0.7 : 1,
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  {paying ? 'Procesando...' : `Pagar €${totalFromDates} ahora`}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     )

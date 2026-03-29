@@ -16,6 +16,7 @@ import OverviewPage     from '../ui/pages/dashboard/advertiser/OverviewPage'
 import ExplorePage      from '../ui/pages/dashboard/advertiser/ExplorePage'
 import AutoBuyPage      from '../ui/pages/dashboard/advertiser/AutoBuyPage'
 import AdsPage          from '../ui/pages/dashboard/advertiser/AdsPage'
+import CampaignsPage    from '../ui/pages/dashboard/advertiser/CampaignsPage'
 import FinancesPage     from '../ui/pages/dashboard/advertiser/FinancesPage'
 import SettingsPage     from '../ui/pages/dashboard/advertiser/SettingsPage'
 
@@ -76,6 +77,7 @@ export default function AppRoutes() {
         <Route index        element={<OverviewPage />} />
         <Route path="explore"  element={<ExplorePage />} />
         <Route path="autobuy"  element={<AutoBuyPage />} />
+        <Route path="campaigns" element={<CampaignsPage />} />
         <Route path="ads"      element={<AdsPage />} />
         <Route path="finances" element={<FinancesPage />} />
         <Route path="disputes" element={<DisputesPage />} />

@@ -75,4 +75,24 @@ router.post(
   campaignController.cancelCampaign
 );
 
+// ── Chat / messages ──
+router.get(
+  '/:id/messages',
+  autenticar,
+  [param('id').isMongoId().withMessage('ID inválido')],
+  validarCampos,
+  campaignController.getCampaignMessages
+);
+
+router.post(
+  '/:id/messages',
+  autenticar,
+  [
+    param('id').isMongoId().withMessage('ID inválido'),
+    body('text').isString().notEmpty().trim().withMessage('text requerido')
+  ],
+  validarCampos,
+  campaignController.sendCampaignMessage
+);
+
 module.exports = router;

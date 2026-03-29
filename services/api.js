@@ -723,6 +723,86 @@ class ApiService {
   async triggerAutoRule(id) {
     return this.request(`/autobuy/${id}/trigger`, { method: 'POST' });
   }
+
+  // ==========================================
+  // MÉTODOS DE DISPONIBILIDAD (CALENDAR)
+  // ==========================================
+
+  async getChannelAvailability(channelId, year, month) {
+    return this.request(`/channels/${channelId}/availability?year=${year}&month=${month}`, { auth: false });
+  }
+
+  async updateChannelAvailability(channelId, data) {
+    return this.request(`/canales/${channelId}/availability`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateChannelInsights(channelId, data) {
+    return this.request(`/canales/${channelId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // ==========================================
+  // MÉTODOS DE CHAT DE CAMPAÑA
+  // ==========================================
+
+  async getCampaignMessages(campaignId) {
+    return this.request(`/campaigns/${campaignId}/messages`);
+  }
+
+  async sendCampaignChat(campaignId, text, type = 'message') {
+    return this.request(`/campaigns/${campaignId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ text, type }),
+    });
+  }
+
+  // ==========================================
+  // MÉTODOS DE SCORING
+  // ==========================================
+
+  async getChannelScore(channelId) {
+    return this.request(`/estadisticas/canales/${channelId}/score`);
+  }
+
+  async recalculateScore(channelId) {
+    return this.request(`/estadisticas/canales/${channelId}/recalculate`, { method: 'POST' });
+  }
+
+  async connectPlatform(channelId, data) {
+    return this.request(`/estadisticas/canales/${channelId}/connect`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // ==========================================
+  // MÉTODOS DE CAMPAÑAS (ACCIONES)
+  // ==========================================
+
+  async payCampaign(campaignId) {
+    return this.request(`/campaigns/${campaignId}/pay`, { method: 'POST' });
+  }
+
+  async confirmCampaign(campaignId) {
+    return this.request(`/campaigns/${campaignId}/confirm`, { method: 'POST' });
+  }
+
+  async completeCampaign(campaignId) {
+    return this.request(`/campaigns/${campaignId}/complete`, { method: 'POST' });
+  }
+
+  async cancelCampaign(campaignId) {
+    return this.request(`/campaigns/${campaignId}/cancel`, { method: 'POST' });
+  }
+
+  async getCampaignById(campaignId) {
+    return this.request(`/campaigns/${campaignId}`);
+  }
 }
 
 // Crear instancia única del servicio

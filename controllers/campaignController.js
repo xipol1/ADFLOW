@@ -101,7 +101,9 @@ const getCampaigns = async (req, res, next) => {
 
     if (or.length === 0) return res.json({ success: true, data: { items: [] } });
 
-    const items = await Campaign.find({ $or: or }).sort({ createdAt: -1 }).lean();
+    const items = await Campaign.find({ $or: or })
+      .populate('channel', 'nombreCanal plataforma categoria identificadorCanal foto')
+      .sort({ createdAt: -1 }).lean();
     return res.json({ success: true, data: { items } });
   } catch (error) {
     next(error);
@@ -116,7 +118,9 @@ const getCampaignById = async (req, res, next) => {
     const userId = req.usuario?.id;
     if (!userId) return next(httpError(401, 'No autorizado'));
 
-    const campaign = await Campaign.findById(req.params.id).lean();
+    const campaign = await Campaign.findById(req.params.id)
+      .populate('channel', 'nombreCanal plataforma categoria identificadorCanal foto')
+      .lean();
     if (!campaign) return next(httpError(404, 'Campaign no encontrada'));
 
     const allowed = await canAccessCampaign(campaign, userId);
@@ -368,6 +372,80 @@ const cancelCampaign = async (req, res, next) => {
   }
 };
 
+// ── Campaign chat ────────────────────────────────────────────────────────────
+
+const CampaignMessage = require('../models/CampaignMessage');
+
+const getCampaignMessages = async (req, res, next) => {
+  try {
+    const ok = await ensureDb();
+    if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
+
+    const userId = req.usuario?.id;
+    if (!userId) return next(httpError(401, 'No autorizado'));
+
+    const campaign = await Campaign.findById(req.params.id).lean();
+    if (!campaign) return next(httpError(404, 'Campaign no encontrada'));
+
+    const allowed = await canAccessCampaign(campaign, userId);
+    if (!allowed) return next(httpError(403, 'No autorizado'));
+
+    const messages = await CampaignMessage.find({ campaign: campaign._id })
+      .sort({ createdAt: 1 })
+      .lean();
+
+    return res.json({ success: true, data: messages });
+  } catch (error) { next(error); }
+};
+
+const sendCampaignMessage = async (req, res, next) => {
+  try {
+    const ok = await ensureDb();
+    if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
+
+    const userId = req.usuario?.id;
+    if (!userId) return next(httpError(401, 'No autorizado'));
+
+    const text = String(req.body?.text || '').trim();
+    const type = req.body?.type || 'message';
+    if (!text) return next(httpError(400, 'Texto requerido'));
+
+    const campaign = await Campaign.findById(req.params.id).lean();
+    if (!campaign) return next(httpError(404, 'Campaign no encontrada'));
+
+    const allowed = await canAccessCampaign(campaign, userId);
+    if (!allowed) return next(httpError(403, 'No autorizado'));
+
+    const isAdvertiser = campaign.advertiser?.toString() === String(userId);
+    const senderRole = isAdvertiser ? 'advertiser' : 'creator';
+
+    const msg = await CampaignMessage.create({
+      campaign: campaign._id,
+      sender: userId,
+      senderRole,
+      text,
+      type
+    });
+
+    // Notify the other party
+    const channelDoc = await Canal.findById(campaign.channel).select('propietario').lean();
+    const recipientId = isAdvertiser ? channelDoc?.propietario : campaign.advertiser;
+    if (recipientId) {
+      notifySafe({
+        usuarioId: recipientId,
+        tipo: 'campana.mensaje',
+        titulo: 'Nuevo mensaje',
+        mensaje: `${isAdvertiser ? 'El anunciante' : 'El creador'} te ha enviado un mensaje`,
+        datos: { campaignId: campaign._id },
+        canales: ['database', 'realtime'],
+        prioridad: 'normal'
+      });
+    }
+
+    return res.status(201).json({ success: true, data: msg });
+  } catch (error) { next(error); }
+};
+
 module.exports = {
   createCampaign,
   getCampaigns,
@@ -376,5 +454,7 @@ module.exports = {
   payCampaign,
   confirmCampaign,
   completeCampaign,
-  cancelCampaign
+  cancelCampaign,
+  getCampaignMessages,
+  sendCampaignMessage
 };

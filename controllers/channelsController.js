@@ -146,4 +146,121 @@ const getChannelById = async (req, res) => {
   }
 };
 
-module.exports = { listChannels, getChannelById };
+// GET /api/channels/:id/availability?year=2026&month=3
+const getChannelAvailability = async (req, res) => {
+  const dbOk = await ensureDb();
+  if (!dbOk) return res.status(503).json({ success: false, message: 'DB unavailable' });
+
+  try {
+    const canal = await Canal.findById(req.params.id)
+      .select('precio disponibilidad nombreCanal')
+      .lean();
+    if (!canal) return res.status(404).json({ success: false, message: 'Canal no encontrado' });
+
+    const year = Number(req.query.year) || new Date().getFullYear();
+    const month = Number(req.query.month); // 0-based from frontend
+    const monthIdx = Number.isFinite(month) ? month : new Date().getMonth();
+
+    const dispo = canal.disponibilidad || {};
+    const basePrice = canal.precio || 0;
+    const enabledDays = new Set(dispo.diasSemana || [0, 1, 2, 3, 4, 5, 6]);
+    const blockedDates = new Set(dispo.diasBloqueados || []);
+    const dayPricing = {};
+    (dispo.preciosPorDia || []).forEach(p => { dayPricing[p.day] = p; });
+
+    const minAdvance = dispo.antelacionMinima || 2;
+    const maxAdvance = dispo.antelacionMaxima || 60;
+    const maxPub = dispo.maxPublicacionesMes || 10;
+
+    // Count existing bookings this month
+    const Campaign = require('../models/Campaign');
+    const monthStart = new Date(year, monthIdx, 1);
+    const monthEnd = new Date(year, monthIdx + 1, 0, 23, 59, 59);
+    const bookings = await Campaign.find({
+      channel: canal._id,
+      status: { $in: ['PAID', 'PUBLISHED', 'COMPLETED'] },
+      createdAt: { $gte: monthStart, $lte: monthEnd }
+    }).select('createdAt').lean();
+    const bookedCount = bookings.length;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
+
+    const days = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const dateObj = new Date(year, monthIdx, d);
+      const dow = dateObj.getDay();
+      const diffDays = Math.ceil((dateObj - today) / (1000 * 60 * 60 * 24));
+
+      let status = 'available';
+      if (dateObj < today) status = 'past';
+      else if (blockedDates.has(dateStr)) status = 'blocked';
+      else if (!enabledDays.has(dow)) status = 'disabled';
+      else if (diffDays < minAdvance) status = 'too_soon';
+      else if (diffDays > maxAdvance) status = 'disabled';
+      else if (bookedCount >= maxPub) status = 'full';
+
+      const dp = dayPricing[dow];
+      const price = (dp && dp.enabled) ? dp.price : basePrice;
+
+      days.push({ d, date: dateStr, dayOfWeek: dow, price, status });
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        channelId: canal._id,
+        channelName: canal.nombreCanal,
+        year,
+        month: monthIdx,
+        basePrice,
+        days,
+        slotsRemaining: Math.max(0, maxPub - bookedCount),
+        maxPublicacionesMes: maxPub,
+        antelacionMinima: minAdvance,
+        horarioPreferido: dispo.horarioPreferido || { desde: '09:00', hasta: '21:00' },
+        aceptaUrgentes: dispo.aceptaUrgentes || false,
+        precioUrgente: dispo.precioUrgente || 0
+      }
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// PUT /api/channels/:id/availability (creator updates their availability)
+const updateChannelAvailability = async (req, res) => {
+  const dbOk = await ensureDb();
+  if (!dbOk) return res.status(503).json({ success: false, message: 'DB unavailable' });
+
+  try {
+    const userId = req.usuario?.id;
+    if (!userId) return res.status(401).json({ success: false, message: 'No autorizado' });
+
+    const canal = await Canal.findById(req.params.id);
+    if (!canal) return res.status(404).json({ success: false, message: 'Canal no encontrado' });
+    if (canal.propietario?.toString() !== String(userId)) {
+      return res.status(403).json({ success: false, message: 'Solo el propietario puede actualizar' });
+    }
+
+    const b = req.body;
+    if (b.maxPublicacionesMes != null) canal.disponibilidad.maxPublicacionesMes = Number(b.maxPublicacionesMes);
+    if (Array.isArray(b.diasSemana)) canal.disponibilidad.diasSemana = b.diasSemana.map(Number);
+    if (Array.isArray(b.preciosPorDia)) canal.disponibilidad.preciosPorDia = b.preciosPorDia;
+    if (Array.isArray(b.diasBloqueados)) canal.disponibilidad.diasBloqueados = b.diasBloqueados;
+    if (b.horarioPreferido) canal.disponibilidad.horarioPreferido = b.horarioPreferido;
+    if (b.antelacionMinima != null) canal.disponibilidad.antelacionMinima = Number(b.antelacionMinima);
+    if (b.antelacionMaxima != null) canal.disponibilidad.antelacionMaxima = Number(b.antelacionMaxima);
+    if (b.aceptaUrgentes != null) canal.disponibilidad.aceptaUrgentes = Boolean(b.aceptaUrgentes);
+    if (b.precioUrgente != null) canal.disponibilidad.precioUrgente = Number(b.precioUrgente);
+
+    await canal.save();
+    return res.json({ success: true, data: canal.disponibilidad });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { listChannels, getChannelById, getChannelAvailability, updateChannelAvailability };
