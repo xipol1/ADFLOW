@@ -2,6 +2,11 @@ const Campaign = require('../models/Campaign');
 const Canal = require('../models/Canal');
 const Transaccion = require('../models/Transaccion');
 const { ensureDb } = require('../lib/ensureDb');
+const notificationService = require('../services/notificationService');
+
+const notifySafe = async (data) => {
+  try { await notificationService.enviarNotificacion(data); } catch (_) { /* non-blocking */ }
+};
 
 const httpError = (status, message) => {
   const err = new Error(message);
@@ -36,12 +41,15 @@ const createCampaign = async (req, res, next) => {
     const canal = await Canal.findById(channelId).select('_id').lean();
     if (!canal) return next(httpError(404, 'Canal no encontrado'));
 
+    const deadline = req.body?.deadline ? new Date(req.body.deadline) : null;
+
     const campaign = await Campaign.create({
       advertiser: userId,
       channel: canal._id,
       content,
       targetUrl,
       price,
+      deadline,
       status: 'DRAFT',
       createdAt: new Date()
     });
@@ -50,8 +58,23 @@ const createCampaign = async (req, res, next) => {
       campaign: campaign._id,
       advertiser: userId,
       amount: price,
+      tipo: 'pago',
       status: 'pending'
     });
+
+    // Notify channel owner about new campaign request
+    const channelDoc = await Canal.findById(canal._id).select('propietario').lean();
+    if (channelDoc?.propietario) {
+      notifySafe({
+        usuarioId: channelDoc.propietario,
+        tipo: 'campana.nueva',
+        titulo: 'Nueva solicitud de campaña',
+        mensaje: `Un anunciante quiere publicar en tu canal por $${price}`,
+        datos: { campaignId: campaign._id },
+        canales: ['database', 'realtime'],
+        prioridad: 'normal'
+      });
+    }
 
     return res.status(201).json({ success: true, data: campaign });
   } catch (error) {
@@ -203,6 +226,17 @@ const confirmCampaign = async (req, res, next) => {
     campaign.publishedAt = new Date();
     await campaign.save();
 
+    // Notify advertiser that campaign is published
+    notifySafe({
+      usuarioId: campaign.advertiser,
+      tipo: 'campana.publicada',
+      titulo: 'Campaña publicada',
+      mensaje: 'Tu campaña ha sido aceptada y publicada por el creador.',
+      datos: { campaignId: campaign._id },
+      canales: ['database', 'realtime'],
+      prioridad: 'alta'
+    });
+
     return res.json({ success: true, data: campaign });
   } catch (error) {
     next(error);
@@ -244,6 +278,29 @@ const completeCampaign = async (req, res, next) => {
       }
     }
 
+    // Notify both parties
+    notifySafe({
+      usuarioId: campaign.advertiser,
+      tipo: 'campana.completada',
+      titulo: 'Campaña completada',
+      mensaje: 'Tu campaña ha sido completada exitosamente.',
+      datos: { campaignId: campaign._id },
+      canales: ['database', 'realtime'],
+      prioridad: 'alta'
+    });
+    const channelOwner = await Canal.findOne({ _id: campaign.channel }).select('propietario').lean();
+    if (channelOwner?.propietario) {
+      notifySafe({
+        usuarioId: channelOwner.propietario,
+        tipo: 'campana.completada',
+        titulo: 'Campaña completada',
+        mensaje: `Campaña completada. Has ganado $${campaign.netAmount || campaign.price}.`,
+        datos: { campaignId: campaign._id, earnings: campaign.netAmount },
+        canales: ['database', 'realtime'],
+        prioridad: 'alta'
+      });
+    }
+
     return res.json({ success: true, data: campaign });
   } catch (error) {
     next(error);
@@ -271,7 +328,22 @@ const cancelCampaign = async (req, res, next) => {
     }
 
     campaign.status = 'CANCELLED';
+    campaign.cancelledAt = new Date();
     await campaign.save();
+
+    // Notify channel owner
+    const cOwner = await Canal.findOne({ _id: campaign.channel }).select('propietario').lean();
+    if (cOwner?.propietario) {
+      notifySafe({
+        usuarioId: cOwner.propietario,
+        tipo: 'campana.cancelada',
+        titulo: 'Campaña cancelada',
+        mensaje: 'El anunciante ha cancelado una campaña.',
+        datos: { campaignId: campaign._id },
+        canales: ['database', 'realtime'],
+        prioridad: 'normal'
+      });
+    }
 
     // Cancel or refund Stripe PaymentIntent
     const tx = await Transaccion.findOne({ campaign: campaign._id }).lean();

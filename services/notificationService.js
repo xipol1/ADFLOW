@@ -66,6 +66,10 @@ class NotificationService extends EventEmitter {
         programada = null
       } = datos;
 
+      // Ensure DB is connected before any query
+      const { ensureDb } = require('../lib/ensureDb');
+      await ensureDb();
+
       // Validar usuario
       const usuario = await Usuario.findById(usuarioId);
       if (!usuario) {
@@ -144,15 +148,16 @@ class NotificationService extends EventEmitter {
    */
   async crearNotificacionBD(datos) {
     try {
+      const { ensureDb } = require('../lib/ensureDb');
+      await ensureDb();
+
       const notificacion = new Notificacion({
         usuario: datos.usuarioId,
         tipo: datos.tipo,
         titulo: datos.titulo,
         mensaje: datos.mensaje,
-        datos: datos.datos,
+        metadata: datos.datos || {},
         prioridad: datos.prioridad,
-        fechaCreacion: new Date(),
-        fechaProgramada: datos.programada,
         leida: false,
         archivada: false
       });

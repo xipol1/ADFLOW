@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+const http = require('http');
 const app = require('./app');
 const fs = require('fs');
 const path = require('path');
@@ -29,10 +30,10 @@ async function startServer() {
     process.on('uncaughtException', logFatal);
     process.on('unhandledRejection', logFatal);
 
-    if (!process.env.JWT_SECRET) console.warn('⚠️ Falta JWT_SECRET');
-    if (!process.env.MONGODB_URI) console.warn('⚠️ MONGODB_URI no definida');
-    if (process.env.DATABASE_URL && !process.env.MONGODB_URI) console.warn('⚠️ DATABASE_URL definida pero falta MONGODB_URI');
-    if (!process.env.STRIPE_SECRET_KEY) console.warn('⚠️ Falta STRIPE_SECRET_KEY');
+    if (!process.env.JWT_SECRET) console.warn('Falta JWT_SECRET');
+    if (!process.env.MONGODB_URI) console.warn('MONGODB_URI no definida');
+    if (process.env.DATABASE_URL && !process.env.MONGODB_URI) console.warn('DATABASE_URL definida pero falta MONGODB_URI');
+    if (!process.env.STRIPE_SECRET_KEY) console.warn('Falta STRIPE_SECRET_KEY');
 
     const connectDB = async () => {
       try {
@@ -51,12 +52,79 @@ async function startServer() {
     await connectDB();
     await database.configurarIndices?.();
 
-    app.listen(PORT, '0.0.0.0', () => {
+    // Create HTTP server and attach Socket.io
+    const server = http.createServer(app);
+
+    try {
+      const { Server } = require('socket.io');
+      const jwt = require('jsonwebtoken');
+      const notificationService = require('./services/notificationService');
+
+      const io = new Server(server, {
+        cors: {
+          origin: ENV !== 'production' ? '*' : (process.env.FRONTEND_URL || '').split(',').concat(['*.vercel.app']),
+          methods: ['GET', 'POST']
+        },
+        transports: ['websocket', 'polling']
+      });
+
+      // JWT authentication middleware for Socket.io
+      io.use((socket, next) => {
+        const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+        if (!token) return next(new Error('Token requerido'));
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          socket.userId = decoded.id || decoded.userId;
+          next();
+        } catch {
+          next(new Error('Token inválido'));
+        }
+      });
+
+      io.on('connection', (socket) => {
+        const userId = socket.userId;
+        if (userId) {
+          socket.join(`user:${userId}`);
+          notificationService.conexionesWebSocket.set(userId, socket);
+          socket.on('disconnect', () => {
+            notificationService.conexionesWebSocket.delete(userId);
+          });
+        }
+      });
+
+      // Wire Socket.io into NotificationService
+      notificationService.configurarSocketIO(io);
+
+      // Override realtime delivery to use Socket.io rooms
+      notificationService.enviarTiempoReal = async (usuarioId, datos) => {
+        try {
+          io.to(`user:${usuarioId.toString()}`).emit('notificacion', datos);
+          return { exito: true, canal: 'socketio' };
+        } catch (error) {
+          return { exito: false, error: error.message };
+        }
+      };
+
+      console.log('Socket.io initialized');
+    } catch (ioErr) {
+      console.warn('Socket.io not available:', ioErr.message);
+    }
+
+    // Start campaign automation cron (non-blocking)
+    try {
+      const { startCampaignCron } = require('./lib/campaignCron');
+      startCampaignCron();
+      console.log('Campaign cron started');
+    } catch (cronErr) {
+      console.warn('Campaign cron not available:', cronErr.message);
+    }
+
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
     });
 
   } catch (error) {
-    console.error('❌ Error fatal durante el inicio del servidor:', error);
+    console.error('Error fatal durante el inicio del servidor:', error);
   }
 }
 

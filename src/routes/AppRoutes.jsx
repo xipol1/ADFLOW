@@ -27,6 +27,9 @@ import CreatorRequestsPage  from '../ui/pages/dashboard/creator/CreatorRequestsP
 import CreatorEarningsPage  from '../ui/pages/dashboard/creator/CreatorEarningsPage'
 import CreatorSettingsPage  from '../ui/pages/dashboard/creator/CreatorSettingsPage'
 
+// Shared dispute page
+import DisputesPage from '../ui/pages/dashboard/DisputesPage'
+
 export default function AppRoutes() {
   const { isAuthenticated } = useAuth()
 
@@ -75,6 +78,7 @@ export default function AppRoutes() {
         <Route path="autobuy"  element={<AutoBuyPage />} />
         <Route path="ads"      element={<AdsPage />} />
         <Route path="finances" element={<FinancesPage />} />
+        <Route path="disputes" element={<DisputesPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 
@@ -91,6 +95,7 @@ export default function AppRoutes() {
         <Route path="channels" element={<CreatorChannelsPage />} />
         <Route path="requests" element={<CreatorRequestsPage />} />
         <Route path="earnings" element={<CreatorEarningsPage />} />
+        <Route path="disputes" element={<DisputesPage />} />
         <Route path="settings" element={<CreatorSettingsPage />} />
       </Route>
 

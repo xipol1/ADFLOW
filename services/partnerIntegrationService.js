@@ -1,441 +1,734 @@
+/**
+ * Partner Integration Service — Contract-compliant implementation
+ *
+ * Implements the mandatory flow from contract clause 5.1:
+ *   Create Campaign → Select Channel → Payment (Stripe escrow) → Publication → Confirmation → Fund Release
+ *
+ * All operations use MongoDB models (Canal, Campaign, Transaccion, Tracking, Partner, PartnerAuditLog).
+ * Stripe PaymentIntents with manual capture for escrow (clause 6.2).
+ * Audit trail for all operations (clause 3.3).
+ * Anti-bypass: no contact info exposed (clause 13).
+ */
 const crypto = require('crypto');
-const { readCollection, writeCollection } = require('./persistentStore');
+const { ensureDb } = require('../lib/ensureDb');
 const { createApiError } = require('../lib/partnerApiHttp');
 
-const PARTNERS_COLLECTION = 'partners';
-const PARTNER_CAMPAIGNS_COLLECTION = 'partner_campaigns';
-const PARTNER_API_LOGS_COLLECTION = 'partner_api_logs';
-const PAYMENT_SESSIONS_COLLECTION = 'partner_payment_sessions';
-const CAMPAIGN_STATUS = {
-  DRAFT: 'draft',
-  PAID: 'paid',
-  PUBLISHED: 'published',
-  CONFIRMED: 'confirmed',
-  FUNDS_RELEASED: 'funds_released',
-  CANCELLED: 'cancelled'
-};
-
-const sampleInventory = [
-  {
-    id: 'demo-ch-crypto-alpha-signals',
-    nombre: 'Crypto Alpha Signals',
-    plataforma: 'telegram',
-    categoria: 'cripto',
-    audiencia: 120000,
-    precio: 450,
-    moneda: 'EUR',
-    verificado: true
-  },
-  {
-    id: 'demo-ch-ecom-growth-es',
-    nombre: 'Ecom Growth ES',
-    plataforma: 'whatsapp',
-    categoria: 'negocios',
-    audiencia: 80000,
-    precio: 390,
-    moneda: 'EUR',
-    verificado: true
-  }
-];
+// ── Helpers ────────────────────────────────────────────────────────────────────
 
 const hashApiKey = (apiKey) => crypto.createHash('sha256').update(String(apiKey || '')).digest('hex');
 
-const readPartners = () => readCollection(PARTNERS_COLLECTION, []);
-const savePartners = (items) => writeCollection(PARTNERS_COLLECTION, items);
-const readCampaigns = () => readCollection(PARTNER_CAMPAIGNS_COLLECTION, []);
-const saveCampaigns = (items) => writeCollection(PARTNER_CAMPAIGNS_COLLECTION, items);
-const readLogs = () => readCollection(PARTNER_API_LOGS_COLLECTION, []);
-const saveLogs = (items) => writeCollection(PARTNER_API_LOGS_COLLECTION, items);
-const readPaymentSessions = () => readCollection(PAYMENT_SESSIONS_COLLECTION, []);
-const savePaymentSessions = (items) => writeCollection(PAYMENT_SESSIONS_COLLECTION, items);
+const safeEqualHex = (left, right) => {
+  const leftBuf = Buffer.from(String(left || ''), 'hex');
+  const rightBuf = Buffer.from(String(right || ''), 'hex');
+  if (leftBuf.length === 0 || leftBuf.length !== rightBuf.length) return false;
+  return crypto.timingSafeEqual(leftBuf, rightBuf);
+};
 
 const normalizeIp = (ip) => String(ip || '').replace('::ffff:', '').trim();
 
+const SENSITIVE_KEYS = ['authorization', 'apikey', 'api_key', 'token', 'secret', 'password', 'stripe'];
 const maskSensitiveData = (value) => {
   if (!value || typeof value !== 'object') return value;
-  const clone = JSON.parse(JSON.stringify(value));
-  const protectedKeys = ['authorization', 'apiKey', 'api_key', 'token', 'secret', 'password'];
-
-  const visit = (obj) => {
-    if (!obj || typeof obj !== 'object') return;
-    Object.keys(obj).forEach((key) => {
-      if (protectedKeys.some((needle) => key.toLowerCase().includes(needle.toLowerCase()))) {
-        obj[key] = '********';
-        return;
+  try {
+    const clone = JSON.parse(JSON.stringify(value));
+    const visit = (obj) => {
+      if (!obj || typeof obj !== 'object') return;
+      for (const key of Object.keys(obj)) {
+        if (SENSITIVE_KEYS.some((k) => key.toLowerCase().includes(k))) { obj[key] = '***'; continue; }
+        if (typeof obj[key] === 'object') visit(obj[key]);
       }
-      if (typeof obj[key] === 'object') visit(obj[key]);
+    };
+    visit(clone);
+    return clone;
+  } catch { return '[unserializable]'; }
+};
+
+// ── Audit trail (contract clause 3.3) ──────────────────────────────────────────
+
+const audit = async (partnerId, action, extra = {}) => {
+  try {
+    await ensureDb();
+    const PartnerAuditLog = require('../models/PartnerAuditLog');
+    await PartnerAuditLog.create({
+      partner: partnerId,
+      action,
+      method: extra.method || '',
+      path: extra.path || '',
+      statusCode: extra.statusCode || 0,
+      ip: normalizeIp(extra.ip || ''),
+      campaignId: extra.campaignId || null,
+      requestBody: extra.requestBody ? maskSensitiveData(extra.requestBody) : null,
+      metadata: extra.metadata || {},
+      error: extra.error || null
     });
-  };
-
-  visit(clone);
-  return clone;
+  } catch (_) { /* audit must never block the main flow */ }
 };
 
-const safeEqualHex = (left, right) => {
-  const leftBuffer = Buffer.from(String(left || ''), 'hex');
-  const rightBuffer = Buffer.from(String(right || ''), 'hex');
-  if (leftBuffer.length === 0 || leftBuffer.length !== rightBuffer.length) return false;
-  return crypto.timingSafeEqual(leftBuffer, rightBuffer);
-};
+// ── Partner auth (from MongoDB) ────────────────────────────────────────────────
 
-const getPartnerByApiKey = (apiKey) => {
+const getPartnerByApiKey = async (apiKey) => {
+  await ensureDb();
+  const Partner = require('../models/Partner');
   const apiKeyHash = hashApiKey(apiKey);
-  return readPartners().find((partner) => safeEqualHex(partner.apiKeyHash, apiKeyHash)) || null;
+  const partners = await Partner.find({ status: 'active' }).lean();
+  return partners.find((p) => safeEqualHex(p.apiKeyHash, apiKeyHash)) || null;
 };
 
 const isIpAllowed = (partner, ip) => {
-  const allowedIps = Array.isArray(partner.allowedIps) ? partner.allowedIps : [];
-  if (allowedIps.length === 0) return true;
+  const allowed = Array.isArray(partner.allowedIps) ? partner.allowedIps : [];
+  if (allowed.length === 0) return true;
   const clientIp = normalizeIp(ip);
-  return allowedIps.includes('*') || allowedIps.map(normalizeIp).includes(clientIp);
+  return allowed.includes('*') || allowed.map(normalizeIp).includes(clientIp);
 };
 
-const touchPartnerUsage = (partnerId, ip) => {
-  const partners = readPartners();
-  const index = partners.findIndex((partner) => partner.id === partnerId);
-  if (index === -1) return;
-  partners[index].lastUsedAt = new Date().toISOString();
-  partners[index].lastIp = normalizeIp(ip);
-  savePartners(partners);
+const touchPartnerUsage = async (partnerId, ip) => {
+  try {
+    await ensureDb();
+    const Partner = require('../models/Partner');
+    await Partner.findByIdAndUpdate(partnerId, { lastUsedAt: new Date(), lastIp: normalizeIp(ip) });
+  } catch (_) { /* non-blocking */ }
 };
 
-const registerApiLog = ({ partnerId, ip, method, path, statusCode, requestBody, responseBody }) => {
-  const logs = readLogs();
-  logs.push({
-    id: `pal-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-    partnerId,
-    ip: normalizeIp(ip),
-    method,
-    path,
-    statusCode,
-    requestBody: maskSensitiveData(requestBody),
-    responseBody: maskSensitiveData(responseBody),
-    createdAt: new Date().toISOString()
-  });
-  saveLogs(logs);
+// ── API request logging (clause 3.3 audit) ─────────────────────────────────────
+
+const registerApiLog = async ({ partnerId, ip, method, path, statusCode, requestBody }) => {
+  await audit(partnerId, 'api.request', { method, path, statusCode, ip, requestBody });
 };
 
-const listInventory = ({ plataforma = '', categoria = '', page = 1, limit = 10 }) => {
-  let items = sampleInventory.filter((item) => item.verificado === true);
+// ── Channels (real DB, anti-bypass clause 13) ──────────────────────────────────
 
-  if (plataforma) items = items.filter((item) => item.plataforma === plataforma);
-  if (categoria) items = items.filter((item) => item.categoria === categoria);
+const listChannels = async ({ plataforma, categoria, page = 1, limit = 20, search } = {}) => {
+  await ensureDb();
+  const Canal = require('../models/Canal');
 
-  const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 20);
+  const filter = {};
+  if (plataforma) filter.plataforma = plataforma.toLowerCase();
+  if (categoria) filter.categoria = { $regex: new RegExp(categoria, 'i') };
+  if (search) {
+    filter.$or = [
+      { nombreCanal: { $regex: new RegExp(search, 'i') } },
+      { descripcion: { $regex: new RegExp(search, 'i') } }
+    ];
+  }
+
+  const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 50);
   const safePage = Math.max(Number(page) || 1, 1);
-  const start = (safePage - 1) * safeLimit;
-  const paginated = items.slice(start, start + safeLimit);
+  const skip = (safePage - 1) * safeLimit;
+
+  // Contract clause 13 & 4.3: never expose contact info, credentials, identifiers
+  const safeProjection = 'nombreCanal plataforma categoria descripcion estadisticas.seguidores createdAt';
+
+  const [items, total] = await Promise.all([
+    Canal.find(filter)
+      .select(safeProjection)
+      .sort({ 'estadisticas.seguidores': -1 })
+      .skip(skip)
+      .limit(safeLimit)
+      .lean(),
+    Canal.countDocuments(filter)
+  ]);
 
   return {
-    items: paginated.map((item) => ({
-      id: item.id,
-      nombre: item.nombre,
-      plataforma: item.plataforma,
-      categoria: item.categoria,
-      audiencia: item.audiencia,
-      precio: item.precio,
-      moneda: item.moneda,
-      verificado: item.verificado
+    items: items.map((ch) => ({
+      id: ch._id.toString(),
+      name: ch.nombreCanal || '',
+      platform: ch.plataforma,
+      category: ch.categoria,
+      description: (ch.descripcion || '').slice(0, 500),
+      followers: ch.estadisticas?.seguidores || 0,
+      createdAt: ch.createdAt
+      // NO URLs, NO contact info, NO credentials, NO owner info (clause 13)
     })),
     pagination: {
       page: safePage,
       limit: safeLimit,
-      total: items.length,
-      totalPages: Math.max(1, Math.ceil(items.length / safeLimit))
+      total,
+      totalPages: Math.max(1, Math.ceil(total / safeLimit))
     }
   };
 };
+
+const getChannel = async (channelId) => {
+  await ensureDb();
+  const Canal = require('../models/Canal');
+  const mongoose = require('mongoose');
+  if (!mongoose.Types.ObjectId.isValid(channelId)) return null;
+  const ch = await Canal.findById(channelId)
+    .select('nombreCanal plataforma categoria descripcion estadisticas.seguidores createdAt')
+    .lean();
+  if (!ch) return null;
+  return {
+    id: ch._id.toString(),
+    name: ch.nombreCanal,
+    platform: ch.plataforma,
+    category: ch.categoria,
+    description: (ch.descripcion || '').slice(0, 500),
+    followers: ch.estadisticas?.seguidores || 0,
+    createdAt: ch.createdAt
+  };
+};
+
+// ── Stripe escrow helpers (clause 6) ─────────────────────────────────────��─────
+
+const getStripe = () => {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw createApiError(503, 'PAYMENT_UNAVAILABLE', 'Servicio de pagos no configurado');
+  return require('stripe')(key);
+};
+
+const createEscrowPaymentIntent = async (amount, currency, metadata) => {
+  const stripe = getStripe();
+  // Manual capture = escrow: funds authorized but not captured until confirmation
+  const pi = await stripe.paymentIntents.create({
+    amount: Math.round(amount * 100), // Stripe uses cents
+    currency: (currency || 'eur').toLowerCase(),
+    capture_method: 'manual',
+    metadata: {
+      ...metadata,
+      platform: 'adflow',
+      type: 'partner_campaign_escrow'
+    },
+    description: `AdFlow Partner Campaign Escrow — ${metadata.campaignId || 'new'}`
+  });
+  return pi;
+};
+
+const captureEscrowPayment = async (paymentIntentId) => {
+  const stripe = getStripe();
+  const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+  if (pi.status === 'requires_capture') {
+    return await stripe.paymentIntents.capture(paymentIntentId);
+  }
+  if (pi.status === 'succeeded') return pi; // already captured
+  throw createApiError(409, 'CAPTURE_FAILED', `PaymentIntent status: ${pi.status}, cannot capture`);
+};
+
+const cancelEscrowPayment = async (paymentIntentId) => {
+  const stripe = getStripe();
+  try {
+    const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+    if (['requires_capture', 'requires_payment_method', 'requires_confirmation'].includes(pi.status)) {
+      return await stripe.paymentIntents.cancel(paymentIntentId);
+    }
+    // If already succeeded, issue refund
+    if (pi.status === 'succeeded') {
+      return await stripe.refunds.create({ payment_intent: paymentIntentId });
+    }
+  } catch (err) {
+    console.error('[partner] Stripe cancel/refund error:', err.message);
+  }
+};
+
+// ── Partner user management ────────────────────────────────────────────────────
+
+const getOrCreatePartnerUser = async (partner) => {
+  const Usuario = require('../models/Usuario');
+  const email = `partner+${partner.slug}@adflow.internal`;
+
+  let user = await Usuario.findOne({ email }).lean();
+  if (user) return user;
+
+  const bcrypt = require('bcryptjs');
+  const randomPass = crypto.randomBytes(32).toString('hex');
+  const hashedPass = await bcrypt.hash(randomPass, 10);
+
+  user = await Usuario.create({
+    nombre: partner.name,
+    email,
+    password: hashedPass,
+    rol: 'advertiser',
+    emailVerificado: true
+  });
+
+  return user;
+};
+
+// ── Campaign CRUD (contract clause 5.1 mandatory flow) ─────────────────────────
+
+/**
+ * Contract mandatory flow (clause 5.1):
+ *   DRAFT → (payment) → PAID → (publication) → PUBLISHED → (confirmation) → COMPLETED (funds released)
+ *   Any state → CANCELLED (with refund if payment was made)
+ */
+
+const createCampaign = async (partner, payload) => {
+  await ensureDb();
+  const Canal = require('../models/Canal');
+  const Campaign = require('../models/Campaign');
+  const Transaccion = require('../models/Transaccion');
+  const mongoose = require('mongoose');
+
+  const channelId = String(payload.channelId || '').trim();
+  if (!mongoose.Types.ObjectId.isValid(channelId)) {
+    throw createApiError(400, 'INVALID_CHANNEL', 'channelId invalido');
+  }
+
+  const canal = await Canal.findById(channelId).select('_id propietario nombreCanal plataforma categoria').lean();
+  if (!canal) throw createApiError(404, 'CHANNEL_NOT_FOUND', 'Canal no encontrado');
+
+  const price = Number(payload.budget || payload.price);
+  if (!Number.isFinite(price) || price <= 0) {
+    throw createApiError(400, 'INVALID_BUDGET', 'Budget/price invalido');
+  }
+
+  const content = String(payload.content || payload.title || '').trim();
+  const targetUrl = String(payload.targetUrl || '').trim();
+  if (!content) throw createApiError(400, 'CONTENT_REQUIRED', 'content o title requerido');
+  if (!targetUrl) throw createApiError(400, 'TARGET_URL_REQUIRED', 'targetUrl requerido');
+
+  // Duplicate external reference check
+  const externalRef = String(payload.externalReference || '').trim() || null;
+  if (externalRef) {
+    const existing = await Campaign.findOne({ partner: partner._id, partnerExternalRef: externalRef }).lean();
+    if (existing) throw createApiError(409, 'EXTERNAL_REFERENCE_CONFLICT', 'externalReference ya existe');
+  }
+
+  const advertiserUser = await getOrCreatePartnerUser(partner);
+  const deadline = payload.deadline ? new Date(payload.deadline) : null;
+  const commissionRate = partner.commissionOverride != null ? partner.commissionOverride : 0.10;
+
+  const campaign = await Campaign.create({
+    advertiser: advertiserUser._id,
+    channel: canal._id,
+    content,
+    targetUrl,
+    price,
+    commissionRate,
+    deadline,
+    status: 'DRAFT',
+    partner: partner._id,
+    partnerExternalRef: externalRef,
+    createdAt: new Date()
+  });
+
+  // Create pending transaction record
+  await Transaccion.create({
+    campaign: campaign._id,
+    advertiser: advertiserUser._id,
+    creator: canal.propietario,
+    amount: price,
+    tipo: 'pago',
+    status: 'pending',
+    description: `Partner campaign via ${partner.name}`
+  });
+
+  // Audit
+  await audit(partner._id, 'campaign.created', {
+    campaignId: campaign._id,
+    metadata: { channelId, price, externalRef }
+  });
+
+  // Notify channel owner
+  try {
+    const notificationService = require('./notificationService');
+    if (canal.propietario) {
+      await notificationService.enviarNotificacion({
+        usuarioId: canal.propietario,
+        tipo: 'campana.nueva',
+        titulo: 'Nueva campana de partner',
+        mensaje: `${partner.name} quiere publicar en tu canal por $${price}`,
+        datos: { campaignId: campaign._id },
+        canales: ['database', 'realtime'],
+        prioridad: 'normal'
+      });
+    }
+  } catch (_) { /* non-blocking */ }
+
+  return serializeCampaign(campaign.toObject(), canal);
+};
+
+// ── Payment: create Stripe escrow (clause 6.1, 6.2) ───────────────────────────
+
+const createPaymentSession = async (partnerId, campaignId) => {
+  await ensureDb();
+  const Campaign = require('../models/Campaign');
+  const mongoose = require('mongoose');
+
+  if (!mongoose.Types.ObjectId.isValid(campaignId)) {
+    throw createApiError(404, 'CAMPAIGN_NOT_FOUND', 'Campana no encontrada');
+  }
+
+  const campaign = await Campaign.findOne({ _id: campaignId, partner: partnerId });
+  if (!campaign) throw createApiError(404, 'CAMPAIGN_NOT_FOUND', 'Campana no encontrada');
+  if (campaign.status !== 'DRAFT') {
+    throw createApiError(409, 'INVALID_STATE', 'Solo se puede crear sesion de pago en estado DRAFT');
+  }
+
+  // If already has a PaymentIntent, return the existing client_secret
+  if (campaign.stripePaymentIntentId) {
+    const stripe = getStripe();
+    const existing = await stripe.paymentIntents.retrieve(campaign.stripePaymentIntentId);
+    return {
+      paymentIntentId: existing.id,
+      clientSecret: existing.client_secret,
+      amount: existing.amount,
+      currency: existing.currency,
+      status: existing.status
+    };
+  }
+
+  // Create PaymentIntent with manual capture (escrow)
+  const pi = await createEscrowPaymentIntent(campaign.price, 'eur', {
+    campaignId: campaign._id.toString(),
+    partnerId: partnerId.toString(),
+    channelId: campaign.channel.toString()
+  });
+
+  campaign.stripePaymentIntentId = pi.id;
+  await campaign.save();
+
+  await audit(partnerId, 'payment.session.created', {
+    campaignId: campaign._id,
+    metadata: { paymentIntentId: pi.id, amount: pi.amount }
+  });
+
+  return {
+    paymentIntentId: pi.id,
+    clientSecret: pi.client_secret,
+    amount: pi.amount,
+    currency: pi.currency,
+    status: pi.status
+  };
+};
+
+// ── Confirm payment: DRAFT → PAID ─────────────────────────────────────────────
+
+const confirmPayment = async (partnerId, campaignId, payload) => {
+  await ensureDb();
+  const Campaign = require('../models/Campaign');
+  const Transaccion = require('../models/Transaccion');
+
+  const campaign = await Campaign.findOne({ _id: campaignId, partner: partnerId });
+  if (!campaign) throw createApiError(404, 'CAMPAIGN_NOT_FOUND', 'Campana no encontrada');
+  if (campaign.status !== 'DRAFT') {
+    throw createApiError(409, 'INVALID_STATE', 'Solo se puede confirmar pago en estado DRAFT');
+  }
+
+  // Verify Stripe PaymentIntent is authorized
+  if (campaign.stripePaymentIntentId && process.env.STRIPE_SECRET_KEY) {
+    const stripe = getStripe();
+    const pi = await stripe.paymentIntents.retrieve(campaign.stripePaymentIntentId);
+    // PaymentIntent must be in requires_capture (authorized, not yet captured = escrow)
+    if (pi.status !== 'requires_capture' && pi.status !== 'succeeded') {
+      throw createApiError(409, 'PAYMENT_NOT_AUTHORIZED',
+        `El pago no esta autorizado. Estado actual: ${pi.status}. El cliente debe completar el pago primero.`);
+    }
+  } else {
+    // Fallback: accept external payment reference
+    const paymentReference = String(payload?.paymentReference || '').trim();
+    if (!paymentReference) {
+      throw createApiError(400, 'PAYMENT_REFERENCE_REQUIRED', 'paymentReference o Stripe PaymentIntent requerido');
+    }
+    campaign.stripePaymentIntentId = paymentReference;
+  }
+
+  campaign.status = 'PAID';
+  await campaign.save();
+
+  await Transaccion.updateMany(
+    { campaign: campaign._id, status: 'pending' },
+    { $set: { status: 'paid' } }
+  );
+
+  await audit(partnerId, 'payment.confirmed', {
+    campaignId: campaign._id,
+    metadata: { paymentIntentId: campaign.stripePaymentIntentId }
+  });
+
+  const populated = await Campaign.findById(campaign._id).populate('channel', 'nombreCanal plataforma categoria').lean();
+  return serializeCampaign(populated, populated.channel);
+};
+
+// ── Publish: PAID ��� PUBLISHED ──────────────────────────────────────────────────
+
+const publishCampaign = async (partnerId, campaignId, payload) => {
+  await ensureDb();
+  const Campaign = require('../models/Campaign');
+
+  const campaign = await Campaign.findOne({ _id: campaignId, partner: partnerId });
+  if (!campaign) throw createApiError(404, 'CAMPAIGN_NOT_FOUND', 'Campana no encontrada');
+  if (campaign.status !== 'PAID') {
+    throw createApiError(409, 'INVALID_STATE', 'Solo se puede publicar en estado PAID (pago previo obligatorio, clause 5.1)');
+  }
+
+  campaign.status = 'PUBLISHED';
+  campaign.publishedAt = payload.publishedAt ? new Date(payload.publishedAt) : new Date();
+  await campaign.save();
+
+  await audit(partnerId, 'campaign.published', {
+    campaignId: campaign._id,
+    metadata: { publishedAt: campaign.publishedAt }
+  });
+
+  try {
+    const notificationService = require('./notificationService');
+    await notificationService.enviarNotificacion({
+      usuarioId: campaign.advertiser,
+      tipo: 'campana.publicada',
+      titulo: 'Campana publicada',
+      mensaje: 'Tu campana ha sido publicada.',
+      datos: { campaignId: campaign._id },
+      canales: ['database', 'realtime'],
+      prioridad: 'normal'
+    });
+  } catch (_) { /* non-blocking */ }
+
+  const populated = await Campaign.findById(campaign._id).populate('channel', 'nombreCanal plataforma categoria').lean();
+  return serializeCampaign(populated, populated.channel);
+};
+
+// ── Complete + release escrow: PUBLISHED → COMPLETED (clause 6.2) ──────────────
+
+const completeCampaign = async (partnerId, campaignId) => {
+  await ensureDb();
+  const Campaign = require('../models/Campaign');
+  const Transaccion = require('../models/Transaccion');
+
+  const campaign = await Campaign.findOne({ _id: campaignId, partner: partnerId });
+  if (!campaign) throw createApiError(404, 'CAMPAIGN_NOT_FOUND', 'Campana no encontrada');
+  if (campaign.status !== 'PUBLISHED') {
+    throw createApiError(409, 'INVALID_STATE', 'Solo se puede completar en estado PUBLISHED');
+  }
+
+  // Capture Stripe PaymentIntent (release escrow funds)
+  if (campaign.stripePaymentIntentId && process.env.STRIPE_SECRET_KEY) {
+    try {
+      await captureEscrowPayment(campaign.stripePaymentIntentId);
+    } catch (stripeErr) {
+      await audit(partnerId, 'escrow.capture.failed', {
+        campaignId: campaign._id,
+        error: stripeErr.message,
+        metadata: { paymentIntentId: campaign.stripePaymentIntentId }
+      });
+      throw createApiError(502, 'ESCROW_CAPTURE_FAILED', `Error al capturar fondos: ${stripeErr.message}`);
+    }
+  }
+
+  campaign.status = 'COMPLETED';
+  campaign.completedAt = new Date();
+  await campaign.save();
+
+  // Mark all pending/paid transactions as completed
+  await Transaccion.updateMany(
+    { campaign: campaign._id },
+    { $set: { status: 'paid' } }
+  );
+
+  // Create commission transaction for AdFlow (clause 6.3)
+  const commissionAmount = +(campaign.price * campaign.commissionRate).toFixed(2);
+  if (commissionAmount > 0) {
+    await Transaccion.create({
+      campaign: campaign._id,
+      advertiser: campaign.advertiser,
+      amount: commissionAmount,
+      tipo: 'comision',
+      status: 'paid',
+      description: `Comision AdFlow (${(campaign.commissionRate * 100).toFixed(0)}%) — partner campaign`
+    });
+  }
+
+  await audit(partnerId, 'campaign.completed', {
+    campaignId: campaign._id,
+    metadata: { commissionAmount, netAmount: campaign.netAmount }
+  });
+
+  const populated = await Campaign.findById(campaign._id).populate('channel', 'nombreCanal plataforma categoria').lean();
+  return serializeCampaign(populated, populated.channel);
+};
+
+// ── Cancel + refund (clause 6.4) ───────────────────────────────────────────────
+
+const cancelCampaign = async (partnerId, campaignId, payload) => {
+  await ensureDb();
+  const Campaign = require('../models/Campaign');
+  const Transaccion = require('../models/Transaccion');
+
+  const campaign = await Campaign.findOne({ _id: campaignId, partner: partnerId });
+  if (!campaign) throw createApiError(404, 'CAMPAIGN_NOT_FOUND', 'Campana no encontrada');
+  if (['COMPLETED', 'CANCELLED'].includes(campaign.status)) {
+    throw createApiError(409, 'INVALID_STATE', 'No se puede cancelar esta campana');
+  }
+
+  // Refund/cancel Stripe PaymentIntent if exists
+  if (campaign.stripePaymentIntentId && process.env.STRIPE_SECRET_KEY) {
+    try {
+      await cancelEscrowPayment(campaign.stripePaymentIntentId);
+
+      // Record refund transaction
+      await Transaccion.create({
+        campaign: campaign._id,
+        advertiser: campaign.advertiser,
+        amount: campaign.price,
+        tipo: 'reembolso',
+        status: 'paid',
+        description: `Reembolso por cancelacion — partner campaign`
+      });
+    } catch (stripeErr) {
+      await audit(partnerId, 'escrow.cancel.failed', {
+        campaignId: campaign._id,
+        error: stripeErr.message
+      });
+      // Don't block cancellation if stripe fails
+      console.error('[partner] Stripe refund error:', stripeErr.message);
+    }
+  }
+
+  campaign.status = 'CANCELLED';
+  campaign.cancelledAt = new Date();
+  await campaign.save();
+
+  await audit(partnerId, 'campaign.cancelled', {
+    campaignId: campaign._id,
+    metadata: { reason: payload?.reason || 'partner_request' }
+  });
+
+  const populated = await Campaign.findById(campaign._id).populate('channel', 'nombreCanal plataforma categoria').lean();
+  return serializeCampaign(populated, populated.channel);
+};
+
+// ── Metrics (clause 10) ────────────────────────────────────────────────────────
+
+const getCampaignMetrics = async (partnerId, campaignId) => {
+  await ensureDb();
+  const Campaign = require('../models/Campaign');
+  const Tracking = require('../models/Tracking');
+  const mongoose = require('mongoose');
+
+  if (!mongoose.Types.ObjectId.isValid(campaignId)) {
+    throw createApiError(404, 'CAMPAIGN_NOT_FOUND', 'Campana no encontrada');
+  }
+
+  const campaign = await Campaign.findOne({ _id: campaignId, partner: partnerId }).lean();
+  if (!campaign) throw createApiError(404, 'CAMPAIGN_NOT_FOUND', 'Campana no encontrada');
+
+  if (!['PUBLISHED', 'COMPLETED'].includes(campaign.status)) {
+    throw createApiError(409, 'METRICS_NOT_AVAILABLE', 'Metricas disponibles solo tras publicacion');
+  }
+
+  const [totalClicks, uniqueIps] = await Promise.all([
+    Tracking.countDocuments({ campaign: campaign._id }),
+    Tracking.distinct('ip', { campaign: campaign._id }).then((ips) => ips.length)
+  ]);
+
+  await audit(partnerId, 'metrics.read', { campaignId: campaign._id });
+
+  return {
+    campaignId: campaign._id.toString(),
+    status: campaign.status,
+    metrics: {
+      totalClicks,
+      uniqueClicks: uniqueIps,
+      publishedAt: campaign.publishedAt,
+      completedAt: campaign.completedAt
+    },
+    disclaimer: 'AdFlow provee click-tracking y metricas agregadas. No se garantizan conversiones ni ROI (clause 10.1).'
+  };
+};
+
+// ── List/get partner campaigns ─────────────────────────────────────────────────
+
+const getPartnerCampaigns = async (partnerId, { page = 1, limit = 20, status } = {}) => {
+  await ensureDb();
+  const Campaign = require('../models/Campaign');
+
+  const filter = { partner: partnerId };
+  if (status) filter.status = status.toUpperCase();
+
+  const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 50);
+  const safePage = Math.max(Number(page) || 1, 1);
+
+  const [items, total] = await Promise.all([
+    Campaign.find(filter)
+      .populate('channel', 'nombreCanal plataforma categoria')
+      .sort({ createdAt: -1 })
+      .skip((safePage - 1) * safeLimit)
+      .limit(safeLimit)
+      .lean(),
+    Campaign.countDocuments(filter)
+  ]);
+
+  return {
+    items: items.map((c) => serializeCampaign(c, c.channel)),
+    pagination: { page: safePage, limit: safeLimit, total, totalPages: Math.max(1, Math.ceil(total / safeLimit)) }
+  };
+};
+
+const getPartnerCampaign = async (partnerId, campaignId) => {
+  await ensureDb();
+  const Campaign = require('../models/Campaign');
+  const mongoose = require('mongoose');
+  if (!mongoose.Types.ObjectId.isValid(campaignId)) return null;
+
+  const campaign = await Campaign.findOne({ _id: campaignId, partner: partnerId })
+    .populate('channel', 'nombreCanal plataforma categoria')
+    .lean();
+  if (!campaign) return null;
+  return serializeCampaign(campaign, campaign.channel);
+};
+
+// ─��� Serialization ──────────────────────────────────────────────────────────────
 
 const getAvailableActions = (campaign) => {
   switch (campaign.status) {
-    case CAMPAIGN_STATUS.DRAFT:
-      return campaign.paymentSessionId ? ['confirm_payment'] : ['create_payment_session'];
-    case CAMPAIGN_STATUS.PAID:
-      return ['register_publication'];
-    case CAMPAIGN_STATUS.PUBLISHED:
-      return ['confirm_execution', 'read_metrics'];
-    case CAMPAIGN_STATUS.CONFIRMED:
-      return ['release_funds', 'read_metrics'];
-    case CAMPAIGN_STATUS.FUNDS_RELEASED:
-      return ['read_metrics'];
-    default:
-      return [];
+    case 'DRAFT':
+      return campaign.stripePaymentIntentId ? ['confirm_payment', 'cancel'] : ['create_payment_session', 'cancel'];
+    case 'PAID': return ['publish', 'cancel'];
+    case 'PUBLISHED': return ['complete', 'metrics', 'cancel'];
+    case 'COMPLETED': return ['metrics'];
+    default: return [];
   }
 };
 
-const serializeCampaign = (campaign) => ({
-  ...campaign,
+const serializeCampaign = (campaign, channel) => ({
+  id: (campaign._id || campaign.id).toString(),
+  status: campaign.status,
+  content: campaign.content,
+  targetUrl: campaign.targetUrl,
+  price: campaign.price,
+  netAmount: campaign.netAmount,
+  commissionRate: campaign.commissionRate,
+  externalReference: campaign.partnerExternalRef || null,
+  deadline: campaign.deadline,
+  stripePaymentIntentId: campaign.stripePaymentIntentId || null,
+  channel: channel ? {
+    id: (channel._id || channel.id).toString(),
+    name: channel.nombreCanal,
+    platform: channel.plataforma,
+    category: channel.categoria
+    // NO contact info (clause 13)
+  } : null,
+  createdAt: campaign.createdAt,
+  publishedAt: campaign.publishedAt,
+  completedAt: campaign.completedAt,
+  cancelledAt: campaign.cancelledAt,
   workflow: {
     status: campaign.status,
-    paymentStatus: campaign.paymentStatus,
-    escrowStatus: campaign.escrowStatus,
-    availableActions: getAvailableActions(campaign)
+    availableActions: getAvailableActions(campaign),
+    mandatoryFlow: 'DRAFT → payment → PAID → publish → PUBLISHED → complete → COMPLETED'
   }
 });
 
-const getCampaignsForPartner = (partnerId) => readCampaigns()
-  .filter((item) => item.partnerId === partnerId)
-  .sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime())
-  .map(serializeCampaign);
-
-const getCampaignForPartner = (partnerId, campaignId) => {
-  const item = readCampaigns().find((campaign) => campaign.partnerId === partnerId && campaign.id === campaignId);
-  return item ? serializeCampaign(item) : null;
-};
-
-const createCampaignForPartner = (partner, payload) => {
-  const channel = sampleInventory.find((item) => item.id === payload.channelId && item.verificado === true);
-  if (!channel) {
-    throw createApiError(400, 'CHANNEL_NOT_AVAILABLE', 'Canal no disponible para integracion externa');
-  }
-
-  const budget = Number(payload.budget);
-  if (!Number.isFinite(budget) || budget <= 0) {
-    throw createApiError(400, 'INVALID_BUDGET', 'Budget invalido');
-  }
-
-  const externalReference = String(payload.externalReference || '').trim();
-  const duplicateByExternalReference = readCampaigns().find((item) => item.partnerId === partner.id && item.externalReference && item.externalReference === externalReference);
-  if (externalReference && duplicateByExternalReference) {
-    throw createApiError(409, 'EXTERNAL_REFERENCE_CONFLICT', 'externalReference ya existe para este partner');
-  }
-
-  const now = new Date().toISOString();
-  const campaigns = readCampaigns();
-  const campaign = {
-    id: `pcmp-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-    partnerId: partner.id,
-    partnerName: partner.name,
-    externalReference,
-    title: String(payload.title || '').trim(),
-    description: String(payload.description || '').trim(),
-    targetUrl: String(payload.targetUrl || '').trim(),
-    channelId: channel.id,
-    channelSnapshot: {
-      id: channel.id,
-      nombre: channel.nombre,
-      plataforma: channel.plataforma,
-      categoria: channel.categoria,
-      precio: channel.precio,
-      moneda: channel.moneda
-    },
-    budget,
-    currency: String(payload.currency || channel.moneda || 'EUR').toUpperCase(),
-    status: CAMPAIGN_STATUS.DRAFT,
-    paymentStatus: 'pending',
-    escrowStatus: 'awaiting_payment',
-    createdAt: now,
-    updatedAt: now,
-    auditTrail: [
-      {
-        at: now,
-        action: 'campaign.created',
-        actor: partner.name
-      }
-    ]
-  };
-
-  campaigns.push(campaign);
-  saveCampaigns(campaigns);
-  return serializeCampaign(campaign);
-};
-
-const updateCampaignForPartner = (partnerId, campaignId, updater) => {
-  const campaigns = readCampaigns();
-  const index = campaigns.findIndex((item) => item.partnerId === partnerId && item.id === campaignId);
-  if (index === -1) {
-    throw createApiError(404, 'CAMPAIGN_NOT_FOUND', 'Campana no encontrada');
-  }
-  const next = updater({ ...campaigns[index] });
-  next.updatedAt = new Date().toISOString();
-  campaigns[index] = next;
-  saveCampaigns(campaigns);
-  return serializeCampaign(next);
-};
-
-const createPaymentSession = (partnerId, campaignId, provider = 'stripe') => {
-  const campaign = readCampaigns().find((item) => item.partnerId === partnerId && item.id === campaignId);
-  if (!campaign) {
-    throw createApiError(404, 'CAMPAIGN_NOT_FOUND', 'Campana no encontrada');
-  }
-  if (campaign.status !== CAMPAIGN_STATUS.DRAFT) {
-    throw createApiError(409, 'INVALID_STATE', 'La sesion de pago solo puede generarse para campanas en draft');
-  }
-
-  const sessions = readPaymentSessions();
-  const existingSession = sessions.find((item) => item.partnerId === partnerId && item.campaignId === campaignId && item.status === 'pending');
-  if (existingSession) {
-    return updateCampaignForPartner(partnerId, campaignId, (current) => ({
-      ...current,
-      paymentSessionId: existingSession.id,
-      escrowStatus: 'awaiting_payment_confirmation'
-    }));
-  }
-  const session = {
-    id: `pps-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-    campaignId,
-    partnerId,
-    provider: String(provider || 'stripe').toLowerCase(),
-    amount: campaign.budget,
-    currency: campaign.currency,
-    status: 'pending',
-    escrowStatus: 'held',
-    createdAt: new Date().toISOString()
-  };
-  sessions.push(session);
-  savePaymentSessions(sessions);
-
-  return updateCampaignForPartner(partnerId, campaignId, (current) => ({
-    ...current,
-    paymentStatus: 'pending',
-    escrowStatus: 'awaiting_payment_confirmation',
-    paymentSessionId: session.id,
-    auditTrail: current.auditTrail.concat({
-      at: new Date().toISOString(),
-      action: 'payment.session.created',
-      actor: 'system',
-      metadata: { provider: session.provider, sessionId: session.id }
-    })
-  }));
-};
-
-const confirmPayment = (partnerId, campaignId, payload) => {
-  const paymentReference = String(payload.paymentReference || '').trim();
-  if (!paymentReference) {
-    throw createApiError(400, 'PAYMENT_REFERENCE_REQUIRED', 'paymentReference es obligatorio');
-  }
-
-  return updateCampaignForPartner(partnerId, campaignId, (current) => {
-    if (current.status !== CAMPAIGN_STATUS.DRAFT) {
-      throw createApiError(409, 'INVALID_STATE', 'El pago solo puede confirmarse desde draft');
-    }
-    if (!current.paymentSessionId) {
-      throw createApiError(409, 'PAYMENT_SESSION_REQUIRED', 'No existe una sesion de pago previa');
-    }
-    return {
-      ...current,
-      status: CAMPAIGN_STATUS.PAID,
-      paymentStatus: 'confirmed',
-      escrowStatus: 'held',
-      paymentReference,
-      auditTrail: current.auditTrail.concat({
-        at: new Date().toISOString(),
-        action: 'payment.confirmed',
-        actor: 'partner',
-        metadata: { paymentReference }
-      })
-    };
-  });
-};
-
-const registerPublication = (partnerId, campaignId, payload) => updateCampaignForPartner(partnerId, campaignId, (current) => {
-  if (current.status !== CAMPAIGN_STATUS.PAID) {
-    throw createApiError(409, 'INVALID_STATE', 'La campana debe estar pagada antes de registrar la publicacion');
-  }
-
-  const publicationId = String(payload.publicationId || '').trim();
-  const publishedAt = String(payload.publishedAt || '').trim();
-
-  if (!publicationId || !publishedAt) {
-    throw createApiError(400, 'INVALID_PUBLICATION_PAYLOAD', 'publicationId y publishedAt son obligatorios');
-  }
-
-  return {
-    ...current,
-    status: CAMPAIGN_STATUS.PUBLISHED,
-    publication: {
-      publicationId,
-      publishedAt,
-      evidenceUrl: String(payload.evidenceUrl || '').trim()
-    },
-    auditTrail: current.auditTrail.concat({
-      at: new Date().toISOString(),
-      action: 'publication.registered',
-      actor: 'partner',
-      metadata: { publicationId }
-    })
-  };
-});
-
-const confirmExecution = (partnerId, campaignId, payload) => updateCampaignForPartner(partnerId, campaignId, (current) => {
-  if (current.status !== CAMPAIGN_STATUS.PUBLISHED) {
-    throw createApiError(409, 'INVALID_STATE', 'La campana debe estar publicada antes de confirmar la ejecucion');
-  }
-
-  return {
-    ...current,
-    status: CAMPAIGN_STATUS.CONFIRMED,
-    execution: {
-      confirmedAt: String(payload.confirmedAt || new Date().toISOString()),
-      notes: String(payload.notes || '').trim()
-    },
-    auditTrail: current.auditTrail.concat({
-      at: new Date().toISOString(),
-      action: 'execution.confirmed',
-      actor: 'partner'
-    })
-  };
-});
-
-const releaseFunds = (partnerId, campaignId) => updateCampaignForPartner(partnerId, campaignId, (current) => {
-  if (current.status !== CAMPAIGN_STATUS.CONFIRMED) {
-    throw createApiError(409, 'INVALID_STATE', 'Los fondos solo pueden liberarse tras la confirmacion de ejecucion');
-  }
-
-  return {
-    ...current,
-    status: CAMPAIGN_STATUS.FUNDS_RELEASED,
-    escrowStatus: 'released',
-    releasedAt: new Date().toISOString(),
-    auditTrail: current.auditTrail.concat({
-      at: new Date().toISOString(),
-      action: 'escrow.released',
-      actor: 'system'
-    })
-  };
-});
-
-const getCampaignMetrics = (partnerId, campaignId) => {
-  const campaign = getCampaignForPartner(partnerId, campaignId);
-  if (!campaign) {
-    throw createApiError(404, 'CAMPAIGN_NOT_FOUND', 'Campana no encontrada');
-  }
-  if (![CAMPAIGN_STATUS.PUBLISHED, CAMPAIGN_STATUS.CONFIRMED, CAMPAIGN_STATUS.FUNDS_RELEASED].includes(campaign.status)) {
-    throw createApiError(409, 'METRICS_NOT_AVAILABLE', 'Las metricas solo estan disponibles tras la publicacion');
-  }
-
-  return {
-    campaignId: campaign.id,
-    status: campaign.status,
-    metrics: {
-      impressions: 0,
-      clicks: 0,
-      ctr: 0,
-      conversions: 0
-    },
-    publication: campaign.publication || null,
-    updatedAt: campaign.updatedAt
-  };
-};
+// ── Exports ────────────────────────────────────────────────────────────────────
 
 module.exports = {
-  PARTNERS_COLLECTION,
-  CAMPAIGN_STATUS,
   hashApiKey,
+  safeEqualHex,
+  normalizeIp,
   getPartnerByApiKey,
   isIpAllowed,
   touchPartnerUsage,
   registerApiLog,
-  listInventory,
-  getCampaignsForPartner,
-  getCampaignForPartner,
-  createCampaignForPartner,
+  audit,
+  listChannels,
+  getChannel,
+  createCampaign,
   createPaymentSession,
   confirmPayment,
-  registerPublication,
-  confirmExecution,
-  releaseFunds,
+  publishCampaign,
+  completeCampaign,
+  cancelCampaign,
   getCampaignMetrics,
-  readPartners,
-  savePartners
+  getPartnerCampaigns,
+  getPartnerCampaign,
+  getOrCreatePartnerUser
 };

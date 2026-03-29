@@ -7,17 +7,32 @@ const CampaignSchema = new mongoose.Schema(
     content: { type: String, required: true, trim: true },
     targetUrl: { type: String, required: true, trim: true },
     price: { type: Number, required: true },
+    netAmount: { type: Number, default: 0 },
+    commissionRate: { type: Number, default: 0.10 },
     status: {
       type: String,
-      enum: ['DRAFT', 'PAID', 'PUBLISHED', 'COMPLETED', 'CANCELLED'],
+      enum: ['DRAFT', 'PAID', 'PUBLISHED', 'COMPLETED', 'CANCELLED', 'EXPIRED', 'DISPUTED'],
       default: 'DRAFT',
       index: true
     },
+    stripePaymentIntentId: { type: String, default: null, index: true },
+    deadline: { type: Date, default: null },
     createdAt: { type: Date, default: Date.now, index: true },
     publishedAt: { type: Date, default: null },
-    completedAt: { type: Date, default: null }
+    completedAt: { type: Date, default: null },
+    cancelledAt: { type: Date, default: null },
+    expiredAt: { type: Date, default: null },
+    partner: { type: mongoose.Schema.Types.ObjectId, ref: 'Partner', default: null, index: true },
+    partnerExternalRef: { type: String, default: null }
   },
   { timestamps: false }
 );
+
+CampaignSchema.pre('save', function (next) {
+  if (this.isModified('price') || this.isModified('commissionRate')) {
+    this.netAmount = +(this.price * (1 - this.commissionRate)).toFixed(2);
+  }
+  next();
+});
 
 module.exports = mongoose.models.Campaign || mongoose.model('Campaign', CampaignSchema);

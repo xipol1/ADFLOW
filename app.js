@@ -22,6 +22,10 @@ try { _routes['./routes/partnerApi']    = require('./routes/partnerApi');    } c
 try { _routes['./routes/anuncios']      = require('./routes/anuncios');      } catch (e) { _routes['./routes/anuncios']      = e; }
 try { _routes['./routes/notifications'] = require('./routes/notifications'); } catch (e) { _routes['./routes/notifications'] = e; }
 try { _routes['./routes/files']         = require('./routes/files');         } catch (e) { _routes['./routes/files']         = e; }
+try { _routes['./routes/disputes']      = require('./routes/disputes');      } catch (e) { _routes['./routes/disputes']      = e; }
+try { _routes['./routes/userLists']     = require('./routes/userLists');     } catch (e) { _routes['./routes/userLists']     = e; }
+try { _routes['./routes/autobuy']       = require('./routes/autobuy');       } catch (e) { _routes['./routes/autobuy']       = e; }
+try { _routes['./routes/partnerWebhook'] = require('./routes/partnerWebhook'); } catch (e) { _routes['./routes/partnerWebhook'] = e; }
 
 const app = express();
 
@@ -44,6 +48,16 @@ app.use(cors({
 }));
 app.use(compression());
 app.use(morgan(ENV === 'development' ? 'dev' : 'combined'));
+
+// Stripe webhook MUST be mounted before express.json() — it needs the raw body
+// for stripe.webhooks.constructEvent() HMAC signature verification.
+{
+  const webhookRoute = _routes['./routes/partnerWebhook'];
+  if (webhookRoute && !(webhookRoute instanceof Error)) {
+    app.use('/api/partners/webhooks/stripe', webhookRoute);
+  }
+}
+
 app.use(express.json({ limit: MAX_REQUEST_SIZE }));
 app.use(express.urlencoded({ extended: true, limit: MAX_REQUEST_SIZE }));
 
@@ -149,11 +163,14 @@ const enabledRoutes = [
   ['/campaigns', './routes/campaigns'],
   ['/api/transacciones', './routes/transacciones'],
   ['/api/estadisticas', './routes/estadisticas'],
-  ['/api/lists', './routes/lists'],
+  ['/api/lists', './routes/userLists'],
+  ['/api/lists/public', './routes/lists'],
   ['/api/partners', './routes/partnerApi'],
   ['/api/anuncios', './routes/anuncios'],
   ['/api/notifications', './routes/notifications'],
   ['/api/files', './routes/files'],
+  ['/api/disputes', './routes/disputes'],
+  ['/api/autobuy', './routes/autobuy'],
 ];
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));

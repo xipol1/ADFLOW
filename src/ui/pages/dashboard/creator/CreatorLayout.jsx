@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Radio, Inbox, Wallet, Settings, LogOut, Menu, Bell } from 'lucide-react'
+import { LayoutDashboard, Radio, Inbox, Wallet, Settings, LogOut, Menu, Bell, ShieldAlert } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../../services/api'
 
@@ -15,6 +15,7 @@ const NAV = [
   { to: '/creator/channels', icon: Radio,           label: 'Mis Canales'             },
   { to: '/creator/requests', icon: Inbox,           label: 'Solicitudes',  badge: true },
   { to: '/creator/earnings', icon: Wallet,          label: 'Ganancias'               },
+  { to: '/creator/disputes', icon: ShieldAlert,     label: 'Disputas'                },
 ]
 
 /* ── Sidebar nav link ──────────────────────────────────────── */

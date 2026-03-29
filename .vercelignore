@@ -1,7 +1,26 @@
 node_modules
-build
-dist
 .git
 .trae
-.log
 .figma
+*.log
+_server_fatal.log
+
+# Large local-only files
+*.zip
+*.xlsx
+*.xls
+Adflow 1.0/
+adflow-unified/
+Adflow-1.0-clone/
+plataforma-*/
+settings.local.json
+.env.vercel.local
+
+# Dev-only files not needed in Vercel bundle
+tests/
+docs/
+wireframes.md
+channelmarket.html
+sistema_comisiones.js
+todo.md
+uploads/

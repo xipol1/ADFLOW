@@ -36,3 +36,5 @@ uploads/*
 
 # Settings
 settings.local.json
+
+.vercel

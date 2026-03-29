@@ -1,1 +1,1 @@
-export { default } from '../../../services/api'
+export { default, CONFIGURED_API_ORIGIN } from '../../../services/api'

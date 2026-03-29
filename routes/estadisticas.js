@@ -6,6 +6,13 @@ const estadisticaController = require('../controllers/estadisticaController');
 
 const router = express.Router();
 
+// Dashboard stats (role-aware: creator/advertiser/admin)
+router.get('/dashboard', autenticar, estadisticaController.getDashboardStats);
+
+// General platform stats (public)
+router.get('/generales', estadisticaController.getGeneralStats);
+
+// Campaign-specific click stats
 router.get(
   '/campaign/:id',
   autenticar,

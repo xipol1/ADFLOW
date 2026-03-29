@@ -660,6 +660,69 @@ class ApiService {
   async markAllNotificationsRead() {
     return this.request('/notifications/leer-todas', { method: 'PUT' });
   }
+
+  // ==========================================
+  // MÉTODOS DE DISPUTAS
+  // ==========================================
+
+  async getMyDisputes() {
+    return this.request('/disputes');
+  }
+
+  async getDispute(id) {
+    return this.request(`/disputes/${id}`);
+  }
+
+  async createDispute(data) {
+    return this.request('/disputes', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async addDisputeMessage(disputeId, text) {
+    return this.request(`/disputes/${disputeId}/message`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+  }
+
+  async resolveDispute(disputeId, data) {
+    return this.request(`/disputes/${disputeId}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // ==========================================
+  // MÉTODOS DE AUTOBUY
+  // ==========================================
+
+  async getAutoRules() {
+    return this.request('/autobuy');
+  }
+
+  async createAutoRule(data) {
+    return this.request('/autobuy', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateAutoRule(id, data) {
+    return this.request(`/autobuy/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteAutoRule(id) {
+    return this.request(`/autobuy/${id}`, { method: 'DELETE' });
+  }
+
+  async triggerAutoRule(id) {
+    return this.request(`/autobuy/${id}/trigger`, { method: 'POST' });
+  }
 }
 
 // Crear instancia única del servicio

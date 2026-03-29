@@ -1,21 +1,24 @@
-const { readCollection, writeCollection } = require('../services/persistentStore');
+/**
+ * Idempotency middleware for Partner API.
+ * Uses in-memory cache (survives within a single process lifecycle).
+ * For serverless, idempotency keys are best-effort.
+ */
 
-const COLLECTION = 'partner_idempotency_keys';
-
-const readKeys = () => readCollection(COLLECTION, []);
-const saveKeys = (items) => writeCollection(COLLECTION, items);
+const cache = new Map();
+const MAX_CACHE_SIZE = 5000;
+const TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
 const partnerIdempotency = (req, res, next) => {
   if (req.method !== 'POST') return next();
 
   const idempotencyKey = String(req.headers['idempotency-key'] || '').trim();
-  if (!idempotencyKey || !req.partner?.id) return next();
+  const partnerId = req.partner?._id?.toString() || req.partner?.id;
+  if (!idempotencyKey || !partnerId) return next();
 
-  const fingerprint = `${req.partner.id}:${req.method}:${req.baseUrl}${req.path}:${idempotencyKey}`;
-  const keys = readKeys();
-  const existing = keys.find((item) => item.fingerprint === fingerprint);
+  const fingerprint = `${partnerId}:${req.method}:${req.baseUrl}${req.path}:${idempotencyKey}`;
+  const existing = cache.get(fingerprint);
 
-  if (existing) {
+  if (existing && (Date.now() - existing.at) < TTL_MS) {
     res.setHeader('Idempotency-Replayed', 'true');
     return res.status(existing.statusCode).json(existing.responseBody);
   }
@@ -23,15 +26,16 @@ const partnerIdempotency = (req, res, next) => {
   const originalJson = res.json.bind(res);
   res.json = (body) => {
     if (res.statusCode >= 200 && res.statusCode < 300) {
-      keys.push({
-        id: `pik-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-        fingerprint,
-        partnerId: req.partner.id,
+      // Evict oldest entries if cache is full
+      if (cache.size >= MAX_CACHE_SIZE) {
+        const firstKey = cache.keys().next().value;
+        cache.delete(firstKey);
+      }
+      cache.set(fingerprint, {
         statusCode: res.statusCode,
         responseBody: body,
-        createdAt: new Date().toISOString()
+        at: Date.now()
       });
-      saveKeys(keys);
     }
     return originalJson(body);
   };
@@ -39,6 +43,4 @@ const partnerIdempotency = (req, res, next) => {
   next();
 };
 
-module.exports = {
-  partnerIdempotency
-};
+module.exports = { partnerIdempotency };
