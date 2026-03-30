@@ -1,6 +1,6 @@
 // Build OpenAPI spec directly (no swagger-jsdoc — it has issues with Vercel serverless bundling)
-let apiPaths = {};
-try { apiPaths = require('../docs/swagger/paths.json').paths || {}; } catch (_) {}
+// paths.json lives in config/ so Vercel nft bundles it (config/** is in includeFiles)
+const apiPaths = require('./swaggerPaths.json').paths || {};
 
 const spec = {
   openapi: '3.0.0',

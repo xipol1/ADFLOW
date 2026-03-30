@@ -1,0 +1,4510 @@
+{
+  "paths": {
+    "/api/auth/registro": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Registrar nuevo usuario",
+        "description": "Crea una nueva cuenta de usuario (anunciante o creador) y devuelve un JWT.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "nombre",
+                  "email",
+                  "password",
+                  "rol"
+                ],
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "example": "Juan Perez"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "juan@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 6,
+                    "example": "MiPassword123"
+                  },
+                  "rol": {
+                    "type": "string",
+                    "enum": [
+                      "anunciante",
+                      "creador"
+                    ],
+                    "example": "creador"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario registrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos o email ya registrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Iniciar sesion",
+        "description": "Autentica al usuario con email y password, devuelve JWT y refresh token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "juan@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "MiPassword123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Credenciales invalidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Email o password incorrectos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh-token": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Renovar token de acceso",
+        "description": "Usa un refresh token valido para obtener un nuevo JWT de acceso.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "refreshToken"
+                ],
+                "properties": {
+                  "refreshToken": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token renovado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Refresh token invalido o expirado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/perfil": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Obtener perfil del usuario autenticado",
+        "description": "Devuelve la informacion del perfil del usuario logueado.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Perfil del usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado o token expirado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/cambiar-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Cambiar password",
+        "description": "Permite al usuario autenticado cambiar su contrasena actual.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ],
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "MiPasswordActual123"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 6,
+                    "example": "MiNuevoPassword456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password cambiado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Password actualizado correctamente"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Password actual incorrecto o nuevo password invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/channels": {
+      "get": {
+        "tags": [
+          "Channels"
+        ],
+        "summary": "Listar canales del marketplace",
+        "description": "Devuelve los canales activos y verificados del marketplace con soporte de filtros, paginacion y ordenamiento.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Numero de pagina"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            },
+            "description": "Resultados por pagina"
+          },
+          {
+            "in": "query",
+            "name": "plataforma",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "whatsapp",
+                "telegram",
+                "discord",
+                "instagram",
+                "otro"
+              ]
+            },
+            "description": "Filtrar por plataforma"
+          },
+          {
+            "in": "query",
+            "name": "categoria",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filtrar por categoria"
+          },
+          {
+            "in": "query",
+            "name": "precioMin",
+            "schema": {
+              "type": "number"
+            },
+            "description": "Precio minimo"
+          },
+          {
+            "in": "query",
+            "name": "precioMax",
+            "schema": {
+              "type": "number"
+            },
+            "description": "Precio maximo"
+          },
+          {
+            "in": "query",
+            "name": "suscriptoresMin",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Minimo de suscriptores"
+          },
+          {
+            "in": "query",
+            "name": "buscar",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Busqueda por texto en nombre y descripcion"
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "precio",
+                "-precio",
+                "suscriptores",
+                "-suscriptores",
+                "createdAt",
+                "-createdAt"
+              ]
+            },
+            "description": "Ordenamiento"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de canales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Channel"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "limit": {
+                          "type": "integer",
+                          "example": 20
+                        },
+                        "total": {
+                          "type": "integer",
+                          "example": 150
+                        },
+                        "pages": {
+                          "type": "integer",
+                          "example": 8
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/channels/{id}": {
+      "get": {
+        "tags": [
+          "Channels"
+        ],
+        "summary": "Obtener detalle de un canal",
+        "description": "Devuelve la informacion completa de un canal publico del marketplace.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID del canal",
+            "example": "664f1a2b3c4d5e6f7a8b9c0d"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle del canal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Channel"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Canal no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/canales": {
+      "get": {
+        "tags": [
+          "My Channels"
+        ],
+        "summary": "Listar mis canales",
+        "description": "Devuelve todos los canales del creador autenticado, incluyendo los pendientes y pausados.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de canales propios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Channel"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "My Channels"
+        ],
+        "summary": "Crear un nuevo canal",
+        "description": "Registra un nuevo canal para el creador autenticado. El canal queda en estado pendiente hasta ser verificado.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "nombre",
+                  "plataforma",
+                  "categoria",
+                  "suscriptores",
+                  "precio"
+                ],
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "example": "Tech News Daily"
+                  },
+                  "plataforma": {
+                    "type": "string",
+                    "enum": [
+                      "whatsapp",
+                      "telegram",
+                      "discord",
+                      "instagram",
+                      "otro"
+                    ],
+                    "example": "telegram"
+                  },
+                  "categoria": {
+                    "type": "string",
+                    "example": "tecnologia"
+                  },
+                  "suscriptores": {
+                    "type": "number",
+                    "example": 15000
+                  },
+                  "precio": {
+                    "type": "number",
+                    "example": 50
+                  },
+                  "descripcion": {
+                    "type": "string",
+                    "example": "Canal de noticias de tecnologia con audiencia activa"
+                  },
+                  "enlace": {
+                    "type": "string",
+                    "example": "https://t.me/technewsdaily"
+                  },
+                  "idioma": {
+                    "type": "string",
+                    "example": "es"
+                  },
+                  "pais": {
+                    "type": "string",
+                    "example": "MX"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Canal creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Channel"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/canales/{id}": {
+      "put": {
+        "tags": [
+          "My Channels"
+        ],
+        "summary": "Actualizar un canal propio",
+        "description": "Actualiza los datos de un canal que pertenece al creador autenticado.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID del canal"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "example": "Tech News Updated"
+                  },
+                  "descripcion": {
+                    "type": "string",
+                    "example": "Descripcion actualizada del canal"
+                  },
+                  "precio": {
+                    "type": "number",
+                    "example": 75
+                  },
+                  "suscriptores": {
+                    "type": "number",
+                    "example": 20000
+                  },
+                  "enlace": {
+                    "type": "string",
+                    "example": "https://t.me/technewsdaily"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canal actualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Channel"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Canal no encontrado o no pertenece al usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "My Channels"
+        ],
+        "summary": "Eliminar un canal propio",
+        "description": "Elimina un canal que pertenece al creador autenticado. No se puede eliminar si tiene campanas activas.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID del canal"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Canal eliminado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Canal eliminado correctamente"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Canal no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/campaigns": {
+      "get": {
+        "tags": [
+          "Campaigns"
+        ],
+        "summary": "Listar campanas",
+        "description": "Devuelve las campanas del usuario autenticado (como anunciante o creador segun su rol).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Numero de pagina"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            },
+            "description": "Resultados por pagina"
+          },
+          {
+            "in": "query",
+            "name": "estado",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "borrador",
+                "pendiente",
+                "confirmada",
+                "publicada",
+                "completada",
+                "cancelada"
+              ]
+            },
+            "description": "Filtrar por estado"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de campanas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Campaign"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "limit": {
+                          "type": "integer",
+                          "example": 20
+                        },
+                        "total": {
+                          "type": "integer",
+                          "example": 5
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Campaigns"
+        ],
+        "summary": "Crear nueva campana",
+        "description": "Crea una nueva campana publicitaria asociada a un canal del marketplace. Solo anunciantes pueden crear campanas.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "titulo",
+                  "canal",
+                  "presupuesto"
+                ],
+                "properties": {
+                  "titulo": {
+                    "type": "string",
+                    "example": "Lanzamiento App Fitness"
+                  },
+                  "descripcion": {
+                    "type": "string",
+                    "example": "Promocion de nueva app de ejercicios"
+                  },
+                  "canal": {
+                    "type": "string",
+                    "description": "ID del canal donde publicar",
+                    "example": "664f1a2b3c4d5e6f7a8b9c0d"
+                  },
+                  "presupuesto": {
+                    "type": "number",
+                    "example": 500
+                  },
+                  "targetUrl": {
+                    "type": "string",
+                    "example": "https://miapp.com/landing"
+                  },
+                  "contenido": {
+                    "type": "string",
+                    "example": "Texto del anuncio a publicar en el canal"
+                  },
+                  "fechaInicio": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "fechaFin": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Campana creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Campaign"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos o canal no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/campaigns/{id}/confirm": {
+      "put": {
+        "tags": [
+          "Campaigns"
+        ],
+        "summary": "Confirmar campana",
+        "description": "El creador del canal confirma que acepta la campana. Cambia estado de pendiente a confirmada.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la campana"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Campana confirmada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Campaign"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "La campana no esta en estado pendiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Campana no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/campaigns/{id}/publish": {
+      "put": {
+        "tags": [
+          "Campaigns"
+        ],
+        "summary": "Marcar campana como publicada",
+        "description": "El creador indica que ya publico el contenido de la campana en su canal. Cambia estado de confirmada a publicada.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la campana"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Campana marcada como publicada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Campaign"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "La campana no esta en estado confirmada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Campana no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/campaigns/{id}/complete": {
+      "put": {
+        "tags": [
+          "Campaigns"
+        ],
+        "summary": "Completar campana",
+        "description": "El anunciante marca la campana como completada tras verificar la publicacion. Libera el pago al creador.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la campana"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Campana completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Campaign"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "La campana no esta en estado publicada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Campana no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/campaigns/{id}/cancel": {
+      "put": {
+        "tags": [
+          "Campaigns"
+        ],
+        "summary": "Cancelar campana",
+        "description": "Cancela una campana. Solo se puede cancelar antes de ser publicada. Si ya fue pagada, se inicia un reembolso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la campana"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "motivo": {
+                    "type": "string",
+                    "example": "Cambio de estrategia de marketing"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Campana cancelada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Campaign"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "La campana ya fue publicada o completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Campana no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tracking/links": {
+      "post": {
+        "tags": [
+          "Tracking"
+        ],
+        "summary": "Crear tracking link",
+        "description": "Genera un nuevo link trackeable para campanas o verificacion de canales. Registra clics con analytics completos.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "targetUrl",
+                  "type"
+                ],
+                "properties": {
+                  "targetUrl": {
+                    "type": "string",
+                    "example": "https://example.com/landing"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "campaign",
+                      "verification",
+                      "custom"
+                    ],
+                    "example": "verification"
+                  },
+                  "channel": {
+                    "type": "string",
+                    "description": "ID del canal (requerido para verificacion)",
+                    "example": "664f1a2b3c4d5e6f7a8b9c0d"
+                  },
+                  "campaign": {
+                    "type": "string",
+                    "description": "ID de la campana (requerido para tipo campaign)"
+                  },
+                  "label": {
+                    "type": "string",
+                    "example": "Landing page principal"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Link creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/TrackingLink"
+                    },
+                    "shortUrl": {
+                      "type": "string",
+                      "example": "https://adflow-unified.vercel.app/t/abc123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Tracking"
+        ],
+        "summary": "Listar mis tracking links",
+        "description": "Devuelve todos los tracking links creados por el usuario autenticado.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "campaign",
+                "verification",
+                "custom"
+              ]
+            },
+            "description": "Filtrar por tipo"
+          },
+          {
+            "in": "query",
+            "name": "channel",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filtrar por ID de canal"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de tracking links",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TrackingLink"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tracking/links/{id}/analytics": {
+      "get": {
+        "tags": [
+          "Tracking"
+        ],
+        "summary": "Obtener analytics de un link",
+        "description": "Devuelve estadisticas detalladas de clics, dispositivos, paises y referers para un tracking link.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID del tracking link"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Analytics del link",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "totalClicks": {
+                          "type": "number",
+                          "example": 245
+                        },
+                        "uniqueClicks": {
+                          "type": "number",
+                          "example": 189
+                        },
+                        "lastClickAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "devices": {
+                          "type": "object",
+                          "example": {
+                            "mobile": 150,
+                            "desktop": 80,
+                            "tablet": 15
+                          }
+                        },
+                        "countries": {
+                          "type": "object",
+                          "example": {
+                            "MX": 100,
+                            "AR": 45,
+                            "CO": 30,
+                            "ES": 14
+                          }
+                        },
+                        "referers": {
+                          "type": "object",
+                          "example": {
+                            "t.me": 120,
+                            "direct": 80,
+                            "instagram.com": 45
+                          }
+                        },
+                        "recentClicks": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "timestamp": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "country": {
+                                "type": "string"
+                              },
+                              "device": {
+                                "type": "string"
+                              },
+                              "browser": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Link no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tracking/verify-link": {
+      "post": {
+        "tags": [
+          "Tracking"
+        ],
+        "summary": "Crear link de verificacion para canal",
+        "description": "Genera un link especial de verificacion que el creador debe publicar en su canal para demostrar propiedad.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "channelId"
+                ],
+                "properties": {
+                  "channelId": {
+                    "type": "string",
+                    "example": "664f1a2b3c4d5e6f7a8b9c0d"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Link de verificacion creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "verificationUrl": {
+                      "type": "string",
+                      "example": "https://adflow-unified.vercel.app/t/ver_abc123"
+                    },
+                    "minClicks": {
+                      "type": "number",
+                      "example": 3
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Publica este link en tu canal. Se verificara automaticamente al recibir 3 clics unicos."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Canal no encontrado o ya verificado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tracking/verify-status/{channelId}": {
+      "get": {
+        "tags": [
+          "Tracking"
+        ],
+        "summary": "Consultar estado de verificacion de un canal",
+        "description": "Devuelve el estado actual de la verificacion de un canal basado en el tracking link de verificacion.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "channelId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID del canal"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado de verificacion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "posted",
+                        "verified"
+                      ],
+                      "example": "posted"
+                    },
+                    "uniqueClicks": {
+                      "type": "number",
+                      "example": 2
+                    },
+                    "minClicks": {
+                      "type": "number",
+                      "example": 3
+                    },
+                    "verifiedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No hay link de verificacion para este canal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tracking/convert": {
+      "post": {
+        "tags": [
+          "Tracking"
+        ],
+        "summary": "Registrar conversion",
+        "description": "Registra una conversion asociada a un tracking link. Usado para medir el ROI de campanas.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "code"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "Codigo del tracking link",
+                    "example": "abc123"
+                  },
+                  "value": {
+                    "type": "number",
+                    "description": "Valor de la conversion",
+                    "example": 29.99
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "description": "Datos adicionales de la conversion"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Conversion registrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Conversion registrada correctamente"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Codigo de link invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disputes": {
+      "get": {
+        "tags": [
+          "Disputes"
+        ],
+        "summary": "Listar disputas",
+        "description": "Devuelve las disputas del usuario autenticado (como iniciador o contraparte).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "open",
+                "in_review",
+                "resolved",
+                "closed"
+              ]
+            },
+            "description": "Filtrar por estado"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de disputas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Dispute"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Disputes"
+        ],
+        "summary": "Abrir nueva disputa",
+        "description": "Crea una nueva disputa asociada a una campana. Solo el anunciante o el creador de la campana pueden abrir una disputa.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "campaign",
+                  "reason"
+                ],
+                "properties": {
+                  "campaign": {
+                    "type": "string",
+                    "description": "ID de la campana en disputa",
+                    "example": "664f1a2b3c4d5e6f7a8b9c0d"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "example": "El anuncio no fue publicado en el horario acordado"
+                  },
+                  "evidence": {
+                    "type": "string",
+                    "description": "URL de evidencia (captura de pantalla, etc.)",
+                    "example": "https://example.com/evidence.png"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Disputa creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Dispute"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos o campana no elegible para disputa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disputes/{id}": {
+      "get": {
+        "tags": [
+          "Disputes"
+        ],
+        "summary": "Ver detalle de una disputa",
+        "description": "Devuelve el detalle completo de una disputa incluyendo todos los mensajes.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la disputa"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle de la disputa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Dispute"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Disputa no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disputes/{id}/message": {
+      "post": {
+        "tags": [
+          "Disputes"
+        ],
+        "summary": "Enviar mensaje en disputa",
+        "description": "Agrega un mensaje al hilo de comunicacion de la disputa. Solo las partes involucradas pueden enviar mensajes.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la disputa"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "text"
+                ],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "example": "Adjunto captura de pantalla del chat donde se acordo el horario"
+                  },
+                  "attachment": {
+                    "type": "string",
+                    "description": "URL de archivo adjunto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mensaje enviado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Dispute"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Disputa cerrada o datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Disputa no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/disputes/{id}/resolve": {
+      "put": {
+        "tags": [
+          "Disputes"
+        ],
+        "summary": "Resolver disputa",
+        "description": "Un administrador o las partes involucradas resuelven la disputa con una decision final.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la disputa"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "resolution"
+                ],
+                "properties": {
+                  "resolution": {
+                    "type": "string",
+                    "enum": [
+                      "favor_advertiser",
+                      "favor_creator",
+                      "partial_refund",
+                      "dismissed"
+                    ],
+                    "example": "favor_advertiser"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "example": "El creador no cumplio con el horario acordado. Se procede a reembolso completo."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Disputa resuelta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Dispute"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "La disputa ya esta resuelta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Disputa no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/lists": {
+      "get": {
+        "tags": [
+          "Lists"
+        ],
+        "summary": "Listar mis listas de canales",
+        "description": "Devuelve todas las listas de favoritos del usuario autenticado.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listas del usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/List"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Lists"
+        ],
+        "summary": "Crear nueva lista",
+        "description": "Crea una nueva lista de favoritos para organizar canales del marketplace.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "nombre"
+                ],
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "example": "Canales de Tecnologia"
+                  },
+                  "descripcion": {
+                    "type": "string",
+                    "example": "Mis canales favoritos de tech"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Lista creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/List"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/lists/{id}/add-channel": {
+      "post": {
+        "tags": [
+          "Lists"
+        ],
+        "summary": "Agregar canal a lista",
+        "description": "Agrega un canal del marketplace a una lista de favoritos.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la lista"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "channelId"
+                ],
+                "properties": {
+                  "channelId": {
+                    "type": "string",
+                    "example": "664f1a2b3c4d5e6f7a8b9c0d"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canal agregado a la lista",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/List"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Canal ya esta en la lista",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lista o canal no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/lists/{id}/remove-channel/{channelId}": {
+      "delete": {
+        "tags": [
+          "Lists"
+        ],
+        "summary": "Quitar canal de lista",
+        "description": "Remueve un canal de una lista de favoritos.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la lista"
+          },
+          {
+            "in": "path",
+            "name": "channelId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID del canal a remover"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Canal removido de la lista",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/List"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lista o canal no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/lists/{id}": {
+      "delete": {
+        "tags": [
+          "Lists"
+        ],
+        "summary": "Eliminar lista",
+        "description": "Elimina una lista de favoritos del usuario autenticado.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la lista"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista eliminada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Lista eliminada correctamente"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lista no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/autobuy": {
+      "get": {
+        "tags": [
+          "AutoBuy"
+        ],
+        "summary": "Listar reglas de auto-compra",
+        "description": "Devuelve todas las reglas de compra automatica del usuario autenticado.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de reglas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AutoBuyRule"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AutoBuy"
+        ],
+        "summary": "Crear regla de auto-compra",
+        "description": "Crea una nueva regla de compra automatica. Cuando un canal coincide con los filtros, se crea una campana automaticamente.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "nombre",
+                  "filtros",
+                  "presupuestoMax"
+                ],
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "example": "Auto-compra Telegram Tech"
+                  },
+                  "filtros": {
+                    "type": "object",
+                    "properties": {
+                      "plataforma": {
+                        "type": "string",
+                        "example": "telegram"
+                      },
+                      "categorias": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "example": [
+                          "tecnologia",
+                          "startups"
+                        ]
+                      },
+                      "precioMax": {
+                        "type": "number",
+                        "example": 100
+                      },
+                      "suscriptoresMin": {
+                        "type": "number",
+                        "example": 5000
+                      }
+                    }
+                  },
+                  "presupuestoMax": {
+                    "type": "number",
+                    "example": 500
+                  },
+                  "contenido": {
+                    "type": "string",
+                    "example": "Texto del anuncio automatico"
+                  },
+                  "targetUrl": {
+                    "type": "string",
+                    "example": "https://miapp.com/landing"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Regla creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AutoBuyRule"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/autobuy/{id}": {
+      "put": {
+        "tags": [
+          "AutoBuy"
+        ],
+        "summary": "Actualizar regla de auto-compra",
+        "description": "Actualiza los filtros, presupuesto u otros parametros de una regla de auto-compra.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la regla"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "example": "Auto-compra Actualizada"
+                  },
+                  "filtros": {
+                    "type": "object",
+                    "properties": {
+                      "plataforma": {
+                        "type": "string"
+                      },
+                      "categorias": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "precioMax": {
+                        "type": "number"
+                      },
+                      "suscriptoresMin": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "presupuestoMax": {
+                    "type": "number"
+                  },
+                  "activo": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Regla actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AutoBuyRule"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Regla no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "AutoBuy"
+        ],
+        "summary": "Eliminar regla de auto-compra",
+        "description": "Elimina una regla de compra automatica.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la regla"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Regla eliminada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Regla eliminada correctamente"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Regla no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/autobuy/{id}/trigger": {
+      "post": {
+        "tags": [
+          "AutoBuy"
+        ],
+        "summary": "Ejecutar regla manualmente",
+        "description": "Ejecuta una regla de auto-compra manualmente, buscando canales que coincidan y creando campanas.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la regla"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Regla ejecutada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "matched": {
+                      "type": "number",
+                      "example": 3
+                    },
+                    "campaignsCreated": {
+                      "type": "number",
+                      "example": 2
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Se encontraron 3 canales, se crearon 2 campanas"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Regla no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews": {
+      "post": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Crear resena",
+        "description": "Crea una resena para un canal tras completar una campana. Solo un anunciante con campana completada puede dejar resena.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "channel",
+                  "campaign",
+                  "rating"
+                ],
+                "properties": {
+                  "channel": {
+                    "type": "string",
+                    "example": "664f1a2b3c4d5e6f7a8b9c0d"
+                  },
+                  "campaign": {
+                    "type": "string",
+                    "example": "664f1a2b3c4d5e6f7a8b9c0e"
+                  },
+                  "rating": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 5,
+                    "example": 4
+                  },
+                  "comment": {
+                    "type": "string",
+                    "example": "Excelente alcance y engagement. Muy recomendado."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Resena creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Review"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ya existe resena para esta campana o datos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/channel/{channelId}": {
+      "get": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Listar resenas de un canal",
+        "description": "Devuelve todas las resenas publicas de un canal con su rating promedio.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "channelId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID del canal"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "recent",
+                "helpful",
+                "rating",
+                "-rating"
+              ],
+              "default": "recent"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resenas del canal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Review"
+                      }
+                    },
+                    "averageRating": {
+                      "type": "number",
+                      "example": 4.2
+                    },
+                    "totalReviews": {
+                      "type": "number",
+                      "example": 15
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Canal no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/my": {
+      "get": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Listar mis resenas",
+        "description": "Devuelve todas las resenas escritas por el usuario autenticado.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mis resenas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Review"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/{id}": {
+      "get": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Ver detalle de una resena",
+        "description": "Devuelve el detalle completo de una resena.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la resena"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle de la resena",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Review"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resena no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Eliminar resena",
+        "description": "Elimina una resena. Solo el autor o un administrador pueden eliminar resenas.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la resena"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resena eliminada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Resena eliminada correctamente"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resena no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/{id}/respond": {
+      "put": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Responder a una resena",
+        "description": "El creador del canal responde a una resena dejada en su canal. Solo una respuesta por resena.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la resena"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "response"
+                ],
+                "properties": {
+                  "response": {
+                    "type": "string",
+                    "example": "Gracias por tu resena! Nos alegra que hayas tenido buena experiencia."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Respuesta agregada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Review"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ya existe una respuesta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resena no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/{id}/helpful": {
+      "put": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Marcar resena como util",
+        "description": "Incrementa el contador de \"util\" de una resena. Un usuario solo puede marcarla una vez.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la resena"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resena marcada como util",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "helpful": {
+                      "type": "number",
+                      "example": 13
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ya marcaste esta resena como util",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resena no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/{id}/report": {
+      "put": {
+        "tags": [
+          "Reviews"
+        ],
+        "summary": "Reportar resena",
+        "description": "Reporta una resena por contenido inapropiado para revision de un administrador.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la resena"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "example": "Contenido ofensivo y falso"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resena reportada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Resena reportada. Sera revisada por un administrador."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resena no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transacciones": {
+      "get": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Listar transacciones",
+        "description": "Devuelve el historial de transacciones del usuario autenticado con soporte de paginacion y filtros.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "in": "query",
+            "name": "tipo",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pago",
+                "cobro",
+                "reembolso"
+              ]
+            },
+            "description": "Filtrar por tipo de transaccion"
+          },
+          {
+            "in": "query",
+            "name": "estado",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pendiente",
+                "completada",
+                "fallida",
+                "reembolsada"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de transacciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Transaction"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "limit": {
+                          "type": "integer",
+                          "example": 20
+                        },
+                        "total": {
+                          "type": "integer",
+                          "example": 42
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transacciones/checkout": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Crear sesion de checkout",
+        "description": "Crea una sesion de pago Stripe Checkout para una campana. Redirige al usuario a Stripe para completar el pago.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "campaignId"
+                ],
+                "properties": {
+                  "campaignId": {
+                    "type": "string",
+                    "example": "664f1a2b3c4d5e6f7a8b9c0d"
+                  },
+                  "successUrl": {
+                    "type": "string",
+                    "example": "https://adflow-unified.vercel.app/campaigns?payment=success"
+                  },
+                  "cancelUrl": {
+                    "type": "string",
+                    "example": "https://adflow-unified.vercel.app/campaigns?payment=cancel"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesion de checkout creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "example": "cs_test_a1b2c3d4e5f6..."
+                    },
+                    "url": {
+                      "type": "string",
+                      "example": "https://checkout.stripe.com/c/pay/cs_test_a1b2c3d4e5f6..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Campana no elegible para pago",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transacciones/payment-intent": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Crear payment intent",
+        "description": "Crea un Stripe PaymentIntent para pagos en la aplicacion con Elements. Devuelve el client secret para confirmar el pago en el frontend.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "campaignId"
+                ],
+                "properties": {
+                  "campaignId": {
+                    "type": "string",
+                    "example": "664f1a2b3c4d5e6f7a8b9c0d"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payment intent creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "clientSecret": {
+                      "type": "string",
+                      "example": "pi_3abc123_secret_xyz789"
+                    },
+                    "amount": {
+                      "type": "number",
+                      "example": 5000
+                    },
+                    "currency": {
+                      "type": "string",
+                      "example": "usd"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Campana no elegible para pago",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Listar notificaciones",
+        "description": "Devuelve todas las notificaciones del usuario autenticado, ordenadas de mas reciente a mas antigua.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de notificaciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Notification"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/no-leidas": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Obtener conteo de no leidas",
+        "description": "Devuelve el numero de notificaciones no leidas del usuario autenticado.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conteo de no leidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "count": {
+                      "type": "number",
+                      "example": 5
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/leer-todas": {
+      "put": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Marcar todas como leidas",
+        "description": "Marca todas las notificaciones del usuario autenticado como leidas.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Todas marcadas como leidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Todas las notificaciones marcadas como leidas"
+                    },
+                    "modified": {
+                      "type": "number",
+                      "example": 5
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/{id}/leer": {
+      "put": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Marcar notificacion como leida",
+        "description": "Marca una notificacion especifica como leida.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la notificacion"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notificacion marcada como leida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Notification"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Notificacion no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/files/upload": {
+      "post": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Subir archivo",
+        "description": "Sube un archivo (imagen, documento) al servidor. Acepta multipart/form-data con un campo \"file\".",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Archivo a subir (max 10MB)"
+                  },
+                  "folder": {
+                    "type": "string",
+                    "description": "Carpeta destino",
+                    "example": "campaigns"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Archivo subido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "fileId": {
+                      "type": "string",
+                      "example": "664f1a2b3c4d5e6f7a8b9c0d"
+                    },
+                    "url": {
+                      "type": "string",
+                      "example": "/uploads/campaigns/1711800000000-image.png"
+                    },
+                    "filename": {
+                      "type": "string",
+                      "example": "1711800000000-image.png"
+                    },
+                    "mimetype": {
+                      "type": "string",
+                      "example": "image/png"
+                    },
+                    "size": {
+                      "type": "number",
+                      "example": 245000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Archivo no proporcionado o tipo no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Archivo excede el tamano maximo permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/files/{id}": {
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Obtener archivo",
+        "description": "Devuelve los metadatos de un archivo subido o redirige al archivo.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID del archivo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Metadatos del archivo o el archivo en si",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "filename": {
+                          "type": "string"
+                        },
+                        "mimetype": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Archivo no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health check principal",
+        "description": "Verifica que el servidor esta activo. Devuelve uptime, timestamp y entorno.",
+        "responses": {
+          "200": {
+            "description": "Servidor activo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "uptime": {
+                      "type": "number",
+                      "example": 12345.678
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2026-03-30T12:00:00.000Z"
+                    },
+                    "environment": {
+                      "type": "string",
+                      "example": "production"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health check API",
+        "description": "Health check simple para verificar que la API responde.",
+        "responses": {
+          "200": {
+            "description": "API activa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
