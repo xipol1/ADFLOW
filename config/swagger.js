@@ -1,16 +1,10 @@
 const swaggerJsdoc = require('swagger-jsdoc');
-const path = require('path');
-const fs = require('fs');
-const yaml = require('js-yaml');
 
-// Load YAML paths directly (swagger-jsdoc glob doesn't work in Vercel serverless)
+// Load paths from pre-compiled JSON (Vercel nft traces require() calls)
 let yamlPaths = {};
 try {
-  const yamlFile = path.join(__dirname, '..', 'docs', 'swagger', 'api.yaml');
-  if (fs.existsSync(yamlFile)) {
-    const parsed = yaml.load(fs.readFileSync(yamlFile, 'utf8'));
-    yamlPaths = parsed.paths || parsed || {};
-  }
+  const pathsData = require('../docs/swagger/paths.json');
+  yamlPaths = pathsData.paths || pathsData || {};
 } catch (_) { /* silent */ }
 
 const options = {
