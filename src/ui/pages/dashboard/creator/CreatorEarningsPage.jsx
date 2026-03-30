@@ -530,7 +530,7 @@ export default function CreatorEarningsPage() {
                 <h2 style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '2px' }}>Por canal</h2>
                 <p style={{ fontSize: '12px', color: 'var(--muted)' }}>Distribución de ingresos</p>
               </div>
-              {(channels.length > 0 ? channels : mockChannelData).map((ch, i, arr) => {
+              {(channels.length > 0 ? channels : [{ _id: 'empty', nombreCanal: 'Sin canales', earningsThisMonth: 0 }]).map((ch, i, arr) => {
                 const chName = ch.nombreCanal || ch.name
                 const chEarnings = ch.earningsThisMonth || 0
                 const pct = thisMonth > 0 ? Math.round((chEarnings / thisMonth) * 100) : 0
