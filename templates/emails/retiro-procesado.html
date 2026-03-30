@@ -1,0 +1,99 @@
+<!-- Preheader: Tu retiro ha sido procesado exitosamente -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+  <tr>
+    <td style="padding: 40px 40px 20px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center;">
+            <div style="font-size: 48px; line-height: 1; margin-bottom: 16px;">&#128176;</div>
+            <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700; color: #1e293b; line-height: 1.2;">
+              Retiro procesado
+            </h1>
+            <p style="margin: 0; font-size: 16px; color: #64748b; line-height: 1.5;">
+              Hola <strong style="color: #1e293b;">{{nombre}}</strong>, tu solicitud de retiro ha sido procesada.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Withdrawal card -->
+  <tr>
+    <td style="padding: 0 40px 30px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+        <tr>
+          <td style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 20px 24px; border-bottom: 1px solid #bbf7d0;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <tr>
+                <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 600; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">
+                  &#10003; Comprobante de retiro
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 24px;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <!-- Amount -->
+              <tr>
+                <td style="padding-bottom: 20px; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f0fdf4; border-radius: 8px;">
+                    <tr>
+                      <td style="padding: 20px; text-align: center;">
+                        <span style="font-size: 12px; color: #166534; display: block; margin-bottom: 4px;">Monto retirado</span>
+                        <span style="font-size: 36px; font-weight: 700; color: #166534;">${{amount}}</span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <!-- Details -->
+              <tr>
+                <td style="padding-bottom: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                    <tr>
+                      <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                          <tr>
+                            <td style="font-size: 14px; color: #64748b;">M&eacute;todo de pago</td>
+                            <td style="font-size: 14px; font-weight: 600; color: #1e293b; text-align: right;">{{method}}</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 0;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                          <tr>
+                            <td style="font-size: 14px; color: #64748b;">Llegada estimada</td>
+                            <td style="font-size: 14px; font-weight: 600; color: #1e293b; text-align: right;">{{estimatedArrival}}</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Info -->
+  <tr>
+    <td style="padding: 0 40px 40px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #eef2ff; border-radius: 8px; border-left: 4px solid #6366f1;">
+        <tr>
+          <td style="padding: 16px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #3730a3; line-height: 1.5;">
+            <strong>Nota:</strong> El tiempo de llegada puede variar seg&uacute;n tu entidad bancaria. Si no recibes los fondos en el plazo indicado, cont&aacute;ctanos en
+            <a href="mailto:{{SUPPORT_EMAIL}}" style="color: #6366f1; font-weight: 600;">{{SUPPORT_EMAIL}}</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

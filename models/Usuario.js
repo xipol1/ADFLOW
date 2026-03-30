@@ -23,7 +23,12 @@ const UsuarioSchema = new mongoose.Schema(
     sesiones: { type: [SesionSchema], default: [] },
     ultimaActividad: { type: Date, default: null },
     emailVerificationToken: { type: String, default: null },
-    emailVerificationExpires: { type: Date, default: null }
+    emailVerificationExpires: { type: Date, default: null },
+    pushSubscriptions: [{
+      endpoint: String,
+      keys: { p256dh: String, auth: String },
+      createdAt: { type: Date, default: Date.now },
+    }]
   },
   { timestamps: true }
 );

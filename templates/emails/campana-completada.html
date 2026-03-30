@@ -1,0 +1,115 @@
+<!-- Preheader: Tu campa&#241;a ha sido completada exitosamente -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+  <tr>
+    <td style="padding: 40px 40px 20px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center;">
+            <div style="font-size: 48px; line-height: 1; margin-bottom: 16px;">&#127942;</div>
+            <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700; color: #1e293b; line-height: 1.2;">
+              Campa&ntilde;a completada
+            </h1>
+            <p style="margin: 0; font-size: 16px; color: #64748b; line-height: 1.5;">
+              Hola <strong style="color: #1e293b;">{{nombre}}</strong>, la campa&ntilde;a ha finalizado con &eacute;xito.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Summary card -->
+  <tr>
+    <td style="padding: 0 40px 30px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+        <tr>
+          <td style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 20px 24px; border-bottom: 1px solid #bbf7d0;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <tr>
+                <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 600; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">
+                  &#127942; Resumen de campa&ntilde;a
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 24px;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <tr>
+                <td style="padding-bottom: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                  <span style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Canal</span>
+                  <br>
+                  <span style="font-size: 15px; font-weight: 600; color: #1e293b;">{{channelName}}</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                    <tr>
+                      <td width="50%" style="padding-right: 8px; padding-bottom: 12px;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #eef2ff; border-radius: 8px;">
+                          <tr>
+                            <td style="padding: 16px; text-align: center;">
+                              <span style="font-size: 12px; color: #4338ca; display: block; margin-bottom: 4px;">Precio total</span>
+                              <span style="font-size: 22px; font-weight: 700; color: #4338ca;">${{price}}</span>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td width="50%" style="padding-left: 8px; padding-bottom: 12px;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f0fdf4; border-radius: 8px;">
+                          <tr>
+                            <td style="padding: 16px; text-align: center;">
+                              <span style="font-size: 12px; color: #166534; display: block; margin-bottom: 4px;">Monto neto</span>
+                              <span style="font-size: 22px; font-weight: 700; color: #166534;">${{netAmount}}</span>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Performance stats -->
+  <tr>
+    <td style="padding: 0 40px 30px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <tr>
+          <td style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0;">
+            <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 600; color: #6366f1; text-transform: uppercase; letter-spacing: 0.5px;">
+              &#128200; Estad&iacute;sticas de rendimiento
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 20px 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #475569; line-height: 1.8;">
+            {{stats}}
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- CTA -->
+  <tr>
+    <td style="padding: 0 40px 40px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+        <tr>
+          <td style="border-radius: 8px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+            <a href="{{campaignUrl}}" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border: none; border-radius: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 600; line-height: 1; text-decoration: none; padding: 14px 36px; color: #ffffff; display: inline-block;">
+              Ver detalles completos &rarr;
+            </a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

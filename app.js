@@ -27,6 +27,7 @@ try { _routes['./routes/userLists']     = require('./routes/userLists');     } c
 try { _routes['./routes/autobuy']       = require('./routes/autobuy');       } catch (e) { _routes['./routes/autobuy']       = e; }
 try { _routes['./routes/partnerWebhook'] = require('./routes/partnerWebhook'); } catch (e) { _routes['./routes/partnerWebhook'] = e; }
 try { _routes['./routes/tracking']       = require('./routes/tracking');       } catch (e) { _routes['./routes/tracking']       = e; }
+try { _routes['./routes/reviews']        = require('./routes/reviews');        } catch (e) { _routes['./routes/reviews']        = e; }
 
 const app = express();
 
@@ -77,6 +78,19 @@ app.get('/health', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
+
+// Swagger docs
+try {
+  const swaggerUi = require('swagger-ui-express');
+  const swaggerSpec = require('./config/swagger');
+  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'ADFLOW API Docs',
+  }));
+  app.get('/api/docs.json', (req, res) => res.json(swaggerSpec));
+} catch (e) {
+  console.error('Swagger setup error:', e.message);
+}
 
 // Tracking redirect: GET /r/:campaignId
 app.get('/r/:campaignId', async (req, res) => {
@@ -275,6 +289,7 @@ const enabledRoutes = [
   ['/api/disputes', './routes/disputes'],
   ['/api/autobuy', './routes/autobuy'],
   ['/api/tracking', './routes/tracking'],
+  ['/api/reviews', './routes/reviews'],
 ];
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));

@@ -7,6 +7,7 @@ class EmailService {
   constructor() {
     this.transporter = null;
     this.ready = this.inicializar();
+    this.templateCache = new Map();
   }
 
   async inicializar() {
@@ -50,8 +51,6 @@ class EmailService {
           }
         });
       }
-
-      await this.crearPlantillasDefecto();
 
       if (config.server.environment !== 'test') {
         await this.verificarConexion();
@@ -100,6 +99,72 @@ class EmailService {
     };
   }
 
+  // ─── Template rendering system ────────────────────────────────────
+
+  /**
+   * Render a template by name with variables.
+   * Loads the base layout, injects the specific template content into {{CONTENT}},
+   * then replaces all {{variable}} placeholders.
+   */
+  async renderTemplate(templateName, variables = {}) {
+    try {
+      const baseHtml = await this._loadTemplateFile('base');
+      const contentHtml = await this._loadTemplateFile(templateName);
+
+      // Inject content into base layout
+      let html = baseHtml.replace(/{{CONTENT}}/g, contentHtml);
+
+      // Extract preheader from content comment if present
+      const preheaderMatch = contentHtml.match(/<!--\s*Preheader:\s*(.*?)\s*-->/);
+      const preheader = preheaderMatch ? preheaderMatch[1] : '';
+      html = html.replace(/{{PREHEADER}}/g, preheader);
+
+      // Replace user-provided variables
+      for (const [key, value] of Object.entries(variables)) {
+        const regex = new RegExp(`{{${key}}}`, 'g');
+        html = html.replace(regex, String(value ?? ''));
+      }
+
+      // Replace global app variables
+      html = html.replace(/{{APP_NAME}}/g, config.app.nombre || 'ADFLOW');
+      html = html.replace(/{{APP_URL}}/g, config.frontend.url || '');
+      html = html.replace(/{{SUPPORT_EMAIL}}/g, config.email.support || '');
+      html = html.replace(/{{CURRENT_YEAR}}/g, String(new Date().getFullYear()));
+
+      // Clean up any remaining unreplaced variables
+      html = html.replace(/{{[^}]+}}/g, '');
+
+      return html;
+    } catch (error) {
+      console.error(`Error al renderizar plantilla ${templateName}:`, error?.message || error);
+      // Fallback: try loading template without base
+      return this.cargarPlantilla(templateName, variables);
+    }
+  }
+
+  /**
+   * Load a raw template file from disk (with simple caching in production).
+   */
+  async _loadTemplateFile(templateName) {
+    const cacheKey = templateName;
+    if (config.server.environment === 'production' && this.templateCache.has(cacheKey)) {
+      return this.templateCache.get(cacheKey);
+    }
+
+    const rutaPlantilla = path.join(__dirname, '..', 'templates', 'emails', `${templateName}.html`);
+    const contenido = await fs.readFile(rutaPlantilla, 'utf8');
+
+    if (config.server.environment === 'production') {
+      this.templateCache.set(cacheKey, contenido);
+    }
+
+    return contenido;
+  }
+
+  /**
+   * Legacy template loader — kept for backward compatibility.
+   * For new code, use renderTemplate() instead.
+   */
   async cargarPlantilla(nombrePlantilla, variables = {}) {
     try {
       const rutaPlantilla = path.join(__dirname, '..', 'templates', 'emails', `${nombrePlantilla}.html`);
@@ -132,7 +197,7 @@ class EmailService {
       </head>
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: #007bff; color: white; padding: 20px; text-align: center;">
+          <div style="background: #6366f1; color: white; padding: 20px; text-align: center;">
             <h1>${config.app.nombre}</h1>
           </div>
           <div style="padding: 20px; background: #f9f9f9;">
@@ -147,115 +212,284 @@ class EmailService {
     `;
   }
 
-  async enviarEmailVerificacion(email, nombre, token) {
-    const urlVerificacion = `${config.frontend.url}/verificar-email/${token}`;
+  // ─── Existing email methods (updated to use renderTemplate) ───────
 
-    const contenido = await this.cargarPlantilla('verificacion', {
+  async enviarEmailVerificacion(email, nombre, token) {
+    const verificationUrl = `${config.frontend.url}/verificar-email/${token}`;
+
+    const html = await this.renderTemplate('verificacion', {
       nombre,
-      urlVerificacion,
-      token
+      verificationUrl,
+      expiresIn: '24 horas'
     });
 
     return this.enviarEmail({
       para: email,
       asunto: `Verifica tu cuenta en ${config.app.nombre}`,
-      html: contenido
+      html
     });
   }
 
   async enviarEmailRecuperacion(email, nombre, token) {
-    const urlRecuperacion = `${config.frontend.url}/restablecer-password/${token}`;
+    const resetUrl = `${config.frontend.url}/restablecer-password/${token}`;
 
-    const contenido = await this.cargarPlantilla('recuperacion', {
+    const html = await this.renderTemplate('recuperacion', {
       nombre,
-      urlRecuperacion,
-      token,
-      tiempoExpiracion: '1 hora'
+      resetUrl,
+      expiresIn: '1 hora'
     });
 
     return this.enviarEmail({
       para: email,
-      asunto: `Recupera tu contraseña - ${config.app.nombre}`,
-      html: contenido
+      asunto: `Recupera tu contrase\u00f1a - ${config.app.nombre}`,
+      html
     });
   }
 
-  async crearPlantillasDefecto() {
-    const plantillas = {
-      'verificacion.html': `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <title>Verificar Email - {{APP_NAME}}</title>
-        </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: #007bff; color: white; padding: 20px; text-align: center;">
-              <h1>{{APP_NAME}}</h1>
-            </div>
-            <div style="padding: 20px; background: #f9f9f9;">
-              <h2>¡Hola {{nombre}}!</h2>
-              <p>Gracias por registrarte en {{APP_NAME}}. Para completar tu registro, necesitas verificar tu dirección de email.</p>
-              <p style="text-align: center; margin: 30px 0;">
-                <a href="{{urlVerificacion}}" style="display: inline-block; padding: 12px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">Verificar Email</a>
-              </p>
-              <p>Si no puedes hacer clic en el botón, copia y pega este enlace en tu navegador:</p>
-              <p style="word-break: break-all; color: #666;">{{urlVerificacion}}</p>
-              <p><strong>Este enlace expirará en 24 horas.</strong></p>
-            </div>
-            <div style="padding: 20px; text-align: center; font-size: 12px; color: #666;">
-              <p>&copy; {{CURRENT_YEAR}} {{APP_NAME}}. Todos los derechos reservados.</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
-      'recuperacion.html': `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <title>Recuperar Contraseña - {{APP_NAME}}</title>
-        </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: #dc3545; color: white; padding: 20px; text-align: center;">
-              <h1>{{APP_NAME}}</h1>
-            </div>
-            <div style="padding: 20px; background: #f9f9f9;">
-              <h2>¡Hola {{nombre}}!</h2>
-              <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta.</p>
-              <p style="text-align: center; margin: 30px 0;">
-                <a href="{{urlRecuperacion}}" style="display: inline-block; padding: 12px 24px; background: #dc3545; color: white; text-decoration: none; border-radius: 4px;">Restablecer Contraseña</a>
-              </p>
-              <p>Si no puedes hacer clic en el botón, copia y pega este enlace en tu navegador:</p>
-              <p style="word-break: break-all; color: #666;">{{urlRecuperacion}}</p>
-              <p><strong>Este enlace expirará en {{tiempoExpiracion}}.</strong></p>
-              <p>Si no solicitaste este cambio, puedes ignorar este email.</p>
-            </div>
-            <div style="padding: 20px; text-align: center; font-size: 12px; color: #666;">
-              <p>&copy; {{CURRENT_YEAR}} {{APP_NAME}}. Todos los derechos reservados.</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `
-    };
+  // ─── New transactional email methods ──────────────────────────────
 
-    const directorioTemplates = path.join(__dirname, '..', 'templates', 'emails');
-    await fs.mkdir(directorioTemplates, { recursive: true });
+  /**
+   * Send welcome email after registration.
+   */
+  async enviarBienvenida(user) {
+    const html = await this.renderTemplate('bienvenida', {
+      nombre: user.nombre,
+      email: user.email,
+      rol: user.tipoUsuario === 'creador' ? 'Creador de Contenido' : 'Anunciante',
+      dashboardUrl: `${config.frontend.url}/dashboard`
+    });
 
-    for (const [nombre, contenido] of Object.entries(plantillas)) {
-      const rutaArchivo = path.join(directorioTemplates, nombre);
-      try {
-        await fs.access(rutaArchivo);
-      } catch {
-        await fs.writeFile(rutaArchivo, contenido.trim());
-      }
+    return this.enviarEmail({
+      para: user.email,
+      asunto: `\u00a1Bienvenido a ${config.app.nombre}!`,
+      html
+    });
+  }
+
+  /**
+   * Notify creator that a new campaign was created for their channel.
+   */
+  async enviarCampanaCreada(campaign, creator) {
+    const html = await this.renderTemplate('campana-creada', {
+      creatorName: creator.nombre,
+      advertiserName: campaign.anunciante?.nombre || campaign.advertiserName || 'Anunciante',
+      channelName: campaign.canal?.nombre || campaign.channelName || 'Canal',
+      content: campaign.contenido || campaign.descripcion || '',
+      price: this._formatPrice(campaign.precio || campaign.price),
+      deadline: this._formatDate(campaign.fechaLimite || campaign.deadline),
+      campaignUrl: `${config.frontend.url}/campanas/${campaign._id || campaign.id}`
+    });
+
+    return this.enviarEmail({
+      para: creator.email,
+      asunto: `Nueva campa\u00f1a para tu canal - ${config.app.nombre}`,
+      html
+    });
+  }
+
+  /**
+   * Confirm payment to the advertiser.
+   */
+  async enviarCampanaPagada(campaign, advertiser) {
+    const html = await this.renderTemplate('campana-pagada', {
+      advertiserName: advertiser.nombre,
+      channelName: campaign.canal?.nombre || campaign.channelName || 'Canal',
+      price: this._formatPrice(campaign.precio || campaign.price),
+      campaignUrl: `${config.frontend.url}/campanas/${campaign._id || campaign.id}`
+    });
+
+    return this.enviarEmail({
+      para: advertiser.email,
+      asunto: `Pago confirmado - ${config.app.nombre}`,
+      html
+    });
+  }
+
+  /**
+   * Notify advertiser that the campaign content was published.
+   */
+  async enviarCampanaPublicada(campaign, advertiser) {
+    const html = await this.renderTemplate('campana-publicada', {
+      advertiserName: advertiser.nombre,
+      channelName: campaign.canal?.nombre || campaign.channelName || 'Canal',
+      publishedAt: this._formatDate(campaign.fechaPublicacion || campaign.publishedAt || new Date()),
+      campaignUrl: `${config.frontend.url}/campanas/${campaign._id || campaign.id}`
+    });
+
+    return this.enviarEmail({
+      para: advertiser.email,
+      asunto: `\u00a1Campa\u00f1a publicada! - ${config.app.nombre}`,
+      html
+    });
+  }
+
+  /**
+   * Notify users that a campaign has been completed.
+   * `users` can be a single user object or an array [creator, advertiser].
+   */
+  async enviarCampanaCompletada(campaign, users) {
+    const userList = Array.isArray(users) ? users : [users];
+    const results = [];
+
+    for (const user of userList) {
+      const isCreator = user.tipoUsuario === 'creador';
+      const price = campaign.precio || campaign.price || 0;
+      const commission = campaign.comision || (price * 0.1);
+      const netAmount = isCreator ? (price - commission) : price;
+
+      const html = await this.renderTemplate('campana-completada', {
+        nombre: user.nombre,
+        channelName: campaign.canal?.nombre || campaign.channelName || 'Canal',
+        price: this._formatPrice(price),
+        netAmount: this._formatPrice(netAmount),
+        stats: campaign.estadisticas || campaign.stats || 'Estad\u00edsticas disponibles en el panel.',
+        campaignUrl: `${config.frontend.url}/campanas/${campaign._id || campaign.id}`
+      });
+
+      results.push(
+        this.enviarEmail({
+          para: user.email,
+          asunto: `Campa\u00f1a completada - ${config.app.nombre}`,
+          html
+        })
+      );
     }
+
+    return Promise.all(results);
+  }
+
+  /**
+   * Notify a user that a campaign was cancelled.
+   */
+  async enviarCampanaCancelada(campaign, user) {
+    const html = await this.renderTemplate('campana-cancelada', {
+      nombre: user.nombre,
+      channelName: campaign.canal?.nombre || campaign.channelName || 'Canal',
+      reason: campaign.motivoCancelacion || campaign.reason || 'No especificado',
+      refundAmount: this._formatPrice(campaign.montoReembolso || campaign.refundAmount || 0)
+    });
+
+    return this.enviarEmail({
+      para: user.email,
+      asunto: `Campa\u00f1a cancelada - ${config.app.nombre}`,
+      html
+    });
+  }
+
+  /**
+   * Notify a user that a dispute was opened.
+   */
+  async enviarDisputaAbierta(dispute, user) {
+    const html = await this.renderTemplate('disputa-abierta', {
+      nombre: user.nombre,
+      campaignName: dispute.campana?.nombre || dispute.campaignName || 'Campa\u00f1a',
+      reason: dispute.motivo || dispute.reason || '',
+      disputeUrl: `${config.frontend.url}/disputas/${dispute._id || dispute.id}`
+    });
+
+    return this.enviarEmail({
+      para: user.email,
+      asunto: `Disputa abierta - ${config.app.nombre}`,
+      html
+    });
+  }
+
+  /**
+   * Notify a user that a dispute was resolved.
+   */
+  async enviarDisputaResuelta(dispute, user) {
+    const html = await this.renderTemplate('disputa-resuelta', {
+      nombre: user.nombre,
+      campaignName: dispute.campana?.nombre || dispute.campaignName || 'Campa\u00f1a',
+      resolution: dispute.resolucion || dispute.resolution || '',
+      outcome: dispute.resultado || dispute.outcome || ''
+    });
+
+    return this.enviarEmail({
+      para: user.email,
+      asunto: `Disputa resuelta - ${config.app.nombre}`,
+      html
+    });
+  }
+
+  /**
+   * Notify a creator that they received a new review.
+   */
+  async enviarNuevaResena(review, creator) {
+    const rating = review.puntuacion || review.rating || 0;
+    const starsHtml = '\u2605'.repeat(Math.round(rating)) + '\u2606'.repeat(5 - Math.round(rating));
+
+    const html = await this.renderTemplate('nueva-resena', {
+      creatorName: creator.nombre,
+      channelName: review.canal?.nombre || review.channelName || 'Canal',
+      rating: starsHtml,
+      comment: review.comentario || review.comment || '',
+      reviewUrl: `${config.frontend.url}/canales/${review.canalId || review.canal?._id || ''}`
+    });
+
+    return this.enviarEmail({
+      para: creator.email,
+      asunto: `Nueva rese\u00f1a en tu canal - ${config.app.nombre}`,
+      html
+    });
+  }
+
+  /**
+   * Confirm that a withdrawal has been processed.
+   */
+  async enviarRetiroProcesado(retiro, user) {
+    const html = await this.renderTemplate('retiro-procesado', {
+      nombre: user.nombre,
+      amount: this._formatPrice(retiro.monto || retiro.amount),
+      method: retiro.metodo || retiro.method || 'Transferencia bancaria',
+      estimatedArrival: retiro.llegadaEstimada || retiro.estimatedArrival || '3-5 d\u00edas h\u00e1biles'
+    });
+
+    return this.enviarEmail({
+      para: user.email,
+      asunto: `Retiro procesado - ${config.app.nombre}`,
+      html
+    });
+  }
+
+  /**
+   * Notify creator that their channel was verified.
+   */
+  async enviarCanalVerificado(canal, creator) {
+    const html = await this.renderTemplate('canal-verificado', {
+      creatorName: creator.nombre,
+      channelName: canal.nombre || canal.channelName || 'Canal',
+      platform: canal.plataforma || canal.platform || 'YouTube',
+      dashboardUrl: `${config.frontend.url}/dashboard`
+    });
+
+    return this.enviarEmail({
+      para: creator.email,
+      asunto: `\u00a1Tu canal ha sido verificado! - ${config.app.nombre}`,
+      html
+    });
+  }
+
+  // ─── Helpers ──────────────────────────────────────────────────────
+
+  _formatPrice(amount) {
+    if (amount == null) return '0.00';
+    return Number(amount).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  _formatDate(date) {
+    if (!date) return 'Sin fecha';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return String(date);
+    return d.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   }
 }
 
 module.exports = new EmailService();
-

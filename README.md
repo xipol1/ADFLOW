@@ -3,7 +3,7 @@
 **Marketplace de publicidad en comunidades reales.**
 Conecta anunciantes con creadores de canales en WhatsApp, Telegram, Discord, Instagram y mas.
 
-> **Estado actual:** MVP funcional — backend operativo en produccion (Vercel), frontend React completo con dashboards para advertiser, creator y admin. Sistema de pagos Stripe, notificaciones en tiempo real (Socket.io), disputas, listas de favoritos y autobuy implementados.
+> **Estado actual:** MVP funcional — backend operativo en produccion (Vercel), frontend React completo con dashboards para advertiser, creator y admin. Sistema de pagos Stripe, notificaciones en tiempo real (Socket.io), disputas, listas de favoritos, autobuy y **sistema de tracking avanzado con verificacion de canales** implementados.
 
 ---
 
@@ -54,9 +54,9 @@ ADFLOW/
 ├── config/
 │   ├── config.js           # Configuracion centralizada
 │   └── database.js         # Conexion MongoDB con retry
-├── models/                 # 16 schemas Mongoose
-├── controllers/            # 14 controladores de request/response
-├── routes/                 # 15 archivos de rutas Express
+├── models/                 # 17 schemas Mongoose
+├── controllers/            # 15 controladores de request/response
+├── routes/                 # 16 archivos de rutas Express
 ├── middleware/             # Auth JWT, validacion, rate limiting, partner auth
 ├── services/               # 19 servicios de logica de negocio
 ├── lib/                    # Utilidades (scoring engine, cron, connectors)
@@ -65,7 +65,7 @@ ADFLOW/
 │   ├── auth/               # AuthContext (JWT state management)
 │   ├── routes/             # AppRoutes.jsx (router principal)
 │   └── ui/
-│       ├── pages/          # 27 paginas (landing, auth, dashboards)
+│       ├── pages/          # 28 paginas (landing, auth, dashboards, registro de canal)
 │       ├── layouts/        # AppLayout, DashboardLayout
 │       ├── navigation/     # NavBar
 │       └── routing/        # ProtectedRoute
@@ -80,8 +80,10 @@ ADFLOW/
 ### Flujo de request (produccion Vercel)
 
 ```
-Cliente → Vercel CDN → /api/* → api/index.js (serverless function)
-                     → /*     → dist/index.html (SPA)
+Cliente → Vercel CDN → /api/*  → api/index.js (serverless function)
+                     → /t/:code → api/index.js (tracking redirect)
+                     → /r/:id  → api/index.js (campaign redirect)
+                     → /*      → dist/index.html (SPA)
 ```
 
 ### Flujo de request (desarrollo local)
@@ -260,6 +262,25 @@ DRAFT → PAID → PUBLISHED → COMPLETED
 | DELETE | `/api/autobuy/:id` | Eliminar regla | Si |
 | POST | `/api/autobuy/:id/trigger` | Ejecutar regla (crea campanas) | Si |
 
+### Tracking y verificacion
+
+| Metodo | Ruta | Descripcion | Auth |
+|--------|------|-------------|------|
+| POST | `/api/tracking/links` | Crear link trackeable | Si |
+| GET | `/api/tracking/links` | Mis links (filtros: type, campaignId, channelId) | Si |
+| GET | `/api/tracking/links/:id/analytics` | Analytics detallados de un link | Si |
+| POST | `/api/tracking/verify-link` | Crear link de verificacion para canal | Si (creator) |
+| GET | `/api/tracking/verify-status/:channelId` | Estado de verificacion en tiempo real | Si |
+| POST | `/api/tracking/convert` | Convertir URL de anunciante en link trackeable | Si |
+| GET | `/t/:code` | Redirect inteligente con tracking completo | No |
+| GET | `/r/:campaignId` | Redirect de campana con tracking basico | No |
+
+**Datos capturados por click:**
+- IP, User-Agent, Referer, idioma del navegador
+- Dispositivo (desktop/mobile/tablet), Sistema operativo, Navegador
+- Pais (via headers Cloudflare/Vercel)
+- Parametros UTM (utm_source, utm_medium, utm_campaign)
+
 ### Otros endpoints
 
 | Grupo | Base | Descripcion |
@@ -271,7 +292,6 @@ DRAFT → PAID → PUBLISHED → COMPLETED
 | Partner API | `/api/partners` | Integraciones de terceros |
 | Anuncios | `/api/anuncios` | Gestion de anuncios |
 | Health | `/health`, `/api/health` | Health checks |
-| Tracking | `/r/:campaignId` | Redirect con tracking de clicks |
 
 ### Autenticacion de requests
 
@@ -312,12 +332,18 @@ Formato de respuesta estandar:
 | **AutoBuyRule** | Reglas de compra automatica (budgets, filtros, canales target) |
 | **UserList** | Listas personalizadas de canales (favoritos) |
 
+### Tracking y analytics
+
+| Modelo | Descripcion |
+|--------|-------------|
+| **TrackingLink** | Links cortos trackeables con analytics completos (clicks, dispositivos, paises, UTMs) |
+| **Tracking** | Clicks basicos por campana (IP dedup 1h) — modelo legacy |
+
 ### Soporte
 
 | Modelo | Descripcion |
 |--------|-------------|
 | **Notificacion** | Notificaciones in-app y push |
-| **Tracking** | Clicks por campana (IP dedup 1h) |
 | **Retiro** | Solicitudes de retiro de creadores |
 | **Archivo** | Metadata de archivos subidos |
 | **ChannelMetrics** | Metricas de rendimiento de canales |
@@ -357,6 +383,12 @@ Formato de respuesta estandar:
 **Dashboard Creator** (`/creator/*`):
 - Overview — KPIs, ganancias, campanas recibidas
 - Channels — Gestionar canales propios
+- **Register Channel** (`/creator/channels/new`) — Flujo de registro en 5 pasos:
+  1. Seleccion de plataforma (Telegram, WhatsApp, Discord, Instagram, Newsletter, Facebook)
+  2. Conexion API (credenciales especificas por plataforma)
+  3. Informacion del canal (nombre, categoria, descripcion, precio)
+  4. Post de prueba — Verificacion con link trackeable (minimo 3 clicks unicos en 48h)
+  5. Confirmacion de exito
 - Requests — Campanas pendientes de publicar
 - Earnings — Historial de ganancias y retiros
 - Disputes — Ver y gestionar disputas
@@ -393,7 +425,7 @@ La app esta desplegada en Vercel como proyecto `adflow-unified`.
 **Configuracion (`vercel.json`):**
 - Frontend: SPA servida desde `dist/` (build de Vite)
 - Backend: serverless function en `api/index.js` que exporta la app Express
-- Rewrites: `/api/*` → serverless function, todo lo demas → `index.html`
+- Rewrites: `/api/*`, `/t/:code`, `/r/:id` → serverless function, todo lo demas → `index.html`
 - Max duration por request: 30s
 - Archivos incluidos en el bundle: routes, controllers, models, middleware, lib, services, config
 
@@ -446,7 +478,14 @@ Configurar en el dashboard de Vercel/Render:
 - [x] **Landing page** — Hero, categorias, canales destacados, CTA
 - [x] **Scoring engine** — Algoritmo de 5 factores para ranking de canales
 - [x] **Deploy en Vercel** — Serverless function con bundling correcto
-- [x] **Tracking de clicks** — Fire-and-forget con deduplicacion IP (1h)
+- [x] **Tracking basico de clicks** — Fire-and-forget con deduplicacion IP (1h)
+- [x] **Sistema de tracking avanzado** — Links cortos (`/t/:code`) con analytics completos
+- [x] **Verificacion de canales por test post** — Link trackeable con polling en tiempo real
+- [x] **Conversion automatica de URLs** — Transforma links de anunciantes en links trackeables
+- [x] **Flujo de registro de canal** — 5 pasos: plataforma → API → info → verificacion → exito
+- [x] **Analytics por click** — Dispositivo, OS, navegador, pais, UTMs, referer
+- [x] **Auto-verificacion** — Canal se activa automaticamente al alcanzar umbral de clicks
+- [x] **Error boundary en dashboard** — Previene paginas en blanco por errores de renderizado
 
 ### Pendiente / En progreso
 
@@ -539,6 +578,83 @@ Formula de precio:
 
 ```
 price = (attention * CPM / 1000) * (score / 50) * adjustments
+```
+
+---
+
+## Sistema de Tracking
+
+Sistema completo de tracking de links con analytics avanzados y verificacion de canales.
+
+### Arquitectura
+
+```
+Creador/Anunciante → POST /api/tracking/links → TrackingLink (code, targetUrl, stats)
+                                                      │
+Usuario final ────→ GET /t/:code ─────────────────────┘
+                        │
+                        ├── Registra click (fire-and-forget)
+                        │   ├── IP, User-Agent, Referer
+                        │   ├── Dispositivo, OS, Navegador
+                        │   ├── Pais (Cloudflare/Vercel headers)
+                        │   ├── UTM params (source, medium, campaign)
+                        │   └── Deduplicacion por IP (uniqueClicks)
+                        │
+                        └── 302 Redirect → targetUrl (con UTM passthrough)
+```
+
+### Verificacion de canales
+
+Flujo de verificacion por test post:
+
+```
+1. Creator registra canal en /creator/channels/new
+2. Step 4: Se genera un TrackingLink tipo "verification"
+3. Creator publica el link en su canal (WhatsApp, Telegram, etc.)
+4. Seguidores hacen click → /t/:code registra clicks
+5. Frontend hace polling cada 5s a /api/tracking/verify-status/:channelId
+6. Al alcanzar 3 clicks unicos → auto-verificacion:
+   - TrackingLink.verification.status = "verified"
+   - Canal.estado = "activo", Canal.verificado = true
+7. Frontend avanza automaticamente al Step 5 (exito)
+```
+
+### Conversion de URLs para campanas
+
+Cuando un anunciante crea una campana con un targetUrl, el sistema puede convertirlo automaticamente:
+
+```
+URL original:   https://mitienda.com/producto
+URL trackeable: https://adflow-unified.vercel.app/t/kHaZnvK → 302 → https://mitienda.com/producto
+```
+
+Esto permite medir CTR real, dispositivos, paises y engagement sin depender de las APIs de plataformas.
+
+### Modelo TrackingLink
+
+```javascript
+{
+  code: "kHaZnvK",              // Codigo unico de 7 chars
+  targetUrl: "https://...",      // URL de destino
+  type: "campaign|verification|custom",
+  stats: {
+    totalClicks: 142,
+    uniqueClicks: 98,
+    lastClickAt: Date,
+    devices: { desktop: 45, mobile: 52, tablet: 1 },
+    countries: { ES: 60, MX: 20, AR: 18 },
+    referers: { "t.me": 50, "direct": 48 }
+  },
+  clicks: [                      // Ultimos 500 clicks detallados
+    { ip, userAgent, referer, country, device, os, browser, language, utmSource, ... }
+  ],
+  verification: {                // Solo para type=verification
+    status: "pending|posted|verified|failed|expired",
+    minClicks: 3,
+    expiresAt: Date,             // 48h desde creacion
+    verifiedAt: Date
+  }
+}
 ```
 
 ---
@@ -753,6 +869,93 @@ curl -X POST https://adflow-unified.vercel.app/api/disputes \
   }'
 ```
 
+### Crear link de verificacion de canal
+
+```bash
+curl -X POST https://adflow-unified.vercel.app/api/tracking/verify-link \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"channelId":"69c808a8cddb1a2e43f29b87"}'
+```
+
+**Respuesta:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "69ca3b7bda15584517ba4af5",
+    "code": "kHaZnvK",
+    "trackingUrl": "https://adflow-unified.vercel.app/t/kHaZnvK",
+    "targetUrl": "https://adflow-unified.vercel.app/verify-channel?ch=69c808a8cddb1a2e43f29b87",
+    "verification": {
+      "status": "pending",
+      "minClicks": 3,
+      "expiresAt": "2026-04-01T08:59:39.257Z"
+    },
+    "stats": { "totalClicks": 0, "uniqueClicks": 0, "devices": {} },
+    "message": "Publica este enlace en tu canal. Necesitas al menos 3 clicks en 48h para verificar."
+  }
+}
+```
+
+### Convertir URL de anunciante en link trackeable
+
+```bash
+curl -X POST https://adflow-unified.vercel.app/api/tracking/convert \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "targetUrl": "https://mitienda.com/producto",
+    "campaignId": "6606a1b2c3d4e5f6a7b8c9d2"
+  }'
+```
+
+**Respuesta:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "69ca4f00da15584517ba4b01",
+    "code": "xR7mPqL",
+    "originalUrl": "https://mitienda.com/producto",
+    "trackingUrl": "https://adflow-unified.vercel.app/t/xR7mPqL",
+    "type": "campaign"
+  }
+}
+```
+
+### Consultar estado de verificacion
+
+```bash
+curl https://adflow-unified.vercel.app/api/tracking/verify-status/69c808a8cddb1a2e43f29b87 \
+  -H "Authorization: Bearer <token>"
+```
+
+**Respuesta:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "status": "pending",
+    "trackingUrl": "https://adflow-unified.vercel.app/t/kHaZnvK",
+    "stats": {
+      "totalClicks": 1,
+      "uniqueClicks": 1,
+      "devices": { "desktop": 1, "mobile": 0 },
+      "countries": { "ES": 1 }
+    },
+    "minClicks": 3,
+    "clicksNeeded": 2,
+    "recentClicks": [
+      { "device": "desktop", "os": "Windows", "browser": "Chrome", "country": "ES" }
+    ]
+  }
+}
+```
+
 ### Errores
 
 Todas las respuestas de error siguen el mismo formato:
@@ -845,7 +1048,10 @@ Usuario (1) ──→ (N) AutoBuyRule    # Un advertiser tiene N reglas
 AutoBuyRule ──→ (1) UserList       # Una regla puede apuntar a 1 lista
 AutoBuyRule ──→ (N) Canal          # Una regla puede apuntar a N canales directos
 Usuario (1) ──→ (N) Notificacion   # Un usuario recibe N notificaciones
-Campaign(1) ──→ (N) Tracking       # Una campana registra N clicks
+Campaign(1) ──→ (N) Tracking       # Una campana registra N clicks (legacy)
+Campaign(1) ──→ (1) TrackingLink   # Una campana tiene 1 link trackeable
+Canal   (1) ──→ (N) TrackingLink   # Un canal tiene N links (incl. verificacion)
+Usuario (1) ──→ (N) TrackingLink   # Un usuario crea N links trackeables
 Usuario (1) ──→ (N) Retiro         # Un creator solicita N retiros
 ```
 
@@ -859,6 +1065,7 @@ Usuario (1) ──→ (N) Retiro         # Un creator solicita N retiros
 - `UserList`: owner + name (unique compound)
 - `AutoBuyRule`: advertiser
 - `Tracking`: campaign + ip + timestamp
+- `TrackingLink`: code (unique), createdBy, campaign, channel, type
 
 ---
 

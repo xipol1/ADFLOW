@@ -790,6 +790,71 @@ class ApiService {
   }
 
   // ==========================================
+  // ADVANCED ANALYTICS
+  // ==========================================
+
+  /**
+   * Creator analytics — time-series for dashboard charts
+   * @param {Object} params - { period: '7d'|'30d'|'90d'|'1y', channelId?: string }
+   */
+  async getCreatorAnalytics(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/estadisticas/creator/analytics${qs ? `?${qs}` : ''}`);
+  }
+
+  /**
+   * Advertiser analytics — spend, CPC, ROI charts
+   * @param {Object} params - { period: '7d'|'30d'|'90d'|'1y' }
+   */
+  async getAdvertiserAnalytics(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/estadisticas/advertiser/analytics${qs ? `?${qs}` : ''}`);
+  }
+
+  /**
+   * Channel analytics deep-dive
+   * @param {string} channelId
+   * @param {Object} params - { period: '7d'|'30d'|'90d'|'1y' }
+   */
+  async getChannelAnalytics(channelId, params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/estadisticas/channels/${channelId}/analytics${qs ? `?${qs}` : ''}`);
+  }
+
+  /**
+   * Campaign analytics deep-dive (click data, devices, countries)
+   * @param {string} campaignId
+   * @param {Object} params - { period: '7d'|'30d'|'90d'|'1y' }
+   */
+  async getCampaignAnalytics(campaignId, params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/estadisticas/campaigns/${campaignId}/analytics${qs ? `?${qs}` : ''}`);
+  }
+
+  /**
+   * Export a CSV report
+   * @param {Object} params - { type: 'revenue'|'campaigns'|'channels'|'clicks', period, format: 'csv' }
+   * @returns {Promise} resolves to CSV text or blob
+   */
+  async exportReport(params = {}) {
+    const qs = new URLSearchParams({ format: 'csv', ...params }).toString();
+    const url = `${this.baseURL}/estadisticas/export${qs ? `?${qs}` : ''}`;
+    try {
+      const response = await fetch(url, {
+        headers: this.getHeaders(true),
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        try { return JSON.parse(text); } catch { return { success: false, message: text }; }
+      }
+      const blob = await response.blob();
+      return { success: true, blob, filename: params.type ? `adflow-${params.type}-report.csv` : 'adflow-report.csv' };
+    } catch (error) {
+      return { success: false, message: 'No se pudo descargar el reporte', error: error?.message };
+    }
+  }
+
+  // ==========================================
   // MÉTODOS DE CAMPAÑAS (ACCIONES)
   // ==========================================
 
@@ -858,6 +923,38 @@ class ApiService {
   async getMyTrackingLinks(params = {}) {
     const qs = new URLSearchParams(params).toString();
     return this.request(`/tracking/links${qs ? `?${qs}` : ''}`);
+  }
+
+  // ==========================================
+  // MÉTODOS DE REVIEWS
+  // ==========================================
+
+  async getChannelReviews(channelId, params = {}) {
+    return this.request(`/reviews/channel/${channelId}`, { params });
+  }
+
+  async createReview(data) {
+    return this.request('/reviews', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async respondToReview(reviewId, text) {
+    return this.request(`/reviews/${reviewId}/respond`, { method: 'PUT', body: JSON.stringify({ text }) });
+  }
+
+  async markReviewHelpful(reviewId) {
+    return this.request(`/reviews/${reviewId}/helpful`, { method: 'PUT' });
+  }
+
+  async reportReview(reviewId) {
+    return this.request(`/reviews/${reviewId}/report`, { method: 'PUT' });
+  }
+
+  async getMyReviews() {
+    return this.request('/reviews/my');
+  }
+
+  async deleteReview(reviewId) {
+    return this.request(`/reviews/${reviewId}`, { method: 'DELETE' });
   }
 }
 
