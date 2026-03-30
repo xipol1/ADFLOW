@@ -11,6 +11,9 @@
   },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/t/:code", "destination": "/api/index.js" },
+    { "source": "/r/:campaignId", "destination": "/api/index.js" },
+    { "source": "/health", "destination": "/api/index.js" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

@@ -7,9 +7,8 @@ const httpError = (status, message) => {
   const err = new Error(message); err.status = status; return err;
 };
 
-const BASE_URL = process.env.FRONTEND_URL || process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : '';
+const BASE_URL = process.env.FRONTEND_URL
+  || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CREATE TRACKING LINK — POST /api/tracking/links
