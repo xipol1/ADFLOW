@@ -217,6 +217,13 @@ class ApiService {
   }
 
   /**
+   * Actualizar perfil del canal (alias de updateChannel)
+   */
+  async updateChannelProfile(id, data) {
+    return this.updateChannel(id, data);
+  }
+
+  /**
    * Eliminar canal
    */
   async deleteChannel(id) {

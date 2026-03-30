@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Plus, Edit, Trash2, CheckCircle, Users, TrendingUp, Calendar,
   DollarSign, Clock, Settings, ChevronLeft, ChevronRight, X, Save,
@@ -1227,7 +1228,8 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function CreatorChannelsPage() {
   const [channels, setChannels] = useState([])
-  const [showAdd, setShowAdd] = useState(false)
+  const navigate = useNavigate()
+  const goToRegister = () => navigate('/creator/channels/new')
   const [selectedChannel, setSelectedChannel] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -1273,7 +1275,7 @@ export default function CreatorChannelsPage() {
           <h1 style={{ fontFamily: D, fontSize: '26px', fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.03em', marginBottom: '4px' }}>Mis Canales</h1>
           <p style={{ fontSize: '14px', color: 'var(--muted)' }}>{channels.length} canales registrados · Configura disponibilidad y precios</p>
         </div>
-        <button onClick={() => setShowAdd(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: A, color: '#fff', border: 'none', borderRadius: '12px', padding: '11px 20px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', fontFamily: F, boxShadow: `0 4px 14px ${AG(0.3)}` }}>
+        <button onClick={() => goToRegister()} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: A, color: '#fff', border: 'none', borderRadius: '12px', padding: '11px 20px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', fontFamily: F, boxShadow: `0 4px 14px ${AG(0.3)}` }}>
           <Plus size={16} /> Anadir canal
         </button>
       </div>
@@ -1293,7 +1295,7 @@ export default function CreatorChannelsPage() {
           <div style={{ fontSize: '40px', marginBottom: '12px' }}>📡</div>
           <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>No tienes canales registrados</div>
           <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '20px' }}>Registra tu primer canal para empezar a recibir solicitudes de publicacion</div>
-          <button onClick={() => setShowAdd(true)} style={{ background: A, color: '#fff', border: 'none', borderRadius: '12px', padding: '12px 24px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', fontFamily: F }}>
+          <button onClick={() => goToRegister()} style={{ background: A, color: '#fff', border: 'none', borderRadius: '12px', padding: '12px 24px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', fontFamily: F }}>
             <Plus size={14} style={{ verticalAlign: '-2px' }} /> Registrar mi primer canal
           </button>
         </div>
@@ -1345,7 +1347,7 @@ export default function CreatorChannelsPage() {
           })}
 
           {/* Add card */}
-          <button onClick={() => setShowAdd(true)} style={{
+          <button onClick={() => goToRegister()} style={{
             background: 'transparent', border: `2px dashed ${AG(0.3)}`, borderRadius: '16px',
             padding: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
             gap: '10px', color: A, fontFamily: F, fontSize: '14px', fontWeight: 600, transition: 'all .15s',
@@ -1358,7 +1360,7 @@ export default function CreatorChannelsPage() {
         </div>
       )}
 
-      {showAdd && <AddModal onClose={() => setShowAdd(false)} onCreated={loadChannels} />}
+      {/* AddModal removed — registration is now at /creator/channels/new */}
     </div>
   )
 }

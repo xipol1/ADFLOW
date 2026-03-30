@@ -237,7 +237,7 @@ const getPeriodMs = (key) => {
 export default function CreatorOverviewPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [showModal, setShowModal] = useState(false)
+  // Modal removed — now navigates to /creator/channels/new
   const [channels, setChannels] = useState([])
   const [requests, setRequests] = useState([])
   const [creatorCampaigns, setCreatorCampaigns] = useState([])
@@ -351,7 +351,7 @@ export default function CreatorOverviewPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => navigate('/creator/channels/new')}
           style={{ display: 'flex', alignItems: 'center', gap: '8px', background: WA, color: '#fff', border: 'none', borderRadius: '12px', padding: '11px 20px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: F, boxShadow: `0 4px 16px ${WAG(0.4)}`, transition: 'transform .15s, box-shadow .15s' }}
           onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${WAG(0.45)}` }}
           onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 4px 16px ${WAG(0.4)}` }}
@@ -590,12 +590,7 @@ export default function CreatorOverviewPage() {
         </div>
       </div>
 
-      {showModal && <AddChannelModal onClose={(newChannel) => {
-        setShowModal(false)
-        if (newChannel?._id || newChannel?.id) {
-          setChannels(prev => [...prev, newChannel])
-        }
-      }} />}
+      {/* Channel registration is now a full page at /creator/channels/new */}
     </div>
   )
 }

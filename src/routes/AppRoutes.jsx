@@ -27,6 +27,7 @@ import CreatorChannelsPage  from '../ui/pages/dashboard/creator/CreatorChannelsP
 import CreatorRequestsPage  from '../ui/pages/dashboard/creator/CreatorRequestsPage'
 import CreatorEarningsPage  from '../ui/pages/dashboard/creator/CreatorEarningsPage'
 import CreatorSettingsPage  from '../ui/pages/dashboard/creator/CreatorSettingsPage'
+import RegisterChannelPage  from '../ui/pages/dashboard/creator/RegisterChannelPage'
 
 // Shared dispute page
 import DisputesPage from '../ui/pages/dashboard/DisputesPage'
@@ -95,6 +96,7 @@ export default function AppRoutes() {
       >
         <Route index         element={<CreatorOverviewPage />} />
         <Route path="channels" element={<CreatorChannelsPage />} />
+        <Route path="channels/new" element={<RegisterChannelPage />} />
         <Route path="requests" element={<CreatorRequestsPage />} />
         <Route path="earnings" element={<CreatorEarningsPage />} />
         <Route path="disputes" element={<DisputesPage />} />
