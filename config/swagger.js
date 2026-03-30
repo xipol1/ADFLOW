@@ -1,11 +1,6 @@
 const swaggerJsdoc = require('swagger-jsdoc');
-
-// Load paths from pre-compiled JSON (Vercel nft traces require() calls)
-let yamlPaths = {};
-try {
-  const pathsData = require('../docs/swagger/paths.json');
-  yamlPaths = pathsData.paths || pathsData || {};
-} catch (_) { /* silent */ }
+const _swaggerPaths = require('../docs/swagger/paths.json');
+const yamlPaths = (_swaggerPaths && _swaggerPaths.paths) ? _swaggerPaths.paths : {};
 
 const options = {
   definition: {
