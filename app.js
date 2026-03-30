@@ -29,9 +29,9 @@ try { _routes['./routes/partnerWebhook'] = require('./routes/partnerWebhook'); }
 try { _routes['./routes/tracking']       = require('./routes/tracking');       } catch (e) { _routes['./routes/tracking']       = e; }
 try { _routes['./routes/reviews']        = require('./routes/reviews');        } catch (e) { _routes['./routes/reviews']        = e; }
 
-// Pre-load for Vercel nft tracer
-const _swaggerPathsJson = require('./docs/swagger/paths.json');
-const _configSwagger = require('./config/swagger');
+// Pre-load for Vercel nft tracer (require only, don't execute swagger-jsdoc at top level)
+let _swaggerPathsJson;
+try { _swaggerPathsJson = require('./docs/swagger/paths.json'); } catch (_) {}
 
 const app = express();
 
