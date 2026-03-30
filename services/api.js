@@ -812,6 +812,53 @@ class ApiService {
   async getCampaignById(campaignId) {
     return this.request(`/campaigns/${campaignId}`);
   }
+
+  // ==========================================
+  // MÉTODOS DE TRACKING
+  // ==========================================
+
+  /**
+   * Crear link de tracking
+   */
+  async createTrackingLink(data) {
+    return this.request('/tracking/links', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  /**
+   * Crear link de verificación para canal
+   */
+  async createVerificationLink(channelId) {
+    return this.request('/tracking/verify-link', { method: 'POST', body: JSON.stringify({ channelId }) });
+  }
+
+  /**
+   * Comprobar estado de verificación
+   */
+  async checkVerificationStatus(channelId) {
+    return this.request(`/tracking/verify-status/${channelId}`);
+  }
+
+  /**
+   * Convertir URL de anunciante en link trackeable
+   */
+  async convertUrl(targetUrl, campaignId) {
+    return this.request('/tracking/convert', { method: 'POST', body: JSON.stringify({ targetUrl, campaignId }) });
+  }
+
+  /**
+   * Obtener analytics de un link
+   */
+  async getLinkAnalytics(linkId) {
+    return this.request(`/tracking/links/${linkId}/analytics`);
+  }
+
+  /**
+   * Obtener mis links de tracking
+   */
+  async getMyTrackingLinks(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/tracking/links${qs ? `?${qs}` : ''}`);
+  }
 }
 
 // Crear instancia única del servicio

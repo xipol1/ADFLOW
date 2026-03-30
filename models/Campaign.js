@@ -22,6 +22,8 @@ const CampaignSchema = new mongoose.Schema(
     completedAt: { type: Date, default: null },
     cancelledAt: { type: Date, default: null },
     expiredAt: { type: Date, default: null },
+    trackingUrl: { type: String, default: '' },
+    trackingLinkId: { type: mongoose.Schema.Types.ObjectId, ref: 'TrackingLink', default: null },
     partner: { type: mongoose.Schema.Types.ObjectId, ref: 'Partner', default: null, index: true },
     partnerExternalRef: { type: String, default: null }
   },

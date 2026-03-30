@@ -26,6 +26,7 @@ try { _routes['./routes/disputes']      = require('./routes/disputes');      } c
 try { _routes['./routes/userLists']     = require('./routes/userLists');     } catch (e) { _routes['./routes/userLists']     = e; }
 try { _routes['./routes/autobuy']       = require('./routes/autobuy');       } catch (e) { _routes['./routes/autobuy']       = e; }
 try { _routes['./routes/partnerWebhook'] = require('./routes/partnerWebhook'); } catch (e) { _routes['./routes/partnerWebhook'] = e; }
+try { _routes['./routes/tracking']       = require('./routes/tracking');       } catch (e) { _routes['./routes/tracking']       = e; }
 
 const app = express();
 
@@ -130,6 +131,108 @@ app.get('/r/:campaignId', async (req, res) => {
   return res.status(404).json({ success: false, message: 'Campaña no encontrada' });
 });
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// SMART TRACKING REDIRECT: GET /t/:code
+// Tracks clicks with full analytics then redirects to target URL
+// ═══════════════════════════════════════════════════════════════════════════════
+app.get('/t/:code', async (req, res) => {
+  const { code } = req.params;
+
+  try {
+    const { ensureDb } = require('./lib/ensureDb');
+    const ok = await ensureDb();
+    if (!ok) return res.redirect(302, '/');
+
+    const TrackingLink = require('./models/TrackingLink');
+    const link = await TrackingLink.findOne({ code, active: true });
+
+    if (!link || !link.targetUrl) {
+      return res.status(404).json({ success: false, message: 'Enlace no encontrado' });
+    }
+
+    // ── Collect click data ──
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || '';
+    const ua = req.headers['user-agent'] || '';
+    const referer = req.headers['referer'] || req.headers['referrer'] || '';
+    const language = (req.headers['accept-language'] || '').split(',')[0] || '';
+
+    const { device, os, browser } = TrackingLink.parseDevice(ua);
+    const country = TrackingLink.guessCountry(req);
+
+    // Parse UTM params from query string
+    const utmSource = req.query.utm_source || '';
+    const utmMedium = req.query.utm_medium || '';
+    const utmCampaign = req.query.utm_campaign || '';
+
+    // ── Record click (fire-and-forget) ──
+    setImmediate(async () => {
+      try {
+        const isNew = !link._seenIps.includes(ip);
+
+        // Add click record (keep last 500)
+        if (link.clicks.length >= 500) link.clicks.shift();
+        link.clicks.push({
+          ip, userAgent: ua, referer, country, device, os, browser, language,
+          utmSource, utmMedium, utmCampaign, timestamp: new Date(),
+        });
+
+        // Update aggregated stats
+        link.stats.totalClicks += 1;
+        if (isNew) {
+          link.stats.uniqueClicks += 1;
+          link._seenIps.push(ip);
+          // Cap _seenIps to 10000
+          if (link._seenIps.length > 10000) link._seenIps = link._seenIps.slice(-8000);
+        }
+        link.stats.lastClickAt = new Date();
+        link.stats.devices[device] = (link.stats.devices[device] || 0) + 1;
+        if (country) link.stats.countries.set(country, (link.stats.countries.get(country) || 0) + 1);
+
+        const refDomain = referer ? (() => { try { return new URL(referer).hostname } catch { return 'direct' } })() : 'direct';
+        link.stats.referers.set(refDomain, (link.stats.referers.get(refDomain) || 0) + 1);
+
+        await link.save();
+
+        // ── Auto-verify channel if threshold reached ──
+        if (link.type === 'verification' && link.verification?.status !== 'verified') {
+          if (link.stats.uniqueClicks >= link.verification.minClicks) {
+            link.verification.status = 'verified';
+            link.verification.verifiedAt = new Date();
+            await link.save();
+
+            const Canal = require('./models/Canal');
+            await Canal.findByIdAndUpdate(link.channel, {
+              estado: 'activo',
+              verificado: true,
+              'estadisticas.ultimaActualizacion': new Date(),
+            });
+          } else if (link.verification.status === 'pending') {
+            link.verification.status = 'posted';
+            await link.save();
+          }
+        }
+      } catch (_) { /* tracking must never fail */ }
+    });
+
+    // ── Build redirect URL with UTM passthrough ──
+    let targetUrl = link.targetUrl;
+    // Append UTMs from query to target if they exist and target doesn't have them
+    if (utmSource || utmMedium || utmCampaign) {
+      try {
+        const url = new URL(targetUrl);
+        if (utmSource && !url.searchParams.has('utm_source')) url.searchParams.set('utm_source', utmSource);
+        if (utmMedium && !url.searchParams.has('utm_medium')) url.searchParams.set('utm_medium', utmMedium);
+        if (utmCampaign && !url.searchParams.has('utm_campaign')) url.searchParams.set('utm_campaign', utmCampaign);
+        targetUrl = url.toString();
+      } catch { /* use original URL */ }
+    }
+
+    return res.redirect(302, targetUrl);
+  } catch (_) {
+    return res.redirect(302, '/');
+  }
+});
+
 const safeMount = (mountPath, modulePath) => {
   const preloaded = _routes[modulePath];
   const router = (preloaded instanceof Error) ? null : preloaded;
@@ -171,6 +274,7 @@ const enabledRoutes = [
   ['/api/files', './routes/files'],
   ['/api/disputes', './routes/disputes'],
   ['/api/autobuy', './routes/autobuy'],
+  ['/api/tracking', './routes/tracking'],
 ];
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));

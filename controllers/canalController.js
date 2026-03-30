@@ -85,10 +85,15 @@ const actualizarCanal = async (req, res, next) => {
       return next(httpError(403, 'No autorizado'));
     }
 
-    const allowed = ['nombreCanal', 'descripcion', 'categoria'];
-    allowed.forEach((field) => {
+    const stringFields = ['nombreCanal', 'descripcion', 'categoria', 'identificadorCanal'];
+    stringFields.forEach((field) => {
       if (req.body?.[field] !== undefined) canal[field] = String(req.body[field]).trim();
     });
+    if (req.body?.precio !== undefined) canal.precio = Number(req.body.precio) || 0;
+    if (req.body?.foto !== undefined) canal.foto = String(req.body.foto).trim();
+    if (req.body?.banner !== undefined) canal.banner = String(req.body.banner).trim();
+    if (req.body?.tags !== undefined && Array.isArray(req.body.tags)) canal.tags = req.body.tags.map(String);
+    if (req.body?.idioma !== undefined) canal.idioma = String(req.body.idioma).trim();
 
     await canal.save();
     return res.json({ success: true, data: canal });

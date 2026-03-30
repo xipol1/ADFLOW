@@ -206,7 +206,7 @@ const CopyBlock = ({ text }) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function RegisterChannelPage() {
   const navigate = useNavigate()
-  const [step, setStep] = useState(0)       // 0=platform, 1=connect, 2=info, 3=result
+  const [step, setStep] = useState(0)       // 0=platform, 1=connect, 2=info, 3=verify-post, 4=result
   const [platform, setPlatform] = useState(null)
   const [credentials, setCredentials] = useState({})
   const [form, setForm] = useState({ name: '', url: '', category: 'Tecnologia', desc: '', price: '' })
@@ -215,11 +215,38 @@ export default function RegisterChannelPage() {
   const [connectionResult, setConnectionResult] = useState(null)
   const [error, setError] = useState('')
   const [createdChannel, setCreatedChannel] = useState(null)
+  const [verifyLink, setVerifyLink] = useState(null)
+  const [verifyStatus, setVerifyStatus] = useState(null)
+  const [pollActive, setPollActive] = useState(false)
   const contentRef = useRef(null)
 
   useEffect(() => {
     contentRef.current?.scrollTo?.({ top: 0, behavior: 'smooth' })
   }, [step])
+
+  // Poll verification status every 5s when on verify step
+  useEffect(() => {
+    if (step !== 3 || !createdChannel) return
+    let active = true
+    const channelId = createdChannel._id || createdChannel.id
+    const poll = async () => {
+      try {
+        const res = await apiService.checkVerificationStatus(channelId)
+        if (res?.success && active) {
+          setVerifyStatus(res.data)
+          if (res.data.status === 'verified') {
+            setPollActive(false)
+            // Auto-advance after short delay
+            setTimeout(() => { if (active) setStep(4) }, 1500)
+          }
+        }
+      } catch {}
+    }
+    poll()
+    setPollActive(true)
+    const interval = setInterval(poll, 5000)
+    return () => { active = false; clearInterval(interval) }
+  }, [step, createdChannel])
 
   const update = (k, v) => setForm(p => ({ ...p, [k]: v }))
   const updateCred = (k, v) => setCredentials(p => ({ ...p, [k]: v }))
@@ -308,7 +335,12 @@ export default function RegisterChannelPage() {
         identificadorCanal: form.url.trim() || createdChannel.identificadorCanal,
       })
       if (res?.success) {
-        setStep(3)
+        // Generate verification link for test post
+        try {
+          const vRes = await apiService.createVerificationLink(channelId)
+          if (vRes?.success) setVerifyLink(vRes.data)
+        } catch {}
+        setStep(3) // Go to verification post step
       } else {
         setError(res?.message || 'Error al guardar')
       }
@@ -316,10 +348,14 @@ export default function RegisterChannelPage() {
     setCreating(false)
   }
 
+  // ── Skip test post ──
+  const handleSkipTestPost = () => setStep(4)
+
   return (
     <div ref={contentRef} style={{ fontFamily: F, maxWidth: '720px', margin: '0 auto' }}>
       <style>{`
         @keyframes rcp-in { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
+        @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.4 } }
         .rcp-inp:focus { border-color: ${AG(0.6)} !important; box-shadow: 0 0 0 3px ${AG(0.1)} !important; }
         .rcp-card { transition: all .2s; cursor: pointer; }
         .rcp-card:hover { border-color: ${AG(0.5)} !important; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08) !important; }
@@ -337,19 +373,20 @@ export default function RegisterChannelPage() {
       {/* ── Header ── */}
       <div style={{ marginBottom: '28px' }}>
         <h1 style={{ fontFamily: D, fontSize: '26px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', marginBottom: '6px' }}>
-          {step === 3 ? '¡Canal registrado!' : 'Conectar plataforma'}
+          {step === 4 ? '¡Canal registrado!' : step === 3 ? 'Post de prueba' : 'Conectar plataforma'}
         </h1>
         <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.5 }}>
           {step === 0 && 'Elige tu plataforma para conectar y verificar tu canal automaticamente'}
           {step === 1 && `Conecta tu ${platDef?.name || 'canal'} para obtener metricas en tiempo real`}
           {step === 2 && 'Completa la informacion de tu canal'}
-          {step === 3 && 'Tu canal esta listo. Configura disponibilidad y precios para empezar a recibir campanas.'}
+          {step === 3 && 'Publica el enlace de prueba en tu canal para verificar las metricas reales'}
+          {step === 4 && 'Tu canal esta listo. Configura disponibilidad y precios para empezar a recibir campanas.'}
         </p>
       </div>
 
       {/* ── Step indicator ── */}
-      {step < 3 && (
-        <StepIndicator current={step} total={3} labels={['Plataforma', 'Verificacion', 'Informacion']} />
+      {step < 4 && (
+        <StepIndicator current={step} total={4} labels={['Plataforma', 'Conexion', 'Informacion', 'Post de prueba']} />
       )}
 
       {/* ── Error banner ── */}
@@ -727,9 +764,224 @@ export default function RegisterChannelPage() {
       )}
 
       {/* ════════════════════════════════════════════════════════════════════════ */}
-      {/* STEP 3: Success                                                        */}
+      {/* STEP 3: Verification test post                                         */}
       {/* ════════════════════════════════════════════════════════════════════════ */}
       {step === 3 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', animation: 'rcp-in .3s ease' }}>
+
+          {/* Explanation */}
+          <div style={{
+            background: `linear-gradient(135deg, ${platDef?.color || A}08, ${A}05)`,
+            border: `1px solid ${platDef?.color || A}20`, borderRadius: '16px',
+            padding: '24px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+              <div style={{
+                width: '52px', height: '52px', borderRadius: '14px',
+                background: `${platDef?.color || A}18`, border: `1px solid ${platDef?.color || A}30`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', flexShrink: 0,
+              }}>
+                📊
+              </div>
+              <div>
+                <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: 'var(--text)' }}>
+                  Verificacion con post de prueba
+                </div>
+                <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '2px' }}>
+                  Publica este enlace en tu canal para que podamos medir tus metricas reales
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[
+                'Copia el enlace de prueba de abajo',
+                `Publicalo en tu ${platDef?.name || 'canal'} con cualquier texto (ej: "Nuevo proyecto en camino 🚀")`,
+                'Espera a que tus seguidores hagan click — necesitas minimo 3 clicks unicos',
+                'Mediremos: clicks reales, dispositivos, ubicacion, engagement rate',
+              ].map((s, i) => (
+                <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                  <div style={{
+                    width: '22px', height: '22px', borderRadius: '50%',
+                    background: AG(0.1), border: `1px solid ${AG(0.25)}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '11px', fontWeight: 700, color: A, flexShrink: 0,
+                  }}>{i + 1}</div>
+                  <span style={{ fontSize: '13px', color: 'var(--text)', lineHeight: 1.5, paddingTop: '1px' }}>{s}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tracking link to copy */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Link2 size={14} color={A} />
+              <span style={{ fontFamily: D, fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>Tu enlace de verificacion</span>
+            </div>
+            <div style={{ padding: '20px' }}>
+              {verifyLink?.trackingUrl ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <CopyBlock text={verifyLink.trackingUrl} />
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', lineHeight: 1.5 }}>
+                    Este enlace redirige a una pagina de Adflow. Cada click se registra con: IP, dispositivo, navegador, pais y hora exacta.
+                  </div>
+                </div>
+              ) : (
+                <div style={{ fontSize: '13px', color: 'var(--muted)', textAlign: 'center', padding: '12px' }}>
+                  Generando enlace de verificacion...
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Live metrics dashboard */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Zap size={14} color={verifyStatus?.status === 'verified' ? OK : A} />
+                <span style={{ fontFamily: D, fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>Metricas en tiempo real</span>
+              </div>
+              {pollActive && verifyStatus?.status !== 'verified' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: OK, animation: 'pulse 1.5s infinite' }} />
+                  <span style={{ fontSize: '11px', color: OK, fontWeight: 600 }}>Monitoreando</span>
+                </div>
+              )}
+            </div>
+            <div style={{ padding: '20px' }}>
+              {/* Stats grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ background: 'var(--bg)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                  <div style={{ fontFamily: D, fontSize: '28px', fontWeight: 800, color: 'var(--text)' }}>
+                    {verifyStatus?.stats?.totalClicks || 0}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>Clicks totales</div>
+                </div>
+                <div style={{ background: 'var(--bg)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                  <div style={{ fontFamily: D, fontSize: '28px', fontWeight: 800, color: (verifyStatus?.stats?.uniqueClicks || 0) >= (verifyStatus?.minClicks || 3) ? OK : A }}>
+                    {verifyStatus?.stats?.uniqueClicks || 0}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>Clicks unicos</div>
+                </div>
+                <div style={{ background: 'var(--bg)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                  <div style={{ fontFamily: D, fontSize: '28px', fontWeight: 800, color: verifyStatus?.clicksNeeded === 0 ? OK : WR }}>
+                    {verifyStatus?.clicksNeeded ?? (verifyStatus?.minClicks || 3)}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>Faltan para verificar</div>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text)' }}>Progreso de verificacion</span>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: verifyStatus?.status === 'verified' ? OK : A }}>
+                    {verifyStatus?.stats?.uniqueClicks || 0}/{verifyStatus?.minClicks || 3} clicks
+                  </span>
+                </div>
+                <div style={{ height: '8px', background: 'var(--bg)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%', borderRadius: '4px', transition: 'width .5s ease',
+                    background: verifyStatus?.status === 'verified' ? OK : `linear-gradient(90deg, ${A}, ${BL})`,
+                    width: `${Math.min(100, ((verifyStatus?.stats?.uniqueClicks || 0) / (verifyStatus?.minClicks || 3)) * 100)}%`,
+                  }} />
+                </div>
+              </div>
+
+              {/* Device breakdown */}
+              {verifyStatus?.stats?.devices && (verifyStatus.stats.devices.mobile > 0 || verifyStatus.stats.devices.desktop > 0) && (
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                  {Object.entries(verifyStatus.stats.devices).filter(([, v]) => v > 0).map(([k, v]) => (
+                    <span key={k} style={{ background: AG(0.08), border: `1px solid ${AG(0.18)}`, borderRadius: '20px', padding: '4px 12px', fontSize: '11px', fontWeight: 600, color: A }}>
+                      {k === 'mobile' ? '📱' : k === 'desktop' ? '💻' : k === 'tablet' ? '📱' : '❓'} {k}: {v}
+                    </span>
+                  ))}
+                  {verifyStatus.stats.countries && Object.keys(verifyStatus.stats.countries).length > 0 && (
+                    Object.entries(typeof verifyStatus.stats.countries === 'object' && !Array.isArray(verifyStatus.stats.countries)
+                      ? verifyStatus.stats.countries : {}).filter(([, v]) => v > 0).slice(0, 5).map(([k, v]) => (
+                      <span key={k} style={{ background: `${BL}10`, border: `1px solid ${BL}20`, borderRadius: '20px', padding: '4px 12px', fontSize: '11px', fontWeight: 600, color: BL }}>
+                        🌍 {k}: {v}
+                      </span>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Recent clicks */}
+              {verifyStatus?.recentClicks?.length > 0 && (
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Clicks recientes
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {verifyStatus.recentClicks.slice(-5).reverse().map((c, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--muted)', padding: '6px 10px', background: 'var(--bg)', borderRadius: '8px' }}>
+                        <span>{c.device === 'mobile' ? '📱' : '💻'}</span>
+                        <span style={{ fontWeight: 600, color: 'var(--text)' }}>{c.browser || 'Navegador'}</span>
+                        <span>·</span>
+                        <span>{c.os || 'OS'}</span>
+                        {c.country && <><span>·</span><span>🌍 {c.country}</span></>}
+                        <span style={{ marginLeft: 'auto', fontSize: '10px' }}>{c.timestamp ? new Date(c.timestamp).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : ''}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Verified banner */}
+              {verifyStatus?.status === 'verified' && (
+                <div style={{ background: `${OK}10`, border: `1px solid ${OK}25`, borderRadius: '12px', padding: '16px', marginTop: '12px', textAlign: 'center' }}>
+                  <CheckCircle size={28} color={OK} style={{ margin: '0 auto 8px', display: 'block' }} />
+                  <div style={{ fontFamily: D, fontSize: '16px', fontWeight: 700, color: OK }}>¡Canal verificado!</div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>Las metricas de tu canal han sido confirmadas con datos reales</div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Suggested post text */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '16px 20px' }}>
+            <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', marginBottom: '10px' }}>Texto sugerido para tu post</div>
+            <CopyBlock text={`🚀 Algo nuevo se viene... Descubrelo aqui 👉 ${verifyLink?.trackingUrl || '[tu enlace]'}`} />
+            <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '8px' }}>
+              Puedes escribir lo que quieras. Lo importante es que incluyas el enlace de verificacion.
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+            <button onClick={handleSkipTestPost} style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              background: 'var(--surface)', border: '1px solid var(--border)',
+              borderRadius: '12px', padding: '12px 20px', fontSize: '13px',
+              color: 'var(--muted)', cursor: 'pointer', fontFamily: F,
+            }}>
+              Saltar por ahora
+            </button>
+            {verifyStatus?.status === 'verified' ? (
+              <button onClick={() => setStep(4)} style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                background: OK, color: '#fff', border: 'none',
+                borderRadius: '12px', padding: '12px 28px', fontSize: '14px',
+                fontWeight: 700, cursor: 'pointer', fontFamily: F,
+                boxShadow: `0 4px 16px rgba(16,185,129,0.35)`,
+              }}>
+                <CheckCircle size={16} /> Continuar
+              </button>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--muted)', fontSize: '13px' }}>
+                <Loader size={14} style={{ animation: 'spin .8s linear infinite' }} /> Esperando clicks...
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════════ */}
+      {/* STEP 4: Success                                                        */}
+      {/* ════════════════════════════════════════════════════════════════════════ */}
+      {step === 4 && (
         <div style={{ animation: 'rcp-in .3s ease', textAlign: 'center', padding: '20px 0' }}>
 
           {/* Success animation */}
