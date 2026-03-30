@@ -79,11 +79,17 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Swagger docs
+// Swagger docs (needs relaxed CSP for Swagger UI assets)
 try {
   const swaggerUi = require('swagger-ui-express');
   const swaggerSpec = require('./config/swagger');
-  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  const swaggerCspMiddleware = (req, res, next) => {
+    res.setHeader('Content-Security-Policy',
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
+    );
+    next();
+  };
+  app.use('/api/docs', swaggerCspMiddleware, swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     customCss: '.swagger-ui .topbar { display: none }',
     customSiteTitle: 'ADFLOW API Docs',
   }));

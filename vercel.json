@@ -6,7 +6,7 @@
   "functions": {
     "api/index.js": {
       "maxDuration": 30,
-      "includeFiles": "routes/**,controllers/**,models/**,middleware/**,lib/**,services/**,config/**"
+      "includeFiles": "routes/**,controllers/**,models/**,middleware/**,lib/**,services/**,config/**,docs/swagger/**,templates/**,integraciones/**"
     }
   },
   "rewrites": [
