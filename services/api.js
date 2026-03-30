@@ -92,15 +92,7 @@ class ApiService {
         return { success: true };
       }
 
-      // Auto-clear session and redirect on auth rejection
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth')) {
-          window.location.href = '/auth/login';
-        }
-      }
+      // Pass status through so AuthContext can handle auth rejection gracefully
 
       if (parsed && typeof parsed === 'object') return { ...parsed, status: response.status };
       return { success: false, message: hasBody ? text : 'Error del servidor', status: response.status };

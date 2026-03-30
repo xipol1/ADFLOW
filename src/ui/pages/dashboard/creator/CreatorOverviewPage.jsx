@@ -276,7 +276,7 @@ export default function CreatorOverviewPage() {
   const campaignEarnings = filteredCampaigns.filter(c => c.status === 'COMPLETED').reduce((s, c) => s + (c.netAmount || 0), 0)
   const totalEarnings  = channels.reduce((s, c) => s + (c.totalEarnings || 0), 0) + campaignEarnings
   const monthEarnings  = channels.reduce((s, c) => s + (c.earningsThisMonth || 0), 0) + campaignEarnings
-  const activeChannels = channels.filter(c => c.status === 'activo' || c.estado === 'activo' || c.disponible).length || channels.length
+  const activeChannels = channels.filter(c => c.estado === 'activo' || c.estado === 'verificado' || c.status === 'activo').length || channels.length
   const pendingReqs    = requests.filter(r => r.status === 'pendiente').length + creatorCampaigns.filter(c => c.status === 'PAID').length
   const balance        = campaignEarnings || 930
 
@@ -423,26 +423,34 @@ export default function CreatorOverviewPage() {
               </button>
             </div>
             {channels.map((ch, i) => {
-              const platColor = PLAT_COLORS[ch.platform || ch.plataforma] || A
+              const plat = ch.plataforma || ch.platform || ''
+              const platLabel = plat.charAt(0).toUpperCase() + plat.slice(1)
+              const platColor = PLAT_COLORS[platLabel] || A
+              const name = ch.nombreCanal || ch.name || ch.identificadorCanal || 'Canal'
+              const audience = ch.estadisticas?.seguidores || ch.audience || 0
+              const price = ch.precio || ch.pricePerPost || 0
+              const earnings = ch.earningsThisMonth || 0
+              const status = ch.estado || ch.status || 'pendiente'
+              const isActive = status === 'activo' || status === 'verificado'
               return (
-                <div key={ch.id || ch._id} style={{ padding: '15px 22px', borderBottom: i < channels.length - 1 ? '1px solid var(--border)' : 'none', display: 'flex', alignItems: 'center', gap: '14px', transition: 'background .12s' }}
+                <div key={ch._id || ch.id} style={{ padding: '15px 22px', borderBottom: i < channels.length - 1 ? '1px solid var(--border)' : 'none', display: 'flex', alignItems: 'center', gap: '14px', transition: 'background .12s' }}
                   onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg2)' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                 >
                   {/* Platform icon */}
                   <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: `${platColor}18`, border: `1px solid ${platColor}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
-                    {ch.platform === 'Telegram' ? '✈️' : ch.platform === 'WhatsApp' ? '💬' : ch.platform === 'Discord' ? '🎮' : ch.platform === 'Instagram' ? '📸' : '📧'}
+                    {plat === 'telegram' ? '✈️' : plat === 'whatsapp' ? '💬' : plat === 'discord' ? '🎮' : plat === 'instagram' ? '📸' : '📧'}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>{ch.name}</span>
-                      <PlatBadge p={ch.platform} />
-                      {ch.verified && <span style={{ fontSize: '10px', color: OK, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '3px' }}>✓ Verificado</span>}
+                      <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>{name}</span>
+                      <PlatBadge p={platLabel} />
+                      {ch.verificado && <span style={{ fontSize: '10px', color: OK, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '3px' }}>✓ Verificado</span>}
                     </div>
                     <div style={{ display: 'flex', gap: '14px', fontSize: '12px', color: 'var(--muted)', flexWrap: 'wrap' }}>
-                      <span>{ch.audience.toLocaleString('es')} suscriptores</span>
-                      <span>€{ch.pricePerPost}/post</span>
-                      <span style={{ color: OK, fontWeight: 600 }}>+€{ch.earningsThisMonth} este mes</span>
+                      <span>{audience.toLocaleString('es')} suscriptores</span>
+                      <span>{price > 0 ? `€${price}/post` : 'Sin precio'}</span>
+                      {earnings > 0 && <span style={{ color: OK, fontWeight: 600 }}>+€{earnings} este mes</span>}
                     </div>
                   </div>
                   {/* Health indicator */}
@@ -453,8 +461,8 @@ export default function CreatorOverviewPage() {
                       ))}
                     </div>
                   </div>
-                  <span style={{ background: ch.status === 'activo' ? `${OK}12` : `${WARN}12`, color: ch.status === 'activo' ? OK : WARN, border: `1px solid ${ch.status === 'activo' ? `${OK}25` : `${WARN}25`}`, borderRadius: '20px', padding: '3px 10px', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    {ch.status === 'activo' ? '● Activo' : '● Pendiente'}
+                  <span style={{ background: isActive ? `${OK}12` : `${WARN}12`, color: isActive ? OK : WARN, border: `1px solid ${isActive ? `${OK}25` : `${WARN}25`}`, borderRadius: '20px', padding: '3px 10px', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    {isActive ? '● Activo' : '● Pendiente'}
                   </span>
                 </div>
               )

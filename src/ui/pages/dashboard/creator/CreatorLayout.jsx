@@ -1,8 +1,31 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Component } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Radio, Inbox, Wallet, Settings, LogOut, Menu, Bell, ShieldAlert } from 'lucide-react'
+import { LayoutDashboard, Radio, Inbox, Wallet, Settings, LogOut, Menu, Bell, ShieldAlert, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../../services/api'
+
+class PageErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { hasError: false, error: null } }
+  static getDerivedStateFromError(error) { return { hasError: true, error } }
+  componentDidCatch(err, info) { console.error('Creator page crash:', err, info) }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '60px 28px', textAlign: 'center', fontFamily: "'Inter', system-ui, sans-serif" }}>
+          <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <AlertTriangle size={24} color="#ef4444" />
+          </div>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>Algo salio mal</h2>
+          <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '20px' }}>{this.state.error?.message || 'Error inesperado'}</p>
+          <button onClick={() => this.setState({ hasError: false, error: null })} style={{ background: '#25d366', color: '#fff', border: 'none', borderRadius: '10px', padding: '10px 24px', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
+            Reintentar
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 const A   = '#25d366'
 const AG  = (o) => `rgba(37,211,102,${o})`
@@ -610,7 +633,9 @@ export default function CreatorLayout() {
 
         {/* ── Page content ── */}
         <main style={{ flex: 1, padding: '28px', overflowY: 'auto' }}>
-          <Outlet />
+          <PageErrorBoundary>
+            <Outlet />
+          </PageErrorBoundary>
         </main>
       </div>
     </div>
