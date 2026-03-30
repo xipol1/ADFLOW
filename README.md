@@ -459,44 +459,64 @@ Configurar en el dashboard de Vercel/Render:
 
 ## Estado del proyecto
 
-### Completado (Sprint 1 + Sprint 2)
+### Sprint 1-2: Infraestructura + Marketplace core ✅
 
-- [x] **Backend REST API** completo — 15 archivos de rutas, 14 controladores
-- [x] **Autenticacion** — JWT con access/refresh tokens, verificacion de email
-- [x] **Base de datos** — 16 modelos Mongoose, conexion lazy para serverless
+- [x] **Backend REST API** — 17 archivos de rutas, 16 controladores
+- [x] **Autenticacion** — JWT access/refresh tokens, verificacion email
+- [x] **Base de datos** — 18 modelos Mongoose, lazy connection serverless
 - [x] **Sistema de pagos** — Stripe checkout, escrow con captura diferida
-- [x] **Notificaciones** — In-app + Socket.io en tiempo real + email
 - [x] **Ciclo de campana completo** — DRAFT → PAID → PUBLISHED → COMPLETED
-- [x] **Cron de campanas** — Expiracion automatica, auto-complete, liberacion de escrow
-- [x] **Sistema de disputas** — Abrir, mensajes, resolucion por admin
-- [x] **Listas de favoritos** — CRUD de listas personalizadas de canales
-- [x] **AutoBuy** — Reglas de compra automatica con budgets y trigger manual
-- [x] **Dashboard Advertiser** — 7 paginas con KPIs reales desde API
-- [x] **Dashboard Creator** — 6 paginas con ganancias y gestion de canales
-- [x] **Dashboard Admin** — Vista de administracion
+- [x] **Dashboard Advertiser** — 7 paginas con KPIs reales
+- [x] **Dashboard Creator** — 7 paginas con ganancias y gestion
 - [x] **Marketplace publico** — Busqueda, filtros, paginacion
-- [x] **Landing page** — Hero, categorias, canales destacados, CTA
-- [x] **Scoring engine** — Algoritmo de 5 factores para ranking de canales
-- [x] **Deploy en Vercel** — Serverless function con bundling correcto
-- [x] **Tracking basico de clicks** — Fire-and-forget con deduplicacion IP (1h)
-- [x] **Sistema de tracking avanzado** — Links cortos (`/t/:code`) con analytics completos
-- [x] **Verificacion de canales por test post** — Link trackeable con polling en tiempo real
-- [x] **Conversion automatica de URLs** — Transforma links de anunciantes en links trackeables
-- [x] **Flujo de registro de canal** — 5 pasos: plataforma → API → info → verificacion → exito
-- [x] **Analytics por click** — Dispositivo, OS, navegador, pais, UTMs, referer
-- [x] **Auto-verificacion** — Canal se activa automaticamente al alcanzar umbral de clicks
-- [x] **Error boundary en dashboard** — Previene paginas en blanco por errores de renderizado
+- [x] **Scoring engine** — 5 factores, pricing dinamico por CPM
 
-### Pendiente / En progreso
+### Sprint 3: Automatizacion + Engagement ✅
 
-- [ ] Integraciones completas con plataformas (Telegram bot, Discord bot, WhatsApp Business API)
-- [ ] Panel admin avanzado (gestion de usuarios, moderacion de canales)
-- [ ] Analytics avanzados (graficos de rendimiento, reportes exportables)
-- [ ] Templates de email transaccional (diseno HTML)
-- [ ] Tests de integracion completos
-- [ ] Documentacion Swagger/OpenAPI completa
-- [ ] PWA / notificaciones push nativas
-- [ ] Sistema de reviews y ratings para canales
+- [x] **Disputas** — Crear, mensajes, resolucion admin
+- [x] **Listas de favoritos** — CRUD listas personalizadas
+- [x] **AutoBuy** — Reglas de compra automatica
+- [x] **Notificaciones** — DB + Socket.io + email + push
+- [x] **Campaign cron** — Auto-expiracion, auto-complete, escrow release
+- [x] **Partner API** — Auth, CRUD, webhooks, Stripe escrow
+
+### Sprint 4: Tracking + Verificacion ✅
+
+- [x] **Tracking avanzado** — Links cortos `/t/:code` con analytics completos
+- [x] **Verificacion por test post** — Min 3 clicks unicos, auto-verificacion
+- [x] **Registro de canal** — 5 pasos: plataforma → API → info → verificacion → exito
+- [x] **Conversion URLs** — Links de anunciantes → links trackeables
+- [x] **Analytics por click** — Dispositivo, OS, navegador, pais, UTMs
+
+### Sprint 5: Features avanzados ✅
+
+- [x] **Reviews y ratings** — 5 categorias, respuestas, moderacion, agregados
+- [x] **Analytics avanzados** — Time-series, comparativas, export CSV
+- [x] **14 templates email** — HTML profesional con diseno ADFLOW
+- [x] **Swagger/OpenAPI** — 48 endpoints documentados en /api/docs/
+- [x] **PWA** — Manifest, service worker, push notifications
+- [x] **118+ tests** — 8 suites de integracion + smoke tests
+- [x] **Integraciones** — Telegram, Discord, WhatsApp, Instagram, Facebook, Newsletter
+
+### Sprint 6: Produccion real (PENDIENTE)
+
+- [ ] Configurar servicios externos (Stripe live, SMTP, VAPID keys, platform tokens)
+- [ ] Vercel Cron Functions para campaign automation
+- [ ] Cloud storage para uploads (Vercel Blob / S3)
+- [ ] Reemplazar Socket.io por solucion serverless-compatible
+- [ ] Panel admin completo (moderacion, metricas plataforma)
+- [ ] Onboarding guiado, graficos con Chart.js/Recharts
+- [ ] Encriptar credenciales en DB, 2FA, GDPR compliance
+
+### Sprint 7: Escalamiento (FUTURO)
+
+- [ ] Code-splitting, Redis cache, CDN
+- [ ] Campanas programadas, A/B testing, bulk campaigns
+- [ ] Expansion: Twitter/X, TikTok, YouTube, LinkedIn
+- [ ] Planes de suscripcion, programa de referidos
+
+Para el plan detallado con sub-items, ver [`docs/plan-fases.md`](docs/plan-fases.md).
+Para el estado tecnico detallado, ver [`docs/estado-real.md`](docs/estado-real.md).
 
 ---
 
