@@ -8,16 +8,17 @@ import {
 } from 'lucide-react'
 import { PLATFORM_COLORS } from './mockDataCreator'
 import apiService from '../../../../../services/api'
+import { PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK as _OK, WARN, ERR, BLUE } from '../../../theme/tokens'
 
 // ─── Design tokens ──────────────────────────────────────────────────────────
-const A  = '#8b5cf6'
-const AG = (o) => `rgba(139,92,246,${o})`
-const F  = "'Inter', system-ui, sans-serif"
-const D  = "'Sora', system-ui, sans-serif"
-const OK = '#10b981'
-const WR = '#f59e0b'
-const ER = '#ef4444'
-const BL = '#3b82f6'
+const A  = PURPLE
+const AG = purpleAlpha
+const F  = FONT_BODY
+const D  = FONT_DISPLAY
+const OK = _OK
+const WR = WARN
+const ER = ERR
+const BL = BLUE
 
 const fmtK = (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n)
 const DAY_NAMES   = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab']

@@ -1,10 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../auth/AuthContext'
-
-const A  = '#8b5cf6'
-const AD = '#7c3aed'
-const AG = (o) => `rgba(139,92,246,${o})`
+import { PURPLE as A, PURPLE_DARK as AD, purpleAlpha as AG, FONT_BODY, FONT_DISPLAY } from '../../theme/tokens'
 
 export default function AuthPage({ defaultTab = 'login' }) {
   const navigate = useNavigate()
@@ -20,8 +17,8 @@ export default function AuthPage({ defaultTab = 'login' }) {
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
 
-  const F = "'Inter', system-ui, sans-serif"
-  const D = "'Sora', system-ui, sans-serif"
+  const F = FONT_BODY
+  const D = FONT_DISPLAY
 
   const reset = (nextTab) => {
     setTab(nextTab)
@@ -195,9 +192,9 @@ export default function AuthPage({ defaultTab = 'login' }) {
                   />
                   Recordarme
                 </label>
-                <a href="#" style={{ fontSize: '13px', color: A, textDecoration: 'none', fontWeight: 500 }}>
+                <Link to="/auth/forgot-password" style={{ fontSize: '13px', color: A, textDecoration: 'none', fontWeight: 500 }}>
                   ¿Olvidaste tu contraseña?
-                </a>
+                </Link>
               </div>
 
               <button type="submit" disabled={loading} style={{
@@ -304,8 +301,8 @@ export default function AuthPage({ defaultTab = 'login' }) {
 
               <p style={{ fontSize: '11px', color: 'var(--muted2)', textAlign: 'center', lineHeight: 1.5 }}>
                 Al registrarte aceptas los{' '}
-                <a href="#" style={{ color: A }}>Términos de uso</a> y la{' '}
-                <a href="#" style={{ color: A }}>Política de privacidad</a>
+                <Link to="/terminos" style={{ color: A }}>Términos de uso</Link> y la{' '}
+                <Link to="/privacidad" style={{ color: A }}>Política de privacidad</Link>
               </p>
             </form>
           )}
@@ -350,7 +347,7 @@ export default function AuthPage({ defaultTab = 'login' }) {
       </div>
 
       <p style={{ marginTop: '24px', fontSize: '12px', color: 'var(--muted2)' }}>
-        © 2026 Adflow · <a href="#" style={{ color: 'var(--muted2)' }}>Privacidad</a> · <a href="#" style={{ color: 'var(--muted2)' }}>Términos</a>
+        © 2026 Adflow · <Link to="/privacidad" style={{ color: 'var(--muted2)' }}>Privacidad</Link> · <Link to="/terminos" style={{ color: 'var(--muted2)' }}>Términos</Link>
       </p>
     </div>
   )

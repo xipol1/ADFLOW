@@ -32,6 +32,13 @@ import RegisterChannelPage  from '../ui/pages/dashboard/creator/RegisterChannelP
 // Shared dispute page
 import DisputesPage from '../ui/pages/dashboard/DisputesPage'
 
+// Legal & info pages
+import PrivacyPage from '../ui/pages/legal/PrivacyPage'
+import TermsPage from '../ui/pages/legal/TermsPage'
+import AboutPage from '../ui/pages/legal/AboutPage'
+import SupportPage from '../ui/pages/legal/SupportPage'
+import ForgotPasswordPage from '../ui/pages/auth/ForgotPasswordPage'
+
 export default function AppRoutes() {
   const { isAuthenticated } = useAuth()
 
@@ -53,7 +60,12 @@ export default function AppRoutes() {
           path="auth/register"
           element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
         />
+        <Route path="auth/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="verificar-email/:token" element={<VerifyEmailPage />} />
+        <Route path="privacidad" element={<PrivacyPage />} />
+        <Route path="terminos" element={<TermsPage />} />
+        <Route path="sobre-nosotros" element={<AboutPage />} />
+        <Route path="soporte" element={<SupportPage />} />
 
         {/* Creator / Admin dashboard (uses public NavBar layout) */}
         <Route

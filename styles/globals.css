@@ -4,9 +4,9 @@
 
 /* ─── Design tokens — DARK (default) ────────────────────── */
 :root {
-  --green:      #8b5cf6;
-  --green-dark: #7c3aed;
-  --green-glow: rgba(139,92,246,0.15);
+  --accent:      #8b5cf6;
+  --accent-dark: #7c3aed;
+  --accent-glow: rgba(139,92,246,0.15);
   --bg:         #050505;
   --bg2:        #0f0f0f;
   --bg3:        #161616;
@@ -42,7 +42,7 @@
   *, *::before, *::after { box-sizing: border-box; }
 
   html {
-    font-family: 'DM Sans', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     scroll-behavior: smooth;
   }
 
@@ -61,34 +61,6 @@
   ::-webkit-scrollbar-thumb:hover { background: var(--muted2); }
 }
 
-/* Estilos base personalizados */
-@layer base {
-  html {
-    font-family: 'Inter', system-ui, sans-serif;
-  }
-  
-  body {
-    @apply text-gray-900 bg-gray-50;
-  }
-  
-  /* Scrollbar personalizado */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    @apply bg-gray-100;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 rounded-full;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400;
-  }
-}
 
 @keyframes floatCard {
   0%, 100% { transform: translateY(0); }
@@ -133,7 +105,7 @@
 
 /* ─── Legacy primary color utilities (keep for other pages) ── */
 @layer components {
-  .text-primary-500 { color: #3b82f6; }
-  .bg-primary-500 { background-color: #3b82f6; }
-  .border-primary-500 { border-color: #3b82f6; }
+  .text-primary-500 { color: #8b5cf6; }
+  .bg-primary-500 { background-color: #8b5cf6; }
+  .border-primary-500 { border-color: #8b5cf6; }
 }

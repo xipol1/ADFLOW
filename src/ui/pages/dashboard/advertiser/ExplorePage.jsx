@@ -7,12 +7,10 @@ import {
 } from 'lucide-react'
 import { PLATFORM_COLORS } from './mockData'
 import apiService from '../../../../../services/api'
+import {
+  PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK,
+} from '../../../theme/tokens'
 
-const A  = '#8b5cf6'
-const AG = (o) => `rgba(139,92,246,${o})`
-const F  = "'Inter', system-ui, sans-serif"
-const D  = "'Sora', system-ui, sans-serif"
-const OK = '#10b981'
 
 const fmtAudience = (n) => {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
@@ -22,7 +20,7 @@ const fmtAudience = (n) => {
 
 // ─── Platform badge ────────────────────────────────────────────────────────────
 const PlatformBadge = ({ platform }) => {
-  const color = PLATFORM_COLORS[platform] || A
+  const color = PLATFORM_COLORS[platform] || PURPLE
   return (
     <span style={{
       background: `${color}18`, color, border: `1px solid ${color}35`,
@@ -51,7 +49,7 @@ const StarRating = ({ rating = 4.7 }) => (
 // ─── Grid channel card ─────────────────────────────────────────────────────────
 const ChannelCardGrid = ({ ch, onDetail, onHire }) => {
   const [hovered, setHovered] = useState(false)
-  const platColor = PLATFORM_COLORS[ch.platform] || A
+  const platColor = PLATFORM_COLORS[ch.platform] || PURPLE
 
   return (
     <div
@@ -59,14 +57,14 @@ const ChannelCardGrid = ({ ch, onDetail, onHire }) => {
       onMouseLeave={() => setHovered(false)}
       style={{
         background: 'var(--surface)',
-        border: `1px solid ${hovered ? AG(0.4) : 'var(--border)'}`,
+        border: `1px solid ${hovered ? purpleAlpha(0.4) : 'var(--border)'}`,
         borderRadius: '16px',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
         transition: 'border-color .18s, transform .18s, box-shadow .18s',
         transform: hovered ? 'translateY(-3px)' : 'none',
-        boxShadow: hovered ? `0 12px 40px ${AG(0.12)}` : '0 1px 4px rgba(0,0,0,0.05)',
+        boxShadow: hovered ? `0 12px 40px ${purpleAlpha(0.12)}` : '0 1px 4px rgba(0,0,0,0.05)',
       }}
     >
       {/* Color bar */}
@@ -78,7 +76,7 @@ const ChannelCardGrid = ({ ch, onDetail, onHire }) => {
         {/* Header row */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)', lineHeight: 1.3, marginBottom: '5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)', lineHeight: 1.3, marginBottom: '5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {ch.name}
             </div>
             <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -107,7 +105,7 @@ const ChannelCardGrid = ({ ch, onDetail, onHire }) => {
             { label: 'Score', val: ch.score ? `${ch.score}/100` : '-' },
           ].map(({ label, val }) => (
             <div key={label} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '9px', padding: '9px 8px', textAlign: 'center' }}>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)', fontFamily: D }}>{val}</div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>{val}</div>
               <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '1px' }}>{label}</div>
             </div>
           ))}
@@ -124,7 +122,7 @@ const ChannelCardGrid = ({ ch, onDetail, onHire }) => {
       {/* Footer */}
       <div style={{ padding: '14px 18px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
         <div>
-          <div style={{ fontFamily: D, fontSize: '20px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em' }}>
+          <div style={{ fontFamily: FONT_DISPLAY, fontSize: '20px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em' }}>
             €{ch.pricePerPost}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--muted)' }}>por publicación</div>
@@ -135,9 +133,9 @@ const ChannelCardGrid = ({ ch, onDetail, onHire }) => {
             style={{
               background: 'var(--bg)', border: '1px solid var(--border-med)',
               borderRadius: '9px', padding: '8px 13px', fontSize: '12px', fontWeight: 600,
-              color: 'var(--text)', cursor: 'pointer', fontFamily: F, transition: 'border-color .15s',
+              color: 'var(--text)', cursor: 'pointer', fontFamily: FONT_BODY, transition: 'border-color .15s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = AG(0.5) }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = purpleAlpha(0.5) }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-med)' }}
           >
             Ver
@@ -145,14 +143,14 @@ const ChannelCardGrid = ({ ch, onDetail, onHire }) => {
           <button
             onClick={() => onHire(ch)}
             style={{
-              background: A, border: 'none', borderRadius: '9px',
+              background: PURPLE, border: 'none', borderRadius: '9px',
               padding: '8px 14px', fontSize: '12px', fontWeight: 600,
-              color: '#fff', cursor: 'pointer', fontFamily: F,
-              boxShadow: `0 3px 10px ${AG(0.3)}`,
+              color: '#fff', cursor: 'pointer', fontFamily: FONT_BODY,
+              boxShadow: `0 3px 10px ${purpleAlpha(0.3)}`,
               transition: 'background .15s, box-shadow .15s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#7c3aed'; e.currentTarget.style.boxShadow = `0 4px 14px ${AG(0.4)}` }}
-            onMouseLeave={e => { e.currentTarget.style.background = A; e.currentTarget.style.boxShadow = `0 3px 10px ${AG(0.3)}` }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#7c3aed'; e.currentTarget.style.boxShadow = `0 4px 14px ${purpleAlpha(0.4)}` }}
+            onMouseLeave={e => { e.currentTarget.style.background = PURPLE; e.currentTarget.style.boxShadow = `0 3px 10px ${purpleAlpha(0.3)}` }}
           >
             Contratar
           </button>
@@ -165,7 +163,7 @@ const ChannelCardGrid = ({ ch, onDetail, onHire }) => {
 // ─── List channel row ──────────────────────────────────────────────────────────
 const ChannelRowList = ({ ch, onDetail, onHire, isLast }) => {
   const [hovered, setHovered] = useState(false)
-  const platColor = PLATFORM_COLORS[ch.platform] || A
+  const platColor = PLATFORM_COLORS[ch.platform] || PURPLE
 
   return (
     <div
@@ -185,7 +183,7 @@ const ChannelRowList = ({ ch, onDetail, onHire, isLast }) => {
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: D, fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>{ch.name}</span>
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>{ch.name}</span>
           <PlatformBadge platform={ch.platform} />
           {ch.verified && <CheckCircle size={13} color={OK} strokeWidth={2.5} />}
           <span style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: '5px', padding: '1px 7px', fontSize: '11px', color: 'var(--muted)' }}>{ch.category}</span>
@@ -199,21 +197,21 @@ const ChannelRowList = ({ ch, onDetail, onHire, isLast }) => {
         { label: 'Engagement', val: `${ch.engagement}%` },
       ].map(({ label, val }) => (
         <div key={label} style={{ textAlign: 'center', minWidth: '72px' }}>
-          <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)', fontFamily: D }}>{val}</div>
+          <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>{val}</div>
           <div style={{ fontSize: '10px', color: 'var(--muted)' }}>{label}</div>
         </div>
       ))}
 
       {/* Price */}
       <div style={{ textAlign: 'right', minWidth: '80px' }}>
-        <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 800, color: 'var(--text)' }}>€{ch.pricePerPost}</div>
+        <div style={{ fontFamily: FONT_DISPLAY, fontSize: '18px', fontWeight: 800, color: 'var(--text)' }}>€{ch.pricePerPost}</div>
         <div style={{ fontSize: '10px', color: 'var(--muted)' }}>/ post</div>
       </div>
 
       {/* Actions */}
       <div style={{ display: 'flex', gap: '7px', flexShrink: 0 }}>
-        <button onClick={() => onDetail(ch)} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '9px', padding: '7px 12px', fontSize: '12px', fontWeight: 600, color: 'var(--text)', cursor: 'pointer', fontFamily: F }}>Ver</button>
-        <button onClick={() => onHire(ch)} style={{ background: A, border: 'none', borderRadius: '9px', padding: '7px 14px', fontSize: '12px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: F }}>Contratar</button>
+        <button onClick={() => onDetail(ch)} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '9px', padding: '7px 12px', fontSize: '12px', fontWeight: 600, color: 'var(--text)', cursor: 'pointer', fontFamily: FONT_BODY }}>Ver</button>
+        <button onClick={() => onHire(ch)} style={{ background: PURPLE, border: 'none', borderRadius: '9px', padding: '7px 14px', fontSize: '12px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: FONT_BODY }}>Contratar</button>
       </div>
     </div>
   )
@@ -221,7 +219,7 @@ const ChannelRowList = ({ ch, onDetail, onHire, isLast }) => {
 
 // ─── Channel detail modal ─────────────────────────────────────────────────────
 const ChannelModal = ({ ch, onClose, onHire }) => {
-  const platColor = PLATFORM_COLORS[ch.platform] || A
+  const platColor = PLATFORM_COLORS[ch.platform] || PURPLE
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(4px)' }}
@@ -237,7 +235,7 @@ const ChannelModal = ({ ch, onClose, onHire }) => {
         <div style={{ padding: '24px 28px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '14px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
-              <h2 style={{ fontFamily: D, fontSize: '22px', fontWeight: 800, color: 'var(--text)' }}>{ch.name}</h2>
+              <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '22px', fontWeight: 800, color: 'var(--text)' }}>{ch.name}</h2>
               {ch.verified && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: OK }}>
                   <CheckCircle size={16} strokeWidth={2.5} />
@@ -272,22 +270,22 @@ const ChannelModal = ({ ch, onClose, onHire }) => {
               { label: 'Categoría', val: ch.category },
             ].map(({ label, val, icon: Icon }) => (
               <div key={label} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
-                {Icon && <Icon size={14} color={A} style={{ marginBottom: '6px' }} />}
-                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)', fontFamily: D }}>{val}</div>
+                {Icon && <Icon size={14} color={PURPLE} style={{ marginBottom: '6px' }} />}
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>{val}</div>
                 <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>{label}</div>
               </div>
             ))}
           </div>
 
           {/* Price highlight */}
-          <div style={{ background: AG(0.06), border: `1px solid ${AG(0.2)}`, borderRadius: '14px', padding: '18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ background: purpleAlpha(0.06), border: `1px solid ${purpleAlpha(0.2)}`, borderRadius: '14px', padding: '18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '4px' }}>Precio por publicación</div>
-              <div style={{ fontFamily: D, fontSize: '32px', fontWeight: 800, color: A, letterSpacing: '-0.03em' }}>€{ch.pricePerPost}</div>
+              <div style={{ fontFamily: FONT_DISPLAY, fontSize: '32px', fontWeight: 800, color: PURPLE, letterSpacing: '-0.03em' }}>€{ch.pricePerPost}</div>
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '2px' }}>ROI estimado</div>
-              <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: OK }}>~4.2x</div>
+              <div style={{ fontFamily: FONT_DISPLAY, fontSize: '18px', fontWeight: 700, color: OK }}>~4.2x</div>
             </div>
           </div>
 
@@ -295,15 +293,15 @@ const ChannelModal = ({ ch, onClose, onHire }) => {
           <button
             onClick={() => { onHire(ch); onClose() }}
             style={{
-              background: A, color: '#fff', border: 'none', borderRadius: '13px',
+              background: PURPLE, color: '#fff', border: 'none', borderRadius: '13px',
               padding: '15px', fontSize: '15px', fontWeight: 700,
-              cursor: 'pointer', fontFamily: F, width: '100%',
-              boxShadow: `0 6px 20px ${AG(0.35)}`,
+              cursor: 'pointer', fontFamily: FONT_BODY, width: '100%',
+              boxShadow: `0 6px 20px ${purpleAlpha(0.35)}`,
               transition: 'transform .15s, box-shadow .15s',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 10px 30px ${AG(0.45)}` }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 6px 20px ${AG(0.35)}` }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 10px 30px ${purpleAlpha(0.45)}` }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 6px 20px ${purpleAlpha(0.35)}` }}
           >
             <Zap size={16} fill="#fff" /> Contratar este canal
           </button>
@@ -319,14 +317,14 @@ const FilterChip = ({ label, active, onClick, count }) => (
     onClick={onClick}
     style={{
       display: 'flex', alignItems: 'center', gap: '5px',
-      background: active ? A : 'var(--surface)',
-      border: `1px solid ${active ? A : 'var(--border)'}`,
+      background: active ? PURPLE : 'var(--surface)',
+      border: `1px solid ${active ? PURPLE : 'var(--border)'}`,
       borderRadius: '20px', padding: '5px 13px',
       fontSize: '12px', fontWeight: 600,
       color: active ? '#fff' : 'var(--muted)',
-      cursor: 'pointer', fontFamily: F,
+      cursor: 'pointer', fontFamily: FONT_BODY,
       transition: 'all .15s',
-      boxShadow: active ? `0 2px 8px ${AG(0.25)}` : 'none',
+      boxShadow: active ? `0 2px 8px ${purpleAlpha(0.25)}` : 'none',
     }}
   >
     {label}
@@ -345,12 +343,12 @@ const PriceFilter = ({ min, max, value, onChange }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--muted)' }}>Precio máximo</span>
-      <span style={{ fontFamily: D, fontSize: '14px', fontWeight: 700, color: A }}>€{value}</span>
+      <span style={{ fontFamily: FONT_DISPLAY, fontSize: '14px', fontWeight: 700, color: PURPLE }}>€{value}</span>
     </div>
     <input
       type="range" min={min} max={max} value={value}
       onChange={e => onChange(Number(e.target.value))}
-      style={{ width: '100%', accentColor: A }}
+      style={{ width: '100%', accentColor: PURPLE }}
     />
     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
       <span style={{ fontSize: '11px', color: 'var(--muted2)' }}>€{min}</span>
@@ -371,7 +369,7 @@ const hireInput = {
   width: '100%', boxSizing: 'border-box', background: 'var(--bg)',
   border: '1px solid var(--border)', borderRadius: '12px',
   padding: '12px 14px', fontSize: '14px', color: 'var(--text)',
-  fontFamily: F, outline: 'none', transition: 'border-color .15s',
+  fontFamily: FONT_BODY, outline: 'none', transition: 'border-color .15s',
 }
 
 const CAL_DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab']
@@ -593,7 +591,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
               }}>
                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
               </div>
-              <h2 style={{ fontFamily: D, fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px', letterSpacing: '-0.03em' }}>Pago activado</h2>
+              <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px', letterSpacing: '-0.03em' }}>Pago activado</h2>
               <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px', lineHeight: 1.5 }}>
                 El escrow esta activo. El creador recibira la notificacion y podra aceptar tu campana.
               </p>
@@ -630,12 +628,12 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
                 <button onClick={() => { onSuccess?.(); onClose() }} style={{
                   background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px',
-                  padding: '12px 24px', fontSize: '13px', cursor: 'pointer', color: 'var(--text)', fontFamily: F, fontWeight: 500,
+                  padding: '12px 24px', fontSize: '13px', cursor: 'pointer', color: 'var(--text)', fontFamily: FONT_BODY, fontWeight: 500,
                 }}>Seguir explorando</button>
                 <button onClick={() => { onSuccess?.(); onClose(); window.location.href = '/advertiser/campaigns' }} style={{
-                  background: A, color: '#fff', border: 'none', borderRadius: '12px',
-                  padding: '12px 24px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: F,
-                  boxShadow: `0 4px 14px ${AG(0.3)}`, transition: 'all .15s',
+                  background: PURPLE, color: '#fff', border: 'none', borderRadius: '12px',
+                  padding: '12px 24px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: FONT_BODY,
+                  boxShadow: `0 4px 14px ${purpleAlpha(0.3)}`, transition: 'all .15s',
                 }}>Ver mis campanas</button>
               </div>
             </>
@@ -649,24 +647,24 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
               }}>
                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
               </div>
-              <h2 style={{ fontFamily: D, fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px', letterSpacing: '-0.03em' }}>Solicitud creada</h2>
+              <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px', letterSpacing: '-0.03em' }}>Solicitud creada</h2>
               <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '6px', lineHeight: 1.5 }}>
                 Tu solicitud para <strong style={{ color: 'var(--text)' }}>{ch.name}</strong> esta lista.
               </p>
               <div style={{ display: 'inline-flex', gap: '16px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '14px 22px', margin: '16px 0 8px' }}>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</div>
-                  <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: A }}>€{totalFromDates}</div>
+                  <div style={{ fontFamily: FONT_DISPLAY, fontSize: '18px', fontWeight: 700, color: PURPLE }}>€{totalFromDates}</div>
                 </div>
                 <div style={{ width: '1px', background: 'var(--border)' }} />
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fechas</div>
-                  <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: '#64748b' }}>{selectedDates.length}</div>
+                  <div style={{ fontFamily: FONT_DISPLAY, fontSize: '18px', fontWeight: 700, color: '#64748b' }}>{selectedDates.length}</div>
                 </div>
                 <div style={{ width: '1px', background: 'var(--border)' }} />
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Estado</div>
-                  <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: '#64748b' }}>Borrador</div>
+                  <div style={{ fontFamily: FONT_DISPLAY, fontSize: '18px', fontWeight: 700, color: '#64748b' }}>Borrador</div>
                 </div>
               </div>
 
@@ -693,14 +691,14 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
                 <button onClick={() => { onSuccess?.(); onClose(); window.location.href = '/advertiser/campaigns' }} style={{
                   background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px',
-                  padding: '12px 20px', fontSize: '13px', cursor: 'pointer', color: 'var(--text)', fontFamily: F, fontWeight: 500,
+                  padding: '12px 20px', fontSize: '13px', cursor: 'pointer', color: 'var(--text)', fontFamily: FONT_BODY, fontWeight: 500,
                 }}>Pagar despues</button>
                 <button
                   onClick={handlePayNow}
                   disabled={paying}
                   style={{
                     background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '12px',
-                    padding: '12px 28px', fontSize: '14px', fontWeight: 700, cursor: paying ? 'not-allowed' : 'pointer', fontFamily: F,
+                    padding: '12px 28px', fontSize: '14px', fontWeight: 700, cursor: paying ? 'not-allowed' : 'pointer', fontFamily: FONT_BODY,
                     boxShadow: '0 4px 16px rgba(59,130,246,0.35)', transition: 'all .15s',
                     display: 'flex', alignItems: 'center', gap: '8px',
                     opacity: paying ? 0.7 : 1,
@@ -728,13 +726,13 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
         animation: 'hm-scale .25s ease',
       }}>
         <style>{`@keyframes hm-scale { from { transform:scale(.96); opacity:0 } to { transform:none; opacity:1 } }
-.hm-inp:focus { border-color: ${AG(0.5)} !important; box-shadow: 0 0 0 3px ${AG(0.08)}; }
-.hm-btn:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 6px 20px ${AG(0.3)}; }`}</style>
+.hm-inp:focus { border-color: ${purpleAlpha(0.5)} !important; box-shadow: 0 0 0 3px ${purpleAlpha(0.08)}; }
+.hm-btn:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 6px 20px ${purpleAlpha(0.3)}; }`}</style>
 
         {/* ── Header ── */}
         <div style={{ padding: '22px 28px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div>
-            <h2 style={{ fontFamily: D, fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginBottom: '2px', letterSpacing: '-0.02em' }}>Contratar canal</h2>
+            <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginBottom: '2px', letterSpacing: '-0.02em' }}>Contratar canal</h2>
             <p style={{ fontSize: '12px', color: 'var(--muted)' }}>Paso {step + 1} de 4</p>
           </div>
           <button onClick={onClose} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '10px', padding: '8px', cursor: 'pointer', color: 'var(--muted)', display: 'flex' }}><X size={16} /></button>
@@ -749,12 +747,12 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
               <div key={s.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 <div style={{
                   height: '3px', borderRadius: '2px',
-                  background: done ? OK : active ? A : 'var(--border)',
+                  background: done ? OK : active ? PURPLE : 'var(--border)',
                   transition: 'background .3s',
                 }} />
                 <span style={{
                   fontSize: '10px', fontWeight: active ? 700 : 500,
-                  color: done ? OK : active ? A : 'var(--muted2)',
+                  color: done ? OK : active ? PURPLE : 'var(--muted2)',
                   transition: 'color .2s', textAlign: 'center',
                 }}>{s.label}</span>
               </div>
@@ -773,16 +771,16 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
           }}>
             <div style={{
               width: '38px', height: '38px', borderRadius: '10px',
-              background: `${A}12`, border: `1px solid ${AG(0.2)}`,
+              background: `${PURPLE}12`, border: `1px solid ${purpleAlpha(0.2)}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: D, fontSize: '16px', fontWeight: 700, color: A,
+              fontFamily: FONT_DISPLAY, fontSize: '16px', fontWeight: 700, color: PURPLE,
             }}>{(ch.name || '?')[0]}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', fontFamily: D }}>{ch.name}</div>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>{ch.name}</div>
               <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{ch.platform} · {ch.category} · {fmtAudience(ch.audience)} audiencia</div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontFamily: D, fontSize: '16px', fontWeight: 700, color: A }}>€{ch.pricePerPost}</div>
+              <div style={{ fontFamily: FONT_DISPLAY, fontSize: '16px', fontWeight: 700, color: PURPLE }}>€{ch.pricePerPost}</div>
               <div style={{ fontSize: '10px', color: 'var(--muted)' }}>desde/dia</div>
             </div>
           </div>
@@ -833,7 +831,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                     style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 8px', cursor: 'pointer', color: 'var(--muted)', display: 'flex' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
                   </button>
-                  <span style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>
+                  <span style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>
                     {CAL_MONTHS[calMonth]} {calYear}
                   </span>
                   <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) } else setCalMonth(m => m + 1) }}
@@ -869,7 +867,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                         let opacity = 1
 
                         if (isSelected) {
-                          bg = AG(0.12); border = A; textColor = A; priceColor = A
+                          bg = purpleAlpha(0.12); border = A; textColor = A; priceColor = A
                         } else if (day.status === 'past') {
                           opacity = 0.35; cursor = 'default'
                         } else if (day.status === 'disabled') {
@@ -896,11 +894,11 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                               opacity, transition: 'all .12s',
                               display: 'flex', flexDirection: 'column', alignItems: 'center',
                               gap: '2px', minHeight: '50px', justifyContent: 'center',
-                              fontFamily: F, position: 'relative',
+                              fontFamily: FONT_BODY, position: 'relative',
                             }}
                           >
                             {isSelected && (
-                              <div style={{ position: 'absolute', top: '3px', right: '3px', width: '14px', height: '14px', borderRadius: '50%', background: A, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <div style={{ position: 'absolute', top: '3px', right: '3px', width: '14px', height: '14px', borderRadius: '50%', background: PURPLE, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                               </div>
                             )}
@@ -922,7 +920,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                 <div style={{ display: 'flex', gap: '12px', marginTop: '12px', flexWrap: 'wrap' }}>
                   {[
                     { color: OK, label: 'Disponible' },
-                    { color: A, label: 'Seleccionado' },
+                    { color: PURPLE, label: 'Seleccionado' },
                     { color: '#ef4444', label: 'Bloqueado' },
                     { color: BL, label: 'Reservado' },
                     { color: WR, label: 'Min. antelacion' },
@@ -937,7 +935,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
 
               {/* Selected dates summary */}
               {selectedDates.length > 0 && (
-                <div style={{ background: AG(0.04), border: `1px solid ${AG(0.15)}`, borderRadius: '12px', padding: '14px 16px' }}>
+                <div style={{ background: purpleAlpha(0.04), border: `1px solid ${purpleAlpha(0.15)}`, borderRadius: '12px', padding: '14px 16px' }}>
                   <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
                     {selectedDates.length} fecha{selectedDates.length > 1 ? 's' : ''} seleccionada{selectedDates.length > 1 ? 's' : ''}
                   </div>
@@ -948,9 +946,9 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                       const parts = dateStr.split('-')
                       const label = `${parts[2]}/${parts[1]}`
                       return (
-                        <div key={dateStr} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: AG(0.08), border: `1px solid ${AG(0.2)}`, borderRadius: '20px', padding: '4px 10px 4px 12px' }}>
+                        <div key={dateStr} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: purpleAlpha(0.08), border: `1px solid ${purpleAlpha(0.2)}`, borderRadius: '20px', padding: '4px 10px 4px 12px' }}>
                           <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text)' }}>{label}</span>
-                          <span style={{ fontSize: '11px', fontWeight: 700, color: A }}>€{price}</span>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: PURPLE }}>€{price}</span>
                           <button onClick={() => toggleDate(dateStr)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 0, display: 'flex' }}>
                             <X size={12} />
                           </button>
@@ -958,7 +956,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                       )
                     })}
                   </div>
-                  <div style={{ height: '1px', background: AG(0.15), margin: '8px 0' }} />
+                  <div style={{ height: '1px', background: purpleAlpha(0.15), margin: '8px 0' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                     <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Subtotal ({selectedDates.length} dia{selectedDates.length > 1 ? 's' : ''})</span>
                     <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>€{totalFromDates}</span>
@@ -967,10 +965,10 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                     <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Comision plataforma (15%)</span>
                     <span style={{ fontSize: '12px', color: 'var(--muted)' }}>€{commission.toFixed(2)}</span>
                   </div>
-                  <div style={{ height: '1px', background: AG(0.15), margin: '6px 0' }} />
+                  <div style={{ height: '1px', background: purpleAlpha(0.15), margin: '6px 0' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Total a pagar</span>
-                    <span style={{ fontSize: '18px', fontWeight: 800, color: A, fontFamily: D }}>€{total}</span>
+                    <span style={{ fontSize: '18px', fontWeight: 800, color: PURPLE, fontFamily: FONT_DISPLAY }}>€{total}</span>
                   </div>
                 </div>
               )}
@@ -1040,11 +1038,11 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                 {/* Drop zone / file picker */}
                 <label style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                  border: `2px dashed ${AG(0.25)}`, borderRadius: '12px', padding: '20px 16px',
+                  border: `2px dashed ${purpleAlpha(0.25)}`, borderRadius: '12px', padding: '20px 16px',
                   cursor: mediaFiles.length >= 5 ? 'not-allowed' : 'pointer', opacity: mediaFiles.length >= 5 ? 0.5 : 1,
-                  background: AG(0.03), transition: 'all .2s',
+                  background: purpleAlpha(0.03), transition: 'all .2s',
                 }}>
-                  <ImagePlus size={28} color={A} strokeWidth={1.5} />
+                  <ImagePlus size={28} color={PURPLE} strokeWidth={1.5} />
                   <span style={{ fontSize: '13px', color: 'var(--text)', fontWeight: 500 }}>
                     {mediaFiles.length >= 5 ? 'Limite alcanzado' : 'Haz clic o arrastra imagenes aqui'}
                   </span>
@@ -1101,8 +1099,8 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
 
               {/* Preview */}
               {content.trim() && (
-                <div style={{ background: 'var(--bg)', border: `1px solid var(--border)`, borderRadius: '12px', padding: '14px', borderLeft: `3px solid ${A}` }}>
-                  <div style={{ fontSize: '10px', fontWeight: 600, color: A, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Vista previa</div>
+                <div style={{ background: 'var(--bg)', border: `1px solid var(--border)`, borderRadius: '12px', padding: '14px', borderLeft: `3px solid ${PURPLE}` }}>
+                  <div style={{ fontSize: '10px', fontWeight: 600, color: PURPLE, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Vista previa</div>
                   <div style={{ fontSize: '13px', color: 'var(--text)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{content}</div>
                   {/* Media preview in post */}
                   {mediaFiles.length > 0 && (
@@ -1111,13 +1109,13 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                         <img key={i} src={m.preview} alt="" style={{ height: '64px', borderRadius: '8px', objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }} />
                       ))}
                       {mediaFiles.filter(m => m.isVideo).length > 0 && (
-                        <div style={{ height: '64px', minWidth: '64px', borderRadius: '8px', background: AG(0.06), border: `1px solid ${AG(0.15)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <FileImage size={18} color={A} />
+                        <div style={{ height: '64px', minWidth: '64px', borderRadius: '8px', background: purpleAlpha(0.06), border: `1px solid ${purpleAlpha(0.15)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <FileImage size={18} color={PURPLE} />
                         </div>
                       )}
                     </div>
                   )}
-                  {cta && <div style={{ marginTop: '8px', display: 'inline-block', background: AG(0.08), border: `1px solid ${AG(0.2)}`, borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, color: A }}>{cta}</div>}
+                  {cta && <div style={{ marginTop: '8px', display: 'inline-block', background: purpleAlpha(0.08), border: `1px solid ${purpleAlpha(0.2)}`, borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, color: PURPLE }}>{cta}</div>}
                   {targetUrl.startsWith('http') && <div style={{ marginTop: '6px', fontSize: '11px', color: 'var(--muted)' }}>{targetUrl}</div>}
                 </div>
               )}
@@ -1148,14 +1146,14 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px' }}>
                   {selectedDates.sort().map(d => {
                     const parts = d.split('-')
-                    return <span key={d} style={{ background: AG(0.08), border: `1px solid ${AG(0.15)}`, borderRadius: '6px', padding: '2px 7px', fontSize: '10px', fontWeight: 600, color: A }}>{parts[2]}/{parts[1]}</span>
+                    return <span key={d} style={{ background: purpleAlpha(0.08), border: `1px solid ${purpleAlpha(0.15)}`, borderRadius: '6px', padding: '2px 7px', fontSize: '10px', fontWeight: 600, color: PURPLE }}>{parts[2]}/{parts[1]}</span>
                   })}
                 </div>
               </div>
 
               {/* Content preview */}
-              <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '14px', borderLeft: `3px solid ${A}` }}>
-                <div style={{ fontSize: '10px', fontWeight: 600, color: A, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Copy del anuncio</div>
+              <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '14px', borderLeft: `3px solid ${PURPLE}` }}>
+                <div style={{ fontSize: '10px', fontWeight: 600, color: PURPLE, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Copy del anuncio</div>
                 <div style={{ fontSize: '13px', color: 'var(--text)', lineHeight: 1.5, whiteSpace: 'pre-wrap', maxHeight: '80px', overflow: 'auto' }}>{content}</div>
                 {/* Media thumbnails in summary */}
                 {mediaFiles.length > 0 && (
@@ -1224,7 +1222,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
           <button onClick={() => step === 0 ? onClose() : setStep(s => s - 1)} style={{
             background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '10px',
             padding: '11px 20px', fontSize: '13px', cursor: 'pointer', color: 'var(--text)',
-            fontFamily: F, fontWeight: 500, transition: 'border-color .15s',
+            fontFamily: FONT_BODY, fontWeight: 500, transition: 'border-color .15s',
           }}>
             {step === 0 ? 'Cancelar' : 'Atras'}
           </button>
@@ -1239,20 +1237,20 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
             )}
             {step < 3 ? (
               <button onClick={() => setStep(s => s + 1)} disabled={!canNext()} className="hm-btn" style={{
-                background: canNext() ? A : 'var(--muted2)', color: '#fff', border: 'none',
+                background: canNext() ? PURPLE : 'var(--muted2)', color: '#fff', border: 'none',
                 borderRadius: '10px', padding: '11px 24px', fontSize: '13px', fontWeight: 600,
-                cursor: canNext() ? 'pointer' : 'not-allowed', fontFamily: F,
-                boxShadow: canNext() ? `0 4px 14px ${AG(0.3)}` : 'none',
+                cursor: canNext() ? 'pointer' : 'not-allowed', fontFamily: FONT_BODY,
+                boxShadow: canNext() ? `0 4px 14px ${purpleAlpha(0.3)}` : 'none',
                 display: 'flex', alignItems: 'center', gap: '6px', transition: 'all .15s',
               }}>
                 Siguiente <span style={{ fontSize: '16px' }}>→</span>
               </button>
             ) : (
               <button onClick={handleSubmit} disabled={submitting} className="hm-btn" style={{
-                background: A, color: '#fff', border: 'none',
+                background: PURPLE, color: '#fff', border: 'none',
                 borderRadius: '10px', padding: '11px 28px', fontSize: '14px', fontWeight: 700,
-                cursor: submitting ? 'not-allowed' : 'pointer', fontFamily: F,
-                boxShadow: `0 4px 14px ${AG(0.35)}`,
+                cursor: submitting ? 'not-allowed' : 'pointer', fontFamily: FONT_BODY,
+                boxShadow: `0 4px 14px ${purpleAlpha(0.35)}`,
                 display: 'flex', alignItems: 'center', gap: '8px', transition: 'all .15s',
               }}>
                 {submitting ? (
@@ -1350,16 +1348,16 @@ export default function ExplorePage() {
   const SEL_STYLE = {
     background: 'var(--surface)', border: '1px solid var(--border)',
     borderRadius: '10px', padding: '9px 12px', fontSize: '13px',
-    color: 'var(--text)', fontFamily: F, outline: 'none', cursor: 'pointer',
+    color: 'var(--text)', fontFamily: FONT_BODY, outline: 'none', cursor: 'pointer',
   }
 
   return (
-    <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: '22px', maxWidth: '1200px' }}>
+    <div style={{ fontFamily: FONT_BODY, display: 'flex', flexDirection: 'column', gap: '22px', maxWidth: '1200px' }}>
 
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
         <div>
-          <h1 style={{ fontFamily: D, fontSize: '28px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.04em', marginBottom: '4px' }}>
+          <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: '28px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.04em', marginBottom: '4px' }}>
             Explorar canales
           </h1>
           <p style={{ fontSize: '14px', color: 'var(--muted)' }}>
@@ -1378,10 +1376,10 @@ export default function ExplorePage() {
             width: '100%', boxSizing: 'border-box',
             background: 'var(--surface)', border: '1px solid var(--border)',
             borderRadius: '13px', padding: '13px 48px 13px 46px',
-            fontSize: '14px', color: 'var(--text)', fontFamily: F, outline: 'none',
+            fontSize: '14px', color: 'var(--text)', fontFamily: FONT_BODY, outline: 'none',
             transition: 'border-color .15s, box-shadow .15s',
           }}
-          onFocus={e => { e.target.style.borderColor = AG(0.5); e.target.style.boxShadow = `0 0 0 3px ${AG(0.08)}` }}
+          onFocus={e => { e.target.style.borderColor = purpleAlpha(0.5); e.target.style.boxShadow = `0 0 0 3px ${purpleAlpha(0.08)}` }}
           onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
         />
         {search && (
@@ -1420,18 +1418,18 @@ export default function ExplorePage() {
           onClick={() => setShowFilters(v => !v)}
           style={{
             display: 'flex', alignItems: 'center', gap: '7px',
-            background: showFilters ? AG(0.1) : 'var(--surface)',
-            border: `1px solid ${showFilters ? AG(0.4) : 'var(--border)'}`,
+            background: showFilters ? purpleAlpha(0.1) : 'var(--surface)',
+            border: `1px solid ${showFilters ? purpleAlpha(0.4) : 'var(--border)'}`,
             borderRadius: '10px', padding: '9px 14px',
             fontSize: '13px', fontWeight: 600,
-            color: showFilters ? A : 'var(--muted)',
-            cursor: 'pointer', fontFamily: F, position: 'relative',
+            color: showFilters ? PURPLE : 'var(--muted)',
+            cursor: 'pointer', fontFamily: FONT_BODY, position: 'relative',
           }}
         >
           <SlidersHorizontal size={14} />
           Filtros
           {activeFilters > 0 && (
-            <span style={{ background: A, color: '#fff', borderRadius: '50%', width: '16px', height: '16px', fontSize: '10px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ background: PURPLE, color: '#fff', borderRadius: '50%', width: '16px', height: '16px', fontSize: '10px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {activeFilters}
             </span>
           )}
@@ -1441,9 +1439,9 @@ export default function ExplorePage() {
         <div style={{ display: 'flex', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', overflow: 'hidden' }}>
           {[{ mode: 'grid', Icon: Grid }, { mode: 'list', Icon: List }].map(({ mode, Icon }) => (
             <button key={mode} onClick={() => setViewMode(mode)} style={{
-              background: viewMode === mode ? AG(0.12) : 'transparent',
+              background: viewMode === mode ? purpleAlpha(0.12) : 'transparent',
               border: 'none', padding: '9px 12px', cursor: 'pointer',
-              color: viewMode === mode ? A : 'var(--muted)',
+              color: viewMode === mode ? PURPLE : 'var(--muted)',
               display: 'flex', alignItems: 'center',
               transition: 'background .15s, color .15s',
             }}>
@@ -1479,7 +1477,7 @@ export default function ExplorePage() {
             <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
               <div
                 onClick={() => setOnlyVerified(v => !v)}
-                style={{ width: '40px', height: '22px', borderRadius: '11px', background: onlyVerified ? A : 'var(--border)', position: 'relative', transition: 'background .2s', cursor: 'pointer', flexShrink: 0 }}
+                style={{ width: '40px', height: '22px', borderRadius: '11px', background: onlyVerified ? PURPLE : 'var(--border)', position: 'relative', transition: 'background .2s', cursor: 'pointer', flexShrink: 0 }}
               >
                 <div style={{ position: 'absolute', top: '3px', left: onlyVerified ? '21px' : '3px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left .2s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
               </div>
@@ -1490,7 +1488,7 @@ export default function ExplorePage() {
           {/* Reset */}
           {activeFilters > 0 && (
             <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-              <button onClick={() => { setPlatform('all'); setCategory('all'); setOnlyVerified(false); setMaxPrice(2000) }} style={{ background: 'none', border: 'none', fontSize: '13px', color: '#ef4444', cursor: 'pointer', fontFamily: F, fontWeight: 600, padding: 0 }}>
+              <button onClick={() => { setPlatform('all'); setCategory('all'); setOnlyVerified(false); setMaxPrice(2000) }} style={{ background: 'none', border: 'none', fontSize: '13px', color: '#ef4444', cursor: 'pointer', fontFamily: FONT_BODY, fontWeight: 600, padding: 0 }}>
                 ✕ Limpiar filtros
               </button>
             </div>
@@ -1502,19 +1500,19 @@ export default function ExplorePage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{ fontSize: '13px', color: 'var(--muted)' }}>
           Mostrando <strong style={{ color: 'var(--text)' }}>{filtered.length}</strong> canales
-          {activeFilters > 0 && <span style={{ color: A }}> · {activeFilters} filtro{activeFilters > 1 ? 's' : ''} activo{activeFilters > 1 ? 's' : ''}</span>}
+          {activeFilters > 0 && <span style={{ color: PURPLE }}> · {activeFilters} filtro{activeFilters > 1 ? 's' : ''} activo{activeFilters > 1 ? 's' : ''}</span>}
         </span>
       </div>
 
       {/* ── Grid / List ── */}
       {filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '80px 20px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px' }}>
-          <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: AG(0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px' }}>
+          <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: purpleAlpha(0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px' }}>
             🔍
           </div>
-          <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>Sin resultados</div>
+          <div style={{ fontFamily: FONT_DISPLAY, fontSize: '18px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>Sin resultados</div>
           <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '20px' }}>Prueba con otros filtros de búsqueda</div>
-          <button onClick={() => { setSearch(''); setPlatform('all'); setCategory('all'); setOnlyVerified(false); setMaxPrice(2000) }} style={{ background: A, color: '#fff', border: 'none', borderRadius: '10px', padding: '10px 22px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: F }}>
+          <button onClick={() => { setSearch(''); setPlatform('all'); setCategory('all'); setOnlyVerified(false); setMaxPrice(2000) }} style={{ background: PURPLE, color: '#fff', border: 'none', borderRadius: '10px', padding: '10px 22px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: FONT_BODY }}>
             Limpiar filtros
           </button>
         </div>

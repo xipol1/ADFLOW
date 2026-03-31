@@ -6,16 +6,10 @@ import {
   BarChart3, ChevronRight, Copy, AlertCircle,
 } from 'lucide-react'
 import apiService from '../../../../../services/api'
+import {
+  PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE,
+} from '../../../theme/tokens'
 
-/* ── Design tokens ─────────────────────────────────────────────────────────── */
-const V  = '#8b5cf6'
-const VG = (o) => `rgba(139,92,246,${o})`
-const F  = "'Inter', system-ui, sans-serif"
-const D  = "'Sora', system-ui, sans-serif"
-const OK = '#10b981'
-const BLUE = '#3b82f6'
-const AMBER = '#f59e0b'
-const RED  = '#ef4444'
 const SLATE = '#64748b'
 
 /* ── Status pipeline config ────────────────────────────────────────────────── */
@@ -31,7 +25,7 @@ const STATUS_CFG = {
   PAID:      { color: BLUE,     bg: `${BLUE}14`,  label: 'Pagada',     icon: Shield },
   PUBLISHED: { color: OK,       bg: `${OK}14`,    label: 'Publicada',  icon: Eye },
   COMPLETED: { color: '#6b7280',bg: 'rgba(107,114,128,0.1)', label: 'Completada', icon: CheckCircle },
-  CANCELLED: { color: RED,      bg: `${RED}14`,   label: 'Cancelada',  icon: XCircle },
+  CANCELLED: { color: ERR,      bg: `${ERR}14`,   label: 'Cancelada',  icon: XCircle },
 }
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('es', { day: 'numeric', month: 'short' }) : '-'
@@ -43,11 +37,11 @@ const STYLES = `
 @keyframes adf-slidein { from { opacity:0; transform:translateX(8px); } to { opacity:1; transform:none; } }
 @keyframes adf-pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
 @keyframes adf-scale { from { transform:scale(0.96); opacity:0; } to { transform:none; opacity:1; } }
-.adf-row:hover { border-color: ${VG(0.35)} !important; }
-.adf-row-active { border-color: ${VG(0.5)} !important; background: ${VG(0.04)} !important; }
+.adf-row:hover { border-color: ${purpleAlpha(0.35)} !important; }
+.adf-row-active { border-color: ${purpleAlpha(0.5)} !important; background: ${purpleAlpha(0.04)} !important; }
 .adf-btn-primary { transition: all .15s ease; }
-.adf-btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px ${VG(0.35)}; }
-.adf-btn-secondary:hover { border-color: ${VG(0.4)} !important; color: ${V} !important; }
+.adf-btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px ${purpleAlpha(0.35)}; }
+.adf-btn-secondary:hover { border-color: ${purpleAlpha(0.4)} !important; color: ${PURPLE} !important; }
 `
 
 /* ── Status badge ──────────────────────────────────────────────────────────── */
@@ -78,7 +72,7 @@ const PipelineStepper = ({ currentStatus }) => {
         const isActive = i === currentIdx
         const isDone = i < currentIdx
         const isFuture = i > currentIdx
-        const color = isCancelled ? RED : isDone ? OK : isActive ? step.color : 'var(--muted2)'
+        const color = isCancelled ? ERR : isDone ? OK : isActive ? step.color : 'var(--muted2)'
 
         return (
           <React.Fragment key={step.key}>
@@ -127,7 +121,7 @@ const PipelineStepper = ({ currentStatus }) => {
 }
 
 /* ── Avatar initial ────────────────────────────────────────────────────────── */
-const Avatar = ({ name, color = V, size = 28 }) => {
+const Avatar = ({ name, color = PURPLE, size = 28 }) => {
   const initial = (name || '?')[0].toUpperCase()
   return (
     <div style={{
@@ -135,7 +129,7 @@ const Avatar = ({ name, color = V, size = 28 }) => {
       background: `${color}18`, border: `1.5px solid ${color}40`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: size * 0.4, fontWeight: 700, color, flexShrink: 0,
-      fontFamily: D,
+      fontFamily: FONT_DISPLAY,
     }}>{initial}</div>
   )
 }
@@ -202,12 +196,12 @@ const ChatPanel = ({ campaign, myRole = 'advertiser' }) => {
       }}>
         <div style={{
           width: '32px', height: '32px', borderRadius: '10px',
-          background: `${V}12`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: `${PURPLE}12`, display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <MessageCircle size={16} color={V} />
+          <MessageCircle size={16} color={PURPLE} />
         </div>
         <div style={{ flex: 1, textAlign: 'left' }}>
-          <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', fontFamily: D }}>
+          <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>
             Conversacion
           </div>
           <div style={{ fontSize: '11px', color: 'var(--muted)' }}>
@@ -240,10 +234,10 @@ const ChatPanel = ({ campaign, myRole = 'advertiser' }) => {
               }}>
                 <div style={{
                   width: '48px', height: '48px', borderRadius: '14px',
-                  background: `${V}08`, border: `1px solid ${VG(0.1)}`,
+                  background: `${PURPLE}08`, border: `1px solid ${purpleAlpha(0.1)}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <MessageCircle size={22} color={VG(0.3)} />
+                  <MessageCircle size={22} color={purpleAlpha(0.3)} />
                 </div>
                 <div>
                   <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', marginBottom: '4px' }}>
@@ -268,25 +262,25 @@ const ChatPanel = ({ campaign, myRole = 'advertiser' }) => {
                   marginTop: showAvatar ? '4px' : '-4px',
                 }}>
                   {showAvatar ? (
-                    <Avatar name={msg.senderName || msg.senderRole} color={isMe ? V : OK} size={28} />
+                    <Avatar name={msg.senderName || msg.senderRole} color={isMe ? PURPLE : OK} size={28} />
                   ) : (
                     <div style={{ width: '28px', flexShrink: 0 }} />
                   )}
                   <div style={{
                     maxWidth: '75%',
-                    background: isMe ? V : 'var(--surface)',
+                    background: isMe ? PURPLE : 'var(--surface)',
                     color: isMe ? '#fff' : 'var(--text)',
                     border: isMe ? 'none' : '1px solid var(--border)',
                     borderRadius: isMe
                       ? (showAvatar ? '18px 18px 4px 18px' : '18px 4px 4px 18px')
                       : (showAvatar ? '18px 18px 18px 4px' : '4px 18px 18px 4px'),
                     padding: '10px 14px',
-                    boxShadow: isMe ? `0 2px 8px ${VG(0.2)}` : '0 1px 3px rgba(0,0,0,0.04)',
+                    boxShadow: isMe ? `0 2px 8px ${purpleAlpha(0.2)}` : '0 1px 3px rgba(0,0,0,0.04)',
                   }}>
                     {showAvatar && (
                       <div style={{
                         fontSize: '11px', fontWeight: 700, marginBottom: '3px',
-                        color: isMe ? 'rgba(255,255,255,0.7)' : VG(0.8),
+                        color: isMe ? 'rgba(255,255,255,0.7)' : purpleAlpha(0.8),
                       }}>
                         {msg.senderName || msg.senderRole}
                       </div>
@@ -322,11 +316,11 @@ const ChatPanel = ({ campaign, myRole = 'advertiser' }) => {
               style={{
                 flex: 1, background: 'var(--bg)', border: '1px solid var(--border)',
                 borderRadius: '12px', padding: '10px 14px', fontSize: '13px',
-                color: 'var(--text)', fontFamily: F, outline: 'none',
+                color: 'var(--text)', fontFamily: FONT_BODY, outline: 'none',
                 resize: 'none', lineHeight: 1.5, minHeight: '40px', maxHeight: '100px',
                 transition: 'border-color .15s',
               }}
-              onFocus={e => e.target.style.borderColor = VG(0.4)}
+              onFocus={e => e.target.style.borderColor = purpleAlpha(0.4)}
               onBlur={e => e.target.style.borderColor = 'var(--border)'}
             />
             <button
@@ -335,7 +329,7 @@ const ChatPanel = ({ campaign, myRole = 'advertiser' }) => {
               className="adf-btn-primary"
               style={{
                 width: '40px', height: '40px', borderRadius: '12px',
-                background: draft.trim() ? V : 'var(--bg)',
+                background: draft.trim() ? PURPLE : 'var(--bg)',
                 border: draft.trim() ? 'none' : '1px solid var(--border)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: draft.trim() && !sending ? 'pointer' : 'default',
@@ -372,7 +366,7 @@ const KpiCard = ({ icon: Icon, label, value, color, sub }) => (
     </div>
     <div style={{ minWidth: 0 }}>
       <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 500, marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
-      <div style={{ fontFamily: D, fontSize: '24px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>{value}</div>
+      <div style={{ fontFamily: FONT_DISPLAY, fontSize: '24px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>{value}</div>
       {sub && <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>{sub}</div>}
     </div>
   </div>
@@ -438,13 +432,13 @@ export default function CampaignsPage() {
   const sel = selected
 
   return (
-    <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1200px' }}>
+    <div style={{ fontFamily: FONT_BODY, display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1200px' }}>
       <style>{STYLES}</style>
 
       {/* ── Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ fontFamily: D, fontSize: '28px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.04em', marginBottom: '6px' }}>
+          <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: '28px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.04em', marginBottom: '6px' }}>
             Mis Campanas
           </h1>
           <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.5 }}>
@@ -455,16 +449,16 @@ export default function CampaignsPage() {
           <button onClick={load} className="adf-btn-secondary" style={{
             background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px',
             padding: '10px 14px', cursor: 'pointer', color: 'var(--muted)',
-            display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontFamily: F,
+            display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontFamily: FONT_BODY,
             transition: 'all .15s',
           }}>
             <RefreshCw size={14} /> Actualizar
           </button>
           <button onClick={() => navigate('/advertiser/explore')} className="adf-btn-primary" style={{
-            background: V, color: '#fff', border: 'none', borderRadius: '10px',
+            background: PURPLE, color: '#fff', border: 'none', borderRadius: '10px',
             padding: '10px 20px', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-            fontFamily: F, display: 'flex', alignItems: 'center', gap: '6px',
-            boxShadow: `0 4px 14px ${VG(0.3)}`,
+            fontFamily: FONT_BODY, display: 'flex', alignItems: 'center', gap: '6px',
+            boxShadow: `0 4px 14px ${purpleAlpha(0.3)}`,
           }}>
             <Zap size={14} /> Nueva campana
           </button>
@@ -473,10 +467,10 @@ export default function CampaignsPage() {
 
       {/* ── KPI grid ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
-        <KpiCard icon={BarChart3} label="Total" value={campaigns.length} color={V} />
+        <KpiCard icon={BarChart3} label="Total" value={campaigns.length} color={PURPLE} />
         <KpiCard icon={Eye} label="Activas" value={activeCount} color={BLUE} sub="En progreso" />
         <KpiCard icon={CheckCircle} label="Completadas" value={completedCount} color={OK} />
-        <KpiCard icon={CreditCard} label="Invertido" value={`€${totalSpent.toLocaleString('es')}`} color={AMBER} />
+        <KpiCard icon={CreditCard} label="Invertido" value={`€${totalSpent.toLocaleString('es')}`} color={WARN} />
       </div>
 
       {/* ── Tabs ── */}
@@ -486,11 +480,11 @@ export default function CampaignsPage() {
           const count = tabCount(t)
           return (
             <button key={t} onClick={() => setTab(t)} style={{
-              background: active ? V : 'transparent',
+              background: active ? PURPLE : 'transparent',
               color: active ? '#fff' : 'var(--muted)',
               border: 'none', borderRadius: '9px', padding: '8px 14px',
               fontSize: '13px', fontWeight: active ? 600 : 400,
-              cursor: 'pointer', fontFamily: F,
+              cursor: 'pointer', fontFamily: FONT_BODY,
               transition: 'all .18s ease',
               display: 'flex', alignItems: 'center', gap: '6px',
             }}>
@@ -508,8 +502,8 @@ export default function CampaignsPage() {
       {/* ── Content: Split panel ── */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: VG(0.08), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', animation: 'adf-pulse 1.5s infinite' }}>
-            <RefreshCw size={18} color={VG(0.4)} />
+          <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: purpleAlpha(0.08), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', animation: 'adf-pulse 1.5s infinite' }}>
+            <RefreshCw size={18} color={purpleAlpha(0.4)} />
           </div>
           <div style={{ fontSize: '14px', color: 'var(--muted)' }}>Cargando campanas...</div>
         </div>
@@ -518,17 +512,17 @@ export default function CampaignsPage() {
           textAlign: 'center', padding: '80px 20px',
           background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px',
         }}>
-          <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: VG(0.06), border: `1px solid ${VG(0.1)}`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
-            <Zap size={28} color={VG(0.3)} />
+          <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: purpleAlpha(0.06), border: `1px solid ${purpleAlpha(0.1)}`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
+            <Zap size={28} color={purpleAlpha(0.3)} />
           </div>
-          <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>Sin campanas</div>
+          <div style={{ fontFamily: FONT_DISPLAY, fontSize: '18px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>Sin campanas</div>
           <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '24px', maxWidth: '360px', margin: '0 auto 24px', lineHeight: 1.5 }}>
             Explora canales de creadores y lanza tu primera campana de publicidad
           </div>
           <button onClick={() => navigate('/advertiser/explore')} className="adf-btn-primary" style={{
-            background: V, color: '#fff', border: 'none', borderRadius: '12px',
+            background: PURPLE, color: '#fff', border: 'none', borderRadius: '12px',
             padding: '12px 28px', fontSize: '14px', fontWeight: 600, cursor: 'pointer',
-            fontFamily: F, boxShadow: `0 4px 16px ${VG(0.3)}`,
+            fontFamily: FONT_BODY, boxShadow: `0 4px 16px ${purpleAlpha(0.3)}`,
           }}>
             Explorar canales
           </button>
@@ -549,8 +543,8 @@ export default function CampaignsPage() {
                   className={`adf-row ${isActive ? 'adf-row-active' : ''}`}
                   onClick={() => setSelected(isActive ? null : c)}
                   style={{
-                    background: isActive ? VG(0.04) : 'var(--surface)',
-                    border: `1px solid ${isActive ? VG(0.4) : 'var(--border)'}`,
+                    background: isActive ? purpleAlpha(0.04) : 'var(--surface)',
+                    border: `1px solid ${isActive ? purpleAlpha(0.4) : 'var(--border)'}`,
                     borderRadius: '14px', padding: '16px 18px', cursor: 'pointer',
                     transition: 'all .15s ease',
                     animation: 'adf-fadein .2s ease',
@@ -558,15 +552,15 @@ export default function CampaignsPage() {
                   }}
                 >
                   {/* Left accent */}
-                  <div style={{ position: 'absolute', left: 0, top: '12px', bottom: '12px', width: '3px', borderRadius: '0 3px 3px 0', background: isActive ? V : cfg.color, opacity: isActive ? 1 : 0.4, transition: 'opacity .15s' }} />
+                  <div style={{ position: 'absolute', left: 0, top: '12px', bottom: '12px', width: '3px', borderRadius: '0 3px 3px 0', background: isActive ? PURPLE : cfg.color, opacity: isActive ? 1 : 0.4, transition: 'opacity .15s' }} />
 
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', fontFamily: D }}>{channelName}</span>
+                        <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>{channelName}</span>
                         <StatusBadge status={c.status} />
                         {c.type === 'auto' && (
-                          <span style={{ background: VG(0.1), color: V, borderRadius: '6px', padding: '2px 7px', fontSize: '10px', fontWeight: 700 }}>Auto</span>
+                          <span style={{ background: purpleAlpha(0.1), color: PURPLE, borderRadius: '6px', padding: '2px 7px', fontSize: '10px', fontWeight: 700 }}>Auto</span>
                         )}
                       </div>
                       <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '6px' }}>
@@ -577,9 +571,9 @@ export default function CampaignsPage() {
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0 }}>
-                      <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text)', fontFamily: D }}>€{c.price}</span>
+                      <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>€{c.price}</span>
                       {chatCount > 0 && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', color: V, fontSize: '11px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', color: PURPLE, fontSize: '11px' }}>
                           <MessageCircle size={11} /> {chatCount}
                         </div>
                       )}
@@ -602,17 +596,17 @@ export default function CampaignsPage() {
               {/* Detail header */}
               <div style={{
                 padding: '20px 24px', borderBottom: '1px solid var(--border)',
-                background: VG(0.02),
+                background: purpleAlpha(0.02),
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                   <div>
-                    <h2 style={{ fontFamily: D, fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginBottom: '4px' }}>
+                    <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginBottom: '4px' }}>
                       {sel.channel?.nombreCanal || 'Canal'}
                     </h2>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <StatusBadge status={sel.status} />
                       {sel.type === 'auto' && (
-                        <span style={{ background: VG(0.1), color: V, borderRadius: '6px', padding: '2px 7px', fontSize: '10px', fontWeight: 700 }}>Auto-Buy</span>
+                        <span style={{ background: purpleAlpha(0.1), color: PURPLE, borderRadius: '6px', padding: '2px 7px', fontSize: '10px', fontWeight: 700 }}>Auto-Buy</span>
                       )}
                       <span style={{ fontSize: '11px', color: 'var(--muted)' }}>Creada {fmtDateTime(sel.createdAt)}</span>
                     </div>
@@ -620,7 +614,7 @@ export default function CampaignsPage() {
                   <button onClick={() => setSelected(null)} style={{
                     background: 'var(--bg)', border: '1px solid var(--border)',
                     borderRadius: '8px', padding: '6px 10px', cursor: 'pointer',
-                    color: 'var(--muted)', fontSize: '12px', fontFamily: F,
+                    color: 'var(--muted)', fontSize: '12px', fontFamily: FONT_BODY,
                   }}>Cerrar</button>
                 </div>
 
@@ -635,7 +629,7 @@ export default function CampaignsPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                   {[
                     { label: 'Total', val: `€${sel.price}`, color: 'var(--text)' },
-                    { label: 'Comision', val: `€${(sel.commissionAmount || 0).toFixed(2)}`, color: AMBER },
+                    { label: 'Comision', val: `€${(sel.commissionAmount || 0).toFixed(2)}`, color: WARN },
                     { label: 'Pago creador', val: `€${(sel.netAmount || 0).toFixed(2)}`, color: OK },
                   ].map(({ label, val, color }) => (
                     <div key={label} style={{
@@ -643,7 +637,7 @@ export default function CampaignsPage() {
                       borderRadius: '12px', padding: '14px', textAlign: 'center',
                     }}>
                       <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>{label}</div>
-                      <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color }}>{val}</div>
+                      <div style={{ fontFamily: FONT_DISPLAY, fontSize: '18px', fontWeight: 700, color }}>{val}</div>
                     </div>
                   ))}
                 </div>
@@ -652,7 +646,7 @@ export default function CampaignsPage() {
                 <div style={{
                   background: 'var(--bg)', border: '1px solid var(--border)',
                   borderRadius: '14px', padding: '16px',
-                  borderLeft: `3px solid ${V}`,
+                  borderLeft: `3px solid ${PURPLE}`,
                 }}>
                   <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
                     Contenido del anuncio
@@ -663,7 +657,7 @@ export default function CampaignsPage() {
                   {sel.targetUrl && (
                     <a href={sel.targetUrl} target="_blank" rel="noreferrer" style={{
                       display: 'inline-flex', alignItems: 'center', gap: '4px',
-                      fontSize: '12px', color: V, textDecoration: 'none', fontWeight: 500,
+                      fontSize: '12px', color: PURPLE, textDecoration: 'none', fontWeight: 500,
                     }}>
                       <ExternalLink size={12} /> {sel.targetUrl}
                     </a>
@@ -679,7 +673,7 @@ export default function CampaignsPage() {
                       { label: 'Conversiones', val: sel.tracking.conversions || 0 },
                     ].map(({ label, val }) => (
                       <div key={label} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
-                        <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: 'var(--text)' }}>{val}</div>
+                        <div style={{ fontFamily: FONT_DISPLAY, fontSize: '18px', fontWeight: 700, color: 'var(--text)' }}>{val}</div>
                         <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '2px' }}>{label}</div>
                       </div>
                     ))}
@@ -698,16 +692,16 @@ export default function CampaignsPage() {
                       <button onClick={() => doAction(sel._id, apiService.payCampaign)} disabled={actionLoading === sel._id} className="adf-btn-primary" style={{
                         flex: 1, background: BLUE, color: '#fff', border: 'none', borderRadius: '12px',
                         padding: '13px 20px', fontSize: '14px', fontWeight: 600,
-                        cursor: actionLoading === sel._id ? 'not-allowed' : 'pointer', fontFamily: F,
+                        cursor: actionLoading === sel._id ? 'not-allowed' : 'pointer', fontFamily: FONT_BODY,
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                         boxShadow: `0 4px 14px ${BLUE}30`,
                       }}>
                         <Shield size={16} /> {actionLoading === sel._id ? 'Procesando...' : 'Pagar y activar escrow'}
                       </button>
                       <button onClick={() => doAction(sel._id, apiService.cancelCampaign)} disabled={actionLoading === sel._id} style={{
-                        background: 'var(--bg)', color: RED, border: `1px solid ${RED}30`,
+                        background: 'var(--bg)', color: ERR, border: `1px solid ${ERR}30`,
                         borderRadius: '12px', padding: '13px 18px', fontSize: '13px', fontWeight: 600,
-                        cursor: actionLoading === sel._id ? 'not-allowed' : 'pointer', fontFamily: F,
+                        cursor: actionLoading === sel._id ? 'not-allowed' : 'pointer', fontFamily: FONT_BODY,
                       }}>
                         Cancelar
                       </button>
@@ -732,7 +726,7 @@ export default function CampaignsPage() {
                     <button onClick={() => doAction(sel._id, apiService.completeCampaign)} disabled={actionLoading === sel._id} className="adf-btn-primary" style={{
                       flex: 1, background: OK, color: '#fff', border: 'none', borderRadius: '12px',
                       padding: '13px 20px', fontSize: '14px', fontWeight: 600,
-                      cursor: actionLoading === sel._id ? 'not-allowed' : 'pointer', fontFamily: F,
+                      cursor: actionLoading === sel._id ? 'not-allowed' : 'pointer', fontFamily: FONT_BODY,
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                       boxShadow: `0 4px 14px ${OK}30`,
                     }}>
@@ -754,13 +748,13 @@ export default function CampaignsPage() {
                   )}
                   {sel.status === 'CANCELLED' && (
                     <div style={{
-                      flex: 1, background: `${RED}08`, border: `1px solid ${RED}20`,
+                      flex: 1, background: `${ERR}08`, border: `1px solid ${ERR}20`,
                       borderRadius: '12px', padding: '14px 18px',
                       display: 'flex', alignItems: 'center', gap: '10px',
                     }}>
-                      <XCircle size={18} color={RED} />
+                      <XCircle size={18} color={ERR} />
                       <div>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: RED }}>Cancelada</div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: ERR }}>Cancelada</div>
                         <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Reembolso procesado</div>
                       </div>
                     </div>

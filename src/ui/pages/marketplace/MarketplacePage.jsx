@@ -2,27 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../auth/AuthContext'
 import apiService from '../../../../services/api'
-
-const A  = '#8b5cf6'
-const AD = '#7c3aed'
-const AG = (o) => `rgba(139,92,246,${o})`
-
-const PLAT = {
-  whatsapp:  { color: '#25d366', bg: 'rgba(37,211,102,0.12)',  label: 'WhatsApp' },
-  telegram:  { color: '#2aabee', bg: 'rgba(42,171,238,0.12)',  label: 'Telegram' },
-  discord:   { color: '#5865f2', bg: 'rgba(88,101,242,0.12)',  label: 'Discord'  },
-  youtube:   { color: '#ef4444', bg: 'rgba(239,68,68,0.12)',   label: 'YouTube'  },
-  instagram: { color: '#e1306c', bg: 'rgba(225,48,108,0.12)',  label: 'Instagram' },
-  tiktok:    { color: '#010101', bg: 'rgba(100,100,100,0.12)', label: 'TikTok'  },
-  newsletter:{ color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)',  label: 'Newsletter'},
-  facebook:  { color: '#1877f2', bg: 'rgba(24,119,242,0.12)',  label: 'Facebook' },
-}
-
-const BADGE = {
-  verified: { bg: AG(0.12), color: A,         border: AG(0.22) },
-  trending: { bg: 'rgba(249,115,22,0.12)',  color: '#f97316', border: 'rgba(249,115,22,0.22)' },
-  new:      { bg: 'rgba(59,130,246,0.12)',  color: '#3b82f6', border: 'rgba(59,130,246,0.22)' },
-}
+import { PURPLE as A, PURPLE_DARK as AD, purpleAlpha as AG, PLATFORM_BRAND as PLAT, STATUS as BADGE, FONT_BODY, FONT_DISPLAY } from '../../theme/tokens'
 
 const CATEGORY_ICONS = {
   'ecommerce': '🛒', 'fitness': '💪', 'marketing': '📈', 'gaming': '🎮',
@@ -80,8 +60,8 @@ export default function MarketplacePage() {
   const activeSort = searchParams.get('sort') || 'createdAt'
   const activePage = Math.max(1, Number(searchParams.get('page') || 1))
 
-  const F = "'Inter', system-ui, sans-serif"
-  const D = "'Sora', system-ui, sans-serif"
+  const F = FONT_BODY
+  const D = FONT_DISPLAY
 
   // Fetch channels from API
   const fetchChannels = useCallback(async () => {

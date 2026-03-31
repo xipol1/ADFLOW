@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { ErrorBanner } from '../shared/DashComponents'
 import apiService from '../../../../../services/api'
+import { PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK as _OK, BLUE as _BLUE, WARN, ERR } from '../../../theme/tokens'
 
 /* ── Design tokens ─────────────────────────────────────────────────────────── */
-const V  = '#8b5cf6'
-const VG = (o) => `rgba(139,92,246,${o})`
-const F  = "'Inter', system-ui, sans-serif"
-const D  = "'Sora', system-ui, sans-serif"
-const OK = '#10b981'
-const BLUE = '#3b82f6'
-const AMBER = '#f59e0b'
-const RED  = '#ef4444'
+const V  = PURPLE
+const VG = purpleAlpha
+const F  = FONT_BODY
+const D  = FONT_DISPLAY
+const OK = _OK
+const BLUE = _BLUE
+const AMBER = WARN
+const RED  = ERR
 
 /* ── Animations ────────────────────────────────────────────────────────────── */
 const CSS = `
@@ -486,17 +488,22 @@ export default function CreatorRequestsPage() {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [busy, setBusy] = useState(false)
+  const [fetchError, setFetchError] = useState(null)
+  const [retryKey, setRetryKey] = useState(0)
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
       const r = await apiService.getCreatorCampaigns()
       if (r?.success && Array.isArray(r.data)) setCampaigns(r.data)
-    } catch {}
+    } catch (err) {
+      console.error('CreatorRequestsPage load error:', err)
+      setFetchError('No se pudieron cargar los datos. Verifica tu conexion.')
+    }
     setLoading(false)
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { load() }, [load, retryKey])
 
   const filtered = campaigns.filter(c => {
     if (tab === 'Todas') return true
@@ -551,6 +558,8 @@ export default function CreatorRequestsPage() {
           Revisa campanas contratadas, chatea con anunciantes y confirma publicaciones.
         </p>
       </div>
+
+      {fetchError && <ErrorBanner message={fetchError} onRetry={() => { setFetchError(null); setRetryKey(k => k + 1) }} style={{ marginBottom: '20px' }} />}
 
       {/* KPIs */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>

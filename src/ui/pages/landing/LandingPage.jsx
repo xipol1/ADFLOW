@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-
-/* ─── TOKENS ─────────────────────────────────────────────── */
-const A  = '#8b5cf6'            // accent purple
-const AD = '#7c3aed'            // accent dark
-const AG = (o) => `rgba(139,92,246,${o})`  // accent with opacity
+import { PURPLE as A, PURPLE_DARK as AD, purpleAlpha as AG, STATUS as BADGE, FONT_BODY, FONT_DISPLAY } from '../../theme/tokens'
 
 /* ─── DATA ───────────────────────────────────────────────── */
 
@@ -21,12 +17,7 @@ const CATEGORIES = [
   { icon: '🌍', name: 'Lifestyle',  count: '430'   },
 ]
 
-// Badge system — 3 colors only
-const BADGE = {
-  verified: { bg: AG(0.12), color: A,         border: AG(0.22) },
-  trending: { bg: 'rgba(249,115,22,0.12)',  color: '#f97316', border: 'rgba(249,115,22,0.22)' },
-  new:      { bg: 'rgba(59,130,246,0.12)',  color: '#3b82f6', border: 'rgba(59,130,246,0.22)' },
-}
+// Badge system — uses STATUS from tokens (imported as BADGE)
 
 // Platform palette
 const PLAT = {
@@ -88,8 +79,8 @@ export default function LandingPage() {
 
   const goSearch = () => navigate('/marketplace' + (searchVal.trim() ? `?q=${encodeURIComponent(searchVal.trim())}` : ''))
 
-  const F = "'Inter', system-ui, sans-serif"
-  const D = "'Sora', system-ui, sans-serif"
+  const F = FONT_BODY
+  const D = FONT_DISPLAY
 
   // Section heading style
   const H2 = { fontFamily: D, fontSize: '28px', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text)' }
@@ -601,26 +592,42 @@ export default function LandingPage() {
             {[
               { title: 'Plataformas', key: 'platform', links: ['WhatsApp', 'Telegram', 'Discord', 'YouTube', 'TikTok'] },
               { title: 'Categorías',  key: 'category', links: ['Ecommerce', 'Fitness', 'Gaming', 'Educación', 'IA & Tech'] },
-              { title: 'Empresa',     key: null,        links: ['Sobre nosotros', 'Blog', 'Afiliados', 'Soporte', 'Privacidad'] },
+              { title: 'Empresa',     key: null,        links: [
+                { label: 'Sobre nosotros', to: '/sobre-nosotros' },
+                { label: 'Blog', to: null },
+                { label: 'Afiliados', to: null },
+                { label: 'Soporte', to: '/soporte' },
+                { label: 'Privacidad', to: '/privacidad' },
+              ] },
             ].map(col => (
               <div key={col.title}>
                 <h4 style={{ fontFamily: F, fontSize: '11px', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--muted2)', marginBottom: '16px' }}>{col.title}</h4>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {col.links.map(link => (
-                    <li key={link}>
-                      {col.key ? (
-                        <Link to={`/marketplace?${col.key}=${encodeURIComponent(link)}`} style={{ fontSize: '13px', color: 'var(--muted)', textDecoration: 'none', transition: 'color .15s' }}
-                          onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-                          onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
-                        >{link}</Link>
-                      ) : (
-                        <a href="#" style={{ fontSize: '13px', color: 'var(--muted)', textDecoration: 'none', transition: 'color .15s' }}
-                          onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-                          onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
-                        >{link}</a>
-                      )}
-                    </li>
-                  ))}
+                  {col.links.map(link => {
+                    const label = typeof link === 'string' ? link : link.label
+                    const linkStyle = { fontSize: '13px', color: 'var(--muted)', textDecoration: 'none', transition: 'color .15s' }
+                    const hoverIn = e => e.currentTarget.style.color = 'var(--text)'
+                    const hoverOut = e => e.currentTarget.style.color = 'var(--muted)'
+
+                    if (col.key) {
+                      return (
+                        <li key={label}>
+                          <Link to={`/marketplace?${col.key}=${encodeURIComponent(label)}`} style={linkStyle} onMouseEnter={hoverIn} onMouseLeave={hoverOut}>{label}</Link>
+                        </li>
+                      )
+                    }
+
+                    const to = typeof link === 'object' ? link.to : null
+                    return (
+                      <li key={label}>
+                        {to ? (
+                          <Link to={to} style={linkStyle} onMouseEnter={hoverIn} onMouseLeave={hoverOut}>{label}</Link>
+                        ) : (
+                          <span style={{ ...linkStyle, cursor: 'default' }}>{label}</span>
+                        )}
+                      </li>
+                    )
+                  })}
                 </ul>
               </div>
             ))}
@@ -632,11 +639,11 @@ export default function LandingPage() {
           }}>
             <span>© 2026 Adflow. Todos los derechos reservados.</span>
             <div style={{ display: 'flex', gap: '24px' }}>
-              {['Privacidad','Términos','Cookies'].map(l => (
-                <a key={l} href="#" style={{ color: 'var(--muted2)', textDecoration: 'none', transition: 'color .15s' }}
+              {[{ label: 'Privacidad', to: '/privacidad' }, { label: 'Términos', to: '/terminos' }, { label: 'Cookies', to: '/privacidad' }].map(l => (
+                <Link key={l.label} to={l.to} style={{ color: 'var(--muted2)', textDecoration: 'none', transition: 'color .15s' }}
                   onMouseEnter={e => e.currentTarget.style.color = 'var(--muted)'}
                   onMouseLeave={e => e.currentTarget.style.color = 'var(--muted2)'}
-                >{l}</a>
+                >{l.label}</Link>
               ))}
             </div>
           </div>

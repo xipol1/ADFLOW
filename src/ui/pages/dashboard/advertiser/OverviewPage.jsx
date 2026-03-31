@@ -8,16 +8,11 @@ import {
 import { useAuth } from '../../../../auth/AuthContext'
 import { PLATFORM_COLORS } from './mockData'
 import apiService from '../../../../../services/api'
+import { Sparkline } from '../shared/DashComponents'
+import {
+  PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE,
+} from '../../../theme/tokens'
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
-const A    = '#8b5cf6'
-const AG   = (o) => `rgba(139,92,246,${o})`
-const F    = "'Inter', system-ui, sans-serif"
-const D    = "'Sora', system-ui, sans-serif"
-const OK   = '#10b981'
-const WARN = '#f59e0b'
-const ERR  = '#ef4444'
-const BLUE = '#3b82f6'
 
 // ─── Time-aware greeting ──────────────────────────────────────────────────────
 function getGreeting(name) {
@@ -25,44 +20,6 @@ function getGreeting(name) {
   if (h >= 5 && h < 13)  return { text: `Buenos días, ${name}`, emoji: '☀️' }
   if (h >= 13 && h < 20) return { text: `Buenas tardes, ${name}`, emoji: '🌤️' }
   return                         { text: `Buenas noches, ${name}`, emoji: '🌙' }
-}
-
-// ─── Smooth SVG sparkline ─────────────────────────────────────────────────────
-function Sparkline({ data, color = A, w = 88, h = 36 }) {
-  if (!data || data.length < 2) return null
-  const max = Math.max(...data)
-  const min = Math.min(...data)
-  const rng = max - min || 1
-  const pad = 3
-
-  const pts = data.map((v, i) => ({
-    x: (i / (data.length - 1)) * (w - pad * 2) + pad,
-    y: h - pad - ((v - min) / rng) * (h - pad * 2),
-  }))
-
-  let d = `M ${pts[0].x},${pts[0].y}`
-  for (let i = 1; i < pts.length; i++) {
-    const cp1x = pts[i - 1].x + (pts[i].x - pts[i - 1].x) * 0.4
-    const cp2x = pts[i].x - (pts[i].x - pts[i - 1].x) * 0.4
-    d += ` C ${cp1x},${pts[i - 1].y} ${cp2x},${pts[i].y} ${pts[i].x},${pts[i].y}`
-  }
-
-  const fillD = `${d} L ${pts[pts.length - 1].x},${h} L ${pts[0].x},${h} Z`
-  const gradId = `sg-${color.replace('#', '')}`
-
-  return (
-    <svg width={w} height={h} style={{ overflow: 'visible', flexShrink: 0 }}>
-      <defs>
-        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.22" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={fillD} fill={`url(#${gradId})`} />
-      <path d={d} fill="none" stroke={color} strokeWidth="1.8"
-        strokeLinejoin="round" strokeLinecap="round" />
-    </svg>
-  )
 }
 
 // ─── Mini donut ring ──────────────────────────────────────────────────────────
@@ -81,7 +38,7 @@ function Ring({ pct, color, size = 48 }) {
 }
 
 // ─── KPI Card ─────────────────────────────────────────────────────────────────
-function KpiCard({ icon: Icon, label, value, change, changeLabel, sparkData, color = A, accent, ring }) {
+function KpiCard({ icon: Icon, label, value, change, changeLabel, sparkData, color = PURPLE, accent, ring }) {
   const [hovered, setHovered] = useState(false)
   const isPositive = change > 0
   const TrendIcon = isPositive ? TrendingUp : TrendingDown
@@ -93,7 +50,7 @@ function KpiCard({ icon: Icon, label, value, change, changeLabel, sparkData, col
       onMouseLeave={() => setHovered(false)}
       style={{
         background: 'var(--surface)',
-        border: `1px solid ${hovered ? AG(0.35) : 'var(--border)'}`,
+        border: `1px solid ${hovered ? purpleAlpha(0.35) : 'var(--border)'}`,
         borderRadius: '16px',
         padding: '22px',
         display: 'flex',
@@ -101,7 +58,7 @@ function KpiCard({ icon: Icon, label, value, change, changeLabel, sparkData, col
         gap: '14px',
         transition: 'border-color .2s, box-shadow .2s, transform .2s',
         transform: hovered ? 'translateY(-2px)' : 'none',
-        boxShadow: hovered ? `0 8px 32px ${AG(0.1)}` : '0 1px 4px rgba(0,0,0,0.06)',
+        boxShadow: hovered ? `0 8px 32px ${purpleAlpha(0.1)}` : '0 1px 4px rgba(0,0,0,0.06)',
         cursor: 'default',
         position: 'relative',
         overflow: 'hidden',
@@ -110,26 +67,26 @@ function KpiCard({ icon: Icon, label, value, change, changeLabel, sparkData, col
       {/* subtle gradient overlay on hover */}
       <div style={{
         position: 'absolute', inset: 0, borderRadius: '16px',
-        background: hovered ? AG(0.03) : 'transparent',
+        background: hovered ? purpleAlpha(0.03) : 'transparent',
         transition: 'background .2s', pointerEvents: 'none',
       }} />
 
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', zIndex: 1 }}>
         <div style={{
           width: '40px', height: '40px', borderRadius: '11px',
-          background: `${accent || A}15`,
-          border: `1px solid ${accent || A}25`,
+          background: `${accent || PURPLE}15`,
+          border: `1px solid ${accent || PURPLE}25`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Icon size={18} color={accent || A} strokeWidth={2} />
+          <Icon size={18} color={accent || PURPLE} strokeWidth={2} />
         </div>
-        {ring !== undefined && <Ring pct={ring} color={accent || A} size={44} />}
-        {sparkData && !ring && <Sparkline data={sparkData} color={accent || A} />}
+        {ring !== undefined && <Ring pct={ring} color={accent || PURPLE} size={44} />}
+        {sparkData && !ring && <Sparkline data={sparkData} color={accent || PURPLE} />}
       </div>
 
       <div style={{ zIndex: 1 }}>
         <div style={{
-          fontSize: '28px', fontWeight: 800, fontFamily: D, color: 'var(--text)',
+          fontSize: '28px', fontWeight: 800, fontFamily: FONT_DISPLAY, color: 'var(--text)',
           letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '4px',
         }}>
           {value}
@@ -175,7 +132,7 @@ function BarChart({ data }) {
           >
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', width: '100%' }}>
               {(isHov || isLast) && (
-                <div style={{ fontSize: '11px', color: isLast ? A : 'var(--muted)', fontWeight: 700, textAlign: 'center', marginBottom: '4px' }}>
+                <div style={{ fontSize: '11px', color: isLast ? PURPLE : 'var(--muted)', fontWeight: 700, textAlign: 'center', marginBottom: '4px' }}>
                   €{d.value}
                 </div>
               )}
@@ -183,14 +140,14 @@ function BarChart({ data }) {
                 width: '100%', borderRadius: '6px 6px 0 0', minHeight: '4px',
                 height: `${pct}%`,
                 background: isLast
-                  ? `linear-gradient(180deg, ${AG(0.9)} 0%, ${A} 100%)`
+                  ? `linear-gradient(180deg, ${purpleAlpha(0.9)} 0%, ${PURPLE} 100%)`
                   : isHov
-                    ? AG(0.5)
-                    : AG(0.3),
+                    ? purpleAlpha(0.5)
+                    : purpleAlpha(0.3),
                 transition: 'background .15s, height .4s cubic-bezier(.4,0,.2,1)',
               }} />
             </div>
-            <span style={{ fontSize: '10px', color: isLast ? A : 'var(--muted)', fontWeight: isLast ? 600 : 400, whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: '10px', color: isLast ? PURPLE : 'var(--muted)', fontWeight: isLast ? 600 : 400, whiteSpace: 'nowrap' }}>
               {d.label}
             </span>
           </div>
@@ -251,7 +208,7 @@ function CampaignRow({ ad, isLast }) {
   // Support both mock (ad.platform / ad.channel) and API (ad.channel.plataforma / ad.channel.nombreCanal)
   const channelName = typeof ad.channel === 'object' ? ad.channel?.nombreCanal : ad.channel || ''
   const platform = typeof ad.channel === 'object' ? ad.channel?.plataforma : ad.platform || ''
-  const platColor = PLATFORM_COLORS[platform] || A
+  const platColor = PLATFORM_COLORS[platform] || PURPLE
   const views = ad.tracking?.impressions || ad.views || 0
   const clicks = ad.tracking?.clicks || ad.clicks || 0
   const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : (ad.ctr || 0)
@@ -302,7 +259,7 @@ function CampaignRow({ ad, isLast }) {
 const ACTIVITY = [
   { id: 1, icon: '📢', title: 'Campaña "Tech Pro 2026" aprobada', time: 'hace 2 horas', color: OK },
   { id: 2, icon: '💰', title: 'Recarga de €500 procesada', time: 'hace 5 horas', color: BLUE },
-  { id: 3, icon: '📊', title: 'Campaña "Fintech España" alcanzó 50K impresiones', time: 'ayer', color: A },
+  { id: 3, icon: '📊', title: 'Campaña "Fintech España" alcanzó 50K impresiones', time: 'ayer', color: PURPLE },
   { id: 4, icon: '⏸️', title: 'Campaña "Gaming Rush" pausada automáticamente', time: 'ayer', color: WARN },
   { id: 5, icon: '✅', title: 'Pago de €350 procesado a TechReview ES', time: 'hace 2 días', color: OK },
 ]
@@ -387,32 +344,32 @@ export default function OverviewPage() {
   const budgetUsed  = budgetTotal > 0 ? Math.round((spentTotal / budgetTotal) * 100) : 0
 
   return (
-    <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '1200px' }}>
+    <div style={{ fontFamily: FONT_BODY, display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '1200px' }}>
 
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <h1 style={{ fontFamily: D, fontSize: '28px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
+            <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: '28px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
               {greeting.text}
             </h1>
             <span style={{ fontSize: '24px' }}>{greeting.emoji}</span>
           </div>
           <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.5 }}>
-            Resumen de tu actividad · <span style={{ color: A, fontWeight: 500 }}>{activeAds} campañas activas</span>
+            Resumen de tu actividad · <span style={{ color: PURPLE, fontWeight: 500 }}>{activeAds} campañas activas</span>
           </p>
         </div>
         <button
           onClick={() => navigate('/advertiser/explore')}
           style={{
             display: 'flex', alignItems: 'center', gap: '8px',
-            background: A, color: '#fff', border: 'none', borderRadius: '12px',
+            background: PURPLE, color: '#fff', border: 'none', borderRadius: '12px',
             padding: '11px 20px', fontSize: '14px', fontWeight: 600,
-            cursor: 'pointer', fontFamily: F, boxShadow: `0 4px 16px ${AG(0.35)}`,
+            cursor: 'pointer', fontFamily: FONT_BODY, boxShadow: `0 4px 16px ${purpleAlpha(0.35)}`,
             transition: 'transform .15s, box-shadow .15s',
           }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${AG(0.4)}` }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 4px 16px ${AG(0.35)}` }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${purpleAlpha(0.4)}` }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 4px 16px ${purpleAlpha(0.35)}` }}
         >
           <Plus size={16} strokeWidth={2.5} /> Nueva campaña
         </button>
@@ -457,16 +414,16 @@ export default function OverviewPage() {
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
             <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <h2 style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '2px' }}>Gasto mensual</h2>
+                <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '2px' }}>Gasto mensual</h2>
                 <p style={{ fontSize: '12px', color: 'var(--muted)' }}>Últimos 12 meses</p>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {['3M', '6M', '12M'].map((l, i) => (
                   <button key={l} style={{
-                    background: i === 2 ? AG(0.1) : 'transparent',
-                    border: `1px solid ${i === 2 ? AG(0.3) : 'var(--border)'}`,
+                    background: i === 2 ? purpleAlpha(0.1) : 'transparent',
+                    border: `1px solid ${i === 2 ? purpleAlpha(0.3) : 'var(--border)'}`,
                     borderRadius: '8px', padding: '4px 10px', fontSize: '12px',
-                    color: i === 2 ? A : 'var(--muted)', cursor: 'pointer', fontFamily: F,
+                    color: i === 2 ? PURPLE : 'var(--muted)', cursor: 'pointer', fontFamily: FONT_BODY,
                   }}>{l}</button>
                 ))}
               </div>
@@ -480,12 +437,12 @@ export default function OverviewPage() {
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
             <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <h2 style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '2px' }}>Campañas recientes</h2>
+                <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '2px' }}>Campañas recientes</h2>
                 <p style={{ fontSize: '12px', color: 'var(--muted)' }}>{campaigns.length} campañas en total</p>
               </div>
               <button
                 onClick={() => navigate('/advertiser/ads')}
-                style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'none', border: 'none', fontSize: '13px', color: A, cursor: 'pointer', fontWeight: 600, fontFamily: F }}
+                style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'none', border: 'none', fontSize: '13px', color: PURPLE, cursor: 'pointer', fontWeight: 600, fontFamily: FONT_BODY }}
               >
                 Ver todas <ChevronRight size={14} />
               </button>
@@ -509,13 +466,13 @@ export default function OverviewPage() {
 
           {/* Platform spend donut */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', padding: '20px' }}>
-            <h2 style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>Gasto por plataforma</h2>
+            <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>Gasto por plataforma</h2>
             <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '18px' }}>Este mes</p>
 
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px', position: 'relative' }}>
               <Donut segments={PLATFORM_SPEND} total={PLAT_TOTAL} size={148} />
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                <div style={{ fontFamily: D, fontSize: '20px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em' }}>
+                <div style={{ fontFamily: FONT_DISPLAY, fontSize: '20px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em' }}>
                   €{(PLAT_TOTAL / 1000).toFixed(1)}K
                 </div>
                 <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '1px' }}>Total</div>
@@ -539,10 +496,10 @@ export default function OverviewPage() {
           {/* Top channels */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
             <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>Top canales</h2>
+              <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>Top canales</h2>
               <button
                 onClick={() => navigate('/advertiser/explore')}
-                style={{ background: 'none', border: 'none', fontSize: '12px', color: A, cursor: 'pointer', fontWeight: 600, fontFamily: F }}
+                style={{ background: 'none', border: 'none', fontSize: '12px', color: PURPLE, cursor: 'pointer', fontWeight: 600, fontFamily: FONT_BODY }}
               >Explorar</button>
             </div>
             {TOP_CHANNELS.map((ch, i) => (
@@ -576,7 +533,7 @@ export default function OverviewPage() {
           {/* Activity feed */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
             <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border)' }}>
-              <h2 style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>Actividad reciente</h2>
+              <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>Actividad reciente</h2>
             </div>
             <div style={{ padding: '8px 0' }}>
               {ACTIVITY.map((item, i) => (
@@ -600,15 +557,15 @@ export default function OverviewPage() {
           </div>
 
           {/* Quick budget widget */}
-          <div style={{ background: `linear-gradient(135deg, ${A} 0%, #7c3aed 100%)`, borderRadius: '18px', padding: '20px', color: '#fff' }}>
+          <div style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, #7c3aed 100%)`, borderRadius: '18px', padding: '20px', color: '#fff' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
               <div>
                 <div style={{ fontSize: '12px', opacity: 0.8, marginBottom: '4px' }}>Presupuesto mensual</div>
-                <div style={{ fontFamily: D, fontSize: '26px', fontWeight: 800, letterSpacing: '-0.03em' }}>€{(budgetTotal * budgetUsed / 100).toLocaleString('es')}</div>
+                <div style={{ fontFamily: FONT_DISPLAY, fontSize: '26px', fontWeight: 800, letterSpacing: '-0.03em' }}>€{(budgetTotal * budgetUsed / 100).toLocaleString('es')}</div>
                 <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '2px' }}>de €{budgetTotal.toLocaleString('es')} usados</div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontFamily: D, fontSize: '28px', fontWeight: 800 }}>{budgetUsed}%</div>
+                <div style={{ fontFamily: FONT_DISPLAY, fontSize: '28px', fontWeight: 800 }}>{budgetUsed}%</div>
               </div>
             </div>
             <div style={{ height: '6px', background: 'rgba(255,255,255,0.2)', borderRadius: '3px', overflow: 'hidden', marginBottom: '14px' }}>
@@ -616,7 +573,7 @@ export default function OverviewPage() {
             </div>
             <button
               onClick={() => navigate('/advertiser/finances')}
-              style={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '9px', padding: '8px 16px', fontSize: '13px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: F }}
+              style={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '9px', padding: '8px 16px', fontSize: '13px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: FONT_BODY }}
             >
               Ver finanzas →
             </button>

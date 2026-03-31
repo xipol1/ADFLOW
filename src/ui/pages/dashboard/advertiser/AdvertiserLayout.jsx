@@ -6,13 +6,9 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../../services/api'
-
-// ── Design tokens ──────────────────────────────────────────────────────────
-const A   = '#8b5cf6'
-const AG  = (o) => `rgba(139,92,246,${o})`
-const F   = "'Inter', system-ui, sans-serif"
-const D   = "'Sora', system-ui, sans-serif"
-const EASE = 'cubic-bezier(.4,0,.2,1)'
+import {
+  PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, EASE, NOTIF_TYPE,
+} from '../../../theme/tokens'
 
 // ── Nav structure ──────────────────────────────────────────────────────────
 const MAIN_NAV = [
@@ -32,13 +28,6 @@ const BOTTOM_NAV = [
 // ── Relative time helper ───────────────────────────────────────────────────
 function relTime(str) { return str }
 
-// ── Notification type config ───────────────────────────────────────────────
-const NOTIF_TYPE = {
-  success: { emoji: '✅', color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
-  info:    { emoji: 'ℹ️',  color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
-  warning: { emoji: '⚠️', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
-}
-
 // ── Tooltip wrapper for collapsed nav ─────────────────────────────────────
 function NavTooltip({ label, visible, children }) {
   return (
@@ -49,7 +38,7 @@ function NavTooltip({ label, visible, children }) {
           position: 'absolute', left: 'calc(100% + 12px)', top: '50%',
           transform: 'translateY(-50%)',
           background: 'var(--text)', color: 'var(--bg)',
-          fontSize: '12px', fontWeight: 500, fontFamily: F,
+          fontSize: '12px', fontWeight: 500, fontFamily: FONT_BODY,
           padding: '5px 10px', borderRadius: '7px',
           whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 999,
           boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
@@ -83,20 +72,20 @@ function SidebarLink({ to, icon: Icon, label, end, collapsed }) {
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
-              padding: collapsed ? '10px 0' : '9px 13px',
+              padding: collapsed ? '10px 0' : '10px 14px',
               justifyContent: collapsed ? 'center' : 'flex-start',
               borderRadius: '10px',
               cursor: 'pointer',
               position: 'relative',
               background: isActive
-                ? AG(0.12)
+                ? purpleAlpha(0.12)
                 : hovered
                   ? 'var(--surface2, rgba(255,255,255,0.04))'
                   : 'transparent',
-              borderLeft: `3px solid ${isActive ? A : 'transparent'}`,
-              color: isActive ? A : hovered ? 'var(--text)' : 'var(--muted)',
-              fontFamily: F,
-              fontSize: '13.5px',
+              borderLeft: `3px solid ${isActive ? PURPLE : 'transparent'}`,
+              color: isActive ? PURPLE : hovered ? 'var(--text)' : 'var(--muted)',
+              fontFamily: FONT_BODY,
+              fontSize: '14px',
               fontWeight: isActive ? 600 : 400,
               letterSpacing: isActive ? '-0.01em' : '0',
               transition: `background 150ms ease, color 150ms ease, border-color 150ms ease`,
@@ -105,8 +94,8 @@ function SidebarLink({ to, icon: Icon, label, end, collapsed }) {
             }}
           >
             <Icon
-              size={17}
-              strokeWidth={isActive ? 2.3 : 1.8}
+              size={18}
+              strokeWidth={isActive ? 2.2 : 1.8}
               style={{ flexShrink: 0, transition: `color 150ms ease` }}
             />
             {!collapsed && (
@@ -144,7 +133,7 @@ function LogoutButton({ collapsed, onClick }) {
           display: 'flex',
           alignItems: 'center',
           gap: '10px',
-          padding: collapsed ? '10px 0' : '9px 13px',
+          padding: collapsed ? '10px 0' : '10px 14px',
           justifyContent: collapsed ? 'center' : 'flex-start',
           borderRadius: '10px',
           cursor: 'pointer',
@@ -153,14 +142,14 @@ function LogoutButton({ collapsed, onClick }) {
           border: 'none',
           borderLeft: '3px solid transparent',
           color: hovered ? '#ef4444' : 'var(--muted)',
-          fontSize: '13.5px',
-          fontFamily: F,
+          fontSize: '14px',
+          fontFamily: FONT_BODY,
           fontWeight: 400,
           transition: `background 150ms ease, color 150ms ease`,
           marginLeft: collapsed ? 0 : '-3px',
         }}
       >
-        <LogOut size={17} strokeWidth={1.8} style={{ flexShrink: 0 }} />
+        <LogOut size={18} strokeWidth={1.8} style={{ flexShrink: 0 }} />
         {!collapsed && <span>Cerrar sesión</span>}
       </button>
     </NavTooltip>
@@ -225,31 +214,31 @@ function NotificationBell({ notifications }) {
         onMouseLeave={() => setBellHovered(false)}
         style={{
           background: bellHovered ? 'var(--bg2)' : 'var(--bg)',
-          border: `1px solid ${open ? AG(0.4) : 'var(--border)'}`,
+          border: `1px solid ${open ? purpleAlpha(0.4) : 'var(--border)'}`,
           borderRadius: '10px',
           padding: '8px',
           cursor: 'pointer',
-          color: open ? A : bellHovered ? 'var(--text)' : 'var(--muted)',
+          color: open ? PURPLE : bellHovered ? 'var(--text)' : 'var(--muted)',
           display: 'flex',
           alignItems: 'center',
           position: 'relative',
           transition: `background 150ms ease, border-color 150ms ease, color 150ms ease`,
         }}
       >
-        <Bell size={17} strokeWidth={open ? 2.2 : 1.8} />
+        <Bell size={18} strokeWidth={open ? 2.2 : 1.8} />
         {unread > 0 && (
           <span style={{
             position: 'absolute',
             top: '-5px',
             right: '-5px',
-            background: A,
+            background: PURPLE,
             color: '#fff',
             borderRadius: '50%',
             width: '17px',
             height: '17px',
             fontSize: '10px',
             fontWeight: 700,
-            fontFamily: F,
+            fontFamily: FONT_BODY,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -286,18 +275,18 @@ function NotificationBell({ notifications }) {
             justifyContent: 'space-between',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontFamily: D, fontWeight: 700, fontSize: '14px', color: 'var(--text)' }}>
+              <span style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: '14px', color: 'var(--text)' }}>
                 Notificaciones
               </span>
               {unread > 0 && (
                 <span style={{
-                  background: AG(0.15),
-                  color: A,
+                  background: purpleAlpha(0.15),
+                  color: PURPLE,
                   borderRadius: '20px',
                   padding: '1px 7px',
                   fontSize: '11px',
                   fontWeight: 700,
-                  fontFamily: F,
+                  fontFamily: FONT_BODY,
                 }}>
                   {unread} nuevas
                 </span>
@@ -310,9 +299,9 @@ function NotificationBell({ notifications }) {
                 border: 'none',
                 fontSize: '12px',
                 fontWeight: 500,
-                color: unread > 0 ? A : 'var(--muted)',
+                color: unread > 0 ? PURPLE : 'var(--muted)',
                 cursor: unread > 0 ? 'pointer' : 'default',
-                fontFamily: F,
+                fontFamily: FONT_BODY,
                 padding: '2px 0',
                 opacity: unread > 0 ? 1 : 0.5,
               }}
@@ -331,7 +320,7 @@ function NotificationBell({ notifications }) {
                   style={{
                     padding: '12px 16px',
                     borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none',
-                    background: n.read ? 'transparent' : AG(0.04),
+                    background: n.read ? 'transparent' : purpleAlpha(0.04),
                     display: 'flex',
                     gap: '11px',
                     alignItems: 'flex-start',
@@ -339,7 +328,7 @@ function NotificationBell({ notifications }) {
                     cursor: 'pointer',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg2)' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = n.read ? 'transparent' : AG(0.04) }}
+                  onMouseLeave={e => { e.currentTarget.style.background = n.read ? 'transparent' : purpleAlpha(0.04) }}
                 >
                   {/* Type icon chip */}
                   <div style={{
@@ -364,7 +353,7 @@ function NotificationBell({ notifications }) {
                       fontWeight: 600,
                       color: 'var(--text)',
                       marginBottom: '2px',
-                      fontFamily: F,
+                      fontFamily: FONT_BODY,
                     }}>
                       {n.title}
                     </div>
@@ -372,7 +361,7 @@ function NotificationBell({ notifications }) {
                       fontSize: '12px',
                       color: 'var(--muted)',
                       lineHeight: 1.45,
-                      fontFamily: F,
+                      fontFamily: FONT_BODY,
                     }}>
                       {n.desc}
                     </div>
@@ -380,7 +369,7 @@ function NotificationBell({ notifications }) {
                       fontSize: '11px',
                       color: 'var(--muted2)',
                       marginTop: '5px',
-                      fontFamily: F,
+                      fontFamily: FONT_BODY,
                     }}>
                       {relTime(n.time)}
                     </div>
@@ -392,7 +381,7 @@ function NotificationBell({ notifications }) {
                       width: '7px',
                       height: '7px',
                       borderRadius: '50%',
-                      background: A,
+                      background: PURPLE,
                       flexShrink: 0,
                       marginTop: '5px',
                     }} />
@@ -412,9 +401,9 @@ function NotificationBell({ notifications }) {
               background: 'none',
               border: 'none',
               fontSize: '12px',
-              color: A,
+              color: PURPLE,
               cursor: 'pointer',
-              fontFamily: F,
+              fontFamily: FONT_BODY,
               fontWeight: 500,
             }}>
               Ver todas las notificaciones
@@ -434,17 +423,17 @@ function Avatar({ initials, size = 48 }) {
       height: `${size}px`,
       borderRadius: '50%',
       flexShrink: 0,
-      background: `linear-gradient(135deg, ${AG(0.35)} 0%, ${AG(0.18)} 100%)`,
-      border: `1.5px solid ${AG(0.45)}`,
+      background: `linear-gradient(135deg, ${purpleAlpha(0.35)} 0%, ${purpleAlpha(0.18)} 100%)`,
+      border: `1.5px solid ${purpleAlpha(0.45)}`,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       fontSize: `${Math.round(size * 0.31)}px`,
       fontWeight: 700,
-      color: A,
-      fontFamily: D,
+      color: PURPLE,
+      fontFamily: FONT_DISPLAY,
       letterSpacing: '0.02em',
-      boxShadow: `0 0 0 3px ${AG(0.08)}`,
+      boxShadow: `0 0 0 3px ${purpleAlpha(0.08)}`,
     }}>
       {initials}
     </div>
@@ -485,7 +474,7 @@ export default function AdvertiserLayout() {
       display: 'flex',
       minHeight: '100vh',
       background: 'var(--bg)',
-      fontFamily: F,
+      fontFamily: FONT_BODY,
       position: 'relative',
     }}>
       {/* keyframe injection */}
@@ -540,12 +529,12 @@ export default function AdvertiserLayout() {
               width: '28px',
               height: '28px',
               borderRadius: '8px',
-              background: `linear-gradient(135deg, ${A} 0%, #7c3aed 100%)`,
+              background: `linear-gradient(135deg, ${PURPLE} 0%, #7c3aed 100%)`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
-              boxShadow: `0 2px 8px ${AG(0.35)}`,
+              boxShadow: `0 2px 8px ${purpleAlpha(0.35)}`,
             }}>
               <Zap size={15} color="#fff" strokeWidth={2.5} fill="#fff" />
             </div>
@@ -553,14 +542,14 @@ export default function AdvertiserLayout() {
             {/* Word-mark — hidden when collapsed */}
             {!collapsed && (
               <span style={{
-                fontFamily: D,
+                fontFamily: FONT_DISPLAY,
                 fontWeight: 800,
                 fontSize: '18px',
                 letterSpacing: '-0.5px',
                 color: 'var(--text)',
                 whiteSpace: 'nowrap',
               }}>
-                Ad<span style={{ color: A }}>flow</span>
+                Ad<span style={{ color: PURPLE }}>flow</span>
               </span>
             )}
           </div>
@@ -590,9 +579,9 @@ export default function AdvertiserLayout() {
                 marginBottom: '1px',
               }}>
                 <span style={{
-                  fontSize: '13.5px',
+                  fontSize: '14px',
                   fontWeight: 700,
-                  fontFamily: D,
+                  fontFamily: FONT_DISPLAY,
                   color: 'var(--text)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
@@ -603,14 +592,14 @@ export default function AdvertiserLayout() {
                 </span>
                 {/* Role badge */}
                 <span style={{
-                  background: AG(0.12),
-                  border: `1px solid ${AG(0.25)}`,
-                  color: A,
+                  background: purpleAlpha(0.12),
+                  border: `1px solid ${purpleAlpha(0.25)}`,
+                  color: PURPLE,
                   borderRadius: '20px',
                   padding: '1px 7px',
                   fontSize: '10px',
                   fontWeight: 700,
-                  fontFamily: F,
+                  fontFamily: FONT_BODY,
                   letterSpacing: '0.02em',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
@@ -624,7 +613,7 @@ export default function AdvertiserLayout() {
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                fontFamily: F,
+                fontFamily: FONT_BODY,
               }}>
                 {email}
               </div>
@@ -650,7 +639,7 @@ export default function AdvertiserLayout() {
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
               color: 'var(--muted2)',
-              fontFamily: F,
+              fontFamily: FONT_BODY,
               padding: '2px 13px 6px',
               userSelect: 'none',
             }}>
@@ -714,12 +703,12 @@ export default function AdvertiserLayout() {
               )
               return cur ? (
                 <>
-                  <cur.icon size={14} color={A} strokeWidth={2} />
+                  <cur.icon size={14} color={PURPLE} strokeWidth={2} />
                   <span style={{
                     fontSize: '13px',
                     fontWeight: 500,
                     color: 'var(--muted)',
-                    fontFamily: F,
+                    fontFamily: FONT_BODY,
                   }}>
                     {cur.label}
                   </span>
@@ -734,14 +723,14 @@ export default function AdvertiserLayout() {
 
             {/* Role badge */}
             <div style={{
-              background: AG(0.1),
-              border: `1px solid ${AG(0.22)}`,
+              background: purpleAlpha(0.1),
+              border: `1px solid ${purpleAlpha(0.22)}`,
               borderRadius: '20px',
               padding: '4px 12px',
               fontSize: '11.5px',
               fontWeight: 600,
-              color: A,
-              fontFamily: F,
+              color: PURPLE,
+              fontFamily: FONT_BODY,
               letterSpacing: '0.02em',
               userSelect: 'none',
             }}>
@@ -753,15 +742,15 @@ export default function AdvertiserLayout() {
               width: '32px',
               height: '32px',
               borderRadius: '50%',
-              background: `linear-gradient(135deg, ${AG(0.35)} 0%, ${AG(0.18)} 100%)`,
-              border: `1.5px solid ${AG(0.4)}`,
+              background: `linear-gradient(135deg, ${purpleAlpha(0.35)} 0%, ${purpleAlpha(0.18)} 100%)`,
+              border: `1.5px solid ${purpleAlpha(0.4)}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '11px',
               fontWeight: 700,
-              color: A,
-              fontFamily: D,
+              color: PURPLE,
+              fontFamily: FONT_DISPLAY,
               cursor: 'default',
               userSelect: 'none',
               flexShrink: 0,
