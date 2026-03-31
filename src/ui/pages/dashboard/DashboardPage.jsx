@@ -4,11 +4,7 @@ import { useAuth } from '../../../auth/AuthContext'
 import AdvertiserDashboard from './AdvertiserDashboard'
 import CreatorDashboard from './CreatorDashboard'
 import AdminDashboard from './AdminDashboard'
-
-const A  = '#8b5cf6'
-const AG = (o) => `rgba(139,92,246,${o})`
-const F  = "'Inter', system-ui, sans-serif"
-const D  = "'Sora', system-ui, sans-serif"
+import { PURPLE as A, purpleAlpha as AG, FONT_BODY as F, FONT_DISPLAY as D } from '../../theme/tokens'
 
 const dashboardByRole = {
   admin:      AdminDashboard,

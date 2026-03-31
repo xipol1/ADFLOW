@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import apiService from '../../../../services/api'
-
-const A = '#8b5cf6'
-const F = "'Inter', system-ui, sans-serif"
-const D = "'Sora', system-ui, sans-serif"
-const OK = '#10b981'
+import { PURPLE as A, FONT_BODY as F, FONT_DISPLAY as D, OK } from '../../theme/tokens'
 
 export default function VerifyEmailPage() {
   const { token } = useParams()

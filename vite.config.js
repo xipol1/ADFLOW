@@ -27,6 +27,7 @@ export default defineConfig(({ mode }) => {
         '@styles': path.resolve(__dirname, './styles'),
         '@utils': path.resolve(__dirname, './utils'),
       },
+      dedupe: ['react', 'react-dom'],
     },
     server: {
       port: parseInt(process.env.PORT || '3000'),

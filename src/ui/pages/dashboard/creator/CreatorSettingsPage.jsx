@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react'
 import { User, Bell, Lock, CreditCard, Link2, CheckCircle, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../../services/api'
+import { GREEN, greenAlpha, OK as _OK, ERR, FONT_BODY, FONT_DISPLAY, PLAT_COLORS } from '../../../theme/tokens'
+import { ErrorBanner } from '../shared/DashComponents'
 
-const WA  = '#25d366'
-const WAG = (o) => `rgba(37,211,102,${o})`
-const OK  = '#10b981'
-const ER  = '#ef4444'
-const F   = "'Inter', system-ui, sans-serif"
-const D   = "'Sora', system-ui, sans-serif"
+const WA  = GREEN
+const WAG = greenAlpha
+const OK  = _OK
+const ER  = ERR
+const F   = FONT_BODY
+const D   = FONT_DISPLAY
 
 const TABS = [
   { id: 'perfil',         icon: User,       label: 'Perfil' },
@@ -89,8 +91,6 @@ const Toast = ({ message, type = 'success', onClose }) => {
 }
 
 // ── Platform connection card ─────────────────────────────────────────────────
-const PLAT_COLORS = { Telegram: '#2aabee', WhatsApp: '#25d366', Discord: '#5865f2', Instagram: '#e1306c', Newsletter: '#f59e0b', Facebook: '#1877f2' }
-
 const PlatformCard = ({ channel }) => {
   const c = PLAT_COLORS[channel.plataforma] || WA
   const connected = !!(channel.credenciales?.botToken || channel.credenciales?.accessToken || channel.credenciales?.phoneNumberId)
@@ -127,6 +127,8 @@ export default function CreatorSettingsPage() {
   const { user } = useAuth()
   const [tab, setTab] = useState('perfil')
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
+  const [retryKey, setRetryKey] = useState(0)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState(null)
   const [errors, setErrors] = useState({})
@@ -187,12 +189,14 @@ export default function CreatorSettingsPage() {
         if (channelsRes?.success && Array.isArray(channelsRes.data)) {
           setChannels(channelsRes.data)
         }
-      } catch {}
+      } catch {
+        if (!cancelled) setFetchError('No se pudieron cargar los datos. Verifica tu conexion.')
+      }
       if (!cancelled) setLoading(false)
     }
     load()
     return () => { cancelled = true }
-  }, [user])
+  }, [user, retryKey])
 
   // ── Validation ──
   const validateProfile = () => {
@@ -319,6 +323,13 @@ export default function CreatorSettingsPage() {
         <h1 style={{ fontFamily: D, fontSize: '26px', fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.03em', marginBottom: '4px' }}>Configuración</h1>
         <p style={{ fontSize: '14px', color: 'var(--muted)' }}>Gestiona tu cuenta y preferencias de creador</p>
       </div>
+
+      {fetchError && (
+        <ErrorBanner
+          message={fetchError}
+          onRetry={() => { setFetchError(null); setRetryKey(k => k + 1) }}
+        />
+      )}
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '4px', borderBottom: '1px solid var(--border)', overflowX: 'auto' }}>

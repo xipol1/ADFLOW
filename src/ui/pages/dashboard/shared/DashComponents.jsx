@@ -5,12 +5,7 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-
-// ─── Design tokens ────────────────────────────────────────────────────────────
-const A = '#8b5cf6';          // accent purple
-const AG = '#25d366';         // accent green (creator)
-const FONT_BODY = "'Inter', system-ui, sans-serif";
-const FONT_DISPLAY = "'Sora', system-ui, sans-serif";
+import { PURPLE as A, GREEN as AG, FONT_BODY, FONT_DISPLAY, SPARKLINE, ERR } from '../../../theme/tokens';
 
 // ─── Keyframe injection (runs once) ──────────────────────────────────────────
 const KEYFRAMES = `
@@ -70,6 +65,46 @@ function normalizeValues(values, minY = 0, maxY) {
   const min = Math.min(...values, 0);
   const range = max - min || 1;
   return values.map(v => (v - min) / range);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 0. Sparkline — shared smooth SVG sparkline
+// ─────────────────────────────────────────────────────────────────────────────
+export function Sparkline({ data, color = A, w = SPARKLINE.w, h = SPARKLINE.h }) {
+  if (!data || data.length < 2) return null
+  const max = Math.max(...data)
+  const min = Math.min(...data)
+  const rng = max - min || 1
+  const pad = SPARKLINE.pad
+
+  const pts = data.map((v, i) => ({
+    x: (i / (data.length - 1)) * (w - pad * 2) + pad,
+    y: h - pad - ((v - min) / rng) * (h - pad * 2),
+  }))
+
+  let d = `M ${pts[0].x},${pts[0].y}`
+  for (let i = 1; i < pts.length; i++) {
+    const cp1x = pts[i - 1].x + (pts[i].x - pts[i - 1].x) * 0.4
+    const cp2x = pts[i].x - (pts[i].x - pts[i - 1].x) * 0.4
+    d += ` C ${cp1x},${pts[i - 1].y} ${cp2x},${pts[i].y} ${pts[i].x},${pts[i].y}`
+  }
+
+  const fillD = `${d} L ${pts[pts.length - 1].x},${h} L ${pts[0].x},${h} Z`
+  const gradId = `sg-${color.replace('#', '')}`
+
+  return (
+    <svg width={w} height={h} style={{ overflow: 'visible', flexShrink: 0 }}>
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.22" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={fillD} fill={`url(#${gradId})`} />
+      <path d={d} fill="none" stroke={color} strokeWidth="1.8"
+        strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1067,6 +1102,46 @@ export function Modal({
 // ─────────────────────────────────────────────────────────────────────────────
 // 9. EmptyState
 // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// ErrorBanner — inline error banner with optional retry
+// ─────────────────────────────────────────────────────────────────────────────
+export function ErrorBanner({ message = 'Error al cargar los datos.', onRetry, style }) {
+  const [hov, setHov] = useState(false);
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 12,
+      padding: '14px 18px', borderRadius: 12,
+      background: 'rgba(239,68,68,0.08)',
+      border: '1px solid rgba(239,68,68,0.18)',
+      fontFamily: FONT_BODY, fontSize: 14, color: ERR,
+      animation: '_dash_fadeUp 0.3s cubic-bezier(.22,1,.36,1) both',
+      ...style,
+    }}>
+      <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
+      <span style={{ flex: 1, color: 'var(--text)', fontWeight: 500 }}>{message}</span>
+      {onRetry && (
+        <button
+          onClick={onRetry}
+          onMouseEnter={() => setHov(true)}
+          onMouseLeave={() => setHov(false)}
+          style={{
+            background: hov ? ERR : 'transparent',
+            color: hov ? '#fff' : ERR,
+            border: `1px solid ${ERR}`,
+            borderRadius: 8, padding: '6px 14px',
+            fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            fontFamily: FONT_BODY, flexShrink: 0,
+            transition: 'all 150ms ease',
+          }}
+        >
+          Reintentar
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function EmptyState({
   icon = '📭',
   title = 'Sin resultados',

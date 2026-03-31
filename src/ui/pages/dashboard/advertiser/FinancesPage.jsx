@@ -2,14 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Wallet, TrendingUp, ArrowDownLeft, ArrowUpRight, Download, Plus, X, CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react'
 import apiService from '../../../../../services/api'
+import {
+  PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, BLUE,
+} from '../../../theme/tokens'
 
-const A  = '#8b5cf6'
-const AG = (o) => `rgba(139,92,246,${o})`
-const F  = "'Inter', system-ui, sans-serif"
-const D  = "'Sora', system-ui, sans-serif"
-const OK = '#10b981'
-const WARN = '#f59e0b'
-const BLUE = '#3b82f6'
 
 // ─── Status config ───────────────────────────────────────────────────────────
 const STATUS_CFG = {
@@ -39,7 +35,7 @@ const BarChart = ({ data }) => {
           >
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', width: '100%' }}>
               {(isHov || isLast) && (
-                <div style={{ fontSize: '11px', color: isLast ? A : 'var(--muted)', fontWeight: 700, textAlign: 'center', marginBottom: '4px' }}>
+                <div style={{ fontSize: '11px', color: isLast ? PURPLE : 'var(--muted)', fontWeight: 700, textAlign: 'center', marginBottom: '4px' }}>
                   €{d.value}
                 </div>
               )}
@@ -47,12 +43,12 @@ const BarChart = ({ data }) => {
                 width: '100%', borderRadius: '6px 6px 0 0', minHeight: '4px',
                 height: `${pct}%`,
                 background: isLast
-                  ? `linear-gradient(180deg, ${AG(1)} 0%, #7c3aed 100%)`
-                  : isHov ? AG(0.55) : AG(0.3),
+                  ? `linear-gradient(180deg, ${purpleAlpha(1)} 0%, #7c3aed 100%)`
+                  : isHov ? purpleAlpha(0.55) : purpleAlpha(0.3),
                 transition: 'background .15s, height .4s cubic-bezier(.4,0,.2,1)',
               }} />
             </div>
-            <span style={{ fontSize: '10px', color: isLast ? A : 'var(--muted)', fontWeight: isLast ? 600 : 400, whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: '10px', color: isLast ? PURPLE : 'var(--muted)', fontWeight: isLast ? 600 : 400, whiteSpace: 'nowrap' }}>
               {d.label}
             </span>
           </div>
@@ -69,7 +65,7 @@ function TxIcon({ type }) {
     payout:  { icon: '💸', color: OK,   bg: `${OK}12`   },
     refund:  { icon: '↩️', color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
     recarga: { icon: '💳', color: OK,   bg: `${OK}12`   },
-    cargo:   { icon: '📢', color: A,    bg: AG(0.1)     },
+    cargo:   { icon: '📢', color: PURPLE,    bg: purpleAlpha(0.1)     },
   }[type] || { icon: '💰', color: '#94a3b8', bg: 'rgba(148,163,184,0.1)' }
 
   return (
@@ -117,12 +113,12 @@ const RechargeModal = ({ onClose }) => {
           <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: `${OK}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
             <CheckCircle size={28} color={OK} strokeWidth={2} />
           </div>
-          <h3 style={{ fontFamily: D, fontSize: '22px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px' }}>Recarga exitosa</h3>
+          <h3 style={{ fontFamily: FONT_DISPLAY, fontSize: '22px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px' }}>Recarga exitosa</h3>
           <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '8px', lineHeight: 1.6 }}>
-            Se han añadido <strong style={{ color: A }}>€{amount}</strong> a tu saldo disponible.
+            Se han añadido <strong style={{ color: PURPLE }}>€{amount}</strong> a tu saldo disponible.
           </p>
           <p style={{ fontSize: '13px', color: 'var(--muted2)', marginBottom: '28px' }}>El saldo está listo para usar en campañas.</p>
-          <button onClick={onClose} style={{ background: A, color: '#fff', border: 'none', borderRadius: '12px', padding: '13px 32px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: F, boxShadow: `0 4px 16px ${AG(0.35)}` }}>
+          <button onClick={onClose} style={{ background: PURPLE, color: '#fff', border: 'none', borderRadius: '12px', padding: '13px 32px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: FONT_BODY, boxShadow: `0 4px 16px ${purpleAlpha(0.35)}` }}>
             Perfecto, gracias
           </button>
         </div>
@@ -135,10 +131,10 @@ const RechargeModal = ({ onClose }) => {
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div style={{ background: 'var(--surface)', borderRadius: '22px', width: '100%', maxWidth: '440px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.45)' }}>
-        <div style={{ height: '4px', background: `linear-gradient(90deg, ${A} 0%, #7c3aed 100%)` }} />
+        <div style={{ height: '4px', background: `linear-gradient(90deg, ${PURPLE} 0%, #7c3aed 100%)` }} />
         <div style={{ padding: '24px 28px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h2 style={{ fontFamily: D, fontSize: '20px', fontWeight: 800, color: 'var(--text)' }}>Recargar saldo</h2>
+            <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '20px', fontWeight: 800, color: 'var(--text)' }}>Recargar saldo</h2>
             <p style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '3px' }}>El saldo se acredita de forma instantánea</p>
           </div>
           <button onClick={onClose} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '9px', padding: '8px', cursor: 'pointer', color: 'var(--muted)', display: 'flex' }}>
@@ -152,13 +148,13 @@ const RechargeModal = ({ onClose }) => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
               {PRESETS.map(amt => (
                 <button key={amt} onClick={() => setAmount(amt)} style={{
-                  background: amount === amt ? A : 'var(--bg)',
-                  border: `1px solid ${amount === amt ? A : 'var(--border)'}`,
+                  background: amount === amt ? PURPLE : 'var(--bg)',
+                  border: `1px solid ${amount === amt ? PURPLE : 'var(--border)'}`,
                   borderRadius: '11px', padding: '12px 8px',
-                  fontFamily: D, fontSize: '16px', fontWeight: 800,
+                  fontFamily: FONT_DISPLAY, fontSize: '16px', fontWeight: 800,
                   color: amount === amt ? '#fff' : 'var(--text)',
                   cursor: 'pointer',
-                  boxShadow: amount === amt ? `0 3px 10px ${AG(0.3)}` : 'none',
+                  boxShadow: amount === amt ? `0 3px 10px ${purpleAlpha(0.3)}` : 'none',
                   transition: 'all .15s',
                 }}>
                   €{amt}
@@ -170,7 +166,7 @@ const RechargeModal = ({ onClose }) => {
           <div>
             <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>O introduce un importe</label>
             <div style={{ position: 'relative' }}>
-              <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', fontSize: '18px', fontFamily: D, fontWeight: 700 }}>€</span>
+              <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', fontSize: '18px', fontFamily: FONT_DISPLAY, fontWeight: 700 }}>€</span>
               <input
                 type="number"
                 value={amount}
@@ -179,17 +175,17 @@ const RechargeModal = ({ onClose }) => {
                   width: '100%', boxSizing: 'border-box',
                   background: 'var(--bg)', border: '1px solid var(--border-med)',
                   borderRadius: '12px', padding: '13px 14px 13px 36px',
-                  fontSize: '20px', fontWeight: 800, color: 'var(--text)', fontFamily: D, outline: 'none',
+                  fontSize: '20px', fontWeight: 800, color: 'var(--text)', fontFamily: FONT_DISPLAY, outline: 'none',
                   transition: 'border-color .15s',
                 }}
-                onFocus={e => { e.target.style.borderColor = AG(0.5) }}
+                onFocus={e => { e.target.style.borderColor = purpleAlpha(0.5) }}
                 onBlur={e => { e.target.style.borderColor = 'var(--border-med)' }}
               />
             </div>
           </div>
 
           <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ background: AG(0.1), border: `1px solid ${AG(0.2)}`, borderRadius: '8px', padding: '7px 11px', fontSize: '12px', fontWeight: 800, color: A, letterSpacing: '0.05em' }}>VISA</div>
+            <div style={{ background: purpleAlpha(0.1), border: `1px solid ${purpleAlpha(0.2)}`, borderRadius: '8px', padding: '7px 11px', fontSize: '12px', fontWeight: 800, color: PURPLE, letterSpacing: '0.05em' }}>VISA</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>•••• •••• •••• 4242</div>
               <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Expira 12/2027</div>
@@ -198,7 +194,7 @@ const RechargeModal = ({ onClose }) => {
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button onClick={onClose} style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '11px', padding: '13px', fontSize: '14px', cursor: 'pointer', color: 'var(--text)', fontFamily: F }}>
+            <button onClick={onClose} style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '11px', padding: '13px', fontSize: '14px', cursor: 'pointer', color: 'var(--text)', fontFamily: FONT_BODY }}>
               Cancelar
             </button>
             {error && (
@@ -209,7 +205,7 @@ const RechargeModal = ({ onClose }) => {
             <button
               onClick={handleRecharge}
               disabled={processing}
-              style={{ flex: 2, background: processing ? AG(0.6) : A, border: 'none', borderRadius: '11px', padding: '13px', fontSize: '14px', fontWeight: 700, cursor: processing ? 'not-allowed' : 'pointer', color: '#fff', fontFamily: F, boxShadow: `0 4px 14px ${AG(0.35)}`, transition: 'transform .15s' }}
+              style={{ flex: 2, background: processing ? purpleAlpha(0.6) : A, border: 'none', borderRadius: '11px', padding: '13px', fontSize: '14px', fontWeight: 700, cursor: processing ? 'not-allowed' : 'pointer', color: '#fff', fontFamily: FONT_BODY, boxShadow: `0 4px 14px ${purpleAlpha(0.35)}`, transition: 'transform .15s' }}
               onMouseEnter={e => { if (!processing) e.currentTarget.style.transform = 'translateY(-1px)' }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'none' }}
             >
@@ -333,7 +329,7 @@ export default function FinancesPage() {
 
   if (loading) {
     return (
-      <div style={{ fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '10px', color: 'var(--muted)' }}>
+      <div style={{ fontFamily: FONT_BODY, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '10px', color: 'var(--muted)' }}>
         <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
         <span>Cargando finanzas...</span>
         <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
@@ -342,19 +338,19 @@ export default function FinancesPage() {
   }
 
   return (
-    <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: '26px', maxWidth: '1100px' }}>
+    <div style={{ fontFamily: FONT_BODY, display: 'flex', flexDirection: 'column', gap: '26px', maxWidth: '1100px' }}>
 
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
         <div>
-          <h1 style={{ fontFamily: D, fontSize: '28px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.04em', marginBottom: '4px' }}>Finanzas</h1>
+          <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: '28px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.04em', marginBottom: '4px' }}>Finanzas</h1>
           <p style={{ fontSize: '14px', color: 'var(--muted)' }}>Controla tu saldo, gasto y métodos de pago</p>
         </div>
         <button
           onClick={() => setShowRecharge(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', background: A, color: '#fff', border: 'none', borderRadius: '12px', padding: '11px 22px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', fontFamily: F, boxShadow: `0 4px 16px ${AG(0.35)}`, transition: 'transform .15s, box-shadow .15s' }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${AG(0.4)}` }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 4px 16px ${AG(0.35)}` }}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', background: PURPLE, color: '#fff', border: 'none', borderRadius: '12px', padding: '11px 22px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', fontFamily: FONT_BODY, boxShadow: `0 4px 16px ${purpleAlpha(0.35)}`, transition: 'transform .15s, box-shadow .15s' }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${purpleAlpha(0.4)}` }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 4px 16px ${purpleAlpha(0.35)}` }}
         >
           <Plus size={16} strokeWidth={2.5} /> Recargar saldo
         </button>
@@ -364,18 +360,18 @@ export default function FinancesPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1.2fr) repeat(3, 1fr)', gap: '14px' }}>
 
         {/* Balance hero card */}
-        <div style={{ background: `linear-gradient(135deg, ${A} 0%, #7c3aed 100%)`, borderRadius: '18px', padding: '24px', color: '#fff', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, #7c3aed 100%)`, borderRadius: '18px', padding: '24px', color: '#fff', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
           <div style={{ position: 'absolute', bottom: '-30px', right: '20px', width: '70px', height: '70px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
           <Wallet size={20} color="rgba(255,255,255,0.7)" style={{ marginBottom: '12px' }} />
           <div style={{ fontSize: '13px', opacity: 0.8, marginBottom: '6px' }}>Saldo en escrow</div>
-          <div style={{ fontFamily: D, fontSize: '38px', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '8px' }}>
+          <div style={{ fontFamily: FONT_DISPLAY, fontSize: '38px', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '8px' }}>
             €{Math.abs(balance).toLocaleString('es')}
           </div>
           <div style={{ fontSize: '12px', opacity: 0.7 }}>Fondos retenidos en campañas activas</div>
           <button
             onClick={() => setShowRecharge(true)}
-            style={{ marginTop: '16px', background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '9px', padding: '8px 16px', fontSize: '13px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: F }}
+            style={{ marginTop: '16px', background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '9px', padding: '8px 16px', fontSize: '13px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: FONT_BODY }}
           >
             Añadir fondos →
           </button>
@@ -384,17 +380,17 @@ export default function FinancesPage() {
         {/* KPI cards */}
         {[
           { icon: TrendingUp, label: 'Gasto total', val: `€${totalSpend.toLocaleString('es')}`, sub: `${txCount} transacciones`, color: BLUE },
-          { icon: ArrowDownLeft, label: 'En escrow', val: `€${Math.abs(balance).toLocaleString('es')}`, sub: 'Retenido en campañas', color: A },
+          { icon: ArrowDownLeft, label: 'En escrow', val: `€${Math.abs(balance).toLocaleString('es')}`, sub: 'Retenido en campañas', color: PURPLE },
           { icon: ArrowUpRight, label: 'Liberado', val: `€${(isReal ? rawTx.filter(t => t.status === 'released').reduce((s,t) => s + (t.amount||0), 0) : totalSpend * 0.88).toLocaleString('es', {maximumFractionDigits: 0})}`, sub: 'Pagado a creadores', color: OK, subColor: OK },
         ].map(({ icon: Icon, label, val, sub, color, subColor }) => (
           <div key={label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', padding: '22px', transition: 'border-color .15s' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = AG(0.3) }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = purpleAlpha(0.3) }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)' }}
           >
             <div style={{ width: '38px', height: '38px', borderRadius: '11px', background: `${color}14`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
               <Icon size={17} color={color} />
             </div>
-            <div style={{ fontFamily: D, fontSize: '24px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', marginBottom: '3px' }}>{val}</div>
+            <div style={{ fontFamily: FONT_DISPLAY, fontSize: '24px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', marginBottom: '3px' }}>{val}</div>
             <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '4px' }}>{label}</div>
             <div style={{ fontSize: '11px', color: subColor || 'var(--muted2)', fontWeight: subColor ? 600 : 400 }}>{sub}</div>
           </div>
@@ -407,7 +403,7 @@ export default function FinancesPage() {
         {/* Monthly spend chart */}
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', padding: '22px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <h2 style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>Gasto mensual</h2>
+            <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>Gasto mensual</h2>
           </div>
           <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '18px' }}>Histórico de gasto en campañas</p>
           <BarChart data={monthlyData} />
@@ -415,7 +411,7 @@ export default function FinancesPage() {
 
         {/* Spending breakdown */}
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', padding: '22px' }}>
-          <h2 style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>Desglose por plataforma</h2>
+          <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>Desglose por plataforma</h2>
           <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '18px' }}>Histórico</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {platformBreakdown.map(cat => (
@@ -427,7 +423,7 @@ export default function FinancesPage() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '12px', color: 'var(--muted)' }}>{cat.pct}%</span>
-                    <span style={{ fontFamily: D, fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>€{cat.amount}</span>
+                    <span style={{ fontFamily: FONT_DISPLAY, fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>€{cat.amount}</span>
                   </div>
                 </div>
                 <div style={{ height: '5px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
@@ -438,7 +434,7 @@ export default function FinancesPage() {
           </div>
           <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: 500 }}>Total</span>
-            <span style={{ fontFamily: D, fontSize: '16px', fontWeight: 800, color: A }}>€{platformBreakdown.reduce((s, c) => s + c.amount, 0).toLocaleString('es')}</span>
+            <span style={{ fontFamily: FONT_DISPLAY, fontSize: '16px', fontWeight: 800, color: PURPLE }}>€{platformBreakdown.reduce((s, c) => s + c.amount, 0).toLocaleString('es')}</span>
           </div>
         </div>
       </div>
@@ -447,23 +443,23 @@ export default function FinancesPage() {
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
         <div style={{ padding: '18px 22px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h2 style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '2px' }}>Historial de transacciones</h2>
+            <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '2px' }}>Historial de transacciones</h2>
             <p style={{ fontSize: '12px', color: 'var(--muted)' }}>{transactions.length} movimientos registrados</p>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '9px', overflow: 'hidden' }}>
               {['todos', 'escrow', 'refund'].map(f => (
                 <button key={f} onClick={() => setTxFilter(f)} style={{
-                  background: txFilter === f ? AG(0.12) : 'transparent', border: 'none',
+                  background: txFilter === f ? purpleAlpha(0.12) : 'transparent', border: 'none',
                   padding: '6px 14px', fontSize: '12px', fontWeight: txFilter === f ? 600 : 400,
-                  color: txFilter === f ? A : 'var(--muted)', cursor: 'pointer', fontFamily: F,
+                  color: txFilter === f ? PURPLE : 'var(--muted)', cursor: 'pointer', fontFamily: FONT_BODY,
                   borderRight: f !== 'refund' ? '1px solid var(--border)' : 'none',
                 }}>
                   {f === 'todos' ? 'Todos' : f === 'escrow' ? 'Escrow' : 'Reembolsos'}
                 </button>
               ))}
             </div>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '9px', padding: '7px 14px', fontSize: '12px', fontWeight: 600, color: 'var(--muted)', cursor: 'pointer', fontFamily: F }}>
+            <button style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '9px', padding: '7px 14px', fontSize: '12px', fontWeight: 600, color: 'var(--muted)', cursor: 'pointer', fontFamily: FONT_BODY }}>
               <Download size={13} /> Exportar CSV
             </button>
           </div>
@@ -513,16 +509,16 @@ export default function FinancesPage() {
                     </td>
                     <td style={{ padding: '15px 20px' }}>
                       <span style={{
-                        background: tx.type === 'refund' ? 'rgba(239,68,68,0.1)' : AG(0.1),
+                        background: tx.type === 'refund' ? 'rgba(239,68,68,0.1)' : purpleAlpha(0.1),
                         color: tx.type === 'refund' ? '#ef4444' : A,
-                        border: `1px solid ${tx.type === 'refund' ? 'rgba(239,68,68,0.3)' : AG(0.3)}`,
+                        border: `1px solid ${tx.type === 'refund' ? 'rgba(239,68,68,0.3)' : purpleAlpha(0.3)}`,
                         borderRadius: '6px', padding: '3px 9px', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap',
                       }}>
                         {tx.type === 'escrow' ? 'Escrow' : tx.type === 'payout' ? 'Pago' : tx.type === 'refund' ? 'Reembolso' : tx.type === 'recarga' ? 'Recarga' : 'Cargo'}
                       </span>
                     </td>
                     <td style={{ padding: '15px 20px' }}>
-                      <span style={{ fontFamily: D, fontSize: '15px', fontWeight: 800, color: tx.amount > 0 ? OK : 'var(--text)', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 800, color: tx.amount > 0 ? OK : 'var(--text)', whiteSpace: 'nowrap' }}>
                         {tx.amount > 0 ? '+' : ''}€{Math.abs(tx.amount).toLocaleString('es')}
                       </span>
                     </td>
@@ -541,11 +537,11 @@ export default function FinancesPage() {
 
       {/* ── Payment methods ── */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', padding: '22px' }}>
-        <h2 style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '16px' }}>Métodos de pago</h2>
+        <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '16px' }}>Métodos de pago</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: AG(0.04), border: `1px solid ${AG(0.2)}`, borderRadius: '13px', padding: '15px 18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: purpleAlpha(0.04), border: `1px solid ${purpleAlpha(0.2)}`, borderRadius: '13px', padding: '15px 18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <div style={{ background: AG(0.12), border: `1px solid ${AG(0.25)}`, borderRadius: '9px', padding: '8px 13px', fontSize: '13px', fontWeight: 800, color: A, letterSpacing: '0.05em' }}>VISA</div>
+              <div style={{ background: purpleAlpha(0.12), border: `1px solid ${purpleAlpha(0.25)}`, borderRadius: '9px', padding: '8px 13px', fontSize: '13px', fontWeight: 800, color: PURPLE, letterSpacing: '0.05em' }}>VISA</div>
               <div>
                 <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>•••• •••• •••• 4242</div>
                 <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>Expira 12/2027 · Tarjeta principal</div>
@@ -560,12 +556,12 @@ export default function FinancesPage() {
 
           <button style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            background: 'transparent', border: `2px dashed ${AG(0.3)}`, borderRadius: '13px', padding: '15px',
-            fontSize: '13px', fontWeight: 600, color: A, cursor: 'pointer', fontFamily: F,
+            background: 'transparent', border: `2px dashed ${purpleAlpha(0.3)}`, borderRadius: '13px', padding: '15px',
+            fontSize: '13px', fontWeight: 600, color: PURPLE, cursor: 'pointer', fontFamily: FONT_BODY,
             transition: 'border-color .15s, background .15s',
           }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = A; e.currentTarget.style.background = AG(0.04) }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = AG(0.3); e.currentTarget.style.background = 'transparent' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = A; e.currentTarget.style.background = purpleAlpha(0.04) }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = purpleAlpha(0.3); e.currentTarget.style.background = 'transparent' }}
           >
             <Plus size={15} /> Añadir método de pago
           </button>

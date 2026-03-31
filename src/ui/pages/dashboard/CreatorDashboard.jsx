@@ -1,11 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-
-const A  = '#8b5cf6'
-const WA = '#25d366'
-const AG = (o) => `rgba(139,92,246,${o})`
-const F  = "'Inter', system-ui, sans-serif"
-const D  = "'Sora', system-ui, sans-serif"
+import { PURPLE as A, GREEN as WA, purpleAlpha as AG, FONT_BODY as F, FONT_DISPLAY as D } from '../../theme/tokens'
 
 const StatCard = ({ icon, label, value, sub, color }) => (
   <div style={{

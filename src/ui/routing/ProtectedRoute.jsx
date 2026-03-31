@@ -1,10 +1,7 @@
 import React from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
-
-const A  = '#8b5cf6'
-const AG = (o) => `rgba(139,92,246,${o})`
-const D  = "'Sora', system-ui, sans-serif"
+import { PURPLE as A, purpleAlpha as AG, FONT_DISPLAY as D } from '../theme/tokens'
 
 export default function ProtectedRoute({ children, allowedRoles = [] }) {
   const { isAuthenticated, loading, user } = useAuth()

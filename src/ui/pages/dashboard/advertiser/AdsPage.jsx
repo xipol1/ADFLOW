@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import apiService from '../../../../../services/api'
+import {
+  PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY,
+} from '../../../theme/tokens'
 
-const A = '#8b5cf6'
-const AG = (o) => `rgba(139,92,246,${o})`
-const F = "'Inter', system-ui, sans-serif"
-const D = "'Sora', system-ui, sans-serif"
 
 const EMPTY_FORM = {
   titulo: '',
@@ -20,7 +19,7 @@ const statusTone = (estado) => ({
   accepted: { bg: 'rgba(16,185,129,0.12)', color: '#10b981', label: 'Aprobado' },
   completed: { bg: 'rgba(148,163,184,0.16)', color: '#94a3b8', label: 'Completado' },
   rejected: { bg: 'rgba(239,68,68,0.12)', color: '#ef4444', label: 'Bloqueado' },
-}[estado] || { bg: AG(0.12), color: A, label: estado || 'Sin estado' })
+}[estado] || { bg: purpleAlpha(0.12), color: PURPLE, label: estado || 'Sin estado' })
 
 function StatusBadge({ status }) {
   const tone = statusTone(status)
@@ -59,7 +58,7 @@ function CreateAdModal({ open, onClose, channels, onCreate }) {
       <div style={{ background: 'var(--surface)', borderRadius: '20px', width: '100%', maxWidth: '720px', padding: '28px', border: '1px solid var(--border)', boxShadow: '0 24px 80px rgba(0,0,0,0.35)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
           <div>
-            <h2 style={{ fontFamily: D, fontSize: '24px', fontWeight: 800, color: 'var(--text)' }}>Nueva solicitud de publicación</h2>
+            <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '24px', fontWeight: 800, color: 'var(--text)' }}>Nueva solicitud de publicación</h2>
             <p style={{ fontSize: '14px', color: 'var(--muted)', marginTop: '4px' }}>Incluye el copy, el enlace final y las instrucciones iniciales para revisión editorial.</p>
           </div>
           <button onClick={onClose} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '10px', padding: '8px 10px', cursor: 'pointer', color: 'var(--muted)' }}>Cerrar</button>
@@ -105,12 +104,12 @@ const inputStyle = {
   padding: '12px 14px',
   fontSize: '14px',
   color: 'var(--text)',
-  fontFamily: F,
+  fontFamily: FONT_BODY,
   outline: 'none',
 }
 
 const primaryButton = {
-  background: A,
+  background: PURPLE,
   border: 'none',
   color: '#fff',
   borderRadius: '12px',
@@ -118,7 +117,7 @@ const primaryButton = {
   fontSize: '13px',
   fontWeight: 700,
   cursor: 'pointer',
-  fontFamily: F,
+  fontFamily: FONT_BODY,
 }
 
 const secondaryButton = {
@@ -129,7 +128,7 @@ const secondaryButton = {
   padding: '10px 16px',
   fontSize: '13px',
   cursor: 'pointer',
-  fontFamily: F,
+  fontFamily: FONT_BODY,
 }
 
 export default function AdsPage() {
@@ -204,12 +203,12 @@ export default function AdsPage() {
   }
 
   return (
-    <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: '22px', maxWidth: '1240px' }}>
+    <div style={{ fontFamily: FONT_BODY, display: 'flex', flexDirection: 'column', gap: '22px', maxWidth: '1240px' }}>
       <CreateAdModal open={modalOpen} onClose={() => setModalOpen(false)} channels={channels} onCreate={handleCreate} />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ fontFamily: D, fontSize: '28px', fontWeight: 800, color: 'var(--text)', marginBottom: '6px' }}>Solicitudes de publicación</h1>
+          <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: '28px', fontWeight: 800, color: 'var(--text)', marginBottom: '6px' }}>Solicitudes de publicación</h1>
           <p style={{ fontSize: '14px', color: 'var(--muted)' }}>Gestiona el copy, el enlace de destino y la conversación con admin antes de publicar.</p>
         </div>
         <button onClick={() => setModalOpen(true)} style={primaryButton}>Nueva solicitud</button>
@@ -220,7 +219,7 @@ export default function AdsPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '340px minmax(0,1fr)', gap: '18px' }}>
         <section style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
           <div style={{ padding: '16px 18px', borderBottom: '1px solid var(--border)' }}>
-            <div style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>Tus campañas</div>
+            <div style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>Tus campañas</div>
           </div>
           <div style={{ maxHeight: '720px', overflowY: 'auto' }}>
             {loading ? <div style={{ padding: '18px', color: 'var(--muted)' }}>Cargando…</div> : ads.length === 0 ? <div style={{ padding: '18px', color: 'var(--muted)' }}>Todavía no hay solicitudes creadas.</div> : ads.map((ad) => (
@@ -230,7 +229,7 @@ export default function AdsPage() {
                 style={{
                   width: '100%',
                   textAlign: 'left',
-                  background: selected?.id === ad.id ? AG(0.09) : 'transparent',
+                  background: selected?.id === ad.id ? purpleAlpha(0.09) : 'transparent',
                   border: 'none',
                   borderBottom: '1px solid var(--border)',
                   padding: '16px 18px',
@@ -257,7 +256,7 @@ export default function AdsPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', flexWrap: 'wrap' }}>
                 <div>
-                  <h2 style={{ fontFamily: D, fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '6px' }}>{selected.title}</h2>
+                  <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '6px' }}>{selected.title}</h2>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <StatusBadge status={selected.status} />
                     <span style={{ fontSize: '12px', color: 'var(--muted)' }}>{selected.channel}</span>
@@ -273,7 +272,7 @@ export default function AdsPage() {
                 <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '16px', padding: '16px' }}>
                   <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>Copy y destino</div>
                   <div style={{ fontSize: '14px', color: 'var(--text)', whiteSpace: 'pre-wrap', lineHeight: 1.7, marginBottom: '14px' }}>{selected.contenidoTexto}</div>
-                  <a href={selected.targetUrl} target="_blank" rel="noreferrer" style={{ color: A, fontSize: '13px', textDecoration: 'none', wordBreak: 'break-all' }}>{selected.targetUrl}</a>
+                  <a href={selected.targetUrl} target="_blank" rel="noreferrer" style={{ color: PURPLE, fontSize: '13px', textDecoration: 'none', wordBreak: 'break-all' }}>{selected.targetUrl}</a>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginTop: '16px' }}>
                     {Object.entries(selected.validation?.checklist || {}).map(([key, value]) => (
                       <div key={key} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px 12px' }}>
@@ -298,9 +297,9 @@ export default function AdsPage() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto', paddingRight: '4px', marginBottom: '12px' }}>
                   {selected.conversation?.length ? selected.conversation.map((message) => (
-                    <div key={message.id} style={{ background: message.autorRol === 'admin' ? AG(0.08) : 'var(--surface)', border: `1px solid ${message.autorRol === 'admin' ? AG(0.22) : 'var(--border)'}`, borderRadius: '14px', padding: '12px 14px' }}>
+                    <div key={message.id} style={{ background: message.autorRol === 'admin' ? purpleAlpha(0.08) : 'var(--surface)', border: `1px solid ${message.autorRol === 'admin' ? purpleAlpha(0.22) : 'var(--border)'}`, borderRadius: '14px', padding: '12px 14px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
-                        <div style={{ fontSize: '12px', fontWeight: 700, color: message.autorRol === 'admin' ? A : 'var(--text)' }}>{message.autorNombre || message.autorRol}</div>
+                        <div style={{ fontSize: '12px', fontWeight: 700, color: message.autorRol === 'admin' ? PURPLE : 'var(--text)' }}>{message.autorNombre || message.autorRol}</div>
                         <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{message.autorRol}</div>
                       </div>
                       <div style={{ fontSize: '13px', color: 'var(--text)', lineHeight: 1.6 }}>{message.mensaje}</div>

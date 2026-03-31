@@ -1,53 +1,24 @@
 import React, { useState, useEffect } from 'react'
 import { Download, Wallet, TrendingUp, DollarSign, ArrowUpRight, Clock } from 'lucide-react'
 import apiService from '../../../../../services/api'
+import { PURPLE, purpleAlpha, GREEN, greenAlpha, FONT_BODY, FONT_DISPLAY, OK as _OK, BLUE as _BLUE, WARN as _WARN } from '../../../theme/tokens'
+import { Sparkline, ErrorBanner } from '../shared/DashComponents'
 
-const A  = '#8b5cf6'
-const AG = (o) => `rgba(139,92,246,${o})`
-const WA = '#25d366'
-const WAG = (o) => `rgba(37,211,102,${o})`
-const F  = "'Inter', system-ui, sans-serif"
-const D  = "'Sora', system-ui, sans-serif"
-const OK = '#10b981'
-const BLUE = '#3b82f6'
-const WARN = '#f59e0b'
+const A  = PURPLE
+const AG = purpleAlpha
+const WA = GREEN
+const WAG = greenAlpha
+const F  = FONT_BODY
+const D  = FONT_DISPLAY
+const OK = _OK
+const BLUE = _BLUE
+const WARN = _WARN
 
 /* ── Animations ─────────────────────────────────────────────────────────── */
 const CSS = `
 @keyframes ce-in { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
 @keyframes ce-pulse { 0%,100%{opacity:1}50%{opacity:.5} }
 `
-
-/* ── Sparkline ─────────────────────────────────────────────────────────── */
-function Sparkline({ data, color = WA, w = 80, h = 32 }) {
-  if (!data || data.length < 2) return null
-  const max = Math.max(...data), min = Math.min(...data), rng = max - min || 1
-  const pad = 2
-  const pts = data.map((v, i) => ({
-    x: (i / (data.length - 1)) * (w - pad * 2) + pad,
-    y: h - pad - ((v - min) / rng) * (h - pad * 2),
-  }))
-  let d = `M ${pts[0].x},${pts[0].y}`
-  for (let i = 1; i < pts.length; i++) {
-    const cx1 = pts[i-1].x + (pts[i].x - pts[i-1].x) * 0.4
-    const cx2 = pts[i].x - (pts[i].x - pts[i-1].x) * 0.4
-    d += ` C ${cx1},${pts[i-1].y} ${cx2},${pts[i].y} ${pts[i].x},${pts[i].y}`
-  }
-  const gId = `cesp-${color.replace('#', '')}`
-  const fillD = `${d} L ${pts[pts.length-1].x},${h} L ${pts[0].x},${h} Z`
-  return (
-    <svg width={w} height={h} style={{ overflow: 'visible', flexShrink: 0 }}>
-      <defs>
-        <linearGradient id={gId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.22" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={fillD} fill={`url(#${gId})`} />
-      <path d={d} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  )
-}
 
 /* ── Bar chart ────────────────────────────────────────────────────────── */
 const BarChart = ({ data }) => {
@@ -364,24 +335,31 @@ export default function CreatorEarningsPage() {
   const [campaigns, setCampaigns] = useState([])
   const [channels, setChannels] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let mounted = true
     const load = async () => {
-      const [cmpRes, chRes] = await Promise.all([
-        apiService.getCreatorCampaigns().catch(() => null),
-        apiService.getMyChannels().catch(() => null),
-      ])
-      if (!mounted) return
-      const cmpData = cmpRes?.success && Array.isArray(cmpRes.data) ? cmpRes.data : []
-      const chData = chRes?.success && Array.isArray(chRes.data) ? chRes.data : []
-      setCampaigns(cmpData)
-      setChannels(chData)
-      setLoading(false)
+      try {
+        const [cmpRes, chRes] = await Promise.all([
+          apiService.getCreatorCampaigns().catch(() => null),
+          apiService.getMyChannels().catch(() => null),
+        ])
+        if (!mounted) return
+        const cmpData = cmpRes?.success && Array.isArray(cmpRes.data) ? cmpRes.data : []
+        const chData = chRes?.success && Array.isArray(chRes.data) ? chRes.data : []
+        setCampaigns(cmpData)
+        setChannels(chData)
+      } catch (err) {
+        console.error('CreatorEarningsPage load error:', err)
+        if (mounted) setFetchError('No se pudieron cargar los datos. Verifica tu conexion.')
+      }
+      if (mounted) setLoading(false)
     }
     load()
     return () => { mounted = false }
-  }, [])
+  }, [retryKey])
 
   // Period filter
   const periodStart = getPeriodStart(period)
@@ -456,6 +434,8 @@ export default function CreatorEarningsPage() {
         </button>
         </div>
       </div>
+
+      {fetchError && <ErrorBanner message={fetchError} onRetry={() => { setFetchError(null); setRetryKey(k => k + 1) }} style={{ marginBottom: '20px' }} />}
 
       {/* Period filter pills */}
       <div style={{ display: 'flex', gap: '2px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '3px', width: 'fit-content' }}>

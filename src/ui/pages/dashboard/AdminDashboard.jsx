@@ -1,10 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import apiService from '../../../../services/api'
-
-const A = '#8b5cf6'
-const AG = (o) => `rgba(139,92,246,${o})`
-const F = "'Inter', system-ui, sans-serif"
-const D = "'Sora', system-ui, sans-serif"
+import { PURPLE as A, purpleAlpha as AG, FONT_BODY as F, FONT_DISPLAY as D } from '../../theme/tokens'
+import { ErrorBanner } from './shared/DashComponents'
 
 const button = {
   background: A,
@@ -31,6 +28,8 @@ const ghost = {
 
 export default function AdminDashboard({ user }) {
   const [ads, setAds] = useState([])
+  const [fetchError, setFetchError] = useState(null)
+  const [retryKey, setRetryKey] = useState(0)
   const [selectedId, setSelectedId] = useState('')
   const [message, setMessage] = useState('')
   const [notes, setNotes] = useState('Ajustad el copy a un tono claro, sin claims absolutos y manteniendo el CTA enlazado.')
@@ -44,8 +43,10 @@ export default function AdminDashboard({ user }) {
   }
 
   useEffect(() => {
-    load().catch(() => {})
-  }, [])
+    load().catch(() => {
+      setFetchError('No se pudieron cargar los datos. Verifica tu conexion.')
+    })
+  }, [retryKey])
 
   const selected = useMemo(() => ads.find((ad) => ad.id === selectedId) || ads[0] || null, [ads, selectedId])
   const pending = useMemo(() => ads.filter((ad) => ['submitted', 'changes_requested'].includes(ad.validation?.estado)), [ads])
@@ -92,6 +93,13 @@ export default function AdminDashboard({ user }) {
         <h1 style={{ fontFamily: D, fontSize: '28px', fontWeight: 800, color: 'var(--text)', marginBottom: '6px' }}>Centro editorial y publicación</h1>
         <p style={{ fontSize: '14px', color: 'var(--muted)' }}>Revisa el copy de las marcas, conversa por chat y lanza la publicación automática cuando quede aprobado.</p>
       </div>
+
+      {fetchError && (
+        <ErrorBanner
+          message={fetchError}
+          onRetry={() => { setFetchError(null); setRetryKey(k => k + 1) }}
+        />
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '12px' }}>
         {[

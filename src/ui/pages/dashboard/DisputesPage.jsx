@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import apiService from '../../../../services/api'
+import { ErrorBanner } from './shared/DashComponents'
 
 const statusLabels = {
   open: 'Abierta',
@@ -28,6 +29,7 @@ const statusColors = {
 export default function DisputesPage() {
   const [disputes, setDisputes] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
   const [selectedDispute, setSelectedDispute] = useState(null)
   const [newMessage, setNewMessage] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -43,6 +45,7 @@ export default function DisputesPage() {
       }
     } catch (err) {
       console.error('Error loading disputes:', err)
+      setFetchError('No se pudieron cargar los datos. Verifica tu conexion.')
     } finally {
       setLoading(false)
     }
@@ -172,6 +175,13 @@ export default function DisputesPage() {
           Abrir disputa
         </button>
       </div>
+
+      {fetchError && (
+        <ErrorBanner
+          message={fetchError}
+          onRetry={() => { setFetchError(null); loadDisputes() }}
+        />
+      )}
 
       {loading ? (
         <div className="text-center py-12 text-gray-500">Cargando disputas...</div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
+import { PURPLE, PURPLE_DARK } from '../theme/tokens'
 
 export default function NavBar() {
   const { isAuthenticated, user, logout, isAnunciante, isCreador, isAdmin } = useAuth()
@@ -70,7 +71,7 @@ export default function NavBar() {
         textDecoration: 'none', color: logoColor,
         flexShrink: 0, transition: 'color .3s',
       }}>
-        Ad<span style={{ color: '#8b5cf6' }}>flow</span>
+        Ad<span style={{ color: PURPLE }}>flow</span>
       </Link>
 
       {/* Nav links + compact search */}
@@ -159,12 +160,12 @@ export default function NavBar() {
               onMouseLeave={e => e.currentTarget.style.color = linkColor}
             >Iniciar sesión</NavLink>
             <NavLink to="/auth/register" style={{
-              background: '#8b5cf6', color: '#fff',
+              background: PURPLE, color: '#fff',
               textDecoration: 'none', padding: '7px 16px',
               borderRadius: '7px', fontSize: '14px', fontWeight: 600,
               transition: 'background .15s, transform .15s',
             }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#7c3aed'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = PURPLE_DARK; e.currentTarget.style.transform = 'translateY(-1px)' }}
               onMouseLeave={e => { e.currentTarget.style.background = '#8b5cf6'; e.currentTarget.style.transform = 'none' }}
             >Registrarse</NavLink>
           </>

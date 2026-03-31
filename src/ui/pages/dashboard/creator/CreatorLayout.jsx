@@ -3,6 +3,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, Radio, Inbox, Wallet, Settings, LogOut, Menu, Bell, ShieldAlert, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../../services/api'
+import { GREEN, greenAlpha, FONT_BODY, FONT_DISPLAY, TRANSITION } from '../../../theme/tokens'
 
 class PageErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { hasError: false, error: null } }
@@ -27,11 +28,11 @@ class PageErrorBoundary extends Component {
   }
 }
 
-const A   = '#25d366'
-const AG  = (o) => `rgba(37,211,102,${o})`
-const F   = "'Inter', system-ui, sans-serif"
-const D   = "'Sora', system-ui, sans-serif"
-const TR  = 'all 250ms cubic-bezier(.4,0,.2,1)'
+const A   = GREEN
+const AG  = greenAlpha
+const F   = FONT_BODY
+const D   = FONT_DISPLAY
+const TR  = TRANSITION
 
 const NAV = [
   { to: '/creator',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
@@ -43,10 +44,13 @@ const NAV = [
 
 /* ── Sidebar nav link ──────────────────────────────────────── */
 function SidebarLink({ to, icon: Icon, label, end, collapsed, badge, pendingCount }) {
+  const [hovered, setHovered] = useState(false)
   return (
     <NavLink to={to} end={end} style={{ textDecoration: 'none' }}>
       {({ isActive }) => (
         <div
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -55,26 +59,14 @@ function SidebarLink({ to, icon: Icon, label, end, collapsed, badge, pendingCoun
             justifyContent: collapsed ? 'center' : 'flex-start',
             borderRadius: '10px',
             cursor: 'pointer',
-            background: isActive ? AG(0.12) : 'transparent',
+            background: isActive ? AG(0.12) : hovered ? 'var(--bg2)' : 'transparent',
             borderLeft: `3px solid ${isActive ? A : 'transparent'}`,
-            color: isActive ? A : 'var(--muted)',
+            color: isActive ? A : hovered ? 'var(--text)' : 'var(--muted)',
             fontFamily: F,
             fontSize: '14px',
             fontWeight: isActive ? 600 : 400,
             transition: TR,
             position: 'relative',
-          }}
-          onMouseEnter={e => {
-            if (!isActive) {
-              e.currentTarget.style.background = 'var(--bg2)'
-              e.currentTarget.style.color = 'var(--text)'
-            }
-          }}
-          onMouseLeave={e => {
-            if (!isActive) {
-              e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.color = 'var(--muted)'
-            }
           }}
         >
           <Icon size={18} strokeWidth={isActive ? 2.2 : 1.8} style={{ flexShrink: 0 }} />
@@ -180,7 +172,7 @@ export default function CreatorLayout() {
   const unreadNotifs = notifications.filter(n => !n.leida).length
 
   const onLogout = () => { logout(); navigate('/') }
-  const sw = collapsed ? 64 : 240
+  const sw = collapsed ? 68 : 240
 
   return (
     <div style={{

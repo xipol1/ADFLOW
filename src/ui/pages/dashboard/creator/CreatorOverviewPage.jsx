@@ -3,50 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import { Radio, Inbox, DollarSign, TrendingUp, Plus, ChevronRight, Clock, Check, X, Zap, Activity } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../../services/api'
+import { GREEN, greenAlpha, PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK as _OK, WARN as _WARN, BLUE as _BLUE, PLAT_COLORS } from '../../../theme/tokens'
+import { Sparkline, ErrorBanner } from '../shared/DashComponents'
 
-const WA  = '#25d366'
-const WAG = (o) => `rgba(37,211,102,${o})`
-const A   = '#8b5cf6'
-const AG  = (o) => `rgba(139,92,246,${o})`
-const F   = "'Inter', system-ui, sans-serif"
-const D   = "'Sora', system-ui, sans-serif"
-const OK  = '#10b981'
-const WARN = '#f59e0b'
-const BLUE = '#3b82f6'
-
-// ─── Platform colors ──────────────────────────────────────────────────────────
-const PLAT_COLORS = { Telegram: '#2aabee', WhatsApp: '#25d366', Discord: '#5865f2', Instagram: '#e1306c', Newsletter: WARN }
-
-// ─── Smooth sparkline ─────────────────────────────────────────────────────────
-function Sparkline({ data, color = WA, w = 80, h = 32 }) {
-  if (!data || data.length < 2) return null
-  const max = Math.max(...data), min = Math.min(...data), rng = max - min || 1
-  const pad = 2
-  const pts = data.map((v, i) => ({
-    x: (i / (data.length - 1)) * (w - pad * 2) + pad,
-    y: h - pad - ((v - min) / rng) * (h - pad * 2),
-  }))
-  let d = `M ${pts[0].x},${pts[0].y}`
-  for (let i = 1; i < pts.length; i++) {
-    const cx1 = pts[i-1].x + (pts[i].x - pts[i-1].x) * 0.4
-    const cx2 = pts[i].x - (pts[i].x - pts[i-1].x) * 0.4
-    d += ` C ${cx1},${pts[i-1].y} ${cx2},${pts[i].y} ${pts[i].x},${pts[i].y}`
-  }
-  const gId = `csp-${color.replace('#', '')}`
-  const fillD = `${d} L ${pts[pts.length-1].x},${h} L ${pts[0].x},${h} Z`
-  return (
-    <svg width={w} height={h} style={{ overflow: 'visible', flexShrink: 0 }}>
-      <defs>
-        <linearGradient id={gId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.22" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={fillD} fill={`url(#${gId})`} />
-      <path d={d} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  )
-}
+const WA  = GREEN
+const WAG = greenAlpha
+const A   = PURPLE
+const AG  = purpleAlpha
+const F   = FONT_BODY
+const D   = FONT_DISPLAY
+const OK  = _OK
+const WARN = _WARN
+const BLUE = _BLUE
 
 // ─── Bar chart ─────────────────────────────────────────────────────────────────
 function BarChart({ data, color = WA }) {
@@ -242,27 +210,34 @@ export default function CreatorOverviewPage() {
   const [requests, setRequests] = useState([])
   const [creatorCampaigns, setCreatorCampaigns] = useState([])
   const [period, setPeriod] = useState('30d')
+  const [fetchError, setFetchError] = useState(null)
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let mounted = true
     const load = async () => {
-      // Fetch all three data sources in parallel
-      const [chRes, adsRes, cmpRes] = await Promise.all([
-        apiService.getMyChannels().catch(() => null),
-        apiService.getAdsForCreator().catch(() => null),
-        apiService.getCreatorCampaigns().catch(() => null),
-      ])
-      if (!mounted) return
-      const chData = chRes?.success ? (Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || []) : []
-      const adsData = adsRes?.success && Array.isArray(adsRes.data) ? adsRes.data : []
-      const cmpData = cmpRes?.success ? (Array.isArray(cmpRes.data) ? cmpRes.data : cmpRes.data?.items || []) : []
-      setChannels(chData)
-      setRequests(adsData)
-      setCreatorCampaigns(cmpData)
+      try {
+        // Fetch all three data sources in parallel
+        const [chRes, adsRes, cmpRes] = await Promise.all([
+          apiService.getMyChannels().catch(() => null),
+          apiService.getAdsForCreator().catch(() => null),
+          apiService.getCreatorCampaigns().catch(() => null),
+        ])
+        if (!mounted) return
+        const chData = chRes?.success ? (Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || []) : []
+        const adsData = adsRes?.success && Array.isArray(adsRes.data) ? adsRes.data : []
+        const cmpData = cmpRes?.success ? (Array.isArray(cmpRes.data) ? cmpRes.data : cmpRes.data?.items || []) : []
+        setChannels(chData)
+        setRequests(adsData)
+        setCreatorCampaigns(cmpData)
+      } catch (err) {
+        console.error('CreatorOverviewPage load error:', err)
+        if (mounted) setFetchError('No se pudieron cargar los datos. Verifica tu conexion.')
+      }
     }
     load()
     return () => { mounted = false }
-  }, [])
+  }, [retryKey])
 
   const nombre  = user?.nombre || 'Creador'
   const nameFirst = nombre.split(' ')[0]
@@ -359,6 +334,8 @@ export default function CreatorOverviewPage() {
           <Plus size={16} strokeWidth={2.5} /> Registrar canal
         </button>
       </div>
+
+      {fetchError && <ErrorBanner message={fetchError} onRetry={() => { setFetchError(null); setRetryKey(k => k + 1) }} style={{ marginBottom: '20px' }} />}
 
       {/* ── Period selector ── */}
       <div style={{ display: 'flex', gap: '2px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '3px', width: 'fit-content' }}>
