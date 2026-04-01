@@ -121,7 +121,7 @@ export default function ResetPasswordPage() {
           <>
             <div style={{
               width: '56px', height: '56px', borderRadius: '16px',
-              background: `${OK}18`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 20px', fontSize: '24px',
             }}>
               ✓

@@ -3,8 +3,8 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import {
-  PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY,
-  OK, WARN, ERR, BLUE, PLATFORM_BRAND,
+  PURPLE, PURPLE_DARK, purpleAlpha, FONT_BODY, FONT_DISPLAY,
+  OK, WARN, ERR, BLUE, PLATFORM_BRAND, TRANSITION,
 } from '../../theme/tokens'
 
 const MOCK = {
@@ -32,7 +32,7 @@ const Stars = ({ rating }) => {
   const half = rating - full >= 0.5
   const empty = 5 - full - (half ? 1 : 0)
   return (
-    <span style={{ color: '#f59e0b', fontSize: '16px', letterSpacing: '1px' }}>
+    <span style={{ color: WARN, fontSize: '16px', letterSpacing: '1px' }}>
       {'★'.repeat(full)}
       {half && '★'}
       {'☆'.repeat(empty)}
@@ -211,14 +211,14 @@ export default function ChannelDetailPage() {
                   </span>
                 )}
                 <span style={{
-                  background: 'rgba(59,130,246,0.1)', color: BLUE,
+                  background: `${BLUE}1a`, color: BLUE,
                   borderRadius: '6px', padding: '3px 10px',
                   fontSize: '11px', fontWeight: 600,
                 }}>
                   {fmtNumber(miembros)} miembros
                 </span>
                 <span style={{
-                  background: 'rgba(16,185,129,0.1)', color: OK,
+                  background: `${OK}1a`, color: OK,
                   borderRadius: '6px', padding: '3px 10px',
                   fontSize: '11px', fontWeight: 600,
                 }}>
@@ -235,7 +235,7 @@ export default function ChannelDetailPage() {
             { label: 'Seguidores', value: fmtNumber(miembros), color: BLUE },
             { label: 'Engagement', value: engagement, color: OK },
             { label: 'Posts/mes', value: String(data.postsPerMonth || data.postsMes || 24), color: WARN },
-            { label: 'Rating', value: String(rating), color: '#f59e0b' },
+            { label: 'Rating', value: String(rating), color: WARN },
           ].map(s => (
             <div key={s.label} style={{
               background: 'var(--surface)', border: '1px solid var(--border)',
@@ -276,9 +276,9 @@ export default function ChannelDetailPage() {
               background: PURPLE, color: '#fff', border: 'none',
               borderRadius: '10px', padding: '14px 32px',
               fontSize: '15px', fontWeight: 700, cursor: 'pointer',
-              fontFamily: F, transition: 'all .2s',
+              fontFamily: F, transition: TRANSITION,
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#7c3aed' }}
+            onMouseEnter={e => { e.currentTarget.style.background = PURPLE_DARK }}
             onMouseLeave={e => { e.currentTarget.style.background = PURPLE }}
           >
             {isAuthenticated ? 'Contratar este canal' : 'Iniciar sesion para contratar'}

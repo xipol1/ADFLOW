@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY } from '../theme/tokens'
+import { PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, TRANSITION } from '../theme/tokens'
 
 export default function NotFoundPage() {
   return (
@@ -40,7 +40,7 @@ export default function NotFoundPage() {
             background: PURPLE, color: '#fff', borderRadius: '10px',
             padding: '12px 28px', fontSize: '14px', fontWeight: 700,
             textDecoration: 'none', fontFamily: FONT_BODY,
-            transition: 'all .2s',
+            transition: TRANSITION,
           }}>
             Volver al inicio
           </Link>
@@ -49,7 +49,7 @@ export default function NotFoundPage() {
             border: '1px solid var(--border)', borderRadius: '10px',
             padding: '12px 28px', fontSize: '14px', fontWeight: 600,
             textDecoration: 'none', fontFamily: FONT_BODY,
-            transition: 'all .2s',
+            transition: TRANSITION,
           }}>
             Explorar marketplace
           </Link>
