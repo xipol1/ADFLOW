@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Search, Zap, Megaphone, Wallet, BarChart3,
-  Settings, LogOut, Menu, Bell, X, ChevronRight, ShieldAlert,
+  Settings, LogOut, Menu, Bell, X, ChevronRight, ShieldAlert, Gift,
 } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../../services/api'
@@ -18,6 +18,7 @@ const MAIN_NAV = [
   { to: '/advertiser/campaigns', icon: BarChart3,       label: 'Mis Campañas'          },
   { to: '/advertiser/ads',      icon: Megaphone,       label: 'Solicitudes'           },
   { to: '/advertiser/finances', icon: Wallet,          label: 'Finanzas'              },
+  { to: '/advertiser/referrals', icon: Gift,            label: 'Referidos'             },
   { to: '/advertiser/disputes', icon: ShieldAlert,     label: 'Disputas'              },
 ]
 

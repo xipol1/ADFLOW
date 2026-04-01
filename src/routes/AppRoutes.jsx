@@ -19,6 +19,7 @@ import AdsPage          from '../ui/pages/dashboard/advertiser/AdsPage'
 import CampaignsPage    from '../ui/pages/dashboard/advertiser/CampaignsPage'
 import FinancesPage     from '../ui/pages/dashboard/advertiser/FinancesPage'
 import SettingsPage     from '../ui/pages/dashboard/advertiser/SettingsPage'
+import ReferralsPage   from '../ui/pages/dashboard/advertiser/ReferralsPage'
 
 // Creator dashboard suite
 import CreatorLayout        from '../ui/pages/dashboard/creator/CreatorLayout'
@@ -105,6 +106,7 @@ export default function AppRoutes() {
         <Route path="campaigns" element={<CampaignsPage />} />
         <Route path="ads"      element={<AdsPage />} />
         <Route path="finances" element={<FinancesPage />} />
+        <Route path="referrals" element={<ReferralsPage />} />
         <Route path="disputes" element={<DisputesPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>

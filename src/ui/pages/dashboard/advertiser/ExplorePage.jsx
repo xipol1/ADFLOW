@@ -503,6 +503,15 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
   const [calLoading, setCalLoading] = useState(false)
   const [selectedDates, setSelectedDates] = useState([])
 
+  // Referral credits
+  const [availableCredits, setAvailableCredits] = useState(0)
+  const [creditsUsed, setCreditsUsed] = useState(0)
+  React.useEffect(() => {
+    apiService.getReferralStats().then(res => {
+      if (res?.success) setAvailableCredits(res.data.creditsBalance || 0)
+    }).catch(() => {})
+  }, [])
+
   // Step 3: Creative
   const [content, setContent] = useState('')
   const [targetUrl, setTargetUrl] = useState('')
@@ -563,6 +572,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
   const commissionRate = getManualCommissionRate(totalFromDates)
   const platformFee = calcPlatformFee(totalFromDates, commissionRate)
   const finalPrice = calcFinalPrice(totalFromDates, commissionRate)
+  const finalToPay = Math.max(0, finalPrice - creditsUsed)
 
   // Load availability when step=1 or month changes
   React.useEffect(() => {
@@ -1072,9 +1082,37 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                   </div>
                   <div style={{ height: '1px', background: purpleAlpha(0.15), margin: '8px 0' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Total a pagar</span>
-                    <span style={{ fontSize: '18px', fontWeight: 800, color: PURPLE, fontFamily: FONT_DISPLAY }}>€{finalPrice}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Total</span>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>€{finalPrice}</span>
                   </div>
+
+                  {/* Referral credits */}
+                  {availableCredits > 0 && (
+                    <>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                        <label style={{ fontSize: '12px', color: OK, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={creditsUsed > 0} onChange={e => {
+                            setCreditsUsed(e.target.checked ? Math.min(availableCredits, finalPrice) : 0)
+                          }} style={{ accentColor: OK }} />
+                          Usar creditos (€{availableCredits.toFixed(2)} disp.)
+                        </label>
+                        {creditsUsed > 0 && <span style={{ fontSize: '12px', color: OK, fontWeight: 700 }}>-€{creditsUsed.toFixed(2)}</span>}
+                      </div>
+                      {creditsUsed > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Total a pagar</span>
+                          <span style={{ fontSize: '18px', fontWeight: 800, color: PURPLE, fontFamily: FONT_DISPLAY }}>€{finalToPay.toFixed(2)}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {availableCredits <= 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--muted)' }}>Total a pagar</span>
+                      <span style={{ fontSize: '18px', fontWeight: 800, color: PURPLE, fontFamily: FONT_DISPLAY }}>€{finalPrice}</span>
+                    </div>
+                  )}
                 </div>
               )}
 

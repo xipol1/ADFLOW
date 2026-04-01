@@ -956,6 +956,28 @@ class ApiService {
   async deleteReview(reviewId) {
     return this.request(`/reviews/${reviewId}`, { method: 'DELETE' });
   }
+
+  // ==========================================
+  // MÉTODOS DE REFERIDOS
+  // ==========================================
+
+  async getReferralStats() {
+    return this.request('/referrals/stats');
+  }
+
+  async convertReferralCredits(amount) {
+    return this.request('/referrals/convert', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    });
+  }
+
+  async applyReferralCode(code) {
+    return this.request('/referrals/apply', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    });
+  }
 }
 
 // Crear instancia única del servicio

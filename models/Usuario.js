@@ -28,9 +28,26 @@ const UsuarioSchema = new mongoose.Schema(
       endpoint: String,
       keys: { p256dh: String, auth: String },
       createdAt: { type: Date, default: Date.now },
-    }]
+    }],
+
+    // Referral system
+    referralCode: { type: String, unique: true, sparse: true, default: null },
+    referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', default: null },
+    referralCreditsBalance: { type: Number, default: 0 },
+    referralCashBalance: { type: Number, default: 0 },
+    referralTier: { type: String, enum: ['normal', 'power', 'partner'], default: 'normal' },
+    referralGMVGenerated: { type: Number, default: 0 },
+    referralCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
+
+// Generate referral code on first save if not set
+UsuarioSchema.pre('save', function(next) {
+  if (!this.referralCode) {
+    this.referralCode = this._id.toString().slice(-6).toUpperCase() + Math.random().toString(36).slice(2, 5).toUpperCase()
+  }
+  next()
+})
 
 module.exports = mongoose.models.Usuario || mongoose.model('Usuario', UsuarioSchema);

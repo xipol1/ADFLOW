@@ -1,8 +1,16 @@
 const Campaign = require('../models/Campaign');
 const Canal = require('../models/Canal');
 const Transaccion = require('../models/Transaccion');
+const Usuario = require('../models/Usuario');
 const { ensureDb } = require('../lib/ensureDb');
 const notificationService = require('../services/notificationService');
+
+// Helper: calculate referral tier
+function getReferralTier(user) {
+  if (user.referralGMVGenerated >= 20000 || user.referralCount >= 20) return 'partner'
+  if (user.referralGMVGenerated >= 5000 || user.referralCount >= 5) return 'power'
+  return 'normal'
+}
 
 const notifySafe = async (data) => {
   try { await notificationService.enviarNotificacion(data); } catch (_) { /* non-blocking */ }
@@ -303,6 +311,39 @@ const completeCampaign = async (req, res, next) => {
         canales: ['database', 'realtime'],
         prioridad: 'alta'
       });
+    }
+
+    // --- Referral credit generation ---
+    try {
+      const advertiser = await Usuario.findById(campaign.advertiser)
+      if (advertiser?.referredBy) {
+        const referrer = await Usuario.findById(advertiser.referredBy)
+        if (referrer) {
+          const creditAmount = (campaign.price || 0) * 0.05
+          if (creditAmount > 0) {
+            referrer.referralCreditsBalance += creditAmount
+            referrer.referralGMVGenerated += (campaign.price || 0)
+            referrer.referralTier = getReferralTier(referrer)
+            await referrer.save()
+
+            // Log referral transaction
+            await Transaccion.create({
+              campaign: campaign._id,
+              advertiser: advertiser._id,
+              creator: referrer._id,
+              amount: creditAmount,
+              tipo: 'referral',
+              status: 'paid',
+              paidAt: new Date(),
+              description: `Crédito referido: ${creditAmount.toFixed(2)}€ (5% de €${campaign.price})`,
+              referralCreditGenerated: creditAmount,
+              referralUserId: referrer._id,
+            })
+          }
+        }
+      }
+    } catch (refErr) {
+      console.error('Referral credit error (non-blocking):', refErr)
     }
 
     return res.json({ success: true, data: campaign });
