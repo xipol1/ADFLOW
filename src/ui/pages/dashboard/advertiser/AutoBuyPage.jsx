@@ -5,6 +5,7 @@ import apiService from '../../../../../services/api'
 import {
   PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, TRANSITION, PLATFORM_BRAND,
 } from '../../../theme/tokens'
+import { PACKS, getPackDiscount, getLaunchUrgency, getPricingBreakdown, getAutoBuyCommissionRate } from '../../../theme/pricing'
 
 
 const CATEGORIES = ['Tecnología', 'Negocios', 'Marketing', 'Ecommerce', 'Gaming', 'Fitness', 'Finanzas', 'Diseño', 'Gastronomía']
@@ -19,14 +20,6 @@ const calcEstimates = (budget) => {
 const F = FONT_BODY
 const D = FONT_DISPLAY
 
-const AUDIENCE_PACKS = [
-  { id: 'ecom', name: 'Ecommerce Growth', desc: 'Pack ideal para tiendas online y dropshipping', icon: '\u{1F6D2}', channels: 5, reach: '245K', price: 890, originalPrice: 1200, badge: 'Popular', platforms: ['whatsapp','telegram','discord'], category: 'Ecommerce' },
-  { id: 'tech', name: 'Tech Audience ES', desc: 'Audiencia tech hispanohablante de alto engagement', icon: '\u{1F4BB}', channels: 4, reach: '180K', price: 650, originalPrice: 850, badge: null, platforms: ['telegram','discord'], category: 'Tecnología' },
-  { id: 'gaming', name: 'Gaming Bundle', desc: 'Gamers activos en Discord, YouTube y Twitch', icon: '\u{1F3AE}', channels: 6, reach: '320K', price: 1100, originalPrice: 1500, badge: 'Premium', platforms: ['discord'], category: 'Gaming' },
-  { id: 'fitness', name: 'Fitness & Wellness', desc: 'Comunidades de salud, gym y nutricion', icon: '\u{1F4AA}', channels: 3, reach: '95K', price: 420, originalPrice: 550, badge: 'Nuevo', platforms: ['whatsapp','instagram'], category: 'Fitness' },
-  { id: 'mktg', name: 'Marketing Pro', desc: 'Marketers, agencias y growth hackers', icon: '\u{1F4C8}', channels: 5, reach: '210K', price: 780, originalPrice: 1050, badge: 'Popular', platforms: ['telegram','whatsapp'], category: 'Marketing' },
-  { id: 'fin', name: 'Finanzas & Crypto', desc: 'Traders, inversores y finanzas personales', icon: '\u{1F4B0}', channels: 4, reach: '150K', price: 580, originalPrice: 760, badge: null, platforms: ['telegram','discord'], category: 'Finanzas' },
-]
 
 const RECOMMENDED_CHANNELS = [
   { id: 'rec-1', name: 'Ecom Growth Hub', platform: 'WhatsApp', audience: '12.4K', price: 320, category: 'Ecommerce' },
@@ -83,6 +76,8 @@ export default function AutoBuyPage() {
   // Pack selection
   const [selectedPack, setSelectedPack] = useState(null)
 
+  const urgency = getLaunchUrgency()
+
   // Persist form draft
   useEffect(() => {
     const draft = { budget, category, mode, adText, url }
@@ -105,7 +100,7 @@ export default function AutoBuyPage() {
   }, [])
 
   const est = calcEstimates(budget)
-  const commissionRate = 0.15
+  const commissionRate = getAutoBuyCommissionRate(mode === 'auto' ? 'autobuy_optimized' : 'autobuy_basic')
   const commissionAmount = Math.round(budget * commissionRate * 100) / 100
   const netBudget = budget - commissionAmount
 
@@ -197,6 +192,26 @@ export default function AutoBuyPage() {
 
   return (
     <div style={{ fontFamily: FONT_BODY, display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1100px' }}>
+
+      {/* Launch urgency banner */}
+      {urgency.active && (
+        <div style={{
+          background: urgency.severity === 'critical'
+            ? 'linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.04) 100%)'
+            : urgency.severity === 'warning'
+              ? 'linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(245,158,11,0.04) 100%)'
+              : `linear-gradient(135deg, ${purpleAlpha(0.10)} 0%, ${purpleAlpha(0.03)} 100%)`,
+          border: `1px solid ${urgency.severity === 'critical' ? 'rgba(239,68,68,0.2)' : urgency.severity === 'warning' ? 'rgba(245,158,11,0.2)' : purpleAlpha(0.15)}`,
+          borderRadius: '12px', padding: '12px 20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+          marginBottom: '24px', fontSize: '13px', fontWeight: 600,
+          color: urgency.severity === 'critical' ? '#ef4444' : urgency.severity === 'warning' ? '#f59e0b' : PURPLE,
+          fontFamily: F,
+        }}>
+          <span style={{ fontSize: '15px' }}>{urgency.severity === 'critical' ? '\u{1F525}' : urgency.severity === 'warning' ? '\u23F0' : '\u{1F680}'}</span>
+          {urgency.message}
+        </div>
+      )}
 
       {/* Header */}
       <div>
@@ -419,7 +434,7 @@ export default function AutoBuyPage() {
             <h3 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 600, color: 'var(--text)' }}>Resumen</h3>
             {[
               { label: 'Presupuesto total', val: `€${budget.toLocaleString('es')}` },
-              { label: 'Comisión (25%)', val: `€${commissionAmount}` },
+              { label: `Comisión (${Math.round(commissionRate * 100)}%)`, val: `€${commissionAmount}` },
               { label: 'Presupuesto neto', val: `€${netBudget}` },
               { label: 'Clicks esperados', val: `~${est.clicks.toLocaleString('es')}` },
               { label: 'Impresiones', val: `~${est.impr.toLocaleString('es')}` },
@@ -460,106 +475,244 @@ export default function AutoBuyPage() {
         </div>
       </div>
 
-      {/* ── Packs de Audiencias ── */}
+      {/* ── Pricing Packs — Premium Design ── */}
       {!launched && (
-        <div style={{ marginTop: '48px', paddingTop: '40px', borderTop: '1px solid var(--border)' }}>
-          <div style={{ marginBottom: '24px' }}>
-            <h2 style={{ fontFamily: D, fontSize: '22px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>
-              Packs de Audiencias
+        <div style={{ marginTop: '56px', paddingTop: '48px', borderTop: '1px solid var(--border)' }}>
+          {/* Header */}
+          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+            <h2 style={{ fontFamily: D, fontSize: '28px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', marginBottom: '10px' }}>
+              Selecciona tu inversion
             </h2>
-            <p style={{ fontSize: '14px', color: 'var(--muted)' }}>
-              Distribuye tu publicidad en multiples canales con un solo clic. Ahorra hasta un 26% vs contratacion individual.
+            <p style={{ fontSize: '15px', color: 'var(--muted)', maxWidth: '460px', margin: '0 auto', lineHeight: 1.7 }}>
+              Accede a precios optimizados gracias a la automatizacion de Adflow
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-            {AUDIENCE_PACKS.map(pack => {
+          {/* Row 1: Starter / Growth / Pro (highlight) / Scale */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
+            {PACKS.filter(p => p.row === 1).map(pack => {
+              const discount = getPackDiscount(pack)
               const isSelected = selectedPack === pack.id
-              const discount = Math.round((1 - pack.price / pack.originalPrice) * 100)
+              const isHighlight = pack.highlight
+
               return (
                 <div key={pack.id} style={{
-                  background: 'var(--surface)', border: `1px solid ${isSelected ? PURPLE : 'var(--border)'}`,
-                  borderRadius: '16px', padding: '24px', position: 'relative',
-                  cursor: 'pointer', transition: 'all 200ms ease',
-                  boxShadow: isSelected ? `0 0 0 1px ${PURPLE}, 0 8px 24px ${purpleAlpha(0.15)}` : 'none',
-                }} onClick={() => {
-                  setSelectedPack(isSelected ? null : pack.id)
-                  if (!isSelected) {
-                    setBudget(pack.price)
-                    setCategory(pack.category)
-                    setMode('auto')
-                  }
-                }}>
+                  position: 'relative',
+                  background: isHighlight
+                    ? `linear-gradient(180deg, ${purpleAlpha(0.06)} 0%, var(--surface) 100%)`
+                    : 'var(--surface)',
+                  border: `${isHighlight ? '2px' : '1px'} solid ${isSelected ? PURPLE : isHighlight ? purpleAlpha(0.4) : 'var(--border)'}`,
+                  borderRadius: '20px',
+                  padding: isHighlight ? '28px 24px' : '24px',
+                  cursor: 'pointer',
+                  transition: 'all 250ms cubic-bezier(.4,0,.2,1)',
+                  boxShadow: isSelected
+                    ? `0 0 0 1px ${PURPLE}, 0 16px 40px ${purpleAlpha(0.2)}`
+                    : isHighlight
+                      ? `0 8px 32px ${purpleAlpha(0.12)}, 0 0 80px ${purpleAlpha(0.06)}`
+                      : 'none',
+                  transform: isSelected ? 'translateY(-2px)' : 'none',
+                }}
+                  onClick={() => {
+                    setSelectedPack(isSelected ? null : pack.id)
+                    if (!isSelected) setBudget(pack.finalPrice)
+                  }}
+                  onMouseEnter={e => {
+                    if (!isSelected) {
+                      e.currentTarget.style.transform = 'translateY(-4px)'
+                      e.currentTarget.style.boxShadow = isHighlight
+                        ? `0 16px 48px ${purpleAlpha(0.2)}, 0 0 100px ${purpleAlpha(0.08)}`
+                        : `0 12px 36px rgba(0,0,0,0.15)`
+                      e.currentTarget.style.borderColor = isHighlight ? PURPLE : 'var(--border-med)'
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!isSelected) {
+                      e.currentTarget.style.transform = 'none'
+                      e.currentTarget.style.boxShadow = isHighlight
+                        ? `0 8px 32px ${purpleAlpha(0.12)}, 0 0 80px ${purpleAlpha(0.06)}`
+                        : 'none'
+                      e.currentTarget.style.borderColor = isHighlight ? purpleAlpha(0.4) : 'var(--border)'
+                    }
+                  }}
+                >
                   {/* Badge */}
                   {pack.badge && (
-                    <span style={{
-                      position: 'absolute', top: '-8px', right: '16px',
-                      background: pack.badge === 'Popular' ? PURPLE
-                        : pack.badge === 'Premium' ? WARN
-                        : pack.badge === 'Nuevo' ? OK : 'var(--muted)',
-                      color: '#fff', borderRadius: '6px', padding: '3px 10px',
-                      fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                    }}>{pack.badge}</span>
+                    <div style={{
+                      position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)',
+                      background: `linear-gradient(135deg, ${PURPLE} 0%, #a78bfa 100%)`,
+                      color: '#fff', borderRadius: '20px', padding: '4px 16px',
+                      fontSize: '11px', fontWeight: 700, letterSpacing: '0.03em',
+                      boxShadow: `0 4px 12px ${purpleAlpha(0.3)}`,
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {pack.badge}
+                    </div>
                   )}
 
-                  {/* Icon + Name */}
-                  <div style={{ fontSize: '28px', marginBottom: '10px' }}>{pack.icon}</div>
-                  <h3 style={{ fontFamily: D, fontSize: '16px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>
+                  {/* Pack name */}
+                  <h3 style={{
+                    fontFamily: D, fontSize: '18px', fontWeight: 700,
+                    color: 'var(--text)', marginBottom: '16px',
+                    marginTop: pack.badge ? '8px' : '0',
+                  }}>
                     {pack.name}
                   </h3>
-                  <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '14px', lineHeight: 1.5 }}>
-                    {pack.desc}
-                  </p>
 
-                  {/* Stats */}
-                  <div style={{ display: 'flex', gap: '12px', marginBottom: '14px', fontSize: '12px' }}>
-                    <span style={{ color: 'var(--text)', fontWeight: 500 }}>
-                      <span style={{ color: 'var(--muted)' }}>{pack.channels}</span> canales
-                    </span>
-                    <span style={{ color: 'var(--text)', fontWeight: 500 }}>
-                      ~<span style={{ color: 'var(--muted)' }}>{pack.reach}</span> alcance
-                    </span>
+                  {/* Market price label */}
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '4px', fontWeight: 500 }}>
+                    Precio medio de mercado
                   </div>
 
-                  {/* Platform icons */}
-                  <div style={{ display: 'flex', gap: '4px', marginBottom: '16px' }}>
-                    {pack.platforms.map(p => {
-                      const pb = PLATFORM_BRAND[p]
-                      return pb ? (
-                        <span key={p} style={{
-                          background: pb.bg, color: pb.color, borderRadius: '4px',
-                          padding: '2px 6px', fontSize: '10px', fontWeight: 600,
-                        }}>{pb.label}</span>
-                      ) : null
-                    })}
-                  </div>
-
-                  {/* Price */}
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                    <span style={{ fontFamily: D, fontSize: '22px', fontWeight: 800, color: 'var(--text)' }}>{'\u20AC'}{pack.price}</span>
-                    <span style={{ fontSize: '13px', color: 'var(--muted)', textDecoration: 'line-through' }}>{'\u20AC'}{pack.originalPrice}</span>
+                  {/* Prices */}
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '6px' }}>
                     <span style={{
-                      fontSize: '11px', fontWeight: 700, color: OK,
-                      background: `${OK}18`, borderRadius: '4px', padding: '1px 6px',
-                    }}>-{discount}%</span>
+                      fontFamily: D, fontSize: '36px', fontWeight: 800,
+                      color: 'var(--text)', letterSpacing: '-1px', lineHeight: 1,
+                    }}>
+                      {'\u20AC'}{pack.finalPrice}
+                    </span>
+                    <span style={{
+                      fontSize: '16px', color: 'var(--muted2)',
+                      textDecoration: 'line-through', fontWeight: 500,
+                    }}>
+                      {'\u20AC'}{pack.marketPrice}
+                    </span>
+                  </div>
+
+                  {/* Discount badge */}
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '4px',
+                    background: 'rgba(16,185,129,0.1)', color: '#10b981',
+                    borderRadius: '6px', padding: '3px 8px',
+                    fontSize: '12px', fontWeight: 700, marginBottom: '20px',
+                  }}>
+                    -{discount}%
+                  </div>
+
+                  {/* Features */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+                    {pack.features.map(f => (
+                      <div key={f} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--muted)' }}>
+                        <span style={{ color: '#10b981', fontSize: '14px', flexShrink: 0 }}>{'\u2713'}</span>
+                        {f}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Reach + channels */}
+                  <div style={{
+                    fontSize: '12px', color: 'var(--muted)', marginBottom: '16px',
+                    display: 'flex', gap: '12px',
+                  }}>
+                    <span>{pack.channels} canales</span>
+                    <span>{pack.reach} alcance</span>
                   </div>
 
                   {/* CTA */}
                   <button style={{
-                    width: '100%', marginTop: '16px',
-                    background: isSelected ? PURPLE : 'transparent',
-                    color: isSelected ? '#fff' : PURPLE,
-                    border: `1px solid ${isSelected ? PURPLE : purpleAlpha(0.3)}`,
-                    borderRadius: '10px', padding: '10px', fontSize: '13px', fontWeight: 600,
-                    cursor: 'pointer', fontFamily: F, transition: 'all 150ms ease',
+                    width: '100%',
+                    background: isSelected ? PURPLE : isHighlight ? PURPLE : 'transparent',
+                    color: isSelected ? '#fff' : isHighlight ? '#fff' : 'var(--text)',
+                    border: `1px solid ${isSelected || isHighlight ? PURPLE : 'var(--border)'}`,
+                    borderRadius: '12px', padding: '12px', fontSize: '14px', fontWeight: 600,
+                    cursor: 'pointer', fontFamily: F,
+                    transition: 'all 200ms cubic-bezier(.4,0,.2,1)',
                   }}>
-                    {isSelected ? '\u2713 Pack seleccionado' : 'Seleccionar pack'}
+                    {isSelected ? '\u2713 Seleccionado' : 'Seleccionar'}
                   </button>
                 </div>
               )
             })}
           </div>
+
+          {/* Row 2: Performance / Dominance */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '24px' }}>
+            {PACKS.filter(p => p.row === 2).map(pack => {
+              const discount = getPackDiscount(pack)
+              const isSelected = selectedPack === pack.id
+
+              return (
+                <div key={pack.id} style={{
+                  background: 'var(--surface)', border: `1px solid ${isSelected ? PURPLE : 'var(--border)'}`,
+                  borderRadius: '20px', padding: '24px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  cursor: 'pointer', transition: 'all 250ms cubic-bezier(.4,0,.2,1)',
+                  boxShadow: isSelected ? `0 0 0 1px ${PURPLE}, 0 12px 32px ${purpleAlpha(0.15)}` : 'none',
+                  transform: isSelected ? 'translateY(-2px)' : 'none',
+                }}
+                  onClick={() => {
+                    setSelectedPack(isSelected ? null : pack.id)
+                    if (!isSelected) setBudget(pack.finalPrice)
+                  }}
+                  onMouseEnter={e => {
+                    if (!isSelected) {
+                      e.currentTarget.style.transform = 'translateY(-2px)'
+                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'
+                      e.currentTarget.style.borderColor = 'var(--border-med)'
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!isSelected) {
+                      e.currentTarget.style.transform = 'none'
+                      e.currentTarget.style.boxShadow = 'none'
+                      e.currentTarget.style.borderColor = 'var(--border)'
+                    }
+                  }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>
+                      {pack.name}
+                    </h3>
+                    <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '12px' }}>
+                      {pack.channels} canales {'\u00B7'} {pack.reach} alcance
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {pack.features.map(f => (
+                        <span key={f} style={{ fontSize: '11px', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ color: '#10b981' }}>{'\u2713'}</span> {f}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ textAlign: 'right', marginLeft: '24px', flexShrink: 0 }}>
+                    <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '2px' }}>Precio medio de mercado</div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', justifyContent: 'flex-end' }}>
+                      <span style={{ fontFamily: D, fontSize: '28px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>{'\u20AC'}{pack.finalPrice.toLocaleString()}</span>
+                      <span style={{ fontSize: '14px', color: 'var(--muted2)', textDecoration: 'line-through' }}>{'\u20AC'}{pack.marketPrice.toLocaleString()}</span>
+                    </div>
+                    <span style={{
+                      display: 'inline-flex', background: 'rgba(16,185,129,0.1)', color: '#10b981',
+                      borderRadius: '6px', padding: '2px 8px', fontSize: '11px', fontWeight: 700, marginTop: '4px',
+                    }}>-{discount}%</span>
+                  </div>
+
+                  <button style={{
+                    marginLeft: '20px',
+                    background: isSelected ? PURPLE : 'transparent',
+                    color: isSelected ? '#fff' : 'var(--text)',
+                    border: `1px solid ${isSelected ? PURPLE : 'var(--border)'}`,
+                    borderRadius: '12px', padding: '10px 20px', fontSize: '13px', fontWeight: 600,
+                    cursor: 'pointer', fontFamily: F, flexShrink: 0,
+                    transition: 'all 200ms ease',
+                  }}>
+                    {isSelected ? '\u2713' : 'Seleccionar'}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Launch notice */}
+          {urgency.active && (
+            <p style={{
+              textAlign: 'center', fontSize: '12px', color: 'var(--muted)',
+              fontStyle: 'italic', marginTop: '8px',
+            }}>
+              Precios de lanzamiento {'\u2014'} sujetos a actualizacion segun demanda
+            </p>
+          )}
         </div>
       )}
 

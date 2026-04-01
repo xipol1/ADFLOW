@@ -10,6 +10,7 @@ import apiService from '../../../../../services/api'
 import {
   PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK,
 } from '../../../theme/tokens'
+import { getManualCommissionRate, calcFinalPrice, calcPlatformFee } from '../../../theme/pricing'
 
 
 const fmtAudience = (n) => {
@@ -559,8 +560,9 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
     }, 0)
   }, [selectedDates, calData, ch.pricePerPost])
 
-  const commission = Math.round(totalFromDates * 0.15 * 100) / 100
-  const total = totalFromDates
+  const commissionRate = getManualCommissionRate(totalFromDates)
+  const platformFee = calcPlatformFee(totalFromDates, commissionRate)
+  const finalPrice = calcFinalPrice(totalFromDates, commissionRate)
 
   // Load availability when step=1 or month changes
   React.useEffect(() => {
@@ -633,6 +635,11 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
         content: fullContent,
         targetUrl: targetUrl.trim(),
         price: totalFromDates,
+        basePrice: totalFromDates,
+        finalPrice: finalPrice,
+        commissionRate: commissionRate,
+        platformFee: platformFee,
+        pricingType: 'manual',
         mediaCount: mediaFiles.length,
       }
 
@@ -761,7 +768,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
               <div style={{ display: 'inline-flex', gap: '16px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '14px 22px', margin: '16px 0 8px' }}>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</div>
-                  <div style={{ fontFamily: FONT_DISPLAY, fontSize: '18px', fontWeight: 700, color: PURPLE }}>€{totalFromDates}</div>
+                  <div style={{ fontFamily: FONT_DISPLAY, fontSize: '18px', fontWeight: 700, color: PURPLE }}>€{finalPrice}</div>
                 </div>
                 <div style={{ width: '1px', background: 'var(--border)' }} />
                 <div style={{ textAlign: 'center' }}>
@@ -812,7 +819,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                   }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  {paying ? 'Procesando...' : `Pagar €${totalFromDates} ahora`}
+                  {paying ? 'Procesando...' : `Pagar €${finalPrice} ahora`}
                 </button>
               </div>
             </>
@@ -1064,18 +1071,9 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                     })}
                   </div>
                   <div style={{ height: '1px', background: purpleAlpha(0.15), margin: '8px 0' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Subtotal ({selectedDates.length} dia{selectedDates.length > 1 ? 's' : ''})</span>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>€{totalFromDates}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Comision plataforma (15%)</span>
-                    <span style={{ fontSize: '12px', color: 'var(--muted)' }}>€{commission.toFixed(2)}</span>
-                  </div>
-                  <div style={{ height: '1px', background: purpleAlpha(0.15), margin: '6px 0' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Total a pagar</span>
-                    <span style={{ fontSize: '18px', fontWeight: 800, color: PURPLE, fontFamily: FONT_DISPLAY }}>€{total}</span>
+                    <span style={{ fontSize: '18px', fontWeight: 800, color: PURPLE, fontFamily: FONT_DISPLAY }}>€{finalPrice}</span>
                   </div>
                 </div>
               )}
@@ -1238,7 +1236,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {[
                     { l: 'Titulo', v: titulo || '-' },
-                    { l: 'Total', v: `€${totalFromDates}` },
+                    { l: 'Total', v: `€${finalPrice}` },
                     { l: 'Fechas', v: `${selectedDates.length} dia${selectedDates.length > 1 ? 's' : ''}` },
                     { l: 'Tono', v: tono },
                     ...(mediaFiles.length > 0 ? [{ l: 'Medios', v: `${mediaFiles.length} archivo${mediaFiles.length > 1 ? 's' : ''}` }] : []),
@@ -1364,7 +1362,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                   <span style={{ animation: 'hm-scale 1s infinite alternate' }}>Creando...</span>
                 ) : (
                   <>
-                    <Zap size={16} fill="#fff" /> Enviar solicitud · €{totalFromDates}
+                    <Zap size={16} fill="#fff" /> Enviar solicitud · €{finalPrice}
                   </>
                 )}
               </button>
