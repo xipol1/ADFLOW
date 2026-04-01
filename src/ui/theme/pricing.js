@@ -141,14 +141,21 @@ export function getPackDiscount(pack) {
 const LAUNCH_DURATION_DAYS = 15
 
 export function getLaunchOfferEnd() {
-  const stored = localStorage.getItem('adflow-launch-end')
-  if (stored) {
-    const date = new Date(stored)
-    if (!isNaN(date.getTime())) return date
+  if (typeof window === 'undefined') {
+    const end = new Date()
+    end.setDate(end.getDate() + LAUNCH_DURATION_DAYS)
+    return end
   }
+  try {
+    const stored = localStorage.getItem('adflow-launch-end')
+    if (stored) {
+      const date = new Date(stored)
+      if (!isNaN(date.getTime())) return date
+    }
+  } catch {}
   const end = new Date()
   end.setDate(end.getDate() + LAUNCH_DURATION_DAYS)
-  localStorage.setItem('adflow-launch-end', end.toISOString())
+  try { localStorage.setItem('adflow-launch-end', end.toISOString()) } catch {}
   return end
 }
 
@@ -169,7 +176,6 @@ export function getLaunchUrgency() {
     severity = 'critical'
   } else if (diffDays <= 5) {
     message = 'Ultimos dias para acceder a precios de lanzamiento'
-    severity: 'warning'
     severity = 'warning'
   } else {
     message = `Ofertas de lanzamiento activas — quedan ${diffDays} dias`
