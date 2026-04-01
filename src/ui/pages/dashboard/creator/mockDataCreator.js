@@ -136,3 +136,101 @@ export const MOCK_CHANNEL_ANALYTICS = {
     ],
   },
 }
+
+// ─── Creator Analytics (matches GET /api/estadisticas/creator/analytics response) ───
+const generateTimeline = (days, baseRevenue, baseCampaigns) => {
+  const timeline = []
+  const now = new Date()
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 86400000)
+    const dayOfWeek = d.getDay()
+    const weekdayMultiplier = (dayOfWeek === 0 || dayOfWeek === 6) ? 0.4 : 1 + Math.random() * 0.6
+    timeline.push({
+      date: d.toISOString().split('T')[0],
+      revenue: Math.round(baseRevenue * weekdayMultiplier * (0.7 + Math.random() * 0.6)),
+      campaigns: Math.round(baseCampaigns * weekdayMultiplier * (0.5 + Math.random())),
+    })
+  }
+  return timeline
+}
+
+export const MOCK_CREATOR_ANALYTICS = {
+  period: '30d',
+  startDate: new Date(Date.now() - 30 * 86400000).toISOString(),
+  revenueTimeline: generateTimeline(30, 85, 1.2),
+  campaignsTimeline: generateTimeline(30, 1, 1).map(d => ({
+    date: d.date,
+    completed: Math.max(0, d.campaigns),
+    total: Math.max(1, d.campaigns + Math.round(Math.random() * 0.8)),
+  })),
+  channelComparison: [
+    { channelId: 'ch1', name: 'Tech Insights ES', platform: 'telegram', revenue: 4820, campaigns: 14, avgPrice: 344 },
+    { channelId: 'ch2', name: 'Marketing Pro WA', platform: 'whatsapp', revenue: 1620, campaigns: 9, avgPrice: 180 },
+    { channelId: 'ch3', name: 'Dev & Code ES', platform: 'telegram', revenue: 760, campaigns: 2, avgPrice: 380 },
+  ],
+  topChannels: [
+    { channelId: 'ch1', name: 'Tech Insights ES', platform: 'telegram', revenue: 4820 },
+    { channelId: 'ch2', name: 'Marketing Pro WA', platform: 'whatsapp', revenue: 1620 },
+    { channelId: 'ch3', name: 'Dev & Code ES', platform: 'telegram', revenue: 760 },
+  ],
+  clickMetrics: {
+    totalClicks: 12480,
+    uniqueClicks: 8920,
+    timeline: generateTimeline(30, 420, 300).map(d => ({
+      date: d.date,
+      clicks: d.revenue,
+      uniqueClicks: Math.round(d.revenue * 0.72),
+    })),
+  },
+}
+
+// ─── Channel Deep Analytics (matches GET /api/estadisticas/channels/:id/analytics) ───
+export const MOCK_CHANNEL_DEEP_ANALYTICS = {
+  period: '30d',
+  revenueTimeline: generateTimeline(30, 120, 0.8),
+  campaignTimeline: generateTimeline(30, 0.6, 0.4).map(d => ({
+    date: d.date,
+    count: Math.max(0, d.campaigns),
+    revenue: d.revenue,
+  })),
+  ratingTimeline: Array.from({ length: 6 }, (_, i) => ({
+    month: new Date(Date.now() - (5 - i) * 30 * 86400000).toISOString().slice(0, 7),
+    avg: +(4.2 + Math.random() * 0.7).toFixed(1),
+    count: Math.round(3 + Math.random() * 8),
+  })),
+  clickAnalytics: {
+    totalClicks: 5840,
+    uniqueClicks: 4120,
+    devices: { desktop: 2340, mobile: 2920, tablet: 580 },
+    countries: [
+      { country: 'ES', clicks: 2100, pct: 36 },
+      { country: 'MX', clicks: 1170, pct: 20 },
+      { country: 'AR', clicks: 876, pct: 15 },
+      { country: 'CO', clicks: 584, pct: 10 },
+      { country: 'CL', clicks: 350, pct: 6 },
+      { country: 'PE', clicks: 292, pct: 5 },
+      { country: 'US', clicks: 234, pct: 4 },
+      { country: 'Otros', clicks: 234, pct: 4 },
+    ],
+    browsers: [
+      { browser: 'Chrome', clicks: 3504, pct: 60 },
+      { browser: 'Safari', clicks: 1168, pct: 20 },
+      { browser: 'Firefox', clicks: 584, pct: 10 },
+      { browser: 'Edge', clicks: 350, pct: 6 },
+      { browser: 'Otros', clicks: 234, pct: 4 },
+    ],
+    timeline: generateTimeline(30, 195, 140).map(d => ({
+      date: d.date,
+      clicks: d.revenue,
+      uniqueClicks: Math.round(d.revenue * 0.7),
+    })),
+  },
+  audienceGrowth: Array.from({ length: 30 }, (_, i) => {
+    const d = new Date(Date.now() - (29 - i) * 86400000)
+    return {
+      date: d.toISOString().split('T')[0],
+      estimatedReach: Math.round(32000 + i * 380 + Math.random() * 1200),
+      newFollowers: Math.round(40 + Math.random() * 80),
+    }
+  }),
+}
