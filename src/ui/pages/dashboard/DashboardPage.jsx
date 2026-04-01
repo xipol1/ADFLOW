@@ -35,6 +35,10 @@ export default function DashboardPage() {
   if (role === 'creator' || role === 'creador') {
     return <Navigate to="/creator" replace />
   }
+  // Admins → admin suite
+  if (role === 'admin') {
+    return <Navigate to="/admin" replace />
+  }
 
   const RoleDashboard = dashboardByRole[role] || AdvertiserDashboard
 

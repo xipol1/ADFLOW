@@ -38,6 +38,16 @@ import TermsPage from '../ui/pages/legal/TermsPage'
 import AboutPage from '../ui/pages/legal/AboutPage'
 import SupportPage from '../ui/pages/legal/SupportPage'
 import ForgotPasswordPage from '../ui/pages/auth/ForgotPasswordPage'
+import ResetPasswordPage from '../ui/pages/auth/ResetPasswordPage'
+import ChannelDetailPage from '../ui/pages/marketplace/ChannelDetailPage'
+import NotFoundPage from '../ui/pages/NotFoundPage'
+
+// Admin dashboard suite
+import AdminLayout from '../ui/pages/dashboard/admin/AdminLayout'
+import AdminOverviewPage from '../ui/pages/dashboard/admin/AdminOverviewPage'
+import AdminUsersPage from '../ui/pages/dashboard/admin/AdminUsersPage'
+import AdminChannelsPage from '../ui/pages/dashboard/admin/AdminChannelsPage'
+import AdminDisputesPage from '../ui/pages/dashboard/admin/AdminDisputesPage'
 
 export default function AppRoutes() {
   const { isAuthenticated } = useAuth()
@@ -48,6 +58,7 @@ export default function AppRoutes() {
       <Route path="/" element={<AppLayout />}>
         <Route index element={<LandingPage />} />
         <Route path="marketplace" element={<MarketplacePage />} />
+        <Route path="marketplace/:channelId" element={<ChannelDetailPage />} />
         <Route
           path="auth"
           element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth/login" replace />}
@@ -61,6 +72,7 @@ export default function AppRoutes() {
           element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
         />
         <Route path="auth/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="auth/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="verificar-email/:token" element={<VerifyEmailPage />} />
         <Route path="privacidad" element={<PrivacyPage />} />
         <Route path="terminos" element={<TermsPage />} />
@@ -115,7 +127,24 @@ export default function AppRoutes() {
         <Route path="settings" element={<CreatorSettingsPage />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* ── Admin dashboard — own sidebar layout ── */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index          element={<AdminOverviewPage />} />
+        <Route path="users"   element={<AdminUsersPage />} />
+        <Route path="channels" element={<AdminChannelsPage />} />
+        <Route path="disputes" element={<AdminDisputesPage />} />
+      </Route>
+
+      <Route path="*" element={<AppLayout />}>
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
     </Routes>
   )
 }
