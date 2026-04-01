@@ -105,7 +105,7 @@ export default function AutoBuyPage() {
   }, [])
 
   const est = calcEstimates(budget)
-  const commissionRate = 0.25
+  const commissionRate = 0.15
   const commissionAmount = Math.round(budget * commissionRate * 100) / 100
   const netBudget = budget - commissionAmount
 
@@ -122,9 +122,11 @@ export default function AutoBuyPage() {
       })
       if (res?.success && res.data) {
         setLaunchResult(res.data)
-        // Auto-pay the batch
-        if (res.data.batchId) {
-          await apiService.payBatch(res.data.batchId).catch(() => {})
+        // Auto-pay each campaign in the batch
+        const campaigns = res.data.campaigns || []
+        for (const c of campaigns) {
+          const cId = c._id || c.id
+          if (cId) await apiService.payCampaign(cId).catch(() => {})
         }
         setLaunched(true)
       } else {
