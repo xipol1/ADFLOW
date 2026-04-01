@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Zap, Bot, Heart, MousePointer, CheckCircle, AlertCircle } from 'lucide-react'
+import { Zap, Bot, Heart, MousePointer, CheckCircle, AlertCircle, ChevronDown, X, Users, Globe, Star, Package } from 'lucide-react'
 import apiService from '../../../../../services/api'
 import {
-  PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK,
+  PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, TRANSITION, PLATFORM_BRAND,
 } from '../../../theme/tokens'
 
 
@@ -15,6 +15,25 @@ const calcEstimates = (budget) => {
   const impr   = Math.round(clicks * 22)
   return { cpc, clicks, impr }
 }
+
+const F = FONT_BODY
+const D = FONT_DISPLAY
+
+const AUDIENCE_PACKS = [
+  { id: 'ecom', name: 'Ecommerce Growth', desc: 'Pack ideal para tiendas online y dropshipping', icon: '\u{1F6D2}', channels: 5, reach: '245K', price: 890, originalPrice: 1200, badge: 'Popular', platforms: ['whatsapp','telegram','discord'], category: 'Ecommerce' },
+  { id: 'tech', name: 'Tech Audience ES', desc: 'Audiencia tech hispanohablante de alto engagement', icon: '\u{1F4BB}', channels: 4, reach: '180K', price: 650, originalPrice: 850, badge: null, platforms: ['telegram','discord'], category: 'Tecnología' },
+  { id: 'gaming', name: 'Gaming Bundle', desc: 'Gamers activos en Discord, YouTube y Twitch', icon: '\u{1F3AE}', channels: 6, reach: '320K', price: 1100, originalPrice: 1500, badge: 'Premium', platforms: ['discord'], category: 'Gaming' },
+  { id: 'fitness', name: 'Fitness & Wellness', desc: 'Comunidades de salud, gym y nutricion', icon: '\u{1F4AA}', channels: 3, reach: '95K', price: 420, originalPrice: 550, badge: 'Nuevo', platforms: ['whatsapp','instagram'], category: 'Fitness' },
+  { id: 'mktg', name: 'Marketing Pro', desc: 'Marketers, agencias y growth hackers', icon: '\u{1F4C8}', channels: 5, reach: '210K', price: 780, originalPrice: 1050, badge: 'Popular', platforms: ['telegram','whatsapp'], category: 'Marketing' },
+  { id: 'fin', name: 'Finanzas & Crypto', desc: 'Traders, inversores y finanzas personales', icon: '\u{1F4B0}', channels: 4, reach: '150K', price: 580, originalPrice: 760, badge: null, platforms: ['telegram','discord'], category: 'Finanzas' },
+]
+
+const RECOMMENDED_CHANNELS = [
+  { id: 'rec-1', name: 'Ecom Growth Hub', platform: 'WhatsApp', audience: '12.4K', price: 320, category: 'Ecommerce' },
+  { id: 'rec-2', name: 'Tech Audience ES', platform: 'Telegram', audience: '8.2K', price: 450, category: 'Tecnología' },
+  { id: 'rec-3', name: 'Gaming Deals Hub', platform: 'Discord', audience: '15K', price: 280, category: 'Gaming' },
+  { id: 'rec-4', name: 'Fitness Daily', platform: 'WhatsApp', audience: '6.5K', price: 200, category: 'Fitness' },
+]
 
 const ModeCard = ({ icon: Icon, label, desc, badge, selected, onClick }) => (
   <button onClick={onClick} style={{
@@ -51,6 +70,39 @@ export default function AutoBuyPage() {
   const [launched, setLaunched] = useState(false)
   const [launchResult, setLaunchResult] = useState(null)
   const [error, setError] = useState('')
+
+  // Favorites lists from localStorage
+  const [favLists, setFavLists] = useState(() => JSON.parse(localStorage.getItem('adflow-fav-lists') || '[]'))
+  const [selectedListId, setSelectedListId] = useState('all')
+  const [favChannelDetails, setFavChannelDetails] = useState([])
+
+  // Manual mode
+  const [showRecommended, setShowRecommended] = useState(false)
+  const [manualChannels, setManualChannels] = useState(() => JSON.parse(localStorage.getItem('adflow-autobuy-channels') || '[]'))
+
+  // Pack selection
+  const [selectedPack, setSelectedPack] = useState(null)
+
+  // Persist form draft
+  useEffect(() => {
+    const draft = { budget, category, mode, adText, url }
+    localStorage.setItem('adflow-autobuy-draft', JSON.stringify(draft))
+  }, [budget, category, mode, adText, url])
+
+  // Restore draft on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('adflow-autobuy-draft')
+    if (saved) {
+      try {
+        const d = JSON.parse(saved)
+        if (d.budget) setBudget(d.budget)
+        if (d.category) setCategory(d.category)
+        if (d.mode) setMode(d.mode)
+        if (d.adText) setAdText(d.adText)
+        if (d.url) setUrl(d.url)
+      } catch {}
+    }
+  }, [])
 
   const est = calcEstimates(budget)
   const commissionRate = 0.25
@@ -221,8 +273,86 @@ export default function AutoBuyPage() {
               <div style={{ display: 'flex', gap: '10px' }}>
                 <ModeCard icon={Bot} label="Automático" desc="La IA elige los mejores canales para maximizar tu ROI" badge="Recomendado" selected={mode === 'auto'} onClick={() => setMode('auto')} />
                 <ModeCard icon={Heart} label="Mis favoritos" desc="Distribuye entre canales que has marcado como favoritos" selected={mode === 'fav'} onClick={() => setMode('fav')} />
-                <ModeCard icon={MousePointer} label="Manual" desc="Elige tú mismo los canales desde el explorador" selected={mode === 'manual'} onClick={() => setMode('manual')} />
+                <ModeCard icon={MousePointer} label="Manual" desc="Elige tú mismo los canales desde el explorador" selected={mode === 'manual'} onClick={() => { setMode('manual'); setShowRecommended(true) }} />
               </div>
+
+              {mode === 'fav' && (
+                <div style={{ marginTop: '16px', background: 'var(--bg)', borderRadius: '12px', border: '1px solid var(--border)', padding: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>Seleccionar lista</span>
+                    <select value={selectedListId} onChange={e => setSelectedListId(e.target.value)} style={{
+                      background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border)',
+                      borderRadius: '8px', padding: '6px 10px', fontSize: '12px', fontFamily: F,
+                    }}>
+                      {favLists.map(l => (
+                        <option key={l.id} value={l.id}>{l.icon} {l.name} ({l.channels.length})</option>
+                      ))}
+                    </select>
+                  </div>
+                  {(() => {
+                    const list = favLists.find(l => l.id === selectedListId)
+                    const channelIds = list?.channels || []
+                    if (channelIds.length === 0) return (
+                      <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)', fontSize: '13px' }}>
+                        <p style={{ marginBottom: '8px' }}>No hay canales en esta lista.</p>
+                        <button onClick={() => navigate('/advertiser/explore')} style={{
+                          background: PURPLE, color: '#fff', border: 'none', borderRadius: '8px',
+                          padding: '8px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: F,
+                        }}>Ir al explorador</button>
+                      </div>
+                    )
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {channelIds.map(id => (
+                          <div key={id} style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            padding: '8px 12px', background: 'var(--surface)', borderRadius: '8px',
+                            border: '1px solid var(--border)', fontSize: '13px',
+                          }}>
+                            <span style={{ color: 'var(--text)', fontWeight: 500 }}>Canal #{id.slice(-4)}</span>
+                            <span style={{ color: 'var(--muted)', fontSize: '11px' }}>Incluido</span>
+                          </div>
+                        ))}
+                        <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>
+                          {channelIds.length} canal{channelIds.length !== 1 ? 'es' : ''} seleccionado{channelIds.length !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    )
+                  })()}
+                </div>
+              )}
+
+              {mode === 'manual' && manualChannels.length > 0 && (
+                <div style={{ marginTop: '16px', background: 'var(--bg)', borderRadius: '12px', border: '1px solid var(--border)', padding: '16px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', marginBottom: '10px' }}>
+                    Canales seleccionados ({manualChannels.length})
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {manualChannels.map(ch => (
+                      <div key={ch.id} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '8px 12px', background: 'var(--surface)', borderRadius: '8px',
+                        border: '1px solid var(--border)', fontSize: '13px',
+                      }}>
+                        <div>
+                          <span style={{ color: 'var(--text)', fontWeight: 500 }}>{ch.name}</span>
+                          <span style={{ color: 'var(--muted)', fontSize: '11px', marginLeft: '8px' }}>{ch.platform}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontWeight: 600, fontSize: '12px' }}>{'\u20AC'}{ch.price}</span>
+                          <button onClick={() => setManualChannels(prev => prev.filter(m => m.id !== ch.id))} style={{
+                            background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '14px',
+                          }}>{'\u00D7'}</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={() => navigate('/advertiser/explore?from=autobuy')} style={{
+                    marginTop: '10px', background: 'transparent', color: PURPLE, border: `1px solid ${purpleAlpha(0.3)}`,
+                    borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: F,
+                  }}>+ Agregar mas canales</button>
+                </div>
+              )}
             </div>
           </>}
 
@@ -327,6 +457,198 @@ export default function AutoBuyPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Packs de Audiencias ── */}
+      {!launched && (
+        <div style={{ marginTop: '48px', paddingTop: '40px', borderTop: '1px solid var(--border)' }}>
+          <div style={{ marginBottom: '24px' }}>
+            <h2 style={{ fontFamily: D, fontSize: '22px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>
+              Packs de Audiencias
+            </h2>
+            <p style={{ fontSize: '14px', color: 'var(--muted)' }}>
+              Distribuye tu publicidad en multiples canales con un solo clic. Ahorra hasta un 26% vs contratacion individual.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+            {AUDIENCE_PACKS.map(pack => {
+              const isSelected = selectedPack === pack.id
+              const discount = Math.round((1 - pack.price / pack.originalPrice) * 100)
+              return (
+                <div key={pack.id} style={{
+                  background: 'var(--surface)', border: `1px solid ${isSelected ? PURPLE : 'var(--border)'}`,
+                  borderRadius: '16px', padding: '24px', position: 'relative',
+                  cursor: 'pointer', transition: 'all 200ms ease',
+                  boxShadow: isSelected ? `0 0 0 1px ${PURPLE}, 0 8px 24px ${purpleAlpha(0.15)}` : 'none',
+                }} onClick={() => {
+                  setSelectedPack(isSelected ? null : pack.id)
+                  if (!isSelected) {
+                    setBudget(pack.price)
+                    setCategory(pack.category)
+                    setMode('auto')
+                  }
+                }}>
+                  {/* Badge */}
+                  {pack.badge && (
+                    <span style={{
+                      position: 'absolute', top: '-8px', right: '16px',
+                      background: pack.badge === 'Popular' ? PURPLE
+                        : pack.badge === 'Premium' ? WARN
+                        : pack.badge === 'Nuevo' ? OK : 'var(--muted)',
+                      color: '#fff', borderRadius: '6px', padding: '3px 10px',
+                      fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}>{pack.badge}</span>
+                  )}
+
+                  {/* Icon + Name */}
+                  <div style={{ fontSize: '28px', marginBottom: '10px' }}>{pack.icon}</div>
+                  <h3 style={{ fontFamily: D, fontSize: '16px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>
+                    {pack.name}
+                  </h3>
+                  <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '14px', lineHeight: 1.5 }}>
+                    {pack.desc}
+                  </p>
+
+                  {/* Stats */}
+                  <div style={{ display: 'flex', gap: '12px', marginBottom: '14px', fontSize: '12px' }}>
+                    <span style={{ color: 'var(--text)', fontWeight: 500 }}>
+                      <span style={{ color: 'var(--muted)' }}>{pack.channels}</span> canales
+                    </span>
+                    <span style={{ color: 'var(--text)', fontWeight: 500 }}>
+                      ~<span style={{ color: 'var(--muted)' }}>{pack.reach}</span> alcance
+                    </span>
+                  </div>
+
+                  {/* Platform icons */}
+                  <div style={{ display: 'flex', gap: '4px', marginBottom: '16px' }}>
+                    {pack.platforms.map(p => {
+                      const pb = PLATFORM_BRAND[p]
+                      return pb ? (
+                        <span key={p} style={{
+                          background: pb.bg, color: pb.color, borderRadius: '4px',
+                          padding: '2px 6px', fontSize: '10px', fontWeight: 600,
+                        }}>{pb.label}</span>
+                      ) : null
+                    })}
+                  </div>
+
+                  {/* Price */}
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                    <span style={{ fontFamily: D, fontSize: '22px', fontWeight: 800, color: 'var(--text)' }}>{'\u20AC'}{pack.price}</span>
+                    <span style={{ fontSize: '13px', color: 'var(--muted)', textDecoration: 'line-through' }}>{'\u20AC'}{pack.originalPrice}</span>
+                    <span style={{
+                      fontSize: '11px', fontWeight: 700, color: OK,
+                      background: `${OK}18`, borderRadius: '4px', padding: '1px 6px',
+                    }}>-{discount}%</span>
+                  </div>
+
+                  {/* CTA */}
+                  <button style={{
+                    width: '100%', marginTop: '16px',
+                    background: isSelected ? PURPLE : 'transparent',
+                    color: isSelected ? '#fff' : PURPLE,
+                    border: `1px solid ${isSelected ? PURPLE : purpleAlpha(0.3)}`,
+                    borderRadius: '10px', padding: '10px', fontSize: '13px', fontWeight: 600,
+                    cursor: 'pointer', fontFamily: F, transition: 'all 150ms ease',
+                  }}>
+                    {isSelected ? '\u2713 Pack seleccionado' : 'Seleccionar pack'}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Recommended channels modal ── */}
+      {showRecommended && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
+          backdropFilter: 'blur(4px)',
+        }} onClick={() => setShowRecommended(false)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: 'var(--surface)', border: '1px solid var(--border)',
+            borderRadius: '20px', padding: '32px', maxWidth: '520px', width: '100%',
+            boxShadow: '0 24px 60px rgba(0,0,0,0.35)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div>
+                <h3 style={{ fontFamily: D, fontSize: '18px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>Recomendados para ti</h3>
+                <p style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>Canales sugeridos para la categoria "{category}"</p>
+              </div>
+              <button onClick={() => setShowRecommended(false)} style={{
+                background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', padding: '4px',
+              }}><X size={18} /></button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+              {RECOMMENDED_CHANNELS.filter(c => !category || c.category === category || category === 'Todas').slice(0, 4).map(ch => {
+                const selected = manualChannels.find(m => m.id === ch.id)
+                return (
+                  <div key={ch.id} onClick={() => {
+                    if (selected) setManualChannels(prev => prev.filter(m => m.id !== ch.id))
+                    else setManualChannels(prev => [...prev, ch])
+                  }} style={{
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                    padding: '12px 14px', background: selected ? purpleAlpha(0.06) : 'var(--bg)',
+                    border: `1px solid ${selected ? purpleAlpha(0.25) : 'var(--border)'}`,
+                    borderRadius: '10px', cursor: 'pointer', transition: 'all 150ms ease',
+                  }}>
+                    <div style={{
+                      width: '36px', height: '36px', borderRadius: '10px',
+                      background: (PLATFORM_BRAND[ch.platform.toLowerCase()] || {}).bg || purpleAlpha(0.1),
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '14px', fontWeight: 700,
+                      color: (PLATFORM_BRAND[ch.platform.toLowerCase()] || {}).color || PURPLE,
+                    }}>{ch.name.slice(0,2).toUpperCase()}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>{ch.name}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{ch.platform} {'\u00B7'} {ch.audience} seguidores</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>{'\u20AC'}{ch.price}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--muted)' }}>/post</div>
+                    </div>
+                    <div style={{
+                      width: '20px', height: '20px', borderRadius: '50%',
+                      border: `2px solid ${selected ? PURPLE : 'var(--border)'}`,
+                      background: selected ? PURPLE : 'transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0,
+                    }}>
+                      {selected && <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700 }}>{'\u2713'}</span>}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => {
+                localStorage.setItem('adflow-autobuy-channels', JSON.stringify(manualChannels))
+                setShowRecommended(false)
+              }} style={{
+                flex: 1, background: PURPLE, color: '#fff', border: 'none', borderRadius: '10px',
+                padding: '12px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', fontFamily: F,
+              }}>
+                Seleccionar ({manualChannels.length})
+              </button>
+              <button onClick={() => {
+                localStorage.setItem('adflow-autobuy-channels', JSON.stringify(manualChannels))
+                setShowRecommended(false)
+                navigate('/advertiser/explore?from=autobuy')
+              }} style={{
+                flex: 1, background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)',
+                borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', fontFamily: F,
+              }}>
+                Ir al explorador
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
