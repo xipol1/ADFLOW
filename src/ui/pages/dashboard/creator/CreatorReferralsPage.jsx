@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Copy, Check, Users, DollarSign, TrendingUp, Gift, ChevronRight, ArrowUpRight } from 'lucide-react'
 import apiService from '../../../../../services/api'
 import {
-  PURPLE, PURPLE_DARK, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE, TRANSITION,
+  GREEN, GREEN_DARK, greenAlpha, PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE, TRANSITION,
 } from '../../../theme/tokens'
 
 
@@ -43,8 +43,8 @@ function EarningsChart({ data }) {
                 width: '100%', borderRadius: '6px 6px 0 0', minHeight: '4px',
                 height: `${Math.max(pct, 3)}%`,
                 background: isLast
-                  ? `linear-gradient(180deg, ${purpleAlpha(1)} 0%, ${PURPLE_DARK} 100%)`
-                  : isHov ? purpleAlpha(0.55) : purpleAlpha(0.25),
+                  ? `linear-gradient(180deg, ${greenAlpha(1)} 0%, ${PURPLE_DARK} 100%)`
+                  : isHov ? greenAlpha(0.55) : greenAlpha(0.25),
                 transition: 'background .15s, height .4s cubic-bezier(.4,0,.2,1)',
               }} />
             </div>
@@ -72,19 +72,19 @@ function KpiCard({ icon: Icon, label, value, color }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         background: 'var(--surface)',
-        border: `1px solid ${hovered ? purpleAlpha(0.35) : 'var(--border)'}`,
+        border: `1px solid ${hovered ? greenAlpha(0.35) : 'var(--border)'}`,
         borderRadius: '16px',
         padding: '24px',
         display: 'flex', flexDirection: 'column', gap: '14px',
         transition: 'border-color .2s, box-shadow .2s, transform .2s',
         transform: hovered ? 'translateY(-2px)' : 'none',
-        boxShadow: hovered ? `0 8px 32px ${purpleAlpha(0.1)}` : '0 1px 4px rgba(0,0,0,0.06)',
+        boxShadow: hovered ? `0 8px 32px ${greenAlpha(0.1)}` : '0 1px 4px rgba(0,0,0,0.06)',
         cursor: 'default', position: 'relative', overflow: 'hidden',
       }}
     >
       <div style={{
         position: 'absolute', inset: 0, borderRadius: '16px',
-        background: hovered ? purpleAlpha(0.03) : 'transparent',
+        background: hovered ? greenAlpha(0.03) : 'transparent',
         transition: 'background .2s', pointerEvents: 'none',
       }} />
 
@@ -140,7 +140,7 @@ function Skeleton({ w = '100%', h = 16, r = 8, style: extra }) {
 
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export default function ReferralsPage() {
+export default function CreatorReferralsPage() {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
@@ -286,7 +286,7 @@ export default function ReferralsPage() {
           paddingTop: '16px', borderTop: '1px solid var(--border)', marginTop: '8px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: PURPLE }} />
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: GREEN }} />
             <span style={{ fontSize: '13px', color: 'var(--muted)', fontFamily: F }}>
               Creditos disponibles: <span style={{ color: 'var(--text)', fontWeight: 600 }}>€{data.creditsBalance.toFixed(2)}</span>
             </span>
@@ -324,7 +324,7 @@ export default function ReferralsPage() {
                   disabled={converting || !convertAmount}
                   style={{
                     padding: '10px 20px', borderRadius: '10px', border: 'none',
-                    background: converting ? purpleAlpha(0.5) : PURPLE,
+                    background: converting ? greenAlpha(0.5) : PURPLE,
                     color: '#fff', fontSize: '14px', fontWeight: 600, fontFamily: F,
                     cursor: converting ? 'wait' : 'pointer',
                     transition: TRANSITION, opacity: !convertAmount ? 0.5 : 1,
@@ -349,7 +349,7 @@ export default function ReferralsPage() {
             <div style={{
               fontSize: '13px', color: 'var(--muted)', fontFamily: F,
               padding: '12px 16px', borderRadius: '10px',
-              background: purpleAlpha(0.06), border: `1px solid ${purpleAlpha(0.12)}`,
+              background: greenAlpha(0.06), border: `1px solid ${greenAlpha(0.12)}`,
             }}>
               <Gift size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} color={PURPLE} />
               Gana creditos para lanzar campanas gratis
@@ -360,14 +360,14 @@ export default function ReferralsPage() {
 
       {/* ── Referral Link Card ─────────────────────────────────────────────── */}
       <div style={{
-        background: `linear-gradient(135deg, ${purpleAlpha(0.08)} 0%, ${purpleAlpha(0.03)} 100%)`,
-        border: `1px solid ${purpleAlpha(0.18)}`,
+        background: `linear-gradient(135deg, ${greenAlpha(0.08)} 0%, ${greenAlpha(0.03)} 100%)`,
+        border: `1px solid ${greenAlpha(0.18)}`,
         borderRadius: '16px', padding: '24px', marginBottom: '24px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
           <div style={{
             width: '36px', height: '36px', borderRadius: '10px',
-            background: purpleAlpha(0.15), display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: greenAlpha(0.15), display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <Users size={18} color={PURPLE} />
           </div>
@@ -446,7 +446,7 @@ export default function ReferralsPage() {
                   border: isActive ? 'none' : '2px solid var(--border)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   zIndex: 1, position: 'relative',
-                  boxShadow: isCurrent ? `0 0 0 4px ${purpleAlpha(0.2)}` : 'none',
+                  boxShadow: isCurrent ? `0 0 0 4px ${greenAlpha(0.2)}` : 'none',
                   transition: 'box-shadow .3s, background .3s',
                 }}>
                   {isActive ? (
@@ -482,15 +482,15 @@ export default function ReferralsPage() {
           <div style={{
             fontSize: '13px', color: 'var(--muted)', fontFamily: F,
             padding: '12px 16px', borderRadius: '10px',
-            background: purpleAlpha(0.06), border: `1px solid ${purpleAlpha(0.12)}`,
+            background: greenAlpha(0.06), border: `1px solid ${greenAlpha(0.12)}`,
             display: 'flex', alignItems: 'center', gap: '8px',
           }}>
             <ChevronRight size={14} color={PURPLE} />
             <span>
               {data.tierProgress.referralsNeeded > 0 ? (
-                <>Te faltan <strong style={{ color: PURPLE }}>{data.tierProgress.referralsNeeded} referidos</strong> para desbloquear <strong style={{ color: 'var(--text)' }}>{data.tierProgress.nextTier.charAt(0).toUpperCase() + data.tierProgress.nextTier.slice(1)}</strong></>
+                <>Te faltan <strong style={{ color: GREEN }}>{data.tierProgress.referralsNeeded} referidos</strong> para desbloquear <strong style={{ color: 'var(--text)' }}>{data.tierProgress.nextTier.charAt(0).toUpperCase() + data.tierProgress.nextTier.slice(1)}</strong></>
               ) : data.tierProgress.gmvNeeded > 0 ? (
-                <>Genera <strong style={{ color: PURPLE }}>€{data.tierProgress.gmvNeeded?.toLocaleString()}</strong> en campanas de tus referidos para desbloquear <strong style={{ color: 'var(--text)' }}>{data.tierProgress.nextTier.charAt(0).toUpperCase() + data.tierProgress.nextTier.slice(1)}</strong></>
+                <>Genera <strong style={{ color: GREEN }}>€{data.tierProgress.gmvNeeded?.toLocaleString()}</strong> en campanas de tus referidos para desbloquear <strong style={{ color: 'var(--text)' }}>{data.tierProgress.nextTier.charAt(0).toUpperCase() + data.tierProgress.nextTier.slice(1)}</strong></>
               ) : null}
             </span>
           </div>
@@ -507,8 +507,8 @@ export default function ReferralsPage() {
             Tus referidos
           </h2>
           <span style={{
-            fontSize: '12px', fontWeight: 600, color: PURPLE, fontFamily: F,
-            padding: '4px 10px', borderRadius: '20px', background: purpleAlpha(0.1),
+            fontSize: '12px', fontWeight: 600, color: GREEN, fontFamily: F,
+            padding: '4px 10px', borderRadius: '20px', background: greenAlpha(0.1),
           }}>
             {data.referrals.length}
           </span>
@@ -520,7 +520,7 @@ export default function ReferralsPage() {
           }}>
             <div style={{
               width: '56px', height: '56px', borderRadius: '16px',
-              background: purpleAlpha(0.08), display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: greenAlpha(0.08), display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 16px',
             }}>
               <Users size={24} color={PURPLE} strokeWidth={1.5} />
@@ -576,15 +576,15 @@ function ReferralRow({ referral, isLast }) {
         display: 'grid', gridTemplateColumns: '2fr 1fr 100px',
         padding: '14px 16px', alignItems: 'center',
         borderBottom: isLast ? 'none' : '1px solid var(--border)',
-        background: hovered ? purpleAlpha(0.03) : 'transparent',
+        background: hovered ? greenAlpha(0.03) : 'transparent',
         transition: 'background .15s',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <div style={{
           width: '32px', height: '32px', borderRadius: '50%',
-          background: purpleAlpha(0.12), display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '13px', fontWeight: 700, color: PURPLE, fontFamily: D,
+          background: greenAlpha(0.12), display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '13px', fontWeight: 700, color: GREEN, fontFamily: D,
         }}>
           {(referral.name || referral.email || '?').charAt(0).toUpperCase()}
         </div>
