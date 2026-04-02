@@ -270,8 +270,6 @@ const safeMount = (mountPath, modulePath) => {
 
   if (mountError) {
     console.error(`SAFE MOUNT ERROR (${mountPath} -> ${modulePath}):`, mountError.message || mountError);
-  } else {
-    console.warn(`SAFE MOUNT SKIP (${mountPath}): preloaded value is`, typeof preloaded, preloaded);
   }
 
   app.use(mountPath, (req, res) => {
