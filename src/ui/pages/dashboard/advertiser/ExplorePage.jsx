@@ -1,15 +1,16 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Search, X, CheckCircle, Users, TrendingUp, Star, Grid, List,
   Filter, SlidersHorizontal, ChevronDown, ExternalLink, Zap,
-  ImagePlus, Trash2, FileImage,
+  ImagePlus, Trash2, FileImage, Heart,
 } from 'lucide-react'
 import { PLATFORM_COLORS } from './mockData'
 import apiService from '../../../../../services/api'
 import {
   PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK,
 } from '../../../theme/tokens'
+import { getManualCommissionRate, calcFinalPrice, calcPlatformFee } from '../../../theme/pricing'
 
 
 const fmtAudience = (n) => {
@@ -47,7 +48,7 @@ const StarRating = ({ rating = 4.7 }) => (
 )
 
 // ─── Grid channel card ─────────────────────────────────────────────────────────
-const ChannelCardGrid = ({ ch, onDetail, onHire }) => {
+const ChannelCardGrid = ({ ch, onDetail, onHire, isInAnyList, toggleFavorite, showListDropdown, setShowListDropdown, favLists, addToList, showCreateList, setShowCreateList, newListIcon, setNewListIcon, newListName, setNewListName, createList, fromAutoBuy, autobuySelected, toggleAutobuyChannel }) => {
   const [hovered, setHovered] = useState(false)
   const platColor = PLATFORM_COLORS[ch.platform] || PURPLE
 
@@ -70,8 +71,103 @@ const ChannelCardGrid = ({ ch, onDetail, onHire }) => {
       {/* Color bar */}
       <div style={{ height: '3px', background: platColor }} />
 
+      {/* Favorite controls */}
+      <div style={{ position: 'relative', padding: '8px 8px 0 8px', display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
+        {fromAutoBuy && (
+          <button
+            onClick={(e) => { e.stopPropagation(); toggleAutobuyChannel(ch) }}
+            style={{
+              background: autobuySelected?.find(c => c.id === ch.id) ? purpleAlpha(0.15) : 'var(--bg)',
+              border: `1px solid ${autobuySelected?.find(c => c.id === ch.id) ? PURPLE : 'var(--border)'}`,
+              borderRadius: '6px', padding: '4px 10px', fontSize: '11px', fontWeight: 600,
+              color: autobuySelected?.find(c => c.id === ch.id) ? PURPLE : 'var(--muted)',
+              cursor: 'pointer', fontFamily: FONT_BODY, display: 'flex', alignItems: 'center', gap: '4px',
+            }}
+          >
+            <Zap size={11} /> {autobuySelected?.find(c => c.id === ch.id) ? 'Seleccionado' : 'Seleccionar'}
+          </button>
+        )}
+        <button
+          onClick={(e) => { e.stopPropagation(); setShowListDropdown(showListDropdown === ch.id ? null : ch.id) }}
+          style={{
+            background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '50%',
+            width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', fontSize: '14px', color: 'var(--muted)',
+          }}
+        >+</button>
+        <button
+          onClick={(e) => { e.stopPropagation(); toggleFavorite(ch.id) }}
+          style={{
+            background: isInAnyList(ch.id) ? 'rgba(239,68,68,0.9)' : 'var(--bg)',
+            border: `1px solid ${isInAnyList(ch.id) ? 'rgba(239,68,68,0.9)' : 'var(--border)'}`,
+            borderRadius: '50%', width: '28px', height: '28px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', transition: 'all 150ms ease',
+          }}
+        >
+          <Heart size={14} fill={isInAnyList(ch.id) ? '#fff' : 'none'} color={isInAnyList(ch.id) ? '#fff' : 'var(--muted)'} strokeWidth={2} />
+        </button>
+
+        {/* List dropdown */}
+        {showListDropdown === ch.id && (
+          <div style={{
+            position: 'absolute', top: '40px', right: '8px', zIndex: 20,
+            background: 'var(--surface)', border: '1px solid var(--border)',
+            borderRadius: '12px', padding: '8px', minWidth: '200px',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--muted)', padding: '4px 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Agregar a lista</div>
+            {favLists.map(list => (
+              <button key={list.id} onClick={() => addToList(ch.id, list.id)} style={{
+                display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
+                padding: '8px', background: list.channels.includes(ch.id) ? purpleAlpha(0.08) : 'transparent',
+                border: 'none', borderRadius: '8px', cursor: 'pointer',
+                fontSize: '13px', color: 'var(--text)', fontFamily: FONT_BODY, textAlign: 'left',
+              }}>
+                <span>{list.icon}</span>
+                <span style={{ flex: 1 }}>{list.name}</span>
+                {list.channels.includes(ch.id) && <span style={{ color: PURPLE, fontSize: '12px' }}>&#10003;</span>}
+              </button>
+            ))}
+            <div style={{ borderTop: '1px solid var(--border)', marginTop: '4px', paddingTop: '4px' }}>
+              {!showCreateList ? (
+                <button onClick={() => setShowCreateList(true)} style={{
+                  display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
+                  padding: '8px', background: 'transparent', border: 'none', borderRadius: '8px',
+                  cursor: 'pointer', fontSize: '13px', color: PURPLE, fontFamily: FONT_BODY,
+                }}>
+                  + Crear nueva lista
+                </button>
+              ) : (
+                <div style={{ padding: '8px' }}>
+                  <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+                    {['\ud83d\udccb','\ud83c\udfaf','\ud83d\udc8e','\ud83d\ude80','\ud83d\udca1','\ud83c\udfc6'].map(e => (
+                      <button key={e} onClick={() => setNewListIcon(e)} style={{
+                        background: newListIcon === e ? purpleAlpha(0.15) : 'transparent',
+                        border: `1px solid ${newListIcon === e ? PURPLE : 'var(--border)'}`,
+                        borderRadius: '6px', padding: '4px', cursor: 'pointer', fontSize: '14px',
+                      }}>{e}</button>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <input value={newListName} onChange={e => setNewListName(e.target.value)} placeholder="Nombre..." style={{
+                      flex: 1, padding: '6px 8px', fontSize: '12px', background: 'var(--bg)', color: 'var(--text)',
+                      border: '1px solid var(--border)', borderRadius: '6px', outline: 'none', fontFamily: FONT_BODY,
+                    }} />
+                    <button onClick={createList} style={{
+                      background: PURPLE, color: '#fff', border: 'none', borderRadius: '6px',
+                      padding: '6px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer',
+                    }}>Crear</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Card body */}
-      <div style={{ padding: '18px', flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ padding: '0 18px 18px 18px', flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
         {/* Header row */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
@@ -161,7 +257,7 @@ const ChannelCardGrid = ({ ch, onDetail, onHire }) => {
 }
 
 // ─── List channel row ──────────────────────────────────────────────────────────
-const ChannelRowList = ({ ch, onDetail, onHire, isLast }) => {
+const ChannelRowList = ({ ch, onDetail, onHire, isLast, isInAnyList, toggleFavorite }) => {
   const [hovered, setHovered] = useState(false)
   const platColor = PLATFORM_COLORS[ch.platform] || PURPLE
 
@@ -209,7 +305,19 @@ const ChannelRowList = ({ ch, onDetail, onHire, isLast }) => {
       </div>
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: '7px', flexShrink: 0 }}>
+      <div style={{ display: 'flex', gap: '7px', flexShrink: 0, alignItems: 'center' }}>
+        <button
+          onClick={() => toggleFavorite(ch.id)}
+          style={{
+            background: isInAnyList(ch.id) ? 'rgba(239,68,68,0.9)' : 'var(--bg)',
+            border: `1px solid ${isInAnyList(ch.id) ? 'rgba(239,68,68,0.9)' : 'var(--border)'}`,
+            borderRadius: '50%', width: '30px', height: '30px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', transition: 'all 150ms ease', flexShrink: 0,
+          }}
+        >
+          <Heart size={14} fill={isInAnyList(ch.id) ? '#fff' : 'none'} color={isInAnyList(ch.id) ? '#fff' : 'var(--muted)'} strokeWidth={2} />
+        </button>
         <button onClick={() => onDetail(ch)} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '9px', padding: '7px 12px', fontSize: '12px', fontWeight: 600, color: 'var(--text)', cursor: 'pointer', fontFamily: FONT_BODY }}>Ver</button>
         <button onClick={() => onHire(ch)} style={{ background: PURPLE, border: 'none', borderRadius: '9px', padding: '7px 14px', fontSize: '12px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: FONT_BODY }}>Contratar</button>
       </div>
@@ -395,6 +503,15 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
   const [calLoading, setCalLoading] = useState(false)
   const [selectedDates, setSelectedDates] = useState([])
 
+  // Referral credits
+  const [availableCredits, setAvailableCredits] = useState(0)
+  const [creditsUsed, setCreditsUsed] = useState(0)
+  React.useEffect(() => {
+    apiService.getReferralStats().then(res => {
+      if (res?.success) setAvailableCredits(res.data.creditsBalance || 0)
+    }).catch(() => {})
+  }, [])
+
   // Step 3: Creative
   const [content, setContent] = useState('')
   const [targetUrl, setTargetUrl] = useState('')
@@ -452,8 +569,10 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
     }, 0)
   }, [selectedDates, calData, ch.pricePerPost])
 
-  const commission = Math.round(totalFromDates * 0.15 * 100) / 100
-  const total = totalFromDates
+  const commissionRate = getManualCommissionRate(totalFromDates)
+  const platformFee = calcPlatformFee(totalFromDates, commissionRate)
+  const finalPrice = calcFinalPrice(totalFromDates, commissionRate)
+  const finalToPay = Math.max(0, finalPrice - creditsUsed)
 
   // Load availability when step=1 or month changes
   React.useEffect(() => {
@@ -526,6 +645,11 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
         content: fullContent,
         targetUrl: targetUrl.trim(),
         price: totalFromDates,
+        basePrice: totalFromDates,
+        finalPrice: finalPrice,
+        commissionRate: commissionRate,
+        platformFee: platformFee,
+        pricingType: 'manual',
         mediaCount: mediaFiles.length,
       }
 
@@ -654,7 +778,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
               <div style={{ display: 'inline-flex', gap: '16px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '14px 22px', margin: '16px 0 8px' }}>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</div>
-                  <div style={{ fontFamily: FONT_DISPLAY, fontSize: '18px', fontWeight: 700, color: PURPLE }}>€{totalFromDates}</div>
+                  <div style={{ fontFamily: FONT_DISPLAY, fontSize: '18px', fontWeight: 700, color: PURPLE }}>€{finalPrice}</div>
                 </div>
                 <div style={{ width: '1px', background: 'var(--border)' }} />
                 <div style={{ textAlign: 'center' }}>
@@ -705,7 +829,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                   }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  {paying ? 'Procesando...' : `Pagar €${totalFromDates} ahora`}
+                  {paying ? 'Procesando...' : `Pagar €${finalPrice} ahora`}
                 </button>
               </div>
             </>
@@ -867,7 +991,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                         let opacity = 1
 
                         if (isSelected) {
-                          bg = purpleAlpha(0.12); border = A; textColor = A; priceColor = A
+                          bg = purpleAlpha(0.12); border = PURPLE; textColor = PURPLE; priceColor = PURPLE
                         } else if (day.status === 'past') {
                           opacity = 0.35; cursor = 'default'
                         } else if (day.status === 'disabled') {
@@ -957,19 +1081,38 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                     })}
                   </div>
                   <div style={{ height: '1px', background: purpleAlpha(0.15), margin: '8px 0' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Subtotal ({selectedDates.length} dia{selectedDates.length > 1 ? 's' : ''})</span>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>€{totalFromDates}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Comision plataforma (15%)</span>
-                    <span style={{ fontSize: '12px', color: 'var(--muted)' }}>€{commission.toFixed(2)}</span>
-                  </div>
-                  <div style={{ height: '1px', background: purpleAlpha(0.15), margin: '6px 0' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Total a pagar</span>
-                    <span style={{ fontSize: '18px', fontWeight: 800, color: PURPLE, fontFamily: FONT_DISPLAY }}>€{total}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Total</span>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>€{finalPrice}</span>
                   </div>
+
+                  {/* Referral credits */}
+                  {availableCredits > 0 && (
+                    <>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                        <label style={{ fontSize: '12px', color: OK, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={creditsUsed > 0} onChange={e => {
+                            setCreditsUsed(e.target.checked ? Math.min(availableCredits, finalPrice) : 0)
+                          }} style={{ accentColor: OK }} />
+                          Usar creditos (€{availableCredits.toFixed(2)} disp.)
+                        </label>
+                        {creditsUsed > 0 && <span style={{ fontSize: '12px', color: OK, fontWeight: 700 }}>-€{creditsUsed.toFixed(2)}</span>}
+                      </div>
+                      {creditsUsed > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Total a pagar</span>
+                          <span style={{ fontSize: '18px', fontWeight: 800, color: PURPLE, fontFamily: FONT_DISPLAY }}>€{finalToPay.toFixed(2)}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {availableCredits <= 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--muted)' }}>Total a pagar</span>
+                      <span style={{ fontSize: '18px', fontWeight: 800, color: PURPLE, fontFamily: FONT_DISPLAY }}>€{finalPrice}</span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1131,7 +1274,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {[
                     { l: 'Titulo', v: titulo || '-' },
-                    { l: 'Total', v: `€${totalFromDates}` },
+                    { l: 'Total', v: `€${finalPrice}` },
                     { l: 'Fechas', v: `${selectedDates.length} dia${selectedDates.length > 1 ? 's' : ''}` },
                     { l: 'Tono', v: tono },
                     ...(mediaFiles.length > 0 ? [{ l: 'Medios', v: `${mediaFiles.length} archivo${mediaFiles.length > 1 ? 's' : ''}` }] : []),
@@ -1257,7 +1400,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                   <span style={{ animation: 'hm-scale 1s infinite alternate' }}>Creando...</span>
                 ) : (
                   <>
-                    <Zap size={16} fill="#fff" /> Enviar solicitud · €{totalFromDates}
+                    <Zap size={16} fill="#fff" /> Enviar solicitud · €{finalPrice}
                   </>
                 )}
               </button>
@@ -1285,6 +1428,38 @@ export default function ExplorePage() {
   const [channels, setChannels]     = useState([])
   const [apiLoaded, setApiLoaded]   = useState(false)
   const [channelsLoading, setChannelsLoading] = useState(true)
+
+  // ── Favorites lists ──
+  const DEFAULT_LISTS = [
+    { id: 'all', name: 'Todos los favoritos', icon: '\u2b50', channels: [] },
+    { id: 'high-impact', name: 'Alto Impacto', icon: '\ud83d\udd25', channels: [] },
+    { id: 'nicho', name: 'Nicho', icon: '\ud83c\udfaf', channels: [] },
+  ]
+  const [favLists, setFavLists] = useState(() => {
+    const saved = localStorage.getItem('adflow-fav-lists')
+    return saved ? JSON.parse(saved) : DEFAULT_LISTS
+  })
+  const [activeList, setActiveList] = useState(null)
+  const [showListDropdown, setShowListDropdown] = useState(null)
+  const [showCreateList, setShowCreateList] = useState(false)
+  const [newListName, setNewListName] = useState('')
+  const [newListIcon, setNewListIcon] = useState('\ud83d\udccb')
+
+  // ── AutoBuy integration ──
+  const [searchParams] = useSearchParams()
+  const fromAutoBuy = searchParams.get('from') === 'autobuy'
+  const [autobuySelected, setAutobuySelected] = useState(() => {
+    return JSON.parse(localStorage.getItem('adflow-autobuy-channels') || '[]')
+  })
+
+  const toggleAutobuyChannel = (channel) => {
+    setAutobuySelected(prev => {
+      const exists = prev.find(c => c.id === channel.id)
+      const next = exists ? prev.filter(c => c.id !== channel.id) : [...prev, { id: channel.id, name: channel.name, platform: channel.platform, price: channel.pricePerPost }]
+      localStorage.setItem('adflow-autobuy-channels', JSON.stringify(next))
+      return next
+    })
+  }
 
   // Fetch channels from API
   useEffect(() => {
@@ -1319,6 +1494,61 @@ export default function ExplorePage() {
     return () => { cancelled = true }
   }, [])
 
+  // ── Favorites persistence ──
+  useEffect(() => {
+    localStorage.setItem('adflow-fav-lists', JSON.stringify(favLists))
+  }, [favLists])
+
+  // ── Click-outside handler for list dropdown ──
+  useEffect(() => {
+    if (!showListDropdown) return
+    const handler = (e) => {
+      // Close dropdown when clicking outside
+      setShowListDropdown(null)
+      setShowCreateList(false)
+    }
+    document.addEventListener('click', handler)
+    return () => document.removeEventListener('click', handler)
+  }, [showListDropdown])
+
+  // ── Favorites helpers ──
+  const isInAnyList = (channelId) => favLists.some(l => l.channels.includes(channelId))
+
+  const toggleFavorite = (channelId) => {
+    if (isInAnyList(channelId)) {
+      setFavLists(prev => prev.map(l => ({ ...l, channels: l.channels.filter(id => id !== channelId) })))
+    } else {
+      setFavLists(prev => prev.map(l => l.id === 'all' ? { ...l, channels: [...l.channels, channelId] } : l))
+    }
+  }
+
+  const addToList = (channelId, listId) => {
+    setFavLists(prev => prev.map(l => {
+      if (l.id === listId && !l.channels.includes(channelId)) {
+        return { ...l, channels: [...l.channels, channelId] }
+      }
+      if (l.id === 'all' && !l.channels.includes(channelId)) {
+        return { ...l, channels: [...l.channels, channelId] }
+      }
+      return l
+    }))
+    setShowListDropdown(null)
+  }
+
+  const createList = () => {
+    if (!newListName.trim()) return
+    const newList = { id: `custom-${Date.now()}`, name: newListName.trim(), icon: newListIcon, channels: [] }
+    setFavLists(prev => [...prev, newList])
+    setNewListName('')
+    setNewListIcon('\ud83d\udccb')
+    setShowCreateList(false)
+  }
+
+  const getListChannelIds = (listId) => {
+    const list = favLists.find(l => l.id === listId)
+    return list ? list.channels : []
+  }
+
   const platforms  = ['all', ...new Set(channels.map(c => c.platform))]
   const categories = ['all', ...new Set(channels.map(c => c.category))]
 
@@ -1335,8 +1565,13 @@ export default function ExplorePage() {
     if (sortBy === 'price-desc') arr = [...arr].sort((a, b) => b.pricePerPost - a.pricePerPost)
     if (sortBy === 'audience')   arr = [...arr].sort((a, b) => b.audience - a.audience)
     if (sortBy === 'engagement') arr = [...arr].sort((a, b) => b.engagement - a.engagement)
+    // Filter by active favorites list
+    if (activeList) {
+      const listChannelIds = getListChannelIds(activeList)
+      arr = arr.filter(ch => listChannelIds.includes(ch.id))
+    }
     return arr
-  }, [channels, search, platform, category, sortBy, onlyVerified, maxPrice])
+  }, [channels, search, platform, category, sortBy, onlyVerified, maxPrice, activeList, favLists])
 
   const activeFilters = [
     platform !== 'all',
@@ -1366,6 +1601,28 @@ export default function ExplorePage() {
         </div>
       </div>
 
+      {/* ── AutoBuy banner ── */}
+      {fromAutoBuy && (
+        <div style={{
+          background: purpleAlpha(0.08), border: `1px solid ${purpleAlpha(0.2)}`,
+          borderRadius: '12px', padding: '14px 20px', marginBottom: '0',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>Seleccionando canales para Auto-Buy</span>
+            <span style={{ fontSize: '13px', color: 'var(--muted)', marginLeft: '8px' }}>
+              {autobuySelected.length} canal{autobuySelected.length !== 1 ? 'es' : ''} seleccionado{autobuySelected.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <button onClick={() => navigate('/advertiser/autobuy')} style={{
+            background: PURPLE, color: '#fff', border: 'none', borderRadius: '8px',
+            padding: '8px 16px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: FONT_BODY,
+          }}>
+            Volver a Auto-Buy ({autobuySelected.length})
+          </button>
+        </div>
+      )}
+
       {/* ── Search bar ── */}
       <div style={{ position: 'relative' }}>
         <Search size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)' }} />
@@ -1393,7 +1650,7 @@ export default function ExplorePage() {
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
 
         {/* Platform chips */}
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', flex: 1 }}>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', flex: 1, alignItems: 'center' }}>
           {platforms.map(p => (
             <FilterChip
               key={p} label={p === 'all' ? 'Todas' : p}
@@ -1402,6 +1659,20 @@ export default function ExplorePage() {
               count={p === 'all' ? channels.length : channels.filter(c => c.platform === p).length}
             />
           ))}
+
+          {/* Lists filter dropdown */}
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <button onClick={() => setActiveList(activeList ? null : 'all')} style={{
+              background: activeList ? purpleAlpha(0.12) : 'transparent',
+              color: activeList ? PURPLE : 'var(--muted)',
+              border: `1px solid ${activeList ? purpleAlpha(0.3) : 'var(--border)'}`,
+              borderRadius: '20px', padding: '6px 14px', fontSize: '13px', fontWeight: activeList ? 600 : 400,
+              cursor: 'pointer', fontFamily: FONT_BODY, display: 'flex', alignItems: 'center', gap: '6px',
+            }}>
+              <Heart size={13} fill={activeList ? PURPLE : 'none'} />
+              {activeList ? favLists.find(l => l.id === activeList)?.name || 'Favoritos' : 'Mis listas'}
+            </button>
+          </div>
         </div>
 
         {/* Sort */}
@@ -1519,13 +1790,24 @@ export default function ExplorePage() {
       ) : viewMode === 'grid' ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
           {filtered.map(ch => (
-            <ChannelCardGrid key={ch.id} ch={ch} onDetail={setModalCh} onHire={setHireCh} />
+            <ChannelCardGrid key={ch.id} ch={ch} onDetail={setModalCh} onHire={setHireCh}
+              isInAnyList={isInAnyList} toggleFavorite={toggleFavorite}
+              showListDropdown={showListDropdown} setShowListDropdown={setShowListDropdown}
+              favLists={favLists} addToList={addToList}
+              showCreateList={showCreateList} setShowCreateList={setShowCreateList}
+              newListIcon={newListIcon} setNewListIcon={setNewListIcon}
+              newListName={newListName} setNewListName={setNewListName}
+              createList={createList}
+              fromAutoBuy={fromAutoBuy} autobuySelected={autobuySelected} toggleAutobuyChannel={toggleAutobuyChannel}
+            />
           ))}
         </div>
       ) : (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden' }}>
           {filtered.map((ch, i) => (
-            <ChannelRowList key={ch.id} ch={ch} onDetail={setModalCh} onHire={setHireCh} isLast={i === filtered.length - 1} />
+            <ChannelRowList key={ch.id} ch={ch} onDetail={setModalCh} onHire={setHireCh} isLast={i === filtered.length - 1}
+              isInAnyList={isInAnyList} toggleFavorite={toggleFavorite}
+            />
           ))}
         </div>
       )}

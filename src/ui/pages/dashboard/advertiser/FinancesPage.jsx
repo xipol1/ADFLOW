@@ -205,7 +205,7 @@ const RechargeModal = ({ onClose }) => {
             <button
               onClick={handleRecharge}
               disabled={processing}
-              style={{ flex: 2, background: processing ? purpleAlpha(0.6) : A, border: 'none', borderRadius: '11px', padding: '13px', fontSize: '14px', fontWeight: 700, cursor: processing ? 'not-allowed' : 'pointer', color: '#fff', fontFamily: FONT_BODY, boxShadow: `0 4px 14px ${purpleAlpha(0.35)}`, transition: 'transform .15s' }}
+              style={{ flex: 2, background: processing ? purpleAlpha(0.6) : PURPLE, border: 'none', borderRadius: '11px', padding: '13px', fontSize: '14px', fontWeight: 700, cursor: processing ? 'not-allowed' : 'pointer', color: '#fff', fontFamily: FONT_BODY, boxShadow: `0 4px 14px ${purpleAlpha(0.35)}`, transition: 'transform .15s' }}
               onMouseEnter={e => { if (!processing) e.currentTarget.style.transform = 'translateY(-1px)' }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'none' }}
             >
@@ -381,7 +381,7 @@ export default function FinancesPage() {
         {[
           { icon: TrendingUp, label: 'Gasto total', val: `€${totalSpend.toLocaleString('es')}`, sub: `${txCount} transacciones`, color: BLUE },
           { icon: ArrowDownLeft, label: 'En escrow', val: `€${Math.abs(balance).toLocaleString('es')}`, sub: 'Retenido en campañas', color: PURPLE },
-          { icon: ArrowUpRight, label: 'Liberado', val: `€${(isReal ? rawTx.filter(t => t.status === 'released').reduce((s,t) => s + (t.amount||0), 0) : totalSpend * 0.88).toLocaleString('es', {maximumFractionDigits: 0})}`, sub: 'Pagado a creadores', color: OK, subColor: OK },
+          { icon: ArrowUpRight, label: 'Liberado', val: `€${(rawTx.length > 0 ? rawTx.filter(t => t.status === 'released').reduce((s,t) => s + (t.amount||0), 0) : totalSpend * 0.88).toLocaleString('es', {maximumFractionDigits: 0})}`, sub: 'Pagado a creadores', color: OK, subColor: OK },
         ].map(({ icon: Icon, label, val, sub, color, subColor }) => (
           <div key={label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', padding: '22px', transition: 'border-color .15s' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = purpleAlpha(0.3) }}
@@ -510,7 +510,7 @@ export default function FinancesPage() {
                     <td style={{ padding: '15px 20px' }}>
                       <span style={{
                         background: tx.type === 'refund' ? 'rgba(239,68,68,0.1)' : purpleAlpha(0.1),
-                        color: tx.type === 'refund' ? '#ef4444' : A,
+                        color: tx.type === 'refund' ? '#ef4444' : PURPLE,
                         border: `1px solid ${tx.type === 'refund' ? 'rgba(239,68,68,0.3)' : purpleAlpha(0.3)}`,
                         borderRadius: '6px', padding: '3px 9px', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap',
                       }}>
@@ -560,7 +560,7 @@ export default function FinancesPage() {
             fontSize: '13px', fontWeight: 600, color: PURPLE, cursor: 'pointer', fontFamily: FONT_BODY,
             transition: 'border-color .15s, background .15s',
           }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = A; e.currentTarget.style.background = purpleAlpha(0.04) }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = PURPLE; e.currentTarget.style.background = purpleAlpha(0.04) }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = purpleAlpha(0.3); e.currentTarget.style.background = 'transparent' }}
           >
             <Plus size={15} /> Añadir método de pago

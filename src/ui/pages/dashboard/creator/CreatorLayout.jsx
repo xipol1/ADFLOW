@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Component } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Radio, Inbox, Wallet, Settings, LogOut, Menu, Bell, ShieldAlert, AlertTriangle } from 'lucide-react'
+import { LayoutDashboard, Radio, Inbox, Wallet, Settings, LogOut, Menu, Bell, ShieldAlert, AlertTriangle, Gift } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../../services/api'
 import { GREEN, greenAlpha, FONT_BODY, FONT_DISPLAY, TRANSITION } from '../../../theme/tokens'
@@ -39,6 +39,7 @@ const NAV = [
   { to: '/creator/channels', icon: Radio,           label: 'Mis Canales'             },
   { to: '/creator/requests', icon: Inbox,           label: 'Solicitudes',  badge: true },
   { to: '/creator/earnings', icon: Wallet,          label: 'Ganancias'               },
+  { to: '/creator/referrals', icon: Gift,            label: 'Referidos'               },
   { to: '/creator/disputes', icon: ShieldAlert,     label: 'Disputas'                },
 ]
 

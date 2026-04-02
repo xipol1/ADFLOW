@@ -181,8 +181,11 @@ export default function MarketplacePage() {
   }
 
   const handleContract = (listing) => {
-    if (isAuthenticated) {
-      navigate(isAnunciante ? `/advertiser/explore` : '/advertiser/explore')
+    const channelId = listing.id || listing._id
+    if (channelId) {
+      navigate(`/marketplace/${channelId}`)
+    } else if (isAuthenticated) {
+      navigate('/advertiser/explore')
     } else {
       navigate('/auth/login')
     }
@@ -406,7 +409,7 @@ export default function MarketplacePage() {
                       }}
                         onMouseEnter={e => { e.currentTarget.style.background = A; e.currentTarget.style.color = '#fff' }}
                         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = A }}
-                      >{isAuthenticated ? 'Contratar' : 'Ver canal'}</button>
+                      >Ver canal</button>
                     </div>
                   </div>
                 </div>

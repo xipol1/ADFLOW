@@ -8,7 +8,7 @@ const TransaccionSchema = new mongoose.Schema(
     amount: { type: Number, required: true },
     tipo: {
       type: String,
-      enum: ['pago', 'recarga', 'reembolso', 'comision', 'retiro'],
+      enum: ['pago', 'recarga', 'reembolso', 'comision', 'retiro', 'referral'],
       default: 'pago',
       index: true
     },
@@ -21,7 +21,9 @@ const TransaccionSchema = new mongoose.Schema(
     paidAt: { type: Date, default: null },
     stripePaymentIntentId: { type: String, default: null, index: true },
     stripeClientSecret: { type: String, default: null },
-    description: { type: String, default: '' }
+    description: { type: String, default: '' },
+    referralCreditGenerated: { type: Number, default: 0 },
+    referralUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', default: null },
   },
   { timestamps: true }
 );
