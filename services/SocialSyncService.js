@@ -8,6 +8,7 @@ const Canal = require('../models/Canal');
 const Anuncio = require('../models/Anuncio');
 const Estadistica = require('../models/Estadistica');
 const config = require('../config/config');
+const { getDecryptedCreds } = require('../lib/encryption');
 
 /**
  * Servicio para sincronizar metricas reales desde las APIs de redes sociales
@@ -88,7 +89,8 @@ class SocialSyncService {
    * Obtener metricas de Telegram
    */
   async fetchTelegramMetrics(canal) {
-    const botToken = canal.credenciales?.botToken || process.env.TELEGRAM_BOT_TOKEN;
+    const creds = getDecryptedCreds(canal);
+    const botToken = creds.botToken || process.env.TELEGRAM_BOT_TOKEN;
     const chatId = canal.identificadorCanal || canal.identificadores?.chatId;
 
     if (!botToken || !chatId) return {};
@@ -124,8 +126,9 @@ class SocialSyncService {
    * Obtener metricas de Discord
    */
   async fetchDiscordMetrics(canal) {
+    const creds = getDecryptedCreds(canal);
     const serverId = canal.identificadores?.serverId || canal.identificadorCanal;
-    const botToken = canal.credenciales?.botToken || process.env.DISCORD_BOT_TOKEN;
+    const botToken = creds.botToken || process.env.DISCORD_BOT_TOKEN;
 
     if (!serverId || !botToken) return {};
 
@@ -153,8 +156,9 @@ class SocialSyncService {
    * Obtener metricas de WhatsApp
    */
   async fetchWhatsAppMetrics(canal) {
-    const accessToken = canal.credenciales?.accessToken;
-    const phoneNumberId = canal.credenciales?.phoneNumberId;
+    const creds = getDecryptedCreds(canal);
+    const accessToken = creds.accessToken;
+    const phoneNumberId = creds.phoneNumberId;
 
     if (!accessToken || !phoneNumberId) {
       return { seguidores: canal.estadisticas?.seguidores || 0 };
@@ -184,7 +188,8 @@ class SocialSyncService {
    * Obtener metricas de Instagram
    */
   async fetchInstagramMetrics(canal) {
-    const accessToken = canal.credenciales?.accessToken;
+    const creds = getDecryptedCreds(canal);
+    const accessToken = creds.accessToken;
 
     if (!accessToken) {
       return { seguidores: canal.estadisticas?.seguidores || 0 };
@@ -220,7 +225,8 @@ class SocialSyncService {
    * Obtener metricas de Facebook
    */
   async fetchFacebookMetrics(canal) {
-    const accessToken = canal.credenciales?.accessToken;
+    const creds = getDecryptedCreds(canal);
+    const accessToken = creds.accessToken;
     const pageId = canal.identificadorCanal;
 
     if (!accessToken || !pageId) {
@@ -304,45 +310,45 @@ class SocialSyncService {
     try {
       switch (plataforma) {
         case 'telegram': {
-          const botToken = canal.credenciales?.botToken;
+          const creds = getDecryptedCreds(canal);
           const chatId = canal.identificadores?.chatId || canal.identificadorCanal;
-          if (!botToken || !chatId) return { valid: false, error: 'Credenciales incompletas' };
-          const telegram = new TelegramAPI(botToken);
+          if (!creds.botToken || !chatId) return { valid: false, error: 'Credenciales incompletas' };
+          const telegram = new TelegramAPI(creds.botToken);
           return telegram.verifyBotAccess(chatId);
         }
         case 'discord': {
-          const botToken = canal.credenciales?.botToken || canal.credenciales?.accessToken;
+          const creds = getDecryptedCreds(canal);
+          const botToken = creds.botToken || creds.accessToken;
           const serverId = canal.identificadores?.serverId || canal.identificadorCanal;
           if (!botToken || !serverId) return { valid: false, error: 'Credenciales incompletas' };
           const discord = new DiscordAPI(botToken);
           return discord.verifyBotAccess(serverId);
         }
         case 'whatsapp': {
-          const accessToken = canal.credenciales?.accessToken;
-          const phoneNumberId = canal.credenciales?.phoneNumberId;
-          if (!accessToken || !phoneNumberId) return { valid: false, error: 'Credenciales incompletas' };
-          const whatsapp = new WhatsAppAPI(accessToken, phoneNumberId);
+          const creds = getDecryptedCreds(canal);
+          if (!creds.accessToken || !creds.phoneNumberId) return { valid: false, error: 'Credenciales incompletas' };
+          const whatsapp = new WhatsAppAPI(creds.accessToken, creds.phoneNumberId);
           return whatsapp.verifyAccess();
         }
         case 'instagram': {
-          const accessToken = canal.credenciales?.accessToken;
-          if (!accessToken) return { valid: false, error: 'Credenciales incompletas' };
+          const creds = getDecryptedCreds(canal);
+          if (!creds.accessToken) return { valid: false, error: 'Credenciales incompletas' };
           const instagram = new InstagramAPI();
-          return instagram.verifyAccess(accessToken);
+          return instagram.verifyAccess(creds.accessToken);
         }
         case 'facebook': {
-          const accessToken = canal.credenciales?.accessToken;
+          const creds = getDecryptedCreds(canal);
           const pageId = canal.identificadorCanal;
-          if (!accessToken || !pageId) return { valid: false, error: 'Credenciales incompletas' };
+          if (!creds.accessToken || !pageId) return { valid: false, error: 'Credenciales incompletas' };
           const facebook = new FacebookAPI();
-          return facebook.verifyAccess(accessToken, pageId);
+          return facebook.verifyAccess(creds.accessToken, pageId);
         }
         case 'newsletter': {
-          const apiKey = canal.credenciales?.accessToken;
+          const creds = getDecryptedCreds(canal);
           const provider = canal.identificadores?.provider || 'mailchimp';
-          if (!apiKey) return { valid: false, error: 'API key no configurada' };
+          if (!creds.accessToken) return { valid: false, error: 'API key no configurada' };
           const newsletter = new NewsletterAPI();
-          return newsletter.verifyAccess(apiKey, provider);
+          return newsletter.verifyAccess(creds.accessToken, provider);
         }
         default:
           return { valid: false, error: `Plataforma "${plataforma}" no soportada` };

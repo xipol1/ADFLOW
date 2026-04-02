@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { encryptIfNeeded } = require('../lib/encryption');
 
 const CanalSchema = new mongoose.Schema(
   {
@@ -22,7 +23,24 @@ const CanalSchema = new mongoose.Schema(
       botToken: { type: String, default: '' },
       accessToken: { type: String, default: '' },
       phoneNumberId: { type: String, default: '' },
-      webhookUrl: { type: String, default: '' }
+      webhookUrl: { type: String, default: '' },
+      refreshToken: { type: String, default: '' },
+      pageAccessToken: { type: String, default: '' },
+      tokenExpiresAt: { type: Date, default: null },
+      tokenType: { type: String, default: 'manual', enum: ['manual', 'oauth_meta'] },
+    },
+    // ── Meta OAuth data (populated after Facebook Login) ──
+    metaOAuth: {
+      metaUserId: { type: String, default: '' },
+      connectedPages: [{
+        pageId: { type: String },
+        pageName: { type: String },
+        pageAccessToken: { type: String }, // encrypted
+        instagramBusinessId: { type: String, default: '' },
+        whatsappBusinessId: { type: String, default: '' },
+      }],
+      scopes: [{ type: String }],
+      oauthConnectedAt: { type: Date, default: null },
     },
     configuracion: {
       publicacionAutomatica: { type: Boolean, default: false },
@@ -61,6 +79,32 @@ const CanalSchema = new mongoose.Schema(
 );
 
 CanalSchema.index({ plataforma: 1, identificadorCanal: 1 }, { unique: false });
+
+// ── Encrypt sensitive credential fields before saving ──
+CanalSchema.pre('save', function (next) {
+  try {
+    if (!process.env.ENCRYPTION_KEY) return next(); // skip if no key configured
+
+    const sensitiveFields = ['botToken', 'accessToken', 'phoneNumberId', 'refreshToken', 'pageAccessToken'];
+    for (const field of sensitiveFields) {
+      if (this.credenciales?.[field] && this.isModified(`credenciales.${field}`)) {
+        this.credenciales[field] = encryptIfNeeded(this.credenciales[field]);
+      }
+    }
+
+    // Encrypt page access tokens in metaOAuth.connectedPages
+    if (this.metaOAuth?.connectedPages?.length) {
+      for (const page of this.metaOAuth.connectedPages) {
+        if (page.pageAccessToken) {
+          page.pageAccessToken = encryptIfNeeded(page.pageAccessToken);
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error encrypting credentials on save:', err.message);
+  }
+  next();
+});
 
 module.exports = mongoose.models.Canal || mongoose.model('Canal', CanalSchema);
 

@@ -9,6 +9,12 @@
       "includeFiles": "routes/**,controllers/**,models/**,middleware/**,lib/**,services/**,config/**,docs/swagger/**,templates/**,integraciones/**"
     }
   },
+  "crons": [
+    {
+      "path": "/api/oauth/meta/cron-refresh",
+      "schedule": "0 3 * * *"
+    }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.js" },
     { "source": "/t/:code", "destination": "/api/index.js" },

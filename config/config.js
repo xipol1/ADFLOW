@@ -69,5 +69,22 @@ module.exports = {
     uploadPath: process.env.UPLOADS_PATH || './uploads',
     maxFileSize: toInt(process.env.MAX_FILE_SIZE, 10 * 1024 * 1024),
     allowedTypes: (process.env.ALLOWED_FILE_TYPES || 'image/jpeg,image/png,image/gif,image/webp,application/pdf').split(',')
-  }
+  },
+  meta: {
+    appId: process.env.META_APP_ID || '',
+    appSecret: process.env.META_APP_SECRET || '',
+    graphApiVersion: 'v19.0',
+    oauthCallbackPath: '/api/oauth/meta/callback',
+    scopes: [
+      'pages_show_list',
+      'pages_read_engagement',
+      'pages_manage_posts',
+      'instagram_basic',
+      'instagram_manage_insights',
+      'business_management',
+    ].join(','),
+  },
+  encryption: {
+    key: process.env.ENCRYPTION_KEY || '',
+  },
 };
