@@ -381,7 +381,7 @@ export default function FinancesPage() {
         {[
           { icon: TrendingUp, label: 'Gasto total', val: `€${totalSpend.toLocaleString('es')}`, sub: `${txCount} transacciones`, color: BLUE },
           { icon: ArrowDownLeft, label: 'En escrow', val: `€${Math.abs(balance).toLocaleString('es')}`, sub: 'Retenido en campañas', color: PURPLE },
-          { icon: ArrowUpRight, label: 'Liberado', val: `€${(isReal ? rawTx.filter(t => t.status === 'released').reduce((s,t) => s + (t.amount||0), 0) : totalSpend * 0.88).toLocaleString('es', {maximumFractionDigits: 0})}`, sub: 'Pagado a creadores', color: OK, subColor: OK },
+          { icon: ArrowUpRight, label: 'Liberado', val: `€${(rawTx.length > 0 ? rawTx.filter(t => t.status === 'released').reduce((s,t) => s + (t.amount||0), 0) : totalSpend * 0.88).toLocaleString('es', {maximumFractionDigits: 0})}`, sub: 'Pagado a creadores', color: OK, subColor: OK },
         ].map(({ icon: Icon, label, val, sub, color, subColor }) => (
           <div key={label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', padding: '22px', transition: 'border-color .15s' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = purpleAlpha(0.3) }}
