@@ -1,9 +1,11 @@
-# ADFLOW
+# Channelad (formerly ADFLOW)
 
 **Marketplace de publicidad en comunidades reales.**
-Conecta anunciantes con creadores de canales en WhatsApp, Telegram, Discord, Instagram y mas.
+Conecta anunciantes con creadores de canales en WhatsApp, Telegram, Discord, Instagram, Facebook, LinkedIn y Newsletter.
 
-> **Estado actual (Abril 2026):** MVP funcional en produccion (Vercel). Backend con 20 modelos, 18 controladores, 18 rutas y 19 servicios. Frontend React con 28 paginas y dashboards para advertiser, creator y admin. Sistema de pagos Stripe, tracking avanzado con verificacion de canales, reviews con 5 categorias, analytics con export CSV, partner API, documentacion legal completa (5 documentos) y 118+ tests en 12 suites.
+> **Produccion:** https://channelad.io — Plataforma completa con auth (2FA/TOTP), referidos con tiers, verificacion de canales en 7 plataformas (Meta OAuth + LinkedIn OAuth), pagos Stripe con escrow, Stripe Connect para payouts a creators, ad delivery con retry, disputas con 4 opciones de resolucion, facturas HTML, error logging, PWA, y dashboards para advertiser + creator. Backend: 20+ modelos, 20+ controladores, 20+ rutas, 20+ servicios. Frontend: 30+ paginas React.
+
+> **Documentacion tecnica completa:** [`docs/technical-guide.md`](docs/technical-guide.md)
 
 ---
 
