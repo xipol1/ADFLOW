@@ -13,7 +13,7 @@ const PLATFORMS = [
   { key: 'discord',   label: 'Discord' },
   { key: 'instagram', label: 'Instagram' },
   { key: 'facebook',  label: 'Facebook' },
-  { key: 'youtube',   label: 'YouTube' },
+  { key: 'linkedin',  label: 'LinkedIn' },
   { key: 'newsletter',label: 'Newsletter' },
 ]
 
