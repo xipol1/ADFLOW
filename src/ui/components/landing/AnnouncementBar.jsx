@@ -28,25 +28,25 @@ export default function AnnouncementBar() {
         <span style={{
           fontSize: '11px', fontWeight: 600, letterSpacing: '0.04em',
           padding: '3px 10px', borderRadius: '99px',
-          background: 'var(--accent-surface, rgba(124,58,237,0.06))',
-          color: 'var(--accent)', flexShrink: 0,
+          background: 'rgba(16,185,129,0.1)',
+          color: '#10b981', flexShrink: 0,
         }}>
-          Nuevo
+          Lanzamiento
         </span>
 
         <span className="announcement-text" style={{ textAlign: 'center' }}>
-          Auto-Buy ya disponible — tu campana trabaja mientras duermes.
+          Pre-registro abierto — registrate y acumula creditos con referidos antes de que abra el marketplace.
         </span>
 
         <a
-          href="#como-funciona"
+          href="/auth/register"
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '4px',
             color: 'var(--accent)', fontWeight: 600, fontSize: '13px',
             flexShrink: 0, textDecoration: 'none',
           }}
         >
-          Descubrir
+          Registrarme
           <ArrowRight size={13} strokeWidth={2.5} />
         </a>
 

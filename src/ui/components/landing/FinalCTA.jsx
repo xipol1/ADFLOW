@@ -38,8 +38,8 @@ export default function FinalCTA() {
             margin: '0 0 20px', color: 'var(--text)',
           }}
         >
-          Empieza hoy.{' '}
-          <span className="gradient-text">Los resultados llegan manana.</span>
+          Registrate ahora.{' '}
+          <span className="gradient-text">El marketplace abre pronto.</span>
         </motion.h2>
 
         <motion.p
@@ -50,8 +50,8 @@ export default function FinalCTA() {
             color: 'var(--muted)', margin: '0 0 40px',
           }}
         >
-          Tu siguiente campana esta a un click. Unete a las 340+ marcas
-          que ya conectan con su audiencia ideal.
+          Registrate, verifica tu canal e invita a otros creadores.
+          Acumula creditos con referidos antes de que abra el marketplace.
         </motion.p>
 
         <motion.div variants={revealUp} custom={0.3}>
@@ -83,7 +83,7 @@ export default function FinalCTA() {
             fontSize: '13px', color: 'var(--muted)',
           }}
         >
-          {['Sin tarjeta de credito', '2 minutos de configuracion', 'Cancela cuando quieras'].map((t, i) => (
+          {['Sin tarjeta de credito', 'Verificacion en minutos', '5% de creditos por cada referido'].map((t, i) => (
             <React.Fragment key={i}>
               {i > 0 && <span style={{ margin: '0 4px', color: 'var(--border-heavy)' }}>·</span>}
               <span>{t}</span>
@@ -97,7 +97,7 @@ export default function FinalCTA() {
           style={{ marginTop: '24px' }}
         >
           <a
-            href="/marketplace"
+            href="/auth/login"
             style={{
               color: 'var(--muted)', fontSize: '14px', fontWeight: 500,
               textDecoration: 'none', borderBottom: '1px solid var(--border-med)',
@@ -106,7 +106,7 @@ export default function FinalCTA() {
             onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
           >
-            O explora el marketplace primero
+            Ya tienes cuenta? Inicia sesion
           </a>
         </motion.div>
       </motion.div>
