@@ -30,6 +30,8 @@ try { _routes['./routes/tracking']       = require('./routes/tracking');       }
 try { _routes['./routes/reviews']        = require('./routes/reviews');        } catch (e) { _routes['./routes/reviews']        = e; }
 try { _routes['./routes/oauth']          = require('./routes/oauth');          } catch (e) { _routes['./routes/oauth']          = e; }
 try { _routes['./routes/referrals']      = require('./routes/referrals');      } catch (e) { _routes['./routes/referrals']      = e; }
+try { _routes['./routes/payouts']        = require('./routes/payouts');        } catch (e) { _routes['./routes/payouts']        = e; }
+try { _routes['./routes/invoices']       = require('./routes/invoices');       } catch (e) { _routes['./routes/invoices']       = e; }
 
 // Pre-load for Vercel nft tracer (require only, don't execute swagger-jsdoc at top level)
 let _swaggerPathsJson;
@@ -349,6 +351,8 @@ const enabledRoutes = [
   ['/api/reviews', './routes/reviews'],
   ['/api/oauth', './routes/oauth'],
   ['/api/referrals', './routes/referrals'],
+  ['/api/payouts', './routes/payouts'],
+  ['/api/invoices', './routes/invoices'],
 ];
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));

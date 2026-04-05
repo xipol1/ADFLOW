@@ -41,12 +41,22 @@ router.post(
 );
 
 router.post(
+  '/:id/escalate',
+  autenticar,
+  [param('id').isMongoId().withMessage('ID invalido')],
+  validarCampos,
+  disputeController.escalateDispute
+);
+
+router.post(
   '/:id/resolve',
   autenticar,
   [
-    param('id').isMongoId().withMessage('ID inválido'),
+    param('id').isMongoId().withMessage('ID invalido'),
     body('resolution').isString().notEmpty().trim(),
-    body('favoredParty').isIn(['advertiser', 'creator']).withMessage('favoredParty debe ser advertiser o creator')
+    body('resolutionType').isIn(['favor_advertiser', 'favor_creator', 'partial', 'closed_no_action']).withMessage('resolutionType invalido'),
+    body('refundPercent').optional().isFloat({ min: 0, max: 100 }),
+    body('adminNotes').optional().isString().trim(),
   ],
   validarCampos,
   disputeController.resolveDispute

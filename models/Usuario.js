@@ -38,6 +38,9 @@ const UsuarioSchema = new mongoose.Schema(
     failedLoginAttempts: { type: Number, default: 0 },
     lockedUntil: { type: Date, default: null },
 
+    // Stripe Connect (creator payouts)
+    stripeConnectAccountId: { type: String, default: null },
+
     // 2FA / TOTP
     twoFactorEnabled: { type: Boolean, default: false },
     twoFactorSecret: { type: String, default: null }, // encrypted TOTP secret

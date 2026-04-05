@@ -4,6 +4,7 @@ import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../../services/api'
 import { GREEN, greenAlpha, OK as _OK, ERR, FONT_BODY, FONT_DISPLAY, PLAT_COLORS } from '../../../theme/tokens'
 import { ErrorBanner } from '../shared/DashComponents'
+import TwoFactorCard from '../../../components/TwoFactorCard'
 
 const WA  = GREEN
 const WAG = greenAlpha
@@ -392,15 +393,7 @@ export default function CreatorSettingsPage() {
               <Inp label="Confirmar nueva contraseña" type="password" value={security.confirmar} onChange={v => us('confirmar', v)} placeholder="Repite la contraseña" error={errors.confirmar} />
             </div>
           </Card>
-          <Card title="Autenticación de dos factores">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-              <div>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', marginBottom: '4px' }}>2FA por aplicación autenticadora</div>
-                <div style={{ fontSize: '13px', color: 'var(--muted)' }}>Protege tu cuenta con una capa extra de seguridad</div>
-              </div>
-              <button style={{ background: WAG(0.1), border: `1px solid ${WAG(0.25)}`, borderRadius: '10px', padding: '10px 20px', fontSize: '13px', fontWeight: 600, color: WA, cursor: 'pointer', fontFamily: F, whiteSpace: 'nowrap' }}>Activar 2FA</button>
-            </div>
-          </Card>
+          <TwoFactorCard />
           <Card title="Sesiones activas">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>

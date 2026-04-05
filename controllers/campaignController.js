@@ -309,6 +309,26 @@ const completeCampaign = async (req, res, next) => {
       }
     }
 
+    // Auto-transfer to creator via Stripe Connect (non-blocking)
+    const channelOwner = await Canal.findOne({ _id: campaign.channel }).select('propietario').lean();
+    if (channelOwner?.propietario) {
+      setImmediate(async () => {
+        try {
+          const creator = await Usuario.findById(channelOwner.propietario);
+          if (creator?.stripeConnectAccountId) {
+            const stripeConnect = require('../services/stripeConnectService');
+            const netAmount = campaign.netAmount || campaign.price * 0.9;
+            await stripeConnect.transferToCreator(netAmount, creator.stripeConnectAccountId, {
+              campaignId: String(campaign._id),
+              creatorId: String(creator._id),
+            });
+          }
+        } catch (transferErr) {
+          console.error('Auto-transfer to creator failed:', transferErr?.message);
+        }
+      });
+    }
+
     // Notify both parties
     notifySafe({
       usuarioId: campaign.advertiser,
@@ -319,7 +339,6 @@ const completeCampaign = async (req, res, next) => {
       canales: ['database', 'realtime'],
       prioridad: 'alta'
     });
-    const channelOwner = await Canal.findOne({ _id: campaign.channel }).select('propietario').lean();
     if (channelOwner?.propietario) {
       notifySafe({
         usuarioId: channelOwner.propietario,

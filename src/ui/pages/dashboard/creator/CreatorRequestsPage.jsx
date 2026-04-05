@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { ErrorBanner } from '../shared/DashComponents'
 import apiService from '../../../../../services/api'
+import DeliveryBadge from '../../../components/DeliveryBadge'
 import { PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK as _OK, BLUE as _BLUE, WARN, ERR } from '../../../theme/tokens'
 
 /* ── Design tokens ─────────────────────────────────────────────────────────── */
@@ -434,6 +435,8 @@ const DetailModal = ({ campaign: c, onClose, onConfirm, onComplete, onDecline, o
               </>
             )}
             {c.status === 'PUBLISHED' && (
+              <>
+              {c.delivery && <DeliveryBadge delivery={c.delivery} />}
               <button onClick={() => onComplete(c._id)} disabled={busy} className="cr-btn" style={{
                 flex: 1, background: V, color: '#fff', border: 'none', borderRadius: '14px',
                 padding: '16px', fontSize: '15px', fontWeight: 700, fontFamily: F,
@@ -443,6 +446,7 @@ const DetailModal = ({ campaign: c, onClose, onConfirm, onComplete, onDecline, o
               }}>
                 {busy ? 'Procesando...' : 'Marcar como completada'}
               </button>
+              </>
             )}
             {c.status === 'CANCELLED' && (
               <div style={{

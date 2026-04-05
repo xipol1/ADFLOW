@@ -301,6 +301,61 @@ class ApiService {
     return this.request(`/oauth/linkedin/refresh/${id}`, { method: 'POST' });
   }
 
+  // ==========================================
+  // PAYOUTS (Stripe Connect)
+  // ==========================================
+
+  async payoutOnboard() {
+    return this.request('/payouts/onboard', { method: 'POST' });
+  }
+  async payoutStatus() {
+    return this.request('/payouts/status');
+  }
+  async payoutDashboardLink() {
+    return this.request('/payouts/dashboard-link');
+  }
+  async payoutWithdraw(amount) {
+    return this.request('/payouts/withdraw', { method: 'POST', body: JSON.stringify({ amount }) });
+  }
+  async payoutHistory() {
+    return this.request('/payouts/history');
+  }
+
+  // ==========================================
+  // 2FA
+  // ==========================================
+
+  async setup2FA() {
+    return this.request('/auth/2fa/setup', { method: 'POST' });
+  }
+  async verify2FA(code) {
+    return this.request('/auth/2fa/verify', { method: 'POST', body: JSON.stringify({ code }) });
+  }
+  async validate2FA(email, code) {
+    return this.request('/auth/2fa/validate', { method: 'POST', body: JSON.stringify({ email, code }) });
+  }
+  async disable2FA(password) {
+    return this.request('/auth/2fa/disable', { method: 'POST', body: JSON.stringify({ password }) });
+  }
+
+  // ==========================================
+  // INVOICES
+  // ==========================================
+
+  async downloadInvoice(transactionId) {
+    const url = `${this.baseURL}/invoices/${transactionId}`;
+    const token = this.getAuthToken();
+    window.open(`${url}?token=${encodeURIComponent(token)}`, '_blank');
+  }
+
+  // ==========================================
+  // DISPUTES (enhanced)
+  // ==========================================
+
+  async escalateDispute(disputeId) {
+    return this.request(`/disputes/${disputeId}/escalate`, { method: 'POST' });
+  }
+
   /**
    * Buscar canales públicos
    */

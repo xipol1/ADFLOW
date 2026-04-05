@@ -1,6 +1,7 @@
 const Dispute = require('../models/Dispute');
 const Campaign = require('../models/Campaign');
 const Canal = require('../models/Canal');
+const Transaccion = require('../models/Transaccion');
 const { ensureDb } = require('../lib/ensureDb');
 
 const httpError = (status, message) => {
@@ -49,7 +50,8 @@ const createDispute = async (req, res, next) => {
       againstUser,
       reason,
       description,
-      messages: [{ sender: userId, text: description }]
+      messages: [{ sender: userId, text: description }],
+      timeline: [{ type: 'opened', by: userId, at: new Date() }],
     });
 
     // Mark campaign as disputed
@@ -152,6 +154,7 @@ const addMessage = async (req, res, next) => {
     }
 
     dispute.messages.push({ sender: userId, text: text.trim() });
+    dispute.timeline.push({ type: 'message', by: userId, at: new Date() });
     await dispute.save();
 
     // Notify the other party
@@ -175,7 +178,37 @@ const addMessage = async (req, res, next) => {
   }
 };
 
-// POST /api/disputes/:id/resolve (admin only)
+// POST /api/disputes/:id/escalate — Escalate dispute for admin review
+const escalateDispute = async (req, res, next) => {
+  try {
+    const ok = await ensureDb();
+    if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
+
+    const userId = req.usuario?.id;
+    if (!userId) return next(httpError(401, 'No autorizado'));
+
+    const dispute = await Dispute.findById(req.params.id);
+    if (!dispute) return next(httpError(404, 'Disputa no encontrada'));
+
+    const isParticipant = [dispute.openedBy?.toString(), dispute.againstUser?.toString()].includes(String(userId));
+    if (!isParticipant) return next(httpError(403, 'No autorizado'));
+
+    if (dispute.status !== 'open') {
+      return next(httpError(400, 'Solo disputas abiertas pueden ser escaladas'));
+    }
+
+    dispute.status = 'under_review';
+    dispute.escalatedAt = new Date();
+    dispute.timeline.push({ type: 'escalated', by: userId, at: new Date() });
+    await dispute.save();
+
+    return res.json({ success: true, message: 'Disputa escalada para revision', data: dispute });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST /api/disputes/:id/resolve (admin only) — Enhanced with resolution types + auto-refund
 const resolveDispute = async (req, res, next) => {
   try {
     const ok = await ensureDb();
@@ -185,47 +218,106 @@ const resolveDispute = async (req, res, next) => {
     if (!userId) return next(httpError(401, 'No autorizado'));
     if (req.usuario?.rol !== 'admin') return next(httpError(403, 'Solo administradores pueden resolver disputas'));
 
-    const { resolution, favoredParty } = req.body || {};
-    if (!resolution || !favoredParty) {
-      return next(httpError(400, 'resolution y favoredParty son requeridos'));
+    const { resolution, resolutionType, refundPercent, adminNotes } = req.body || {};
+    if (!resolution || !resolutionType) {
+      return next(httpError(400, 'resolution y resolutionType son requeridos'));
+    }
+    if (!['favor_advertiser', 'favor_creator', 'partial', 'closed_no_action'].includes(resolutionType)) {
+      return next(httpError(400, 'resolutionType invalido'));
     }
 
     const dispute = await Dispute.findById(req.params.id);
     if (!dispute) return next(httpError(404, 'Disputa no encontrada'));
 
     if (['resolved_advertiser', 'resolved_creator', 'closed'].includes(dispute.status)) {
-      return next(httpError(400, 'La disputa ya está resuelta'));
+      return next(httpError(400, 'La disputa ya esta resuelta'));
     }
 
-    dispute.status = favoredParty === 'advertiser' ? 'resolved_advertiser' : 'resolved_creator';
-    dispute.resolution = resolution;
-    dispute.resolvedBy = userId;
-    dispute.resolvedAt = new Date();
-    await dispute.save();
-
-    // If resolved in favor of advertiser, refund; if creator, complete campaign
     const campaign = await Campaign.findById(dispute.campaign);
-    if (campaign) {
-      if (favoredParty === 'advertiser') {
+    let refundAmount = 0;
+
+    // Determine status and actions based on resolution type
+    if (resolutionType === 'favor_advertiser') {
+      dispute.status = 'resolved_advertiser';
+      if (campaign) {
+        refundAmount = campaign.price || 0;
         campaign.status = 'CANCELLED';
         campaign.cancelledAt = new Date();
-      } else {
+        await campaign.save();
+        // Create refund transaction
+        if (refundAmount > 0) {
+          await Transaccion.create({
+            campaign: campaign._id,
+            advertiser: campaign.advertiser,
+            amount: refundAmount,
+            tipo: 'reembolso',
+            status: 'paid',
+            paidAt: new Date(),
+            description: `Reembolso por disputa resuelta a favor del anunciante`,
+          });
+        }
+      }
+    } else if (resolutionType === 'favor_creator') {
+      dispute.status = 'resolved_creator';
+      if (campaign) {
         campaign.status = 'COMPLETED';
         campaign.completedAt = new Date();
+        await campaign.save();
+        // Release escrow
+        await Transaccion.updateOne(
+          { campaign: campaign._id, status: 'escrow' },
+          { status: 'paid', paidAt: new Date() }
+        );
       }
-      await campaign.save();
+    } else if (resolutionType === 'partial') {
+      dispute.status = 'resolved_advertiser';
+      const pct = Math.min(100, Math.max(0, Number(refundPercent) || 50));
+      if (campaign) {
+        refundAmount = +((campaign.price || 0) * pct / 100).toFixed(2);
+        campaign.status = 'COMPLETED';
+        campaign.completedAt = new Date();
+        await campaign.save();
+        if (refundAmount > 0) {
+          await Transaccion.create({
+            campaign: campaign._id,
+            advertiser: campaign.advertiser,
+            amount: refundAmount,
+            tipo: 'reembolso',
+            status: 'paid',
+            paidAt: new Date(),
+            description: `Reembolso parcial (${pct}%) por disputa`,
+          });
+        }
+      }
+    } else {
+      dispute.status = 'closed';
     }
+
+    dispute.resolution = resolution;
+    dispute.resolutionType = resolutionType;
+    dispute.refundAmount = refundAmount;
+    dispute.resolvedBy = userId;
+    dispute.resolvedAt = new Date();
+    dispute.adminNotes = adminNotes || '';
+    dispute.timeline.push({ type: 'resolved', by: userId, text: resolution, at: new Date() });
+    await dispute.save();
 
     // Notify both parties
     try {
       const notificationService = require('../services/notificationService');
+      const labels = {
+        favor_advertiser: 'a favor del anunciante',
+        favor_creator: 'a favor del creador',
+        partial: 'con reembolso parcial',
+        closed_no_action: 'sin accion',
+      };
       for (const uid of [dispute.openedBy, dispute.againstUser]) {
         await notificationService.enviarNotificacion({
           usuarioId: uid,
           tipo: 'disputa.resuelta',
           titulo: 'Disputa resuelta',
-          mensaje: `La disputa ha sido resuelta a favor del ${favoredParty === 'advertiser' ? 'anunciante' : 'creador'}.`,
-          datos: { disputeId: dispute._id, resolution },
+          mensaje: `La disputa ha sido resuelta ${labels[resolutionType]}.${refundAmount > 0 ? ` Reembolso: ${refundAmount} EUR.` : ''}`,
+          datos: { disputeId: dispute._id, resolution, resolutionType, refundAmount },
           canales: ['database', 'realtime', 'email'],
           prioridad: 'alta'
         });
@@ -243,5 +335,6 @@ module.exports = {
   getMyDisputes,
   getDispute,
   addMessage,
+  escalateDispute,
   resolveDispute
 };

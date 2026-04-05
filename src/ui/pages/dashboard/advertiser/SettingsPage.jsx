@@ -4,6 +4,7 @@ import { useAuth } from '../../../../auth/AuthContext'
 import {
   PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN,
 } from '../../../theme/tokens'
+import TwoFactorCard from '../../../components/TwoFactorCard'
 
 
 const TABS = [
@@ -286,30 +287,7 @@ export default function SettingsPage() {
             </div>
           </Card>
 
-          <Card title="Autenticación de dos factores"
-            subtitle="Añade una capa extra de protección a tu cuenta"
-            action={
-              <span style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.25)', borderRadius: '8px', padding: '3px 10px', fontSize: '11px', fontWeight: 600 }}>
-                No activado
-              </span>
-            }
-          >
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
-              <div style={{ flex: 1, minWidth: '200px' }}>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', marginBottom: '6px' }}>2FA por aplicación autenticadora</div>
-                <div style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '16px' }}>
-                  Protege tu cuenta requiriendo un código temporal además de tu contraseña. Compatible con Google Authenticator, Authy y 1Password.
-                </div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '10px', padding: '12px 14px' }}>
-                  <AlertTriangle size={14} color="#f59e0b" style={{ marginTop: '1px', flexShrink: 0 }} />
-                  <span style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5 }}>Sin 2FA, tu cuenta es vulnerable si tu contraseña es comprometida.</span>
-                </div>
-              </div>
-              <button style={{ background: PURPLE, border: 'none', borderRadius: '11px', padding: '11px 22px', fontSize: '13px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: FONT_BODY, boxShadow: `0 4px 14px ${purpleAlpha(0.3)}`, whiteSpace: 'nowrap' }}>
-                Activar 2FA
-              </button>
-            </div>
-          </Card>
+          <TwoFactorCard accentColor={PURPLE} accentAlpha={purpleAlpha} />
 
           <Card title="Sesiones activas" subtitle="Dispositivos que tienen acceso a tu cuenta">
             {[

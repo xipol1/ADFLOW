@@ -6,6 +6,7 @@ import {
   BarChart3, ChevronRight, Copy, AlertCircle,
 } from 'lucide-react'
 import apiService from '../../../../../services/api'
+import DeliveryBadge from '../../../components/DeliveryBadge'
 import {
   PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE,
 } from '../../../theme/tokens'
@@ -723,15 +724,18 @@ export default function CampaignsPage() {
                     </div>
                   )}
                   {sel.status === 'PUBLISHED' && (
-                    <button onClick={() => doAction(sel._id, apiService.completeCampaign)} disabled={actionLoading === sel._id} className="adf-btn-primary" style={{
-                      flex: 1, background: OK, color: '#fff', border: 'none', borderRadius: '12px',
-                      padding: '13px 20px', fontSize: '14px', fontWeight: 600,
-                      cursor: actionLoading === sel._id ? 'not-allowed' : 'pointer', fontFamily: FONT_BODY,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                      boxShadow: `0 4px 14px ${OK}30`,
-                    }}>
-                      <CheckCircle size={16} /> {actionLoading === sel._id ? 'Procesando...' : 'Completar y liberar pago'}
-                    </button>
+                    <>
+                      {sel.delivery && <DeliveryBadge delivery={sel.delivery} />}
+                      <button onClick={() => doAction(sel._id, apiService.completeCampaign)} disabled={actionLoading === sel._id} className="adf-btn-primary" style={{
+                        flex: 1, background: OK, color: '#fff', border: 'none', borderRadius: '12px',
+                        padding: '13px 20px', fontSize: '14px', fontWeight: 600,
+                        cursor: actionLoading === sel._id ? 'not-allowed' : 'pointer', fontFamily: FONT_BODY,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                        boxShadow: `0 4px 14px ${OK}30`,
+                      }}>
+                        <CheckCircle size={16} /> {actionLoading === sel._id ? 'Procesando...' : 'Completar y liberar pago'}
+                      </button>
+                    </>
                   )}
                   {sel.status === 'COMPLETED' && (
                     <div style={{
