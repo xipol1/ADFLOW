@@ -33,6 +33,7 @@ const buildUserResponse = (usuario) => {
     apellido: usuario?.apellido,
     emailVerificado: usuario?.emailVerificado,
     fullAccess: rol === 'admin' || FULL_ACCESS_EMAILS.includes(email),
+    campaignCredits: usuario?.campaignCreditsBalance || 0,
   };
 };
 

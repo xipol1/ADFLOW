@@ -380,9 +380,13 @@ export default function AuthPage({ defaultTab = 'login' }) {
                     fontWeight: referral ? 700 : 400,
                   }}
                 />
-                {!referral && (
+                {!referral ? (
                   <p style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px', lineHeight: 1.4 }}>
-                    Los usuarios invitados acumulan creditos cuando se abra el marketplace
+                    Registrate con un codigo y recibe <strong style={{ color: '#10b981' }}>10€ de saldo</strong> para tus primeras campanas
+                  </p>
+                ) : (
+                  <p style={{ fontSize: '11px', color: '#10b981', marginTop: '4px', lineHeight: 1.4, fontWeight: 500 }}>
+                    Recibiras 10€ de saldo gratis para tus campanas
                   </p>
                 )}
               </div>

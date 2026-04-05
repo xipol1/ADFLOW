@@ -113,6 +113,7 @@ router.get('/stats', autenticar, async (req, res) => {
         referralCode: user.referralCode,
         creditsBalance: user.referralCreditsBalance,
         cashBalance: user.referralCashBalance,
+        campaignCredits: user.campaignCreditsBalance || 0,
         tier: user.referralTier,
         gmvGenerated: user.referralGMVGenerated,
         referralCount: user.referralCount,
@@ -188,7 +189,10 @@ router.post('/apply', autenticar, async (req, res) => {
     if (!referrer) return res.status(404).json({ success: false, message: 'Código de referido no válido' })
     if (referrer._id.equals(user._id)) return res.status(400).json({ success: false, message: 'No puedes referirte a ti mismo' })
 
+    // Give welcome bonus to referred user (campaign credits)
+    const WELCOME_BONUS = 10 // €10 in campaign credits
     user.referredBy = referrer._id
+    user.campaignCreditsBalance = (user.campaignCreditsBalance || 0) + WELCOME_BONUS
     await user.save()
 
     referrer.referralCount += 1
@@ -210,7 +214,11 @@ router.post('/apply', autenticar, async (req, res) => {
       }
     })
 
-    res.json({ success: true, message: 'Código de referido aplicado correctamente' })
+    res.json({
+      success: true,
+      message: `Codigo de referido aplicado. Has recibido ${WELCOME_BONUS}€ en creditos para tus campanas.`,
+      data: { welcomeBonus: WELCOME_BONUS, campaignCreditsBalance: user.campaignCreditsBalance },
+    })
   } catch (err) {
     console.error('Referral apply error:', err)
     res.status(500).json({ success: false, message: 'Error al aplicar código de referido' })

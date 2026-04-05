@@ -46,6 +46,9 @@ const UsuarioSchema = new mongoose.Schema(
     twoFactorSecret: { type: String, default: null }, // encrypted TOTP secret
     twoFactorBackupCodes: [{ type: String }],         // hashed backup codes
 
+    // Campaign credits (welcome bonus for referred users, spent on campaigns)
+    campaignCreditsBalance: { type: Number, default: 0 },
+
     // Referral system
     referralCode: { type: String, unique: true, sparse: true, default: null },
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', default: null },

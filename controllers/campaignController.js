@@ -200,17 +200,44 @@ const payCampaign = async (req, res, next) => {
       return next(httpError(400, `No se puede pagar una campaña en estado ${campaign.status}`));
     }
 
+    // Auto-apply campaign credits (welcome bonus from referrals)
+    const advertiser = await Usuario.findById(userId);
+    let creditsUsed = 0;
+    if (advertiser?.campaignCreditsBalance > 0) {
+      creditsUsed = Math.min(advertiser.campaignCreditsBalance, campaign.price);
+      advertiser.campaignCreditsBalance -= creditsUsed;
+      await advertiser.save();
+    }
+
+    const amountCharged = +(campaign.price - creditsUsed).toFixed(2);
+
     // Hold payment in escrow until campaign is completed
     const transaccion = await Transaccion.findOneAndUpdate(
       { campaign: campaign._id, status: 'pending' },
-      { status: 'escrow', paidAt: new Date() },
+      {
+        status: 'escrow',
+        paidAt: new Date(),
+        amount: amountCharged,
+        description: creditsUsed > 0
+          ? `Pago campaña: €${campaign.price} (€${creditsUsed.toFixed(2)} en créditos aplicados)`
+          : '',
+      },
       { new: true }
     );
 
     campaign.status = 'PAID';
     await campaign.save();
 
-    return res.json({ success: true, data: { campaign, transaccion } });
+    return res.json({
+      success: true,
+      data: {
+        campaign,
+        transaccion,
+        creditsUsed,
+        amountCharged,
+        remainingCredits: advertiser?.campaignCreditsBalance || 0,
+      },
+    });
   } catch (error) {
     next(error);
   }
