@@ -73,13 +73,46 @@ const login = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
 
+    // Account lockout check
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      const minutesLeft = Math.ceil((user.lockedUntil - Date.now()) / 60000);
+      return res.status(423).json({
+        success: false,
+        message: `Cuenta bloqueada temporalmente. Intenta de nuevo en ${minutesLeft} minuto(s).`,
+      });
+    }
+
     const password = String(req.body?.password || '');
     const isMatch = await bcrypt.compare(password, user.password);
     logDev('LOGIN: password match', isMatch);
 
     if (!isMatch) {
-      logDev('LOGIN: password mismatch', { userId: user._id.toString() });
+      // Increment failed attempts and lock after 5
+      const attempts = (user.failedLoginAttempts || 0) + 1;
+      const update = { failedLoginAttempts: attempts };
+      if (attempts >= 5) {
+        update.lockedUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 min lock
+        update.failedLoginAttempts = 0;
+      }
+      await Usuario.findByIdAndUpdate(user._id, update);
+      logDev('LOGIN: password mismatch', { userId: user._id.toString(), attempts });
       return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
+    }
+
+    // Reset failed attempts on successful login
+    if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+      await Usuario.findByIdAndUpdate(user._id, { failedLoginAttempts: 0, lockedUntil: null });
+    }
+
+    // Check if 2FA is enabled — require second step
+    if (user.twoFactorEnabled) {
+      logDev('LOGIN: 2FA required', { userId: user._id.toString() });
+      return res.json({
+        success: true,
+        requires2FA: true,
+        email: user.email,
+        message: 'Introduce el codigo de tu app de autenticacion',
+      });
     }
 
     const tokens = await AuthService.generarTokens(user);

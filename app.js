@@ -86,12 +86,34 @@ app.use((req, res, next) => {
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+app.get('/health', async (req, res) => {
+  try {
+    const database = require('./config/database');
+    const dbOk = database.estaConectado();
+    const uptime = process.uptime();
+    const memMB = Math.round(process.memoryUsage().rss / 1024 / 1024);
+    res.status(dbOk ? 200 : 503).json({
+      status: dbOk ? 'ok' : 'degraded',
+      db: dbOk ? 'connected' : 'disconnected',
+      uptime: `${Math.floor(uptime / 60)}m`,
+      memoryMB: memMB,
+    });
+  } catch {
+    res.status(200).json({ status: 'ok' });
+  }
 });
 
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+app.get('/api/health', async (req, res) => {
+  try {
+    const database = require('./config/database');
+    const dbOk = database.estaConectado();
+    res.status(dbOk ? 200 : 503).json({
+      status: dbOk ? 'ok' : 'degraded',
+      db: dbOk ? 'connected' : 'disconnected',
+    });
+  } catch {
+    res.status(200).json({ status: 'ok' });
+  }
 });
 
 // Swagger docs — only accessible in development or with valid auth token
@@ -362,6 +384,12 @@ app.use((req, res) => {
     message: 'Recurso no encontrado',
   });
 });
+
+// Error logging — persist errors to MongoDB in production
+try {
+  const { errorLoggingMiddleware } = require('./services/errorLogger');
+  app.use(errorLoggingMiddleware);
+} catch {}
 
 app.use((error, req, res, next) => {
   if (ENV !== 'production') console.error(error);

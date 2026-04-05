@@ -239,6 +239,19 @@ const confirmCampaign = async (req, res, next) => {
     campaign.publishedAt = new Date();
     await campaign.save();
 
+    // Deliver ad to platform (non-blocking with retry)
+    setImmediate(async () => {
+      try {
+        const { deliverAd } = require('../services/adDeliveryService');
+        const result = await deliverAd(campaign._id);
+        if (!result.success && !result.skipped) {
+          console.error(`Ad delivery failed for campaign ${campaign._id}:`, result.error);
+        }
+      } catch (deliveryErr) {
+        console.error('Ad delivery service error:', deliveryErr?.message);
+      }
+    });
+
     // Notify advertiser that campaign is published
     notifySafe({
       usuarioId: campaign.advertiser,

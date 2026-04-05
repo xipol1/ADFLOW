@@ -34,6 +34,15 @@ const UsuarioSchema = new mongoose.Schema(
     passwordResetToken: { type: String, default: null },
     passwordResetExpires: { type: Date, default: null },
 
+    // Account lockout
+    failedLoginAttempts: { type: Number, default: 0 },
+    lockedUntil: { type: Date, default: null },
+
+    // 2FA / TOTP
+    twoFactorEnabled: { type: Boolean, default: false },
+    twoFactorSecret: { type: String, default: null }, // encrypted TOTP secret
+    twoFactorBackupCodes: [{ type: String }],         // hashed backup codes
+
     // Referral system
     referralCode: { type: String, unique: true, sparse: true, default: null },
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', default: null },

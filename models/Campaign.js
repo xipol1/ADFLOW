@@ -25,7 +25,18 @@ const CampaignSchema = new mongoose.Schema(
     trackingUrl: { type: String, default: '' },
     trackingLinkId: { type: mongoose.Schema.Types.ObjectId, ref: 'TrackingLink', default: null },
     partner: { type: mongoose.Schema.Types.ObjectId, ref: 'Partner', default: null, index: true },
-    partnerExternalRef: { type: String, default: null }
+    partnerExternalRef: { type: String, default: null },
+
+    // Delivery tracking
+    delivery: {
+      status: { type: String, enum: ['pending', 'sent', 'failed', 'skipped'], default: 'pending' },
+      platformResponse: { type: String, default: '' },
+      platformMessageId: { type: String, default: '' },
+      attempts: { type: Number, default: 0 },
+      lastAttemptAt: { type: Date, default: null },
+      deliveredAt: { type: Date, default: null },
+      error: { type: String, default: '' },
+    }
   },
   { timestamps: false }
 );

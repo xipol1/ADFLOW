@@ -426,6 +426,17 @@ router.get('/estadisticas',
 
 router.post('/reenviar-verificacion', body('email').isEmail().withMessage('Email invalido'), authController.reenviarVerificacion);
 
+// ── 2FA / TOTP routes ──
+try {
+  const twoFA = require('../controllers/twoFactorController');
+  router.post('/2fa/setup', autenticar, twoFA.setup2FA);
+  router.post('/2fa/verify', autenticar, body('code').isLength({ min: 6, max: 8 }).withMessage('Codigo invalido'), validarCampos, twoFA.verify2FA);
+  router.post('/2fa/validate', body('email').isEmail(), body('code').isLength({ min: 6, max: 8 }), validarCampos, twoFA.validate2FA);
+  router.post('/2fa/disable', autenticar, body('password').notEmpty(), validarCampos, twoFA.disable2FA);
+} catch (e) {
+  console.warn('2FA routes not loaded:', e.message);
+}
+
 // Middleware de manejo de errores específico para rutas de auth
 router.use((error, req, res, next) => {
   console.error('Error en rutas de autenticación:', error);
