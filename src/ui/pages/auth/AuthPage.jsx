@@ -16,6 +16,7 @@ export default function AuthPage({ defaultTab = 'login' }) {
   const [password, setPassword] = useState('')
   const [name, setName]         = useState('')
   const [role, setRole]         = useState('advertiser')
+  const [referral, setReferral] = useState(refCode)
   const [remember, setRemember] = useState(false)
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading]   = useState(false)
@@ -53,9 +54,10 @@ export default function AuthPage({ defaultTab = 'login' }) {
     const res = await register({ email, password, nombre: name, role })
     if (res?.success) {
       // Apply referral code if present — synchronous to ensure it links
-      if (refCode) {
+      const codeToApply = referral.trim() || refCode
+      if (codeToApply) {
         try {
-          const refRes = await apiService.applyReferralCode(refCode)
+          const refRes = await apiService.applyReferralCode(codeToApply)
           if (!refRes?.success) console.warn('Referral code could not be applied:', refRes?.message)
         } catch (refErr) {
           console.warn('Referral code application failed:', refErr?.message)
@@ -234,18 +236,6 @@ export default function AuthPage({ defaultTab = 'login' }) {
           {tab === 'register' && (
             <form onSubmit={onRegister} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-              {refCode && (
-                <div style={{
-                  background: AG(0.08), border: `1px solid ${AG(0.2)}`,
-                  borderRadius: '10px', padding: '10px 14px',
-                  fontSize: '13px', color: A, fontWeight: 500,
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                }}>
-                  <span>🎁</span>
-                  <span>Invitado con codigo <strong>{refCode}</strong></span>
-                </div>
-              )}
-
               <div>
                 <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
                   Nombre <span style={{ color: '#ef4444' }}>*</span>
@@ -313,6 +303,37 @@ export default function AuthPage({ defaultTab = 'login' }) {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Referral code field */}
+              <div>
+                <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '14px' }}>🎁</span> Codigo de invitacion
+                  {referral && <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 600 }}>Aplicado</span>}
+                </label>
+                <input
+                  type="text" value={referral}
+                  onChange={e => setReferral(e.target.value.toUpperCase())}
+                  onFocus={() => setFocusedField('referral')}
+                  onBlur={() => setFocusedField(null)}
+                  placeholder="Pide un codigo a quien te invito"
+                  maxLength={12}
+                  style={{
+                    ...inputStyle(focusedField === 'referral'),
+                    ...(referral ? {
+                      borderColor: '#10b981',
+                      background: 'rgba(16,185,129,0.04)',
+                      boxShadow: focusedField === 'referral' ? '0 0 0 3px rgba(16,185,129,0.12)' : 'none',
+                    } : {}),
+                    letterSpacing: '0.08em',
+                    fontWeight: referral ? 700 : 400,
+                  }}
+                />
+                {!referral && (
+                  <p style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px', lineHeight: 1.4 }}>
+                    Los usuarios invitados acumulan creditos cuando se abra el marketplace
+                  </p>
+                )}
               </div>
 
               <button type="submit" disabled={loading} style={{
