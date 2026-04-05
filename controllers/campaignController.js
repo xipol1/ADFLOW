@@ -200,9 +200,10 @@ const payCampaign = async (req, res, next) => {
       return next(httpError(400, `No se puede pagar una campaña en estado ${campaign.status}`));
     }
 
+    // Hold payment in escrow until campaign is completed
     const transaccion = await Transaccion.findOneAndUpdate(
       { campaign: campaign._id, status: 'pending' },
-      { status: 'paid', paidAt: new Date() },
+      { status: 'escrow', paidAt: new Date() },
       { new: true }
     );
 
@@ -278,8 +279,13 @@ const completeCampaign = async (req, res, next) => {
     campaign.completedAt = new Date();
     await campaign.save();
 
-    // Capture Stripe PaymentIntent if exists
-    const tx = await Transaccion.findOne({ campaign: campaign._id }).lean();
+    // Release escrow: mark transaction as paid + capture Stripe PaymentIntent if exists
+    const tx = await Transaccion.findOne({ campaign: campaign._id });
+    if (tx && (tx.status === 'escrow' || tx.status === 'pending')) {
+      tx.status = 'paid';
+      tx.paidAt = tx.paidAt || new Date();
+      await tx.save();
+    }
     if (campaign.stripePaymentIntentId || tx?.stripePaymentIntentId) {
       try {
         const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)

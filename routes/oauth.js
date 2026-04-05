@@ -1,6 +1,6 @@
 const express = require('express');
 const { body, param, query } = require('express-validator');
-const { autenticar } = require('../middleware/auth');
+const { autenticar, requiereEmailVerificado } = require('../middleware/auth');
 const { validarCampos } = require('../middleware/validarCampos');
 const oauthController = require('../controllers/oauthController');
 const platformConnect = require('../controllers/platformConnectController');
@@ -79,6 +79,7 @@ router.get('/meta/cron-refresh', async (req, res) => {
 router.post(
   '/telegram/connect',
   autenticar,
+  requiereEmailVerificado,
   [
     body('botToken').isString().notEmpty().withMessage('botToken requerido'),
     body('chatId').isString().notEmpty().withMessage('chatId requerido'),
@@ -108,6 +109,7 @@ router.post(
 router.post(
   '/discord/connect',
   autenticar,
+  requiereEmailVerificado,
   [
     body('botToken').isString().notEmpty().withMessage('botToken requerido'),
     body('serverId').isString().notEmpty().withMessage('serverId requerido'),
@@ -137,6 +139,7 @@ router.post(
 router.post(
   '/whatsapp/connect-manual',
   autenticar,
+  requiereEmailVerificado,
   [
     body('accessToken').isString().notEmpty().withMessage('accessToken requerido'),
     body('phoneNumberId').isString().notEmpty().withMessage('phoneNumberId requerido'),
@@ -150,6 +153,7 @@ router.post(
 router.post(
   '/newsletter/connect',
   autenticar,
+  requiereEmailVerificado,
   [
     body('apiKey').isString().notEmpty().withMessage('apiKey requerida'),
     body('provider').isIn(['mailchimp', 'beehiiv', 'substack']).withMessage('provider invalido (mailchimp, beehiiv, substack)'),

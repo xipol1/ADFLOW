@@ -252,7 +252,13 @@ const refreshToken = async (req, res) => {
     if (!token) return res.status(400).json({ success: false, message: 'refreshToken requerido' });
     if (!database.estaConectado()) await database.conectar();
     const tokens = await AuthService.refrescarToken(token);
-    return res.json({ success: true, token: tokens.tokenAcceso, refreshToken: tokens.tokenRefresco });
+    // Return rotated refresh token (old one is now revoked)
+    return res.json({
+      success: true,
+      token: tokens.tokenAcceso,
+      refreshToken: tokens.tokenRefresco,
+      expiresIn: tokens.expiresIn,
+    });
   } catch (e) {
     return res.status(401).json({ success: false, message: 'Token inválido o expirado' });
   }

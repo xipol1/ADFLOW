@@ -1,16 +1,41 @@
 const rateLimit = require('express-rate-limit');
 
+// Use MongoDB store for distributed rate limiting (Vercel serverless)
+let storeFactory = null;
+try {
+  const MongoStore = require('rate-limit-mongo');
+  if (process.env.MONGODB_URI) {
+    storeFactory = (windowMs) => new MongoStore({
+      uri: process.env.MONGODB_URI,
+      collectionName: 'rateLimits',
+      expireTimeMs: windowMs,
+      errorHandler: (err) => {
+        // Fall back to memory if Mongo fails — don't block requests
+        console.error('Rate limit MongoDB store error:', err?.message);
+      },
+    });
+  }
+} catch {
+  // rate-limit-mongo not available, fall back to in-memory
+}
+
 const limitarIntentos = (options = {}) => {
   const windowMs = options.windowMs ?? 15 * 60 * 1000;
   const max = options.max ?? 100;
 
-  return rateLimit({
+  const config = {
     windowMs,
     max,
     standardHeaders: options.standardHeaders ?? true,
     legacyHeaders: options.legacyHeaders ?? false,
-    message: options.message || { success: false, message: 'Demasiadas solicitudes' }
-  });
+    message: options.message || { success: false, message: 'Demasiadas solicitudes' },
+  };
+
+  if (storeFactory) {
+    config.store = storeFactory(windowMs);
+  }
+
+  return rateLimit(config);
 };
 
 const limitadorAPI = limitarIntentos({

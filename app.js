@@ -69,6 +69,11 @@ app.use(morgan(ENV === 'development' ? 'dev' : 'combined'));
 app.use(express.json({ limit: MAX_REQUEST_SIZE }));
 app.use(express.urlencoded({ extended: true, limit: MAX_REQUEST_SIZE }));
 
+// Security middleware — sanitize inputs against NoSQL injection, XSS, and HTTP parameter pollution
+try { app.use(require('express-mongo-sanitize')()); } catch (e) { console.warn('express-mongo-sanitize not loaded:', e.message); }
+try { app.use(require('xss-clean')()); } catch (e) { console.warn('xss-clean not loaded:', e.message); }
+try { app.use(require('hpp')()); } catch (e) { console.warn('hpp not loaded:', e.message); }
+
 // Block access to sensitive files that could reveal tech stack or secrets
 app.use((req, res, next) => {
   const blocked = /\/(package\.json|package-lock\.json|\.env|\.git|node_modules|tsconfig|vite\.config|\.claude)/i;

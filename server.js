@@ -129,6 +129,28 @@ async function startServer() {
       console.log(`Server running on port ${PORT}`);
     });
 
+    // ── Graceful shutdown ──
+    const shutdown = async (signal) => {
+      console.log(`${signal} received — shutting down gracefully`);
+      server.close(async () => {
+        try {
+          await mongoose.disconnect();
+          console.log('MongoDB disconnected');
+        } catch (e) {
+          console.error('Error disconnecting MongoDB:', e.message);
+        }
+        process.exit(0);
+      });
+      // Force exit after 10s if connections don't close
+      setTimeout(() => {
+        console.error('Forced shutdown after timeout');
+        process.exit(1);
+      }, 10000);
+    };
+
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT', () => shutdown('SIGINT'));
+
   } catch (error) {
     console.error('Error fatal durante el inicio del servidor:', error);
   }

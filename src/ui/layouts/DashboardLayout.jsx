@@ -14,6 +14,7 @@ import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../../services/api'
 import { relTime } from '../utils/relTime'
 import CommandPalette from '../components/CommandPalette'
+import EmailVerificationBanner from '../components/EmailVerificationBanner'
 import OnboardingWizard, { shouldShowOnboarding } from '../components/OnboardingWizard'
 import {
   PURPLE, purpleAlpha, GREEN, greenAlpha,
@@ -951,6 +952,7 @@ export default function DashboardLayout({ role = 'advertiser' }) {
           padding: isMobile ? '20px 16px' : '28px',
           overflowY: 'auto', overflowX: 'hidden',
         }}>
+          <EmailVerificationBanner />
           <PageErrorBoundary accentColor={cfg.color}>
             <Outlet />
           </PageErrorBoundary>

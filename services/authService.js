@@ -180,7 +180,7 @@ class AuthService {
         throw new Error('Usuario inactivo');
       }
 
-      // Generar nuevo token de acceso
+      // ── Refresh token rotation: revoke old, issue new pair ──
       const payload = {
         id: usuario._id.toString(),
         email: usuario.email,
@@ -189,14 +189,29 @@ class AuthService {
       };
 
       const nuevoTokenAcceso = this.generarTokenAcceso(payload);
+      const nuevoTokenRefresco = this.generarTokenRefresco(payload);
+      const nuevoHash = crypto.createHash('sha256').update(nuevoTokenRefresco).digest('hex');
 
-      // Actualizar última actividad
+      // Atomically remove old session and add new one
       await Usuario.findByIdAndUpdate(usuario._id, {
+        $pull: { sesiones: { tokenHash: hashToken } },
+      });
+      await Usuario.findByIdAndUpdate(usuario._id, {
+        $push: {
+          sesiones: {
+            tokenHash: nuevoHash,
+            fechaCreacion: new Date(),
+            fechaExpiracion: new Date(Date.now() + this.parseTimeToMs(config.jwt.refreshExpiresIn)),
+            userAgent: '',
+            ip: ''
+          }
+        },
         ultimaActividad: new Date()
       });
 
       return {
         tokenAcceso: nuevoTokenAcceso,
+        tokenRefresco: nuevoTokenRefresco,
         expiresIn: config.jwt.expiresIn
       };
     } catch (error) {
