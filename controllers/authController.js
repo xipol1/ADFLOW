@@ -18,12 +18,9 @@ const normalizeEmail = (value) => {
   return String(value).trim().toLowerCase();
 };
 
-// Emails with full platform access — kept server-side only, never sent to frontend bundle
-const FULL_ACCESS_EMAILS = [
-  'admin@adflow.com', 'creator@adflow.com', 'advertiser@adflow.com',
-  'demo@adflow.com',
-  'admin@channelad.io', 'creator@channelad.io', 'advertiser@channelad.io',
-];
+// Emails with full platform access — configurable via env, never sent to frontend bundle
+const FULL_ACCESS_EMAILS = (process.env.FULL_ACCESS_EMAILS || 'admin@channelad.io,creator@channelad.io,advertiser@channelad.io')
+  .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 
 const buildUserResponse = (usuario) => {
   const email = (usuario?.email || '').toLowerCase();

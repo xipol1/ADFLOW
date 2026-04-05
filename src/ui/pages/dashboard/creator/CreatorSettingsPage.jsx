@@ -5,6 +5,7 @@ import apiService from '../../../../../services/api'
 import { GREEN, greenAlpha, OK as _OK, ERR, FONT_BODY, FONT_DISPLAY, PLAT_COLORS } from '../../../theme/tokens'
 import { ErrorBanner } from '../shared/DashComponents'
 import TwoFactorCard from '../../../components/TwoFactorCard'
+import StripeConnectCard from '../../../components/StripeConnectCard'
 
 const WA  = GREEN
 const WAG = greenAlpha
@@ -409,6 +410,7 @@ export default function CreatorSettingsPage() {
       {/* ── Payments ── */}
       {tab === 'cobros' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <StripeConnectCard />
           <Card title="Cuenta bancaria para cobros">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>

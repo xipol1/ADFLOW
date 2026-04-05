@@ -92,12 +92,47 @@ class ApiService {
         return { success: true };
       }
 
+      // Auto-refresh on 401 (token expired) — one attempt only
+      if (response.status === 401 && !options._retried) {
+        const newTokens = await this._tryRefreshToken();
+        if (newTokens) {
+          return this.request(endpoint, { ...options, _retried: true });
+        }
+      }
+
       // Pass status through so AuthContext can handle auth rejection gracefully
 
       if (parsed && typeof parsed === 'object') return { ...parsed, status: response.status };
       return { success: false, message: hasBody ? text : 'Error del servidor', status: response.status };
     } catch (error) {
       return { success: false, message: 'No se pudo conectar con el servidor', error: error?.message };
+    }
+  }
+
+  /**
+   * Attempt to refresh the access token using the stored refresh token.
+   * Stores the new rotated tokens in localStorage.
+   */
+  async _tryRefreshToken() {
+    try {
+      const rt = localStorage.getItem('refreshToken');
+      if (!rt) return null;
+
+      const res = await fetch(`${this.baseURL}/auth/refresh-token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: rt }),
+      });
+      const data = await res.json();
+
+      if (data?.success && data.token) {
+        localStorage.setItem('token', data.token);
+        if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+        return data;
+      }
+      return null;
+    } catch {
+      return null;
     }
   }
 

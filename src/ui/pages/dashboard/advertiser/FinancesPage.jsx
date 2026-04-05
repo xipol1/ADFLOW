@@ -529,6 +529,15 @@ export default function FinancesPage() {
                         <SIcon size={10} strokeWidth={2.5} /> {sCfg.label}
                       </span>
                     </td>
+                    <td style={{ padding: '15px 12px' }}>
+                      <button onClick={() => apiService.downloadInvoice(tx.id || tx._id)} title="Descargar factura" style={{
+                        background: 'none', border: '1px solid var(--border)', borderRadius: '6px',
+                        padding: '4px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
+                        fontSize: '11px', color: 'var(--muted)', fontFamily: FONT_BODY,
+                      }}>
+                        <Download size={11} />
+                      </button>
+                    </td>
                   </tr>
                 )
               })}

@@ -21,6 +21,9 @@ export default function AuthPage({ defaultTab = 'login' }) {
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
+  const [needs2FA, setNeeds2FA] = useState(false)
+  const [twoFACode, setTwoFACode] = useState('')
+  const [twoFAEmail, setTwoFAEmail] = useState('')
 
   const F = FONT_BODY
   const D = FONT_DISPLAY
@@ -39,8 +42,28 @@ export default function AuthPage({ defaultTab = 'login' }) {
     setLoading(true)
     const res = await login({ email, password })
     setLoading(false)
+    if (res?.requires2FA) {
+      setNeeds2FA(true)
+      setTwoFAEmail(res.email || email)
+      return
+    }
     if (res?.success) { navigate('/dashboard'); return }
     setError(res?.message || 'Credenciales incorrectas')
+  }
+
+  const on2FAVerify = async (e) => {
+    e.preventDefault()
+    if (twoFACode.length < 6) { setError('Introduce un codigo de 6 digitos'); return }
+    setError('')
+    setLoading(true)
+    // First validate the 2FA code
+    const valRes = await apiService.validate2FA(twoFAEmail, twoFACode)
+    if (!valRes?.success) { setLoading(false); setError(valRes?.message || 'Codigo invalido'); return }
+    // Then complete login (password already verified, backend will issue tokens)
+    const res = await login({ email: twoFAEmail, password, twoFACode: twoFACode })
+    setLoading(false)
+    if (res?.success) { navigate('/dashboard'); return }
+    setError(res?.message || 'Error al completar login')
   }
 
   const onRegister = async (e) => {
@@ -166,8 +189,36 @@ export default function AuthPage({ defaultTab = 'login' }) {
             }}>{error}</div>
           )}
 
+          {/* 2FA VERIFICATION STEP */}
+          {tab === 'login' && needs2FA && (
+            <form onSubmit={on2FAVerify} style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center', padding: '8px 0' }}>
+              <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: `${AG(0.1)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>🔐</div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', fontFamily: D, marginBottom: '6px' }}>Verificacion en dos pasos</div>
+                <div style={{ fontSize: '13px', color: 'var(--muted)' }}>Introduce el codigo de tu app de autenticacion</div>
+              </div>
+              <input
+                type="text" value={twoFACode} onChange={e => setTwoFACode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                placeholder="000000" maxLength={8} autoFocus
+                style={{ ...inputStyle(focusedField === '2fa'), width: '200px', textAlign: 'center', fontFamily: 'monospace', fontSize: '20px', letterSpacing: '0.3em', fontWeight: 700 }}
+                onFocus={() => setFocusedField('2fa')} onBlur={() => setFocusedField(null)}
+              />
+              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Tambien puedes usar un codigo de respaldo</div>
+              <button type="submit" disabled={loading || twoFACode.length < 6} style={{
+                width: '100%', background: loading || twoFACode.length < 6 ? 'var(--muted2)' : A,
+                color: '#fff', border: 'none', borderRadius: '10px', padding: '13px',
+                fontSize: '14px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: F,
+              }}>
+                {loading ? 'Verificando...' : 'Verificar'}
+              </button>
+              <button type="button" onClick={() => { setNeeds2FA(false); setTwoFACode(''); setError('') }} style={{
+                background: 'none', border: 'none', cursor: 'pointer', color: A, fontSize: '13px', fontWeight: 500,
+              }}>Volver al login</button>
+            </form>
+          )}
+
           {/* LOGIN FORM */}
-          {tab === 'login' && (
+          {tab === 'login' && !needs2FA && (
             <form onSubmit={onLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
