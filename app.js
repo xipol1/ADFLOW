@@ -29,6 +29,7 @@ try { _routes['./routes/partnerWebhook'] = require('./routes/partnerWebhook'); }
 try { _routes['./routes/tracking']       = require('./routes/tracking');       } catch (e) { _routes['./routes/tracking']       = e; }
 try { _routes['./routes/reviews']        = require('./routes/reviews');        } catch (e) { _routes['./routes/reviews']        = e; }
 try { _routes['./routes/oauth']          = require('./routes/oauth');          } catch (e) { _routes['./routes/oauth']          = e; }
+try { _routes['./routes/referrals']      = require('./routes/referrals');      } catch (e) { _routes['./routes/referrals']      = e; }
 
 // Pre-load for Vercel nft tracer (require only, don't execute swagger-jsdoc at top level)
 let _swaggerPathsJson;
@@ -68,23 +69,27 @@ app.use(morgan(ENV === 'development' ? 'dev' : 'combined'));
 app.use(express.json({ limit: MAX_REQUEST_SIZE }));
 app.use(express.urlencoded({ extended: true, limit: MAX_REQUEST_SIZE }));
 
+// Block access to sensitive files that could reveal tech stack or secrets
+app.use((req, res, next) => {
+  const blocked = /\/(package\.json|package-lock\.json|\.env|\.git|node_modules|tsconfig|vite\.config|\.claude)/i;
+  if (blocked.test(req.path)) {
+    return res.status(404).json({ success: false, message: 'Recurso no encontrado' });
+  }
+  next();
+});
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString(),
-    environment: ENV
-  });
+  res.status(200).json({ status: 'ok' });
 });
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Swagger docs (needs relaxed CSP for Swagger UI assets)
+// Swagger docs — only accessible in development or with valid auth token
 try {
   const swaggerUi = require('swagger-ui-express');
   const swaggerSpec = require('./config/swagger');
@@ -94,11 +99,26 @@ try {
     );
     next();
   };
-  app.use('/api/docs', swaggerCspMiddleware, swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  const swaggerAuthGate = (req, res, next) => {
+    if (ENV === 'development') return next();
+    // In production, require a valid JWT with admin role
+    try {
+      const jwt = require('jsonwebtoken');
+      const authHeader = req.headers.authorization || '';
+      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : req.query.token;
+      if (!token) return res.status(401).json({ success: false, message: 'No autorizado' });
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      if (decoded.rol !== 'admin') return res.status(403).json({ success: false, message: 'Solo administradores' });
+      next();
+    } catch {
+      return res.status(401).json({ success: false, message: 'Token inválido' });
+    }
+  };
+  app.use('/api/docs', swaggerAuthGate, swaggerCspMiddleware, swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'ADFLOW API Docs',
+    customSiteTitle: 'Channelad API Docs',
   }));
-  app.get('/api/docs.json', (req, res) => res.json(swaggerSpec));
+  app.get('/api/docs.json', swaggerAuthGate, (req, res) => res.json(swaggerSpec));
 } catch (e) {
   console.error('Swagger setup error:', e.message);
 }
@@ -276,7 +296,6 @@ const safeMount = (mountPath, modulePath) => {
     res.status(503).json({
       success: false,
       message: 'Servicio no disponible',
-      ...(ENV === 'development' && mountError ? { error: mountError.message || String(mountError) } : {})
     });
   });
 };
@@ -302,6 +321,7 @@ const enabledRoutes = [
   ['/api/tracking', './routes/tracking'],
   ['/api/reviews', './routes/reviews'],
   ['/api/oauth', './routes/oauth'],
+  ['/api/referrals', './routes/referrals'],
 ];
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));
@@ -323,8 +343,7 @@ if (hasDist) {
 app.use('/api', (req, res) => {
   res.status(404).json({
     success: false,
-    message: `Ruta ${req.path} no encontrada`,
-    timestamp: new Date().toISOString()
+    message: 'Recurso no encontrado',
   });
 });
 
@@ -335,16 +354,15 @@ app.use((req, res) => {
   }
   res.status(404).json({
     success: false,
-    message: `Ruta ${req.path} no encontrada`,
-    timestamp: new Date().toISOString()
+    message: 'Recurso no encontrado',
   });
 });
 
 app.use((error, req, res, next) => {
+  if (ENV !== 'production') console.error(error);
   res.status(error.status || 500).json({
     success: false,
-    message: error.message || 'Error interno del servidor',
-    ...(ENV === 'development' && { stack: error.stack })
+    message: ENV === 'production' ? 'Error interno del servidor' : (error.message || 'Error interno del servidor'),
   });
 });
 

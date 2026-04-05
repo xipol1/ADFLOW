@@ -9,8 +9,8 @@ export default function AppLayout() {
 
   // Sync initial theme from localStorage so CSS vars apply before NavBar mounts
   useEffect(() => {
-    const saved = localStorage.getItem('adflow-theme')
-    document.documentElement.dataset.theme = saved === 'light' ? 'light' : 'dark'
+    const saved = localStorage.getItem('channelad-theme') || localStorage.getItem('adflow-theme')
+    document.documentElement.dataset.theme = saved === 'dark' ? 'dark' : 'light'
   }, [])
 
   return (

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'adflow-v1';
+const CACHE_NAME = 'channelad-v1';
 const STATIC_ASSETS = ['/', '/index.html'];
 
 // Install: cache static assets
@@ -44,12 +44,12 @@ self.addEventListener('fetch', (e) => {
 // Push notification received
 self.addEventListener('push', (e) => {
   const data = e.data ? e.data.json() : {};
-  const title = data.title || 'ADFLOW';
+  const title = data.title || 'Channelad';
   const options = {
     body: data.body || '',
     icon: '/icons/icon-192.png',
     badge: '/icons/icon-72.png',
-    tag: data.tag || 'adflow-notification',
+    tag: data.tag || 'notification',
     data: { url: data.url || '/' },
     vibrate: [100, 50, 100],
     actions: data.actions || [],

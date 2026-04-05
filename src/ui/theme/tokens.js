@@ -1,9 +1,10 @@
-// ─── ADFLOW Design Tokens ────────────────────────────────────────────────────
+// ─── Channelad Design Tokens ─────────────────────────────────────────────────
 // Single source of truth for all colors, typography, spacing, and animations.
 
 // ── Brand colors ─────────────────────────────────────────────────────────────
-export const PURPLE      = '#8b5cf6'
-export const PURPLE_DARK = '#7c3aed'
+export const PURPLE      = '#7C3AED'
+export const PURPLE_DARK = '#6D28D9'
+export const PURPLE_LIGHT= '#8B5CF6'
 export const GREEN       = '#25d366'
 export const GREEN_DARK  = '#1ea952'
 
@@ -45,6 +46,7 @@ export const PLATFORM_BRAND = {
   tiktok:     { color: '#010101', bg: 'rgba(100,100,100,0.12)',  label: 'TikTok'     },
   newsletter: { color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)',   label: 'Newsletter' },
   facebook:   { color: '#1877f2', bg: 'rgba(24,119,242,0.12)',   label: 'Facebook'   },
+  linkedin:   { color: '#0a66c2', bg: 'rgba(10,102,194,0.12)',   label: 'LinkedIn'   },
 }
 
 // Also keyed by display name (for lookups using capitalized names)
@@ -57,6 +59,7 @@ export const PLAT_COLORS = {
   Newsletter: '#f59e0b',
   Facebook:   '#1877f2',
   TikTok:     '#010101',
+  LinkedIn:   '#0a66c2',
 }
 
 // ── Typography ───────────────────────────────────────────────────────────────
@@ -86,9 +89,28 @@ export const BTN_RADIUS  = 10
 // ── Sparkline defaults ───────────────────────────────────────────────────────
 export const SPARKLINE = { w: 84, h: 34, pad: 3 }
 
+// ── Landing page section spacing ─────────────────────────────────────────────
+export const SECTION_PAD = '140px 64px'
+export const SECTION_PAD_SM = '72px 20px'
+export const SECTION_PAD_MD = '96px 32px'
+export const MAX_W = '1200px'
+
+// ── Gradients ────────────────────────────────────────────────────────────────
+export const GRADIENT_TEXT = `linear-gradient(135deg, #7C3AED 0%, #8b5cf6 40%, #A855F7 100%)`
+export const GRADIENT_HERO_BG = `radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124,58,237,0.08) 0%, transparent 60%)`
+export const GRADIENT_CARD = `linear-gradient(145deg, rgba(124,58,237,0.04) 0%, transparent 50%)`
+export const GRADIENT_BTN = `linear-gradient(135deg, #7C3AED, #A855F7)`
+
+// ── Premium shadows ─────────────────────────────────────────────────────────
+export const SHADOW_SM = 'var(--shadow-sm)'
+export const SHADOW_MD = 'var(--shadow-md)'
+export const SHADOW_LG = 'var(--shadow-lg)'
+export const SHADOW_GLOW = '0 0 40px rgba(124,58,237,0.15)'
+
 // ── Animation ────────────────────────────────────────────────────────────────
-export const EASE       = 'cubic-bezier(.4,0,.2,1)'
-export const TRANSITION = `all 250ms cubic-bezier(.4,0,.2,1)`
+export const EASE       = 'cubic-bezier(.22,1,.36,1)'
+export const EASE_OUT   = 'cubic-bezier(.22,1,.36,1)'
+export const TRANSITION = `all 250ms cubic-bezier(.22,1,.36,1)`
 
 // ── Status badge colors ──────────────────────────────────────────────────────
 export const STATUS = {

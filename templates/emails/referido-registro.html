@@ -1,0 +1,74 @@
+<!-- Preheader: Alguien se registro con tu codigo de referido -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+  <tr>
+    <td style="padding: 40px 40px 20px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center;">
+            <div style="font-size: 48px; line-height: 1; margin-bottom: 16px;">&#127881;</div>
+            <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700; color: #1e293b; line-height: 1.2;">
+              Nuevo referido registrado
+            </h1>
+            <p style="margin: 0; font-size: 16px; color: #64748b;">
+              Hola <strong style="color: #1e293b;">{{nombre}}</strong>, alguien se registro usando tu codigo de referido.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Info card -->
+  <tr>
+    <td style="padding: 0 40px 30px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <tr>
+          <td style="padding: 24px;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <tr>
+                <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                  <p style="margin: 0 0 8px 0; font-size: 14px; color: #64748b;">
+                    <strong style="color: #1e293b;">{{referidoNombre}}</strong> se ha registrado en {{APP_NAME}} con tu codigo de referido.
+                  </p>
+                  <p style="margin: 0; font-size: 14px; color: #64748b;">
+                    Cuando este usuario complete campanas pagadas, recibiras creditos automaticamente (5% del valor de cada campana).
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Stats -->
+  <tr>
+    <td style="padding: 0 40px 30px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #eef2ff; border-radius: 12px;">
+        <tr>
+          <td style="padding: 20px 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center;">
+            <p style="margin: 0; font-size: 14px; color: #6366f1; font-weight: 600;">
+              Total referidos: {{totalReferidos}} | Creditos acumulados: {{creditosAcumulados}}
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- CTA -->
+  <tr>
+    <td style="padding: 0 40px 40px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+        <tr>
+          <td style="background-color: #6366f1; border-radius: 10px;">
+            <a href="{{APP_URL}}/creator/referrals" style="display: inline-block; padding: 14px 32px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; color: #ffffff; text-decoration: none;">
+              Ver mis referidos
+            </a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

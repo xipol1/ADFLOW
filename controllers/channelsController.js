@@ -84,7 +84,7 @@ const listChannels = async (req, res) => {
         url: c.url || '',
         score: m?.scores?.total || null,
         engagement: m?.engagementRate ? (m.engagementRate * 100).toFixed(1) : null,
-        propietario: c.propietario,
+        // propietario omitted from public response for security
       };
     });
 
@@ -226,7 +226,8 @@ const getChannelAvailability = async (req, res) => {
       }
     });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error('getChannelAvailability error:', err.message);
+    return res.status(500).json({ success: false, message: 'Error interno del servidor' });
   }
 };
 
@@ -255,11 +256,13 @@ const updateChannelAvailability = async (req, res) => {
     if (b.antelacionMaxima != null) canal.disponibilidad.antelacionMaxima = Number(b.antelacionMaxima);
     if (b.aceptaUrgentes != null) canal.disponibilidad.aceptaUrgentes = Boolean(b.aceptaUrgentes);
     if (b.precioUrgente != null) canal.disponibilidad.precioUrgente = Number(b.precioUrgente);
+    if (b.allowPacks != null) canal.allowPacks = Boolean(b.allowPacks);
 
     await canal.save();
-    return res.json({ success: true, data: canal.disponibilidad });
+    return res.json({ success: true, data: { ...canal.disponibilidad.toObject(), allowPacks: canal.allowPacks } });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error('updateChannelAvailability error:', err.message);
+    return res.status(500).json({ success: false, message: 'Error interno del servidor' });
   }
 };
 

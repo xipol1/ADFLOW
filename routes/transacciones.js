@@ -1,6 +1,6 @@
 const express = require('express');
 const { param, body } = require('express-validator');
-const { autenticar } = require('../middleware/auth');
+const { autenticar, requiereEmailVerificado } = require('../middleware/auth');
 const { validarCampos } = require('../middleware/validarCampos');
 const transaccionController = require('../controllers/transaccionController');
 
@@ -13,6 +13,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), transaccionCo
 router.post(
   '/create-checkout-session',
   autenticar,
+  requiereEmailVerificado,
   [body('amount').isFloat({ min: 5 }).withMessage('Importe mínimo: 5')],
   validarCampos,
   transaccionController.crearCheckoutSession
@@ -22,6 +23,7 @@ router.post(
 router.post(
   '/create-payment-intent',
   autenticar,
+  requiereEmailVerificado,
   [body('transaccionId').isMongoId().withMessage('ID de transacción inválido')],
   validarCampos,
   transaccionController.crearPaymentIntent
@@ -31,6 +33,7 @@ router.post(
 router.post(
   '/retiro',
   autenticar,
+  requiereEmailVerificado,
   [
     body('amount').isFloat({ min: 10 }).withMessage('Importe mínimo de retiro: 10'),
     body('method').optional().isIn(['bank', 'paypal']).withMessage('Método inválido'),
@@ -43,7 +46,7 @@ router.post(
 router.get('/retiros', autenticar, transaccionController.obtenerMisRetiros);
 
 // Manual transaction creation
-router.post('/', autenticar, transaccionController.crearTransaccion);
+router.post('/', autenticar, requiereEmailVerificado, transaccionController.crearTransaccion);
 
 // List user transactions
 router.get('/', autenticar, transaccionController.obtenerMisTransacciones);

@@ -1,11 +1,11 @@
 {
-  "name": "ADFLOW - Marketplace de Publicidad",
-  "short_name": "ADFLOW",
-  "description": "Conecta anunciantes con creadores de canales",
+  "name": "Channelad — Marketplace de Publicidad en Comunidades",
+  "short_name": "Channelad",
+  "description": "Conecta anunciantes con creadores de canales verificados",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#6366f1",
+  "background_color": "#FAFAFA",
+  "theme_color": "#7C3AED",
   "orientation": "any",
   "icons": [
     { "src": "/icons/icon-72.png", "sizes": "72x72", "type": "image/png" },

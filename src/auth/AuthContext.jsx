@@ -114,6 +114,10 @@ export function AuthProvider({ children }) {
 
   const value = useMemo(() => {
     const rol = user?.rol || user?.role || ''
+    // Full-access is determined by the backend (user.fullAccess flag) or admin role.
+    // Never hardcode email whitelists in the frontend — they're visible in the JS bundle.
+    const isFullAccess = rol === 'admin' || user?.fullAccess === true
+
     return {
       token,
       refreshToken,
@@ -129,6 +133,7 @@ export function AuthProvider({ children }) {
       isAnunciante: rol === 'anunciante',
       isCreador: rol === 'creador',
       isAdmin: rol === 'admin',
+      isFullAccess,
     }
   }, [token, refreshToken, user, loading, error, isAuthenticated])
 

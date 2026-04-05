@@ -242,6 +242,65 @@ class ApiService {
     });
   }
 
+  // ==========================================
+  // PLATFORM CONNECT / VERIFY / DISCONNECT
+  // ==========================================
+
+  /** Telegram — connect with bot token + chat ID */
+  async connectTelegram(data) {
+    return this.request('/oauth/telegram/connect', { method: 'POST', body: JSON.stringify(data) });
+  }
+  async verifyTelegram(id) {
+    return this.request(`/oauth/telegram/verify/${id}`, { method: 'POST' });
+  }
+  async disconnectTelegram(id) {
+    return this.request(`/oauth/telegram/disconnect/${id}`, { method: 'POST' });
+  }
+
+  /** Discord — connect with bot token + server ID */
+  async connectDiscord(data) {
+    return this.request('/oauth/discord/connect', { method: 'POST', body: JSON.stringify(data) });
+  }
+  async verifyDiscord(id) {
+    return this.request(`/oauth/discord/verify/${id}`, { method: 'POST' });
+  }
+  async disconnectDiscord(id) {
+    return this.request(`/oauth/discord/disconnect/${id}`, { method: 'POST' });
+  }
+
+  /** WhatsApp — manual Business API connection */
+  async connectWhatsAppManual(data) {
+    return this.request('/oauth/whatsapp/connect-manual', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  /** Newsletter — connect with API key + provider */
+  async connectNewsletter(data) {
+    return this.request('/oauth/newsletter/connect', { method: 'POST', body: JSON.stringify(data) });
+  }
+  async verifyNewsletter(id) {
+    return this.request(`/oauth/newsletter/verify/${id}`, { method: 'POST' });
+  }
+  async disconnectNewsletter(id) {
+    return this.request(`/oauth/newsletter/disconnect/${id}`, { method: 'POST' });
+  }
+
+  /** LinkedIn — OAuth flow */
+  async getLinkedinAuthUrl() {
+    return this.request('/oauth/linkedin/authorize');
+  }
+  async getLinkedinAccounts(session) {
+    return this.request(`/oauth/linkedin/accounts?session=${encodeURIComponent(session)}`);
+  }
+  async connectLinkedin(data) {
+    return this.request('/oauth/linkedin/connect', { method: 'POST', body: JSON.stringify(data) });
+  }
+  async disconnectLinkedin(id) {
+    return this.request(`/oauth/linkedin/disconnect/${id}`, { method: 'POST' });
+  }
+  async refreshLinkedinToken(id) {
+    return this.request(`/oauth/linkedin/refresh/${id}`, { method: 'POST' });
+  }
+
   /**
    * Buscar canales públicos
    */
@@ -955,6 +1014,28 @@ class ApiService {
 
   async deleteReview(reviewId) {
     return this.request(`/reviews/${reviewId}`, { method: 'DELETE' });
+  }
+
+  // ==========================================
+  // MÉTODOS DE REFERIDOS
+  // ==========================================
+
+  async getReferralStats() {
+    return this.request('/referrals/stats');
+  }
+
+  async convertReferralCredits(amount) {
+    return this.request('/referrals/convert', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    });
+  }
+
+  async applyReferralCode(code) {
+    return this.request('/referrals/apply', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    });
   }
 }
 

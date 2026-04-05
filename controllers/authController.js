@@ -18,14 +18,24 @@ const normalizeEmail = (value) => {
   return String(value).trim().toLowerCase();
 };
 
+// Emails with full platform access — kept server-side only, never sent to frontend bundle
+const FULL_ACCESS_EMAILS = [
+  'admin@adflow.com', 'creator@adflow.com', 'advertiser@adflow.com',
+  'demo@adflow.com',
+  'admin@channelad.io', 'creator@channelad.io', 'advertiser@channelad.io',
+];
+
 const buildUserResponse = (usuario) => {
+  const email = (usuario?.email || '').toLowerCase();
+  const rol = usuario?.rol || '';
   return {
     id: usuario?._id ? usuario._id.toString() : undefined,
     email: usuario?.email,
-    role: usuario?.rol,
+    role: rol,
     nombre: usuario?.nombre,
     apellido: usuario?.apellido,
-    emailVerificado: usuario?.emailVerificado
+    emailVerificado: usuario?.emailVerificado,
+    fullAccess: rol === 'admin' || FULL_ACCESS_EMAILS.includes(email),
   };
 };
 
@@ -40,7 +50,6 @@ const login = async (req, res) => {
       return res.status(503).json({
         success: false,
         message: 'Servicio no disponible',
-        error: 'MONGODB_URI no definida'
       });
     }
 
@@ -78,11 +87,7 @@ const login = async (req, res) => {
 
     return res.json({
       success: true,
-      user: {
-        id: user._id,
-        email: user.email,
-        role: user.rol
-      },
+      user: buildUserResponse(user),
       token: tokens.tokenAcceso,
       refreshToken: tokens.tokenRefresco
     });
@@ -112,23 +117,14 @@ const registro = async (req, res) => {
 
     if (!process.env.MONGODB_URI) {
       console.warn('REGISTER: MONGODB_URI no definida');
-      return res.status(503).json({
-        success: false,
-        message: 'Servicio no disponible',
-        error: 'MONGODB_URI no definida'
-      });
+      return res.status(503).json({ success: false, message: 'Servicio no disponible' });
     }
 
     if (!database.estaConectado()) {
       logDev('REGISTER: connecting DB...');
       const ok = await database.conectar();
       if (!ok) {
-        const last = database.getLastConnectionError?.();
-        return res.status(503).json({
-          success: false,
-          message: 'Servicio no disponible',
-          ...(last ? { error: last.message || String(last) } : {})
-        });
+        return res.status(503).json({ success: false, message: 'Servicio no disponible' });
       }
     }
 
@@ -143,14 +139,33 @@ const registro = async (req, res) => {
     const nombre = String(req.body?.nombre || req.body?.name || '').trim()
     const rol    = ['creator', 'advertiser'].includes(req.body?.role) ? req.body.role : 'advertiser'
 
+    // Generate email verification token
+    const crypto = require('crypto');
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+
     const user = await Usuario.create({
       email: email.trim().toLowerCase(),
       password: hashedPassword,
       nombre,
       rol,
+      emailVerificado: false,
+      emailVerificationToken: verificationToken,
+      emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
     });
 
     logDev('REGISTER: user created', { userId: user._id.toString() });
+
+    // Send verification email (non-blocking — don't fail registration if email fails)
+    setImmediate(async () => {
+      try {
+        const emailService = require('../services/emailService');
+        await emailService.enviarEmailVerificacion(user.email, user.nombre || '', verificationToken);
+        logDev('REGISTER: verification email sent', { email: user.email });
+      } catch (emailErr) {
+        console.error('REGISTER: failed to send verification email:', emailErr?.message || emailErr);
+      }
+    });
+
     const tokens = await AuthService.generarTokens(user);
     logDev('REGISTER: tokens generated', { userId: user._id.toString() });
 
@@ -159,7 +174,9 @@ const registro = async (req, res) => {
       user: buildUserResponse(user),
       token: tokens.tokenAcceso,
       refreshToken: tokens.tokenRefresco,
-      expiresIn: tokens.expiresIn
+      expiresIn: tokens.expiresIn,
+      emailVerificationRequired: true,
+      message: 'Cuenta creada. Revisa tu email para verificar tu cuenta.',
     });
   } catch (error) {
     console.error('REGISTER ERROR:', error);
@@ -320,11 +337,78 @@ const reenviarVerificacion = async (req, res) => {
 };
 
 const solicitarRestablecimiento = async (req, res) => {
-  return res.status(501).json({ success: false, message: 'Restablecimiento pendiente de configurar' });
+  try {
+    const email = normalizeEmail(req.body?.email);
+    if (!email) return res.status(400).json({ success: false, message: 'Email requerido' });
+
+    if (!database.estaConectado()) await database.conectar();
+
+    const user = await Usuario.findOne({ email });
+
+    // Always return success to avoid email enumeration
+    if (!user) {
+      return res.json({ success: true, message: 'Si el email existe, recibiras instrucciones para restablecer tu contrasena' });
+    }
+
+    const crypto = require('crypto');
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    user.passwordResetToken = resetToken;
+    user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await user.save();
+
+    // Send reset email (non-blocking)
+    setImmediate(async () => {
+      try {
+        const emailService = require('../services/emailService');
+        await emailService.enviarEmailRecuperacion(user.email, user.nombre || '', resetToken);
+        logDev('PASSWORD RESET: email sent', { email: user.email });
+      } catch (emailErr) {
+        console.error('PASSWORD RESET: failed to send email:', emailErr?.message || emailErr);
+      }
+    });
+
+    return res.json({ success: true, message: 'Si el email existe, recibiras instrucciones para restablecer tu contrasena' });
+  } catch (error) {
+    console.error('PASSWORD RESET REQUEST ERROR:', error?.message || error);
+    return res.status(500).json({ success: false, message: 'Error interno del servidor' });
+  }
 };
 
 const restablecerPassword = async (req, res) => {
-  return res.status(501).json({ success: false, message: 'Restablecimiento pendiente de configurar' });
+  try {
+    const { token } = req.params;
+    const password = String(req.body?.password || '').trim();
+
+    if (!token) return res.status(400).json({ success: false, message: 'Token requerido' });
+    if (!password || password.length < 8) {
+      return res.status(400).json({ success: false, message: 'La contrasena debe tener al menos 8 caracteres' });
+    }
+
+    if (!database.estaConectado()) await database.conectar();
+
+    const user = await Usuario.findOne({
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: new Date() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Token invalido o expirado. Solicita un nuevo enlace.' });
+    }
+
+    user.password = await AuthService.hashPassword(password);
+    user.passwordResetToken = null;
+    user.passwordResetExpires = null;
+    await user.save();
+
+    // Revoke all existing sessions for security
+    await AuthService.revocarTodasLasSesiones(user._id).catch(() => {});
+
+    return res.json({ success: true, message: 'Contrasena restablecida correctamente. Inicia sesion con tu nueva contrasena.' });
+  } catch (error) {
+    console.error('PASSWORD RESET ERROR:', error?.message || error);
+    return res.status(500).json({ success: false, message: 'Error interno del servidor' });
+  }
 };
 
 const desactivarCuenta = async (req, res) => {

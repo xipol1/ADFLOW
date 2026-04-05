@@ -380,7 +380,7 @@ export default function OverviewPage() {
         <KpiCard
           icon={DollarSign} label="Gasto este mes" value={`€${totalSpend.toLocaleString('es')}`}
           change={12} changeLabel="vs mes anterior"
-          sparkData={SPEND_SPARK} accent={A}
+          sparkData={SPEND_SPARK} accent={PURPLE}
         />
         <KpiCard
           icon={Eye} label="Impresiones totales" value={totalViews >= 1000 ? `${(totalViews/1000).toFixed(0)}K` : totalViews}
@@ -400,7 +400,7 @@ export default function OverviewPage() {
         <KpiCard
           icon={Target} label="Presupuesto usado" value={`${budgetUsed}%`}
           change={-5} changeLabel={`de €${budgetTotal.toLocaleString('es')}`}
-          ring={budgetUsed} accent={A}
+          ring={budgetUsed} accent={PURPLE}
         />
       </div>
 

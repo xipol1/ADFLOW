@@ -305,6 +305,14 @@ router.post('/solicitar-restablecimiento',
   authController.solicitarRestablecimiento
 );
 
+// English alias used by frontend ForgotPasswordPage
+router.post('/forgot-password',
+  limitarRestablecimiento,
+  validacionesRestablecimiento,
+  validarCampos,
+  authController.solicitarRestablecimiento
+);
+
 /**
  * @route   POST /api/auth/restablecer-password/:token
  * @desc    Restablecer contraseña con token
@@ -422,13 +430,11 @@ router.post('/reenviar-verificacion', body('email').isEmail().withMessage('Email
 router.use((error, req, res, next) => {
   console.error('Error en rutas de autenticación:', error);
   
-  // Error de validación de Mongoose
+  // Error de validación de Mongoose — return generic message, don't leak field names
   if (error.name === 'ValidationError') {
-    const errores = Object.values(error.errors).map(err => err.message);
     return res.status(400).json({
       success: false,
-      message: 'Error de validación',
-      errores
+      message: 'Datos inválidos. Verifica los campos e intenta de nuevo.',
     });
   }
   

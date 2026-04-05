@@ -3,6 +3,7 @@ const { body, param, query } = require('express-validator');
 const { autenticar } = require('../middleware/auth');
 const { validarCampos } = require('../middleware/validarCampos');
 const oauthController = require('../controllers/oauthController');
+const platformConnect = require('../controllers/platformConnectController');
 const { refreshExpiringTokens } = require('../services/tokenRefreshService');
 
 const router = express.Router();
@@ -68,8 +69,151 @@ router.get('/meta/cron-refresh', async (req, res) => {
     const results = await refreshExpiringTokens();
     return res.json({ success: true, data: results });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error('OAuth refresh cron error:', err.message);
+    return res.status(500).json({ success: false, message: 'Error interno del servidor' });
   }
 });
+
+// ── Telegram ──
+
+router.post(
+  '/telegram/connect',
+  autenticar,
+  [
+    body('botToken').isString().notEmpty().withMessage('botToken requerido'),
+    body('chatId').isString().notEmpty().withMessage('chatId requerido'),
+  ],
+  validarCampos,
+  platformConnect.connectTelegram
+);
+
+router.post(
+  '/telegram/verify/:id',
+  autenticar,
+  [param('id').isMongoId().withMessage('ID invalido')],
+  validarCampos,
+  platformConnect.verifyTelegram
+);
+
+router.post(
+  '/telegram/disconnect/:id',
+  autenticar,
+  [param('id').isMongoId().withMessage('ID invalido')],
+  validarCampos,
+  platformConnect.disconnectTelegram
+);
+
+// ── Discord ──
+
+router.post(
+  '/discord/connect',
+  autenticar,
+  [
+    body('botToken').isString().notEmpty().withMessage('botToken requerido'),
+    body('serverId').isString().notEmpty().withMessage('serverId requerido'),
+  ],
+  validarCampos,
+  platformConnect.connectDiscord
+);
+
+router.post(
+  '/discord/verify/:id',
+  autenticar,
+  [param('id').isMongoId().withMessage('ID invalido')],
+  validarCampos,
+  platformConnect.verifyDiscord
+);
+
+router.post(
+  '/discord/disconnect/:id',
+  autenticar,
+  [param('id').isMongoId().withMessage('ID invalido')],
+  validarCampos,
+  platformConnect.disconnectDiscord
+);
+
+// ── WhatsApp (Manual — Business API) ──
+
+router.post(
+  '/whatsapp/connect-manual',
+  autenticar,
+  [
+    body('accessToken').isString().notEmpty().withMessage('accessToken requerido'),
+    body('phoneNumberId').isString().notEmpty().withMessage('phoneNumberId requerido'),
+  ],
+  validarCampos,
+  platformConnect.connectWhatsAppManual
+);
+
+// ── Newsletter ──
+
+router.post(
+  '/newsletter/connect',
+  autenticar,
+  [
+    body('apiKey').isString().notEmpty().withMessage('apiKey requerida'),
+    body('provider').isIn(['mailchimp', 'beehiiv', 'substack']).withMessage('provider invalido (mailchimp, beehiiv, substack)'),
+  ],
+  validarCampos,
+  platformConnect.connectNewsletter
+);
+
+router.post(
+  '/newsletter/verify/:id',
+  autenticar,
+  [param('id').isMongoId().withMessage('ID invalido')],
+  validarCampos,
+  platformConnect.verifyNewsletter
+);
+
+router.post(
+  '/newsletter/disconnect/:id',
+  autenticar,
+  [param('id').isMongoId().withMessage('ID invalido')],
+  validarCampos,
+  platformConnect.disconnectNewsletter
+);
+
+// ── LinkedIn OAuth flow ──
+
+router.get('/linkedin/authorize', autenticar, oauthController.authorizeLinkedin);
+
+router.get('/linkedin/callback', oauthController.callbackLinkedin);
+
+router.get(
+  '/linkedin/accounts',
+  autenticar,
+  [query('session').isString().notEmpty().withMessage('session requerido')],
+  validarCampos,
+  oauthController.listLinkedinAccounts
+);
+
+router.post(
+  '/linkedin/connect',
+  autenticar,
+  [
+    body('session').isString().notEmpty().withMessage('session requerido'),
+    body('accounts').isArray({ min: 1 }).withMessage('accounts debe ser un array con al menos 1 elemento'),
+    body('accounts.*.type').isIn(['profile', 'organization']).withMessage('type invalido (profile o organization)'),
+  ],
+  validarCampos,
+  oauthController.connectLinkedinAccounts
+);
+
+router.post(
+  '/linkedin/disconnect/:id',
+  autenticar,
+  [param('id').isMongoId().withMessage('ID invalido')],
+  validarCampos,
+  oauthController.disconnectLinkedin
+);
+
+router.post(
+  '/linkedin/refresh/:id',
+  autenticar,
+  [param('id').isMongoId().withMessage('ID invalido')],
+  validarCampos,
+  oauthController.refreshLinkedinToken
+);
 
 module.exports = router;

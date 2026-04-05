@@ -84,6 +84,12 @@ module.exports = {
       'business_management',
     ].join(','),
   },
+  linkedin: {
+    clientId: process.env.LINKEDIN_CLIENT_ID || '',
+    clientSecret: process.env.LINKEDIN_CLIENT_SECRET || '',
+    oauthCallbackPath: '/api/oauth/linkedin/callback',
+    scopes: 'openid,profile,email,w_member_social',
+  },
   encryption: {
     key: process.env.ENCRYPTION_KEY || '',
   },

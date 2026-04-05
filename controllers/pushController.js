@@ -105,7 +105,7 @@ const sendPushToUser = async (userId, payload) => {
       if (err.statusCode === 410 || err.statusCode === 404) {
         staleIndexes.push(i);
       }
-      results.push({ endpoint: sub.endpoint, success: false, error: err.message });
+      results.push({ endpoint: sub.endpoint, success: false, error: 'delivery_failed' });
     }
   }
 

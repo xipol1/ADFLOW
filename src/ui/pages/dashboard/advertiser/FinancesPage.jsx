@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Wallet, TrendingUp, ArrowDownLeft, ArrowUpRight, Download, Plus, X, CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react'
 import apiService from '../../../../../services/api'
+import { SkeletonPage } from '../../../components/Skeleton'
+import EmptyState from '../../../components/EmptyState'
 import {
   PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, BLUE,
 } from '../../../theme/tokens'
@@ -205,7 +207,7 @@ const RechargeModal = ({ onClose }) => {
             <button
               onClick={handleRecharge}
               disabled={processing}
-              style={{ flex: 2, background: processing ? purpleAlpha(0.6) : A, border: 'none', borderRadius: '11px', padding: '13px', fontSize: '14px', fontWeight: 700, cursor: processing ? 'not-allowed' : 'pointer', color: '#fff', fontFamily: FONT_BODY, boxShadow: `0 4px 14px ${purpleAlpha(0.35)}`, transition: 'transform .15s' }}
+              style={{ flex: 2, background: processing ? purpleAlpha(0.6) : PURPLE, border: 'none', borderRadius: '11px', padding: '13px', fontSize: '14px', fontWeight: 700, cursor: processing ? 'not-allowed' : 'pointer', color: '#fff', fontFamily: FONT_BODY, boxShadow: `0 4px 14px ${purpleAlpha(0.35)}`, transition: 'transform .15s' }}
               onMouseEnter={e => { if (!processing) e.currentTarget.style.transform = 'translateY(-1px)' }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'none' }}
             >
@@ -328,13 +330,7 @@ export default function FinancesPage() {
   })
 
   if (loading) {
-    return (
-      <div style={{ fontFamily: FONT_BODY, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '10px', color: 'var(--muted)' }}>
-        <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
-        <span>Cargando finanzas...</span>
-        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-      </div>
-    )
+    return <SkeletonPage />
   }
 
   return (
@@ -357,7 +353,7 @@ export default function FinancesPage() {
       </div>
 
       {/* ── Balance + KPI row ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1.2fr) repeat(3, 1fr)', gap: '14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
 
         {/* Balance hero card */}
         <div style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, #7c3aed 100%)`, borderRadius: '18px', padding: '24px', color: '#fff', position: 'relative', overflow: 'hidden' }}>
@@ -381,7 +377,7 @@ export default function FinancesPage() {
         {[
           { icon: TrendingUp, label: 'Gasto total', val: `€${totalSpend.toLocaleString('es')}`, sub: `${txCount} transacciones`, color: BLUE },
           { icon: ArrowDownLeft, label: 'En escrow', val: `€${Math.abs(balance).toLocaleString('es')}`, sub: 'Retenido en campañas', color: PURPLE },
-          { icon: ArrowUpRight, label: 'Liberado', val: `€${(isReal ? rawTx.filter(t => t.status === 'released').reduce((s,t) => s + (t.amount||0), 0) : totalSpend * 0.88).toLocaleString('es', {maximumFractionDigits: 0})}`, sub: 'Pagado a creadores', color: OK, subColor: OK },
+          { icon: ArrowUpRight, label: 'Liberado', val: `€${rawTx.filter(t => t.status === 'released').reduce((s,t) => s + Math.abs(t.amount||0), 0).toLocaleString('es', {maximumFractionDigits: 0})}`, sub: 'Pagado a creadores', color: OK, subColor: OK },
         ].map(({ icon: Icon, label, val, sub, color, subColor }) => (
           <div key={label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', padding: '22px', transition: 'border-color .15s' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = purpleAlpha(0.3) }}
@@ -398,7 +394,7 @@ export default function FinancesPage() {
       </div>
 
       {/* ── 2-col: chart + breakdown ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) 1fr', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
 
         {/* Monthly spend chart */}
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', padding: '22px' }}>
@@ -477,8 +473,14 @@ export default function FinancesPage() {
             <tbody>
               {filteredTx.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>
-                    No hay transacciones en esta categoría
+                  <td colSpan={5} style={{ padding: '0' }}>
+                    <EmptyState
+                      icon={Wallet}
+                      title="Sin transacciones"
+                      description={txFilter === 'todos' ? 'Aun no tienes movimientos. Recarga saldo para empezar a invertir en campanas.' : 'No hay transacciones en esta categoria.'}
+                      actionLabel={txFilter === 'todos' ? 'Recargar saldo' : undefined}
+                      onAction={txFilter === 'todos' ? () => setShowRecharge(true) : undefined}
+                    />
                   </td>
                 </tr>
               ) : filteredTx.map((tx, i) => {
@@ -510,7 +512,7 @@ export default function FinancesPage() {
                     <td style={{ padding: '15px 20px' }}>
                       <span style={{
                         background: tx.type === 'refund' ? 'rgba(239,68,68,0.1)' : purpleAlpha(0.1),
-                        color: tx.type === 'refund' ? '#ef4444' : A,
+                        color: tx.type === 'refund' ? '#ef4444' : PURPLE,
                         border: `1px solid ${tx.type === 'refund' ? 'rgba(239,68,68,0.3)' : purpleAlpha(0.3)}`,
                         borderRadius: '6px', padding: '3px 9px', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap',
                       }}>
@@ -560,7 +562,7 @@ export default function FinancesPage() {
             fontSize: '13px', fontWeight: 600, color: PURPLE, cursor: 'pointer', fontFamily: FONT_BODY,
             transition: 'border-color .15s, background .15s',
           }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = A; e.currentTarget.style.background = purpleAlpha(0.04) }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = PURPLE; e.currentTarget.style.background = purpleAlpha(0.04) }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = purpleAlpha(0.3); e.currentTarget.style.background = 'transparent' }}
           >
             <Plus size={15} /> Añadir método de pago

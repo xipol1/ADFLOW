@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Condiciones de Contratacion - ADFLOW</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: #050505;
+      color: #f5f5f7;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      line-height: 1.7;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #8b5cf6;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      border-bottom: 2px solid #8b5cf6;
+      padding-bottom: 0.75rem;
+    }
+    h2 {
+      color: #8b5cf6;
+      font-size: 1.35rem;
+      margin-top: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+    h3 {
+      color: #a78bfa;
+      font-size: 1.1rem;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    p, li {
+      color: #d1d1d6;
+      margin-bottom: 0.75rem;
+    }
+    ul, ol {
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    li { margin-bottom: 0.4rem; }
+    a { color: #8b5cf6; text-decoration: underline; }
+    a:hover { color: #a78bfa; }
+    .meta {
+      color: #71717a;
+      font-size: 0.9rem;
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid #2a2a2e;
+    }
+    .highlight {
+      background-color: #1a1a1e;
+      border-left: 3px solid #8b5cf6;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      border-radius: 0 6px 6px 0;
+    }
+    .step-list {
+      counter-reset: step;
+      list-style: none;
+      padding-left: 0;
+    }
+    .step-list > li {
+      counter-increment: step;
+      padding-left: 2rem;
+      position: relative;
+      margin-bottom: 0.75rem;
+    }
+    .step-list > li::before {
+      content: counter(step, lower-alpha) ")";
+      position: absolute;
+      left: 0;
+      color: #8b5cf6;
+      font-weight: 600;
+    }
+    .fill-in {
+      background: #2d1b69;
+      border: 1px dashed #8b5cf6;
+      padding: 2px 8px;
+      border-radius: 4px;
+      color: #c4b5fd;
+      font-weight: 600;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+    }
+    th, td {
+      border: 1px solid #2a2a2e;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    th {
+      background-color: #1a1a1e;
+      color: #8b5cf6;
+      font-weight: 600;
+    }
+    td { color: #d1d1d6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <h1>Condiciones de Contratacion del Marketplace</h1>
+    <p>Las presentes Condiciones de Contratacion regulan la relacion contractual entre los usuarios de la plataforma <strong>ADFLOW</strong>, titularidad de <strong>AdFlow, S.L.</strong> (NIF: <span class="fill-in">__________ (RELLENAR: NIF)</span>, domicilio social en <span class="fill-in">__________ (RELLENAR: domicilio social)</span>, correo electronico: <a href="mailto:contacto@adflow.com">contacto@adflow.com</a>), en lo que respecta a la contratacion de servicios publicitarios a traves del marketplace. La aceptacion de estas condiciones es requisito indispensable para operar en la plataforma como anunciante o creador de contenido.</p>
+
+    <!-- 1 -->
+    <h2>1. Ambito de aplicacion</h2>
+    <p>Las presentes condiciones regulan la contratacion de servicios publicitarios entre Anunciantes y Creadores de contenido a traves de la plataforma ADFLOW, que actua como intermediario tecnologico facilitando la conexion, contratacion, pago y verificacion de las campanas publicitarias.</p>
+    <p>ADFLOW no es parte del contrato publicitario entre Anunciante y Creador, sino que facilita los medios tecnologicos y el sistema de pagos para que dicha relacion se materialice de forma segura y transparente.</p>
+
+    <!-- 2 -->
+    <h2>2. Informacion precontractual (art. 98.2 LGDCU)</h2>
+    <p>De conformidad con el articulo 98.2 del Real Decreto Legislativo 1/2007 (LGDCU), antes de que el Anunciante quede vinculado por la contratacion, ADFLOW le facilitara de forma clara y comprensible la siguiente informacion precontractual:</p>
+    <ul>
+      <li><strong>Caracteristicas principales del servicio:</strong> Descripcion del canal seleccionado, tipo de campana publicitaria, plataforma de publicacion, audiencia declarada del canal y plazo estimado de publicacion.</li>
+      <li><strong>Precio total:</strong> Importe total de la campana, desglosando el precio base, la comision de ADFLOW (10%) y el IVA aplicable (21%), de conformidad con la seccion 3 de estas condiciones.</li>
+      <li><strong>Duracion del contrato:</strong> Plazo de ejecucion de la campana, incluyendo el periodo de verificacion.</li>
+      <li><strong>Condiciones de pago:</strong> Pago integro y previo mediante Stripe, con retencion de fondos en custodia (escrow) hasta la verificacion de la campana.</li>
+      <li><strong>Derecho de desistimiento:</strong> Informacion sobre la existencia o inaplicabilidad del derecho de desistimiento conforme a la seccion 13 de estas condiciones.</li>
+    </ul>
+    <p>Esta informacion se presentara al Anunciante en un resumen de pedido antes de la confirmacion definitiva de la contratacion.</p>
+
+    <!-- 3 -->
+    <h2>3. Proceso de contratacion</h2>
+    <p>La contratacion de una campana publicitaria a traves de ADFLOW sigue el siguiente procedimiento:</p>
+    <ol class="step-list">
+      <li>El Anunciante explora el marketplace de canales disponibles, pudiendo filtrar por categoria, plataforma, audiencia, precio y valoraciones.</li>
+      <li>El Anunciante selecciona un canal y configura la campana publicitaria, incluyendo el contenido a publicitar, el presupuesto asignado y las fechas deseadas de publicacion.</li>
+      <li>Se muestra al Anunciante un resumen precontractual con las caracteristicas del servicio, el precio total desglosado (precio base + comision + IVA) y las condiciones de ejecucion, de conformidad con el articulo 98.2 de la LGDCU.</li>
+      <li>El Anunciante realiza el pago del importe total de la campana a traves del sistema de pago seguro proporcionado por Stripe (checkout).</li>
+      <li>Los fondos abonados se retienen en un sistema de custodia (escrow) gestionado a traves de Stripe Connect, sin ser transferidos al Creador hasta la verificacion de la campana.</li>
+      <li>El Creador recibe una notificacion de la nueva campana y debe proceder a la publicacion del contenido publicitario en su canal dentro del plazo establecido (24 horas como estandar, salvo acuerdo distinto).</li>
+      <li>El sistema de ADFLOW verifica la correcta publicacion de la campana mediante un enlace de seguimiento (tracking link), requiriendo un minimo de 3 clics unicos en un periodo de 48 horas como prueba de publicacion efectiva (vease seccion 12 para los detalles de verificacion).</li>
+      <li>Una vez verificada la publicacion, la campana se marca como <strong>COMPLETED</strong> (completada).</li>
+      <li>Los fondos retenidos en escrow se liberan y transfieren al Creador, descontando la comision correspondiente de ADFLOW.</li>
+    </ol>
+
+    <!-- 3bis -->
+    <h3>3.1 Confirmacion por correo electronico (art. 98.7 LGDCU)</h3>
+    <p>De conformidad con el articulo 98.7 de la LGDCU, ADFLOW enviara al Anunciante, en un plazo maximo de 24 horas desde la formalizacion del pedido, una confirmacion por correo electronico en soporte duradero que incluira: las condiciones de contratacion aceptadas, el resumen del pedido con las caracteristicas del servicio contratado, el precio total desglosado (incluido IVA), el metodo de pago utilizado, la informacion sobre el derecho de desistimiento (o su inaplicabilidad), y los datos de contacto de ADFLOW para reclamaciones.</p>
+
+    <!-- 4 -->
+    <h2>4. Precios, comisiones e IVA</h2>
+    <ul>
+      <li><strong>Fijacion de precios:</strong> Los precios de los servicios publicitarios son fijados libremente por cada Creador en su perfil de canal. ADFLOW no interviene en la determinacion de los precios, que quedan a la autonomia de la voluntad de las partes.</li>
+      <li><strong>Comision de ADFLOW:</strong> ADFLOW retiene una comision del <strong>10%</strong> sobre el precio base de la campana (antes de IVA), en concepto de intermediacion, gestion de pagos, verificacion y soporte de la plataforma.</li>
+      <li><strong>Precio en marketplace:</strong> El precio que se muestra al Anunciante en el marketplace incluye la comision de ADFLOW. El Creador recibe el 90% del precio base abonado por el Anunciante.</li>
+      <li><strong>IVA:</strong> Los precios mostrados en el marketplace se entienden <span class="fill-in">__________ (RELLENAR: indicar si "IVA incluido" o "IVA no incluido")</span>. En todo caso, el IVA aplicable sera el tipo general vigente del <strong>21%</strong>, conforme a la Ley 37/1992, de 28 de diciembre, del Impuesto sobre el Valor Anadido. En la pantalla de resumen del pedido y en la factura se desglosara siempre: precio base, comision de ADFLOW, IVA y precio total.</li>
+      <li><strong>Divisa:</strong> Todos los precios se expresan y abonan en euros (EUR).</li>
+    </ul>
+
+    <!-- 5 -->
+    <h2>5. Forma de pago</h2>
+    <p>El pago de las campanas publicitarias se realiza de forma previa y obligatoria a traves de la pasarela de pago <strong>Stripe</strong>, que admite los siguientes metodos: tarjetas de credito, tarjetas de debito y otros metodos de pago habilitados por Stripe en cada momento.</p>
+    <p>No se iniciara ninguna campana hasta que se confirme la recepcion efectiva del pago. El comprobante del pago estara disponible en el panel de control del Anunciante.</p>
+    <p>Stripe procesa los pagos conforme a sus propias condiciones de servicio y politica de privacidad. AdFlow, S.L. no almacena datos de tarjetas de pago en sus servidores.</p>
+
+    <!-- 6 -->
+    <h2>6. Sistema de custodia (escrow)</h2>
+    <div class="highlight">
+      <p>ADFLOW implementa un sistema de custodia de fondos para garantizar la seguridad de las transacciones entre Anunciantes y Creadores. Los fondos son retenidos y gestionados a traves de <strong>Stripe Connect</strong>, una entidad de pago regulada y autorizada, lo que proporciona las siguientes garantias:</p>
+    </div>
+    <ul>
+      <li><strong>Entidad regulada:</strong> Stripe opera como entidad de pago regulada (Electronic Money Institution, EMI) supervisada por autoridades financieras competentes. Los fondos en custodia no forman parte del patrimonio de ADFLOW, sino que son gestionados por Stripe conforme a la normativa de servicios de pago aplicable.</li>
+      <li><strong>Proteccion frente a insolvencia:</strong> Los fondos retenidos en Stripe Connect estan protegidos como fondos de clientes (client funds) conforme a la Directiva (UE) 2015/2366 (PSD2) y la normativa nacional de transposicion. En caso de insolvencia de ADFLOW, dichos fondos no formarian parte de la masa concursal, al estar segregados y custodiados por Stripe.</li>
+      <li><strong>Retencion:</strong> Los fondos abonados por el Anunciante se retienen en custodia desde el momento del pago hasta la verificacion satisfactoria de la campana.</li>
+      <li><strong>Liberacion automatica:</strong> Una vez que el sistema de seguimiento verifica la correcta publicacion de la campana (minimo 3 clics unicos en 48 horas), los fondos se liberan automaticamente y se transfieren al Creador, previa deduccion de la comision del 10% sobre el precio base.</li>
+      <li><strong>Liberacion manual:</strong> En caso de disputa entre las partes, el equipo de administracion de ADFLOW procedera a la revision del caso y realizara la liberacion manual de los fondos conforme a la resolucion adoptada.</li>
+      <li><strong>Plazo maximo de retencion:</strong> Los fondos no podran permanecer retenidos en escrow durante un periodo superior a <strong>30 dias naturales</strong> desde la resolucion de la disputa o desde la verificacion de la campana. Transcurrido dicho plazo, se procedera a la liberacion automatica conforme a la resolucion adoptada o, en su defecto, a la devolucion al Anunciante.</li>
+      <li><strong>Cese de operaciones de ADFLOW:</strong> En el supuesto de que ADFLOW cese en su actividad o se disuelva, los fondos retenidos en Stripe Connect se liberaran conforme a las siguientes reglas: (i) las campanas pendientes de verificacion se cancelaran y los fondos se devolveran integramente a los Anunciantes; (ii) las campanas ya verificadas pendientes de pago se liquidaran a favor de los Creadores; (iii) las campanas en disputa se resolveran conforme al estado de ejecucion acreditado, priorizando la devolucion al Anunciante en caso de duda razonable. ADFLOW comunicara a todos los usuarios afectados con un preaviso minimo de <span class="fill-in">__________ (RELLENAR: plazo de preaviso, ej. 30 dias)</span>.</li>
+    </ul>
+
+    <!-- 7 -->
+    <h2>7. Obligaciones del Anunciante</h2>
+    <p>El Anunciante se compromete a:</p>
+    <ul>
+      <li>Proporcionar contenido publicitario legal, veraz, actualizado y que no induzca a error o confusion en los consumidores o usuarios.</li>
+      <li>Respetar los derechos de propiedad intelectual e industrial de terceros en todo el material publicitario proporcionado.</li>
+      <li>No proporcionar contenido ilicito, difamatorio, discriminatorio, violento, pornografico, enganoso o que pueda resultar perjudicial para los usuarios, el Creador o la reputacion de la plataforma.</li>
+      <li>Cumplir con la normativa aplicable en materia de publicidad, incluida la Ley General de Publicidad (Ley 34/1988) y la Ley de Competencia Desleal (Ley 3/1991).</li>
+      <li>Realizar el pago integro y previo a la publicacion de la campana.</li>
+      <li>Facilitar la informacion necesaria para la correcta ejecucion de la campana.</li>
+    </ul>
+
+    <!-- 8 -->
+    <h2>8. Obligaciones del Creador</h2>
+    <p>El Creador se compromete a:</p>
+    <ul>
+      <li>Registrar unicamente canales reales de los que sea titular legitimo, habiendo superado el proceso de verificacion de propiedad establecido por ADFLOW.</li>
+      <li>Publicar el contenido publicitario del Anunciante en el plazo acordado (24 horas como estandar, salvo pacto en contrario).</li>
+      <li>No modificar, alterar ni eliminar el contenido publicitario antes de que finalice el periodo de campana pactado, salvo autorizacion expresa del Anunciante o instruccion de ADFLOW.</li>
+      <li>Mantener las estadisticas y metricas de su canal actualizadas y veraces, sin inflar artificialmente datos de audiencia, suscriptores o interacciones.</li>
+      <li>Comunicar cualquier incidencia que pueda afectar a la ejecucion de la campana de forma diligente y en el menor plazo posible.</li>
+    </ul>
+
+    <!-- 9 -->
+    <h2>9. Sistema de disputas</h2>
+    <p>ADFLOW dispone de un sistema de resolucion de disputas para los conflictos que puedan surgir entre Anunciantes y Creadores en relacion con las campanas contratadas:</p>
+
+    <h3>9.1 Apertura de disputa</h3>
+    <p>Cualquiera de las partes (Anunciante o Creador) puede abrir una disputa a traves de su panel de control en la plataforma.</p>
+
+    <h3>9.2 Plazo</h3>
+    <p>La disputa debera abrirse dentro de los <strong>7 dias naturales</strong> siguientes a la finalizacion o expiracion de la campana. Transcurrido dicho plazo sin que se haya abierto disputa, se entendera que ambas partes estan conformes con el resultado de la campana.</p>
+
+    <h3>9.3 Procedimiento</h3>
+    <ol>
+      <li><strong>Comunicacion entre las partes:</strong> Se habilitara un canal de comunicacion dentro de la plataforma para que las partes intenten resolver la discrepancia de forma directa.</li>
+      <li><strong>Mediacion por ADFLOW:</strong> Si las partes no alcanzan un acuerdo, el equipo de administracion de ADFLOW actuara como mediador, revisando las evidencias aportadas por ambas partes (capturas de pantalla, estadisticas de clics, registros de la plataforma, etc.).</li>
+      <li><strong>Resolucion:</strong> ADFLOW emitira una resolucion motivada en un plazo maximo de <strong>3 dias laborables</strong> desde la asuncion de la mediacion.</li>
+    </ol>
+
+    <h3>9.4 Posibles resoluciones</h3>
+    <ul>
+      <li><strong>Reembolso total:</strong> Devolucion integra del importe al Anunciante, cuando se acredite incumplimiento grave por parte del Creador.</li>
+      <li><strong>Reembolso parcial:</strong> Devolucion parcial del importe, cuando se acredite un cumplimiento defectuoso o parcial de la campana.</li>
+      <li><strong>No procede reembolso:</strong> Los fondos se liberan al Creador, cuando se acredite el correcto cumplimiento de la campana o la reclamacion resulte infundada.</li>
+    </ul>
+    <p>La resolucion de ADFLOW tiene caracter de mediacion y no priva a las partes de ejercitar las acciones legales que estimen oportunas ante los Juzgados y Tribunales competentes.</p>
+
+    <!-- 10 -->
+    <h2>10. Cancelaciones y reembolsos</h2>
+    <ul>
+      <li><strong>Antes de la publicacion:</strong> Si el Anunciante cancela la campana antes de que el Creador haya procedido a la publicacion del contenido, se procedera al reembolso total del importe abonado.</li>
+      <li><strong>Durante la campana:</strong> Si la campana se encuentra en curso (contenido ya publicado), la posibilidad de cancelacion y el importe del reembolso se determinaran en funcion del estado de ejecucion de la campana y las evidencias disponibles, conforme al procedimiento de disputas establecido en la clausula 9.</li>
+      <li><strong>Campana expirada sin publicacion:</strong> Si el Creador no publica el contenido dentro del plazo acordado y la campana expira, se procedera al reembolso automatico e integro del importe al Anunciante, sin necesidad de abrir disputa.</li>
+    </ul>
+
+    <h3>10.1 Plazo y forma de reembolso (art. 76 LGDCU)</h3>
+    <p>De conformidad con el articulo 76 de la LGDCU, cuando proceda el reembolso al Anunciante, ADFLOW lo efectuara en un plazo maximo de <strong>14 dias naturales</strong> desde la fecha en que se determine la procedencia del reembolso (ya sea por cancelacion, disputa resuelta a favor del Anunciante, o expiracion de la campana sin publicacion).</p>
+    <p>El reembolso se realizara utilizando el <strong>mismo medio de pago</strong> empleado por el Anunciante para la transaccion inicial, de conformidad con el articulo 76.2 de la LGDCU, salvo que el Anunciante haya dispuesto expresamente lo contrario y siempre que no le suponga coste adicional alguno.</p>
+
+    <!-- 11 -->
+    <h2>11. Sistema de valoraciones</h2>
+    <p>ADFLOW dispone de un sistema de valoraciones y resenas para fomentar la transparencia y la confianza entre los usuarios de la plataforma:</p>
+
+    <h3>11.1 Categorias de valoracion</h3>
+    <p>Tras la finalizacion de una campana, el Anunciante podra valorar al Creador en las siguientes cinco categorias:</p>
+    <ol>
+      <li><strong>Comunicacion:</strong> Calidad y fluidez de la comunicacion durante la campana.</li>
+      <li><strong>Entrega:</strong> Cumplimiento de los plazos de publicacion acordados.</li>
+      <li><strong>Profesionalidad:</strong> Calidad del servicio y trato profesional.</li>
+      <li><strong>Capacidad de respuesta:</strong> Velocidad y eficacia en la atencion de consultas o incidencias.</li>
+      <li><strong>Valor:</strong> Relacion calidad-precio del servicio prestado.</li>
+    </ol>
+
+    <h3>11.2 Puntuacion</h3>
+    <p>Cada categoria se puntua en una escala de <strong>1 a 5</strong>, siendo 1 la puntuacion mas baja y 5 la mas alta. La puntuacion global del Creador se calcula como la media de todas las valoraciones recibidas.</p>
+
+    <h3>11.3 Derecho de respuesta</h3>
+    <p>El Creador tiene derecho a responder publicamente a cualquier valoracion recibida, aportando su version de los hechos o las aclaraciones que considere pertinentes.</p>
+
+    <h3>11.4 Moderacion</h3>
+    <p>Las valoraciones estan sujetas a moderacion por parte de ADFLOW. Cualquier usuario puede reportar una valoracion que considere falsa, difamatoria, ofensiva o que no se corresponda con una experiencia real. ADFLOW se reserva el derecho de eliminar valoraciones que incumplan las normas de uso de la plataforma.</p>
+
+    <!-- 12 -->
+    <h2>12. Verificacion de canales y campanas</h2>
+
+    <h3>12.1 Prueba de propiedad</h3>
+    <p>Para registrar un canal en la plataforma, el Creador debera superar un proceso de verificacion de propiedad que consiste en la publicacion de un enlace de prueba proporcionado por ADFLOW en el canal indicado. Dicho enlace debera recibir un minimo de <strong>3 clics unicos en un periodo de 48 horas</strong> para acreditar que el Creador tiene control efectivo sobre el canal.</p>
+
+    <h3>12.2 Definicion de clic unico</h3>
+    <p>A los efectos de las presentes condiciones, se entiende por <strong>clic unico</strong> cada acceso al enlace de seguimiento procedente de una combinacion distinta de direccion IP y agente de usuario (user agent) del navegador. Accesos multiples desde la misma combinacion IP + user agent dentro del periodo de verificacion se contabilizaran como un unico clic.</p>
+
+    <h3>12.3 Proporcionalidad del umbral de verificacion</h3>
+    <div class="highlight">
+      <p>El umbral minimo de 3 clics unicos en 48 horas es el estandar base de la plataforma. No obstante, dicho <strong>umbral minimo podra ajustarse proporcionalmente en funcion de la audiencia declarada del Canal</strong>, de forma que canales con mayor audiencia declarada podran estar sujetos a umbrales de verificacion superiores, garantizando asi la proporcionalidad y credibilidad de la verificacion.</p>
+    </div>
+
+    <h3>12.4 Metodos adicionales de verificacion</h3>
+    <p>Ademas del sistema automatico de clics unicos, ADFLOW podra aceptar los siguientes metodos complementarios de verificacion de la publicacion efectiva de una campana:</p>
+    <ul>
+      <li><strong>Capturas de pantalla:</strong> El Creador podra aportar capturas de pantalla fechadas que acrediten la publicacion del contenido publicitario en su canal.</li>
+      <li><strong>Analiticas de la plataforma:</strong> Datos de analitica proporcionados por la plataforma donde se publique el contenido (YouTube Analytics, Instagram Insights, etc.), que acrediten la publicacion y el alcance del contenido.</li>
+      <li><strong>Otros medios:</strong> Cualquier otro medio de prueba razonable que ADFLOW considere suficiente para acreditar la publicacion efectiva.</li>
+    </ul>
+
+    <h3>12.5 Verificacion de metricas</h3>
+    <p>ADFLOW podra verificar las metricas declaradas por el Creador (numero de suscriptores, audiencia media, tasa de interaccion, etc.) mediante los medios tecnicos a su disposicion. Las discrepancias significativas entre las metricas declaradas y las reales podran dar lugar a la suspension o cancelacion del canal en la plataforma.</p>
+
+    <h3>12.6 Suspension de canales</h3>
+    <p>ADFLOW se reserva el derecho de suspender o eliminar cualquier canal que no haya superado el proceso de verificacion, que presente metricas fraudulentas, o que incumpla las presentes condiciones o las normas de uso de la plataforma. La suspension sera notificada al Creador, quien podra presentar las alegaciones que estime oportunas.</p>
+
+    <!-- 13 -->
+    <h2>13. Derecho de desistimiento</h2>
+
+    <h3>13.1 Regla general</h3>
+    <p>De conformidad con los articulos 102 y siguientes del Real Decreto Legislativo 1/2007 (LGDCU), el consumidor y usuario tiene derecho a desistir del contrato durante un periodo de <strong>14 dias naturales</strong> sin necesidad de indicar el motivo y sin incurrir en penalizacion alguna.</p>
+
+    <h3>13.2 Excepcion aplicable: servicios completamente ejecutados</h3>
+    <div class="highlight">
+      <p>De conformidad con el articulo 103.a) de la LGDCU, el derecho de desistimiento <strong>no sera aplicable</strong> a la prestacion de servicios una vez que el servicio haya sido completamente ejecutado, <strong>siempre que</strong> la ejecucion haya comenzado con el previo consentimiento expreso del consumidor y con el reconocimiento por su parte de que es consciente de que, una vez que el contrato haya sido completamente ejecutado por el empresario, habra perdido su derecho de desistimiento.</p>
+    </div>
+
+    <h3>13.3 Consentimiento expreso previo</h3>
+    <p>Para que la excepcion del articulo 103.a) de la LGDCU resulte aplicable, ADFLOW requerira al Anunciante, durante el proceso de contratacion y antes de la confirmacion del pedido, que marque una casilla de consentimiento expreso con el siguiente texto (o equivalente):</p>
+    <div class="highlight">
+      <p><em>&laquo;Solicito y consiento expresamente que la ejecucion del servicio contratado comience antes de que transcurra el plazo de desistimiento de 14 dias naturales. Soy consciente de que, una vez que el servicio haya sido completamente ejecutado (campana publicada y verificada), perder&eacute; mi derecho de desistimiento.&raquo;</em></p>
+    </div>
+    <p>Si el Anunciante no marca dicha casilla, la ejecucion del servicio no comenzara hasta transcurrido el plazo de 14 dias naturales de desistimiento, salvo que el Anunciante preste su consentimiento con posterioridad.</p>
+
+    <h3>13.4 Desistimiento antes de la ejecucion completa</h3>
+    <p>Si el Anunciante ha consentido el inicio de la ejecucion del servicio pero este no ha sido completamente ejecutado (es decir, la campana aun no ha sido publicada ni verificada), el Anunciante conserva su derecho de desistimiento. En tal caso, debera abonar un importe proporcional a la parte del servicio ya prestada, conforme al articulo 108 de la LGDCU.</p>
+
+    <h3>13.5 Formulario de desistimiento</h3>
+    <p>El Anunciante podra ejercer su derecho de desistimiento mediante la siguiente declaracion, conforme al modelo del Anexo B del RDL 1/2007:</p>
+    <div class="highlight">
+      <p><strong>Modelo de formulario de desistimiento</strong></p>
+      <p>A la atencion de AdFlow, S.L., correo electronico: <a href="mailto:contacto@adflow.com">contacto@adflow.com</a>:</p>
+      <p>Por la presente le comunico que desisto del contrato de prestacion del siguiente servicio: [descripcion de la campana contratada]</p>
+      <p>Pedido con fecha: [fecha del pedido]</p>
+      <p>Nombre del consumidor: [nombre]</p>
+      <p>Direccion del consumidor: [direccion]</p>
+      <p>Fecha: [fecha]</p>
+      <p>Firma (solo si se presenta en papel): [firma]</p>
+    </div>
+    <p>El desistimiento podra ejercerse a traves del panel de control de la plataforma, por correo electronico a <a href="mailto:contacto@adflow.com">contacto@adflow.com</a>, o por cualquier otro medio que permita dejar constancia de su declaracion inequivoca de desistir del contrato.</p>
+
+    <!-- 14 -->
+    <h2>14. Legislacion aplicable y jurisdiccion</h2>
+    <p>Las presentes Condiciones de Contratacion se rigen e interpretan de conformidad con la legislacion espanola vigente.</p>
+    <p>Para los usuarios que ostenten la condicion de <strong>consumidores y usuarios</strong> conforme al Real Decreto Legislativo 1/2007 (LGDCU), seran competentes los Juzgados y Tribunales del domicilio del consumidor o usuario, de conformidad con el articulo 90.2 de la LGDCU y el articulo 52.3 de la Ley de Enjuiciamiento Civil, sin que quepa renuncia anticipada a dicho fuero.</p>
+    <p>Para los usuarios que actuen en calidad de <strong>profesionales o empresarios</strong>, las partes se someten a la jurisdiccion de los Juzgados y Tribunales de la ciudad de <strong>Madrid</strong>.</p>
+
+    <!-- 15 -->
+    <h2>15. Resolucion extrajudicial de conflictos</h2>
+
+    <h3>15.1 Sistema Arbitral de Consumo</h3>
+    <p>De conformidad con el Real Decreto 231/2008, de 15 de febrero, por el que se regula el Sistema Arbitral de Consumo, se informa al usuario de que ADFLOW <span class="fill-in">__________ (RELLENAR: indicar si "se adhiere" o "no se adhiere actualmente")</span> al Sistema Arbitral de Consumo, mecanismo extrajudicial de resolucion de conflictos que permite resolver de forma gratuita, rapida y vinculante las reclamaciones de los consumidores y usuarios.</p>
+    <p>Independientemente de lo anterior, el usuario podra presentar reclamaciones ante las Juntas Arbitrales de Consumo de su localidad o Comunidad Autonoma.</p>
+
+    <h3>15.2 Plataforma ODR</h3>
+    <p>De conformidad con el Reglamento (UE) 524/2013 del Parlamento Europeo y del Consejo, se informa al usuario de la existencia de la plataforma de resolucion de litigios en linea (ODR) de la Comision Europea, que puede utilizarse para resolver extrajudicialmente los conflictos derivados de contratos celebrados en linea. Se puede acceder a la plataforma ODR a traves del siguiente enlace: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">https://ec.europa.eu/consumers/odr</a>.</p>
+    <p>La direccion de correo electronico de ADFLOW a efectos de la plataforma ODR es: <a href="mailto:contacto@adflow.com">contacto@adflow.com</a>.</p>
+
+    <div class="meta">
+      <p><strong>Ultima actualizacion:</strong> 31 de marzo de 2026</p>
+      <p><strong>Titular:</strong> AdFlow, S.L. &mdash; <a href="mailto:contacto@adflow.com">contacto@adflow.com</a></p>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -3,7 +3,7 @@
 **Marketplace de publicidad en comunidades reales.**
 Conecta anunciantes con creadores de canales en WhatsApp, Telegram, Discord, Instagram y mas.
 
-> **Estado actual:** MVP funcional — backend operativo en produccion (Vercel), frontend React completo con dashboards para advertiser, creator y admin. Sistema de pagos Stripe, notificaciones en tiempo real (Socket.io), disputas, listas de favoritos, autobuy y **sistema de tracking avanzado con verificacion de canales** implementados.
+> **Estado actual (Abril 2026):** MVP funcional en produccion (Vercel). Backend con 20 modelos, 18 controladores, 18 rutas y 19 servicios. Frontend React con 28 paginas y dashboards para advertiser, creator y admin. Sistema de pagos Stripe, tracking avanzado con verificacion de canales, reviews con 5 categorias, analytics con export CSV, partner API, documentacion legal completa (5 documentos) y 118+ tests en 12 suites.
 
 ---
 
@@ -54,9 +54,9 @@ ADFLOW/
 ├── config/
 │   ├── config.js           # Configuracion centralizada
 │   └── database.js         # Conexion MongoDB con retry
-├── models/                 # 17 schemas Mongoose
-├── controllers/            # 15 controladores de request/response
-├── routes/                 # 16 archivos de rutas Express
+├── models/                 # 20 schemas Mongoose
+├── controllers/            # 18 controladores de request/response
+├── routes/                 # 18 archivos de rutas Express
 ├── middleware/             # Auth JWT, validacion, rate limiting, partner auth
 ├── services/               # 19 servicios de logica de negocio
 ├── lib/                    # Utilidades (scoring engine, cron, connectors)
@@ -72,7 +72,7 @@ ADFLOW/
 ├── styles/                 # globals.css
 ├── public/                 # Assets estaticos
 ├── uploads/                # Archivos subidos por usuarios
-├── docs/                   # Documentacion tecnica
+├── docs/                   # Documentacion tecnica + legal (5 docs HTML)
 ├── tests/                  # Tests Jest
 └── scripts/                # Migraciones y utilidades
 ```
@@ -461,9 +461,9 @@ Configurar en el dashboard de Vercel/Render:
 
 ### Sprint 1-2: Infraestructura + Marketplace core ✅
 
-- [x] **Backend REST API** — 17 archivos de rutas, 16 controladores
+- [x] **Backend REST API** — 18 archivos de rutas, 18 controladores, 19 servicios
 - [x] **Autenticacion** — JWT access/refresh tokens, verificacion email
-- [x] **Base de datos** — 18 modelos Mongoose, lazy connection serverless
+- [x] **Base de datos** — 20 modelos Mongoose, lazy connection serverless
 - [x] **Sistema de pagos** — Stripe checkout, escrow con captura diferida
 - [x] **Ciclo de campana completo** — DRAFT → PAID → PUBLISHED → COMPLETED
 - [x] **Dashboard Advertiser** — 7 paginas con KPIs reales
@@ -498,6 +498,15 @@ Configurar en el dashboard de Vercel/Render:
 - [x] **118+ tests** — 8 suites de integracion + smoke tests
 - [x] **Integraciones** — Telegram, Discord, WhatsApp, Instagram, Facebook, Newsletter
 
+### Sprint 5.5: Legal y compliance ✅
+
+- [x] **Documentacion legal** — 5 documentos HTML completos
+  - Aviso legal (`docs/legal/aviso-legal.html`)
+  - Politica de privacidad (`docs/legal/politica-privacidad.html`)
+  - Politica de cookies (`docs/legal/politica-cookies.html`)
+  - Terminos y condiciones (`docs/legal/terminos-condiciones.html`)
+  - Condiciones de contratacion (`docs/legal/condiciones-contratacion.html`)
+
 ### Sprint 6: Produccion real (PENDIENTE)
 
 - [ ] Configurar servicios externos (Stripe live, SMTP, VAPID keys, platform tokens)
@@ -506,7 +515,7 @@ Configurar en el dashboard de Vercel/Render:
 - [ ] Reemplazar Socket.io por solucion serverless-compatible
 - [ ] Panel admin completo (moderacion, metricas plataforma)
 - [ ] Onboarding guiado, graficos con Chart.js/Recharts
-- [ ] Encriptar credenciales en DB, 2FA, GDPR compliance
+- [ ] Encriptar credenciales en DB, 2FA
 
 ### Sprint 7: Escalamiento (FUTURO)
 
@@ -1097,6 +1106,7 @@ Usuario (1) ──→ (N) Retiro         # Un creator solicita N retiros
 | [`docs/estado-real.md`](docs/estado-real.md) | Estado tecnico del proyecto |
 | [`docs/plan-fases.md`](docs/plan-fases.md) | Roadmap por fases de desarrollo |
 | [`docs/release-checklist.md`](docs/release-checklist.md) | Checklist de release |
+| [`docs/legal/`](docs/legal/) | Documentacion legal (aviso legal, privacidad, cookies, T&C, contratacion) |
 | [`.env.example`](.env.example) | Variables de entorno (referencia completa) |
 
 ---

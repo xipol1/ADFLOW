@@ -470,7 +470,47 @@ class EmailService {
     });
   }
 
-  // ─── Helpers ──────────────────────────────────────────────────────
+  // ─���─ Referral email methods ────────────��───────────────────────────
+
+  /**
+   * Notify referrer that someone registered with their referral code.
+   */
+  async enviarReferidoRegistrado(referrer, referidoNombre, totalReferidos, creditosAcumulados) {
+    const html = await this.renderTemplate('referido-registro', {
+      nombre: referrer.nombre || 'Usuario',
+      referidoNombre: referidoNombre || 'Un nuevo usuario',
+      totalReferidos: String(totalReferidos || 0),
+      creditosAcumulados: this._formatPrice(creditosAcumulados || 0),
+    });
+
+    return this.enviarEmail({
+      para: referrer.email,
+      asunto: `Nuevo referido registrado - ${config.app.nombre}`,
+      html,
+    });
+  }
+
+  /**
+   * Notify referrer that a referred user completed a campaign and they earned credits.
+   */
+  async enviarComisionReferral(referrer, referidoNombre, creditoGenerado, valorCampana, creditosTotales, nivelActual) {
+    const html = await this.renderTemplate('referido-comision', {
+      nombre: referrer.nombre || 'Usuario',
+      referidoNombre: referidoNombre || 'Un referido',
+      creditoGenerado: this._formatPrice(creditoGenerado || 0),
+      valorCampana: this._formatPrice(valorCampana || 0),
+      creditosTotales: this._formatPrice(creditosTotales || 0),
+      nivelActual: (nivelActual || 'normal').charAt(0).toUpperCase() + (nivelActual || 'normal').slice(1),
+    });
+
+    return this.enviarEmail({
+      para: referrer.email,
+      asunto: `Has ganado creditos por referido - ${config.app.nombre}`,
+      html,
+    });
+  }
+
+  // ─── Helpers ───────────────────────────────────────────────���──────
 
   _formatPrice(amount) {
     if (amount == null) return '0.00';

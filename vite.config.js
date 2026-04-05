@@ -47,6 +47,10 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: path.resolve(__dirname, 'index.html'),
         output: {
+          // Anonymize chunk names to avoid exposing library names in production
+          chunkFileNames: 'assets/c-[hash].js',
+          entryFileNames: 'assets/e-[hash].js',
+          assetFileNames: 'assets/a-[hash].[ext]',
           manualChunks: {
             vendor: ['react', 'react-dom'],
             router: ['react-router-dom'],

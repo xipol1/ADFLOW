@@ -1,6 +1,6 @@
 const express = require('express');
 const { body, param } = require('express-validator');
-const { autenticar } = require('../middleware/auth');
+const { autenticar, requiereEmailVerificado } = require('../middleware/auth');
 const { validarCampos } = require('../middleware/validarCampos');
 const canalController = require('../controllers/canalController');
 
@@ -18,6 +18,7 @@ router.get(
 router.post(
   '/',
   autenticar,
+  requiereEmailVerificado,
   [
     body('plataforma').isString().notEmpty().trim().withMessage('plataforma requerida'),
     body('identificadorCanal').isString().notEmpty().trim().withMessage('identificadorCanal requerido'),

@@ -5,7 +5,8 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { PURPLE as A, GREEN as AG, FONT_BODY, FONT_DISPLAY, SPARKLINE, ERR } from '../../../theme/tokens';
+import { TrendingUp, TrendingDown } from 'lucide-react';
+import { PURPLE as A, GREEN as AG, purpleAlpha, FONT_BODY, FONT_DISPLAY, SPARKLINE, ERR, OK, WARN, BLUE } from '../../../theme/tokens';
 
 // ─── Keyframe injection (runs once) ──────────────────────────────────────────
 const KEYFRAMES = `
@@ -1228,7 +1229,147 @@ export function EmptyState({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 10. Tooltip
+// 10. Ring — mini donut ring for KPI cards
+// ─────────────────────────────────────────────────────────────────────────────
+export function Ring({ pct, color, size = 48 }) {
+  const r = size / 2 - 5;
+  const circ = 2 * Math.PI * r;
+  const dash = (pct / 100) * circ;
+  return (
+    <svg width={size} height={size} style={{ flexShrink: 0, transform: 'rotate(-90deg)' }}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--border)" strokeWidth="4.5" />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth="4.5"
+        strokeDasharray={`${dash} ${circ - dash}`} strokeLinecap="round"
+        style={{ transition: 'stroke-dasharray .6s cubic-bezier(.4,0,.2,1)' }} />
+    </svg>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 11. KpiCard — unified KPI card used across all dashboards
+// ─────────────────────────────────────────────────────────────────────────────
+export function KpiCard({ icon: Icon, label, value, change, changeLabel, sparkData, accent = A, ring, sub, subColor }) {
+  const [hovered, setHovered] = useState(false);
+  const isPositive = change > 0;
+  const TrendIcon = isPositive ? TrendingUp : TrendingDown;
+  const trendColor = isPositive ? OK : ERR;
+  const accentAlpha = (o) => {
+    // parse hex to rgba
+    const hex = accent || A;
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    return `rgba(${r},${g},${b},${o})`;
+  };
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: 'var(--surface)',
+        border: `1px solid ${hovered ? accentAlpha(0.35) : 'var(--border)'}`,
+        borderRadius: '16px',
+        padding: '22px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '14px',
+        transition: 'border-color .2s, box-shadow .2s, transform .2s',
+        transform: hovered ? 'translateY(-2px)' : 'none',
+        boxShadow: hovered ? `0 8px 32px ${accentAlpha(0.1)}` : '0 1px 4px rgba(0,0,0,0.06)',
+        cursor: 'default',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: '16px',
+        background: hovered ? accentAlpha(0.03) : 'transparent',
+        transition: 'background .2s', pointerEvents: 'none',
+      }} />
+
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', zIndex: 1 }}>
+        <div style={{
+          width: '40px', height: '40px', borderRadius: '11px',
+          background: `${accent}15`,
+          border: `1px solid ${accent}25`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Icon size={18} color={accent} strokeWidth={2} />
+        </div>
+        {ring !== undefined && <Ring pct={ring} color={accent} size={44} />}
+        {sparkData && !ring && <Sparkline data={sparkData} color={accent} />}
+      </div>
+
+      <div style={{ zIndex: 1 }}>
+        <div style={{
+          fontSize: '28px', fontWeight: 800, fontFamily: FONT_DISPLAY, color: 'var(--text)',
+          letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '4px',
+        }}>
+          {value}
+        </div>
+        <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: (change !== undefined || sub) ? '8px' : 0 }}>{label}</div>
+
+        {change !== undefined && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '3px',
+              background: `${trendColor}12`, border: `1px solid ${trendColor}25`,
+              borderRadius: '20px', padding: '2px 8px',
+            }}>
+              <TrendIcon size={11} color={trendColor} strokeWidth={2.5} />
+              <span style={{ fontSize: '11px', fontWeight: 700, color: trendColor }}>
+                {isPositive ? '+' : ''}{change}%
+              </span>
+            </div>
+            {changeLabel && <span style={{ fontSize: '11px', color: 'var(--muted2)' }}>{changeLabel}</span>}
+          </div>
+        )}
+
+        {sub && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: `${subColor || OK}12`, borderRadius: '20px', padding: '2px 8px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: subColor || OK }}>{sub}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 12. StatusBadge — campaign status badge
+// ─────────────────────────────────────────────────────────────────────────────
+const DEFAULT_STATUS_CFG = {
+  DRAFT:     { color: '#64748b', bg: 'rgba(100,116,139,0.1)', label: 'Borrador' },
+  PAID:      { color: BLUE,      bg: `${BLUE}14`,             label: 'Pagada' },
+  PUBLISHED: { color: OK,        bg: `${OK}14`,               label: 'Publicada' },
+  COMPLETED: { color: '#6b7280', bg: 'rgba(107,114,128,0.1)', label: 'Completada' },
+  CANCELLED: { color: ERR,       bg: `${ERR}14`,              label: 'Cancelada' },
+  // lowercase variants
+  pendiente: { color: WARN,      bg: `${WARN}14`,             label: 'Pendiente' },
+  activo:    { color: OK,        bg: `${OK}14`,               label: 'Activo' },
+  pausado:   { color: '#64748b', bg: 'rgba(100,116,139,0.1)', label: 'Pausado' },
+  cancelado: { color: ERR,       bg: `${ERR}14`,              label: 'Cancelado' },
+};
+
+export function StatusBadge({ status, config }) {
+  const cfg = (config || DEFAULT_STATUS_CFG)[status] || DEFAULT_STATUS_CFG.DRAFT;
+  return (
+    <span style={{
+      background: cfg.bg, color: cfg.color,
+      borderRadius: '8px', padding: '4px 10px',
+      fontSize: '11px', fontWeight: 600, letterSpacing: '0.01em',
+      display: 'inline-flex', alignItems: 'center', gap: '5px',
+      fontFamily: FONT_BODY, whiteSpace: 'nowrap',
+    }}>
+      {cfg.icon && <cfg.icon size={12} strokeWidth={2.5} />}
+      {cfg.label || status}
+    </span>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 13. Tooltip
 // ─────────────────────────────────────────────────────────────────────────────
 export function Tooltip({ text, children }) {
   injectKeyframes();

@@ -1,13 +1,17 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../../auth/AuthContext'
+import apiService from '../../../../services/api'
 import { PURPLE as A, PURPLE_DARK as AD, purpleAlpha as AG, FONT_BODY, FONT_DISPLAY } from '../../theme/tokens'
 
 export default function AuthPage({ defaultTab = 'login' }) {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { login, register } = useAuth()
 
-  const [tab, setTab]           = useState(defaultTab)
+  const refCode = searchParams.get('ref') || ''
+
+  const [tab, setTab]           = useState(refCode ? 'register' : defaultTab)
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [name, setName]         = useState('')
@@ -47,8 +51,21 @@ export default function AuthPage({ defaultTab = 'login' }) {
     if (!/\d/.test(password)) { setError('La contraseña debe incluir al menos un número'); return }
     setLoading(true)
     const res = await register({ email, password, nombre: name, role })
+    if (res?.success) {
+      // Apply referral code if present — synchronous to ensure it links
+      if (refCode) {
+        try {
+          const refRes = await apiService.applyReferralCode(refCode)
+          if (!refRes?.success) console.warn('Referral code could not be applied:', refRes?.message)
+        } catch (refErr) {
+          console.warn('Referral code application failed:', refErr?.message)
+        }
+      }
+      setLoading(false)
+      navigate('/dashboard')
+      return
+    }
     setLoading(false)
-    if (res?.success) { navigate('/dashboard'); return }
     setError(res?.message || 'No se pudo crear la cuenta')
   }
 
@@ -79,7 +96,7 @@ export default function AuthPage({ defaultTab = 'login' }) {
         letterSpacing: '-0.4px', textDecoration: 'none',
         color: 'var(--text)', marginBottom: '28px',
       }}>
-        Ad<span style={{ color: A }}>flow</span>
+        Channel<span style={{ color: A }}>ad</span>
       </Link>
 
       {/* Title */}
@@ -216,6 +233,19 @@ export default function AuthPage({ defaultTab = 'login' }) {
           {/* REGISTER FORM */}
           {tab === 'register' && (
             <form onSubmit={onRegister} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+              {refCode && (
+                <div style={{
+                  background: AG(0.08), border: `1px solid ${AG(0.2)}`,
+                  borderRadius: '10px', padding: '10px 14px',
+                  fontSize: '13px', color: A, fontWeight: 500,
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                }}>
+                  <span>🎁</span>
+                  <span>Invitado con codigo <strong>{refCode}</strong></span>
+                </div>
+              )}
+
               <div>
                 <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
                   Nombre <span style={{ color: '#ef4444' }}>*</span>
@@ -266,7 +296,7 @@ export default function AuthPage({ defaultTab = 'login' }) {
 
               <div>
                 <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '8px' }}>
-                  Quiero usar Adflow para… <span style={{ color: '#ef4444' }}>*</span>
+                  Quiero usar Channelad para… <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {[['advertiser', '📢', 'Anunciarme', 'Comprar espacios'], ['creator', '💼', 'Monetizar', 'Vender espacios']].map(([val, icon, title, sub]) => (
@@ -347,7 +377,7 @@ export default function AuthPage({ defaultTab = 'login' }) {
       </div>
 
       <p style={{ marginTop: '24px', fontSize: '12px', color: 'var(--muted2)' }}>
-        © 2026 Adflow · <Link to="/privacidad" style={{ color: 'var(--muted2)' }}>Privacidad</Link> · <Link to="/terminos" style={{ color: 'var(--muted2)' }}>Términos</Link>
+        © 2026 Channelad · <Link to="/privacidad" style={{ color: 'var(--muted2)' }}>Privacidad</Link> · <Link to="/terminos" style={{ color: 'var(--muted2)' }}>Términos</Link>
       </p>
     </div>
   )

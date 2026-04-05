@@ -1,6 +1,6 @@
 const express = require('express');
 const { body, param } = require('express-validator');
-const { autenticar } = require('../middleware/auth');
+const { autenticar, requiereEmailVerificado } = require('../middleware/auth');
 const { validarCampos } = require('../middleware/validarCampos');
 const campaignController = require('../controllers/campaignController');
 
@@ -21,6 +21,7 @@ router.get(
 router.post(
   '/',
   autenticar,
+  requiereEmailVerificado,
   [
     body('channel').isMongoId().withMessage('channel inválido'),
     body('content').isString().notEmpty().trim(),
@@ -46,6 +47,7 @@ router.patch(
 router.post(
   '/:id/pay',
   autenticar,
+  requiereEmailVerificado,
   [param('id').isMongoId().withMessage('ID inválido')],
   validarCampos,
   campaignController.payCampaign

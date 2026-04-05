@@ -1,6 +1,6 @@
 const express = require('express');
 const { param, body } = require('express-validator');
-const { autenticar } = require('../middleware/auth');
+const { autenticar, requiereEmailVerificado } = require('../middleware/auth');
 const { validarCampos } = require('../middleware/validarCampos');
 const disputeController = require('../controllers/disputeController');
 
@@ -19,6 +19,7 @@ router.get(
 router.post(
   '/',
   autenticar,
+  requiereEmailVerificado,
   [
     body('campaignId').isMongoId().withMessage('campaignId inválido'),
     body('reason').isIn(['not_published', 'wrong_content', 'late_delivery', 'fraud', 'other']).withMessage('Razón inválida'),

@@ -24,7 +24,7 @@ const fmtK = (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n)
 const DAY_NAMES   = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab']
 const DAY_FULL    = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado']
 const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-const PLATFORMS   = ['Telegram', 'WhatsApp', 'Discord', 'Instagram', 'Newsletter', 'Facebook']
+const PLATFORMS   = ['Telegram', 'WhatsApp', 'Discord', 'Instagram', 'Newsletter', 'Facebook', 'LinkedIn']
 const CATEGORIES  = ['Tecnologia', 'Marketing', 'Negocios', 'Gaming', 'Fitness', 'Finanzas', 'Ecommerce', 'Educacion', 'Entretenimiento', 'Salud']
 const TIMEZONES   = ['Europe/Madrid', 'Europe/London', 'America/New_York', 'America/Los_Angeles', 'America/Mexico_City', 'America/Bogota', 'America/Buenos_Aires']
 const LANGUAGES   = [{ v: 'es', l: 'Espanol' }, { v: 'en', l: 'English' }, { v: 'pt', l: 'Portugues' }, { v: 'fr', l: 'Francais' }, { v: 'de', l: 'Deutsch' }]
@@ -197,6 +197,7 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
   const [minAdvance, setMinAdvance] = useState(dispo.antelacionMinima || 2)
   const [maxAdvance, setMaxAdvance] = useState(dispo.antelacionMaxima || 60)
   const [acceptUrgent, setAcceptUrgent] = useState(dispo.aceptaUrgentes || false)
+  const [allowPacks, setAllowPacks] = useState(channel.allowPacks !== false)
   const [urgentPrice, setUrgentPrice] = useState(dispo.precioUrgente || 0)
   const [schedFrom, setSchedFrom] = useState(dispo.horarioPreferido?.desde || '09:00')
   const [schedTo, setSchedTo] = useState(dispo.horarioPreferido?.hasta || '18:00')
@@ -292,6 +293,7 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
         antelacionMaxima: maxAdvance,
         aceptaUrgentes: acceptUrgent,
         precioUrgente: urgentPrice,
+        allowPacks,
       })
       if (res?.success) { showToast('Disponibilidad guardada'); onUpdated?.() }
       else showToast('Error: ' + (res?.message || 'No se pudo guardar'))
@@ -351,6 +353,10 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
     chatId: channel.identificadores?.chatId || '',
     serverId: channel.identificadores?.serverId || '',
     phoneNumber: channel.identificadores?.phoneNumber || '',
+    phoneNumberId: channel.credenciales?.phoneNumberId || '',
+    apiKey: '',
+    provider: channel.identificadores?.provider || 'mailchimp',
+    subscribers: channel.estadisticas?.seguidores || '',
   })
 
   // Load scoring data on mount
@@ -379,10 +385,28 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
   const handleConnect = async () => {
     setScoreLoading(true)
     try {
-      const res = await apiService.connectPlatform(channel._id || channel.id, connectForm)
+      const plat = (channel.plataforma || '').toLowerCase()
+      let res
+      if (plat === 'telegram') {
+        res = await apiService.connectTelegram({ botToken: connectForm.botToken, chatId: connectForm.chatId })
+      } else if (plat === 'discord') {
+        res = await apiService.connectDiscord({ botToken: connectForm.botToken, serverId: connectForm.serverId })
+      } else if (plat === 'whatsapp') {
+        res = await apiService.connectWhatsAppManual({ accessToken: connectForm.accessToken, phoneNumberId: connectForm.phoneNumberId })
+      } else if (plat === 'newsletter') {
+        res = await apiService.connectNewsletter({ apiKey: connectForm.apiKey, provider: connectForm.provider, subscribers: connectForm.subscribers })
+      } else if (plat === 'linkedin') {
+        const authRes = await apiService.getLinkedinAuthUrl()
+        if (authRes?.success && authRes.data?.url) {
+          window.location.href = authRes.data.url
+          return
+        }
+        res = authRes
+      } else {
+        res = await apiService.connectPlatform(channel._id || channel.id, connectForm)
+      }
       if (res?.success) {
-        setScoreData(prev => ({ ...prev, scores: res.data.scores, recommendedPrice: res.data.recommendedPrice, platformData: res.data.platformData }))
-        showToast(res.data.connected ? 'Plataforma conectada — datos en tiempo real' : 'Datos estimados — conecta tu API para datos reales')
+        showToast(res.data?.canal ? 'Plataforma conectada — datos en tiempo real' : 'Conexion exitosa')
         onUpdated?.()
       } else showToast('Error: ' + (res?.message || 'No se pudo conectar'))
     } catch { showToast('Error de conexion') }
@@ -570,23 +594,44 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
                 } else if (plat === 'discord') {
                   fields.push({ key: 'botToken', label: 'Bot Token', ph: 'MTA4NzE...', help: 'Token del bot en Discord Developer Portal' })
                   fields.push({ key: 'serverId', label: 'Server ID', ph: '1234567890', help: 'Click derecho en el server → Copiar ID (modo desarrollador)' })
-                } else if (plat === 'instagram') {
-                  fields.push({ key: 'accessToken', label: 'Access Token', ph: 'EAAGm0P...', help: 'Token de Instagram Graph API (Business/Creator account)' })
+                } else if (plat === 'instagram' || plat === 'facebook') {
+                  fields.push({ key: '_metaOAuth', label: 'Meta OAuth', type: 'oauth', help: 'Conecta via Facebook Login para obtener acceso automatico' })
                 } else if (plat === 'whatsapp') {
                   fields.push({ key: 'accessToken', label: 'Access Token', ph: 'EAAGm0P...', help: 'Token de WhatsApp Business API' })
-                  fields.push({ key: 'phoneNumber', label: 'Numero', ph: '+34612345678', help: 'Numero de telefono del canal' })
+                  fields.push({ key: 'phoneNumberId', label: 'Phone Number ID', ph: '1234567890', help: 'ID del numero en Meta Business Suite' })
+                } else if (plat === 'newsletter') {
+                  fields.push({ key: 'provider', label: 'Proveedor', type: 'select', options: ['mailchimp', 'beehiiv', 'substack'], help: 'Selecciona tu proveedor de newsletter' })
+                  fields.push({ key: 'apiKey', label: 'API Key', ph: 'Tu API key del proveedor', help: 'Mailchimp: abc123-us10 | Beehiiv: Bearer token' })
+                  fields.push({ key: 'subscribers', label: 'Suscriptores', ph: '5000', type: 'number', help: 'Numero total de suscriptores activos' })
+                } else if (plat === 'linkedin') {
+                  fields.push({ key: '_linkedinOAuth', label: 'LinkedIn OAuth', type: 'oauth', help: 'Conecta via LinkedIn para obtener acceso automatico' })
                 } else {
                   fields.push({ key: 'accessToken', label: 'API Token', ph: 'Tu token de la plataforma', help: 'Introduce las credenciales de tu plataforma' })
                 }
+                const isOAuthOnly = fields.length === 1 && fields[0].type === 'oauth'
                 return (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {fields.map(({ key, label, ph, help }) => (
+                    {fields.map(({ key, label, ph, help, type, options }) => (
                       <div key={key}>
-                        <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>{label}</label>
-                        <input className="cc-inp" type={key.includes('Token') ? 'password' : 'text'}
-                          value={connectForm[key] || ''} onChange={e => setConnectForm(prev => ({ ...prev, [key]: e.target.value }))}
-                          placeholder={ph} style={inp} />
-                        <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '3px' }}>{help}</div>
+                        {type === 'oauth' ? (
+                          <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{help}</div>
+                        ) : type === 'select' ? (
+                          <>
+                            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>{label}</label>
+                            <select className="cc-inp" value={connectForm[key] || options?.[0] || ''} onChange={e => setConnectForm(prev => ({ ...prev, [key]: e.target.value }))} style={inp}>
+                              {(options || []).map(o => <option key={o} value={o}>{o.charAt(0).toUpperCase() + o.slice(1)}</option>)}
+                            </select>
+                            <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '3px' }}>{help}</div>
+                          </>
+                        ) : (
+                          <>
+                            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>{label}</label>
+                            <input className="cc-inp" type={key.includes('Token') || key.includes('Key') ? 'password' : type === 'number' ? 'number' : 'text'}
+                              value={connectForm[key] || ''} onChange={e => setConnectForm(prev => ({ ...prev, [key]: e.target.value }))}
+                              placeholder={ph} style={inp} />
+                            <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '3px' }}>{help}</div>
+                          </>
+                        )}
                       </div>
                     ))}
                     <button onClick={handleConnect} disabled={scoreLoading} style={{
@@ -595,7 +640,7 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                       opacity: scoreLoading ? 0.6 : 1,
                     }}>
-                      <Link2 size={14} /> {scoreLoading ? 'Conectando...' : 'Conectar y obtener datos'}
+                      <Link2 size={14} /> {scoreLoading ? 'Conectando...' : isOAuthOnly ? 'Conectar con OAuth' : 'Conectar y obtener datos'}
                     </button>
                   </div>
                 )
@@ -829,6 +874,18 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
                   )}
                   <Toggle on={acceptUrgent} onChange={setAcceptUrgent} size="sm" />
                 </div>
+              </div>
+
+              {/* Packs de medios */}
+              <div style={{ background: `${A}08`, border: `1px solid ${AG(0.15)}`, borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Globe size={16} color={A} />
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>Participar en packs de medios</div>
+                    <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Permite que tu canal sea incluido en packs multi-canal para anunciantes</div>
+                  </div>
+                </div>
+                <Toggle on={allowPacks} onChange={setAllowPacks} size="sm" />
               </div>
             </div>
 

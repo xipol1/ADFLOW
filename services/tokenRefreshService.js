@@ -9,6 +9,7 @@ const Canal = require('../models/Canal');
 const { ensureDb } = require('../lib/ensureDb');
 const { decrypt } = require('../lib/encryption');
 const metaOAuth = require('./metaOAuthService');
+const linkedinOAuth = require('./linkedinOAuthService');
 
 const REFRESH_WINDOW_DAYS = 7;
 
@@ -64,6 +65,51 @@ async function refreshExpiringTokens() {
         error: err.message,
       });
       console.error(`Token refresh failed for canal ${canal._id}:`, err.message);
+    }
+  }
+
+  // ── LinkedIn OAuth token refresh ──
+  const linkedinChannels = await Canal.find({
+    'credenciales.tokenType': 'oauth_linkedin',
+    'credenciales.tokenExpiresAt': { $ne: null, $lte: cutoff },
+    estado: 'activo',
+  });
+
+  for (const canal of linkedinChannels) {
+    try {
+      const currentRefreshToken = decrypt(canal.credenciales.refreshToken);
+      if (!currentRefreshToken) {
+        results.skipped++;
+        results.details.push({ id: canal._id, status: 'skipped', reason: 'no refresh token' });
+        continue;
+      }
+
+      const newTokenData = await linkedinOAuth.refreshAccessToken(currentRefreshToken);
+      canal.credenciales.accessToken = newTokenData.access_token;
+      if (newTokenData.refresh_token) {
+        canal.credenciales.refreshToken = newTokenData.refresh_token;
+      }
+      canal.credenciales.tokenExpiresAt = new Date(
+        Date.now() + (newTokenData.expires_in || 5184000) * 1000
+      );
+      await canal.save();
+
+      results.refreshed++;
+      results.details.push({
+        id: canal._id,
+        plataforma: canal.plataforma,
+        status: 'refreshed',
+        newExpiry: canal.credenciales.tokenExpiresAt,
+      });
+    } catch (err) {
+      results.failed++;
+      results.details.push({
+        id: canal._id,
+        plataforma: canal.plataforma,
+        status: 'failed',
+        error: err.message,
+      });
+      console.error(`LinkedIn token refresh failed for canal ${canal._id}:`, err.message);
     }
   }
 

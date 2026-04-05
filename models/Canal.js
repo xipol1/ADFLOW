@@ -17,7 +17,9 @@ const CanalSchema = new mongoose.Schema(
     identificadores: {
       chatId: { type: String, default: '' },
       serverId: { type: String, default: '' },
-      phoneNumber: { type: String, default: '' }
+      phoneNumber: { type: String, default: '' },
+      provider: { type: String, default: '' },       // newsletter provider (mailchimp/beehiiv/substack)
+      linkedinUrn: { type: String, default: '' },     // urn:li:person:xxx or urn:li:organization:xxx
     },
     credenciales: {
       botToken: { type: String, default: '' },
@@ -27,7 +29,7 @@ const CanalSchema = new mongoose.Schema(
       refreshToken: { type: String, default: '' },
       pageAccessToken: { type: String, default: '' },
       tokenExpiresAt: { type: Date, default: null },
-      tokenType: { type: String, default: 'manual', enum: ['manual', 'oauth_meta'] },
+      tokenType: { type: String, default: 'manual', enum: ['manual', 'oauth_meta', 'oauth_linkedin'] },
     },
     // ── Meta OAuth data (populated after Facebook Login) ──
     metaOAuth: {
@@ -39,6 +41,13 @@ const CanalSchema = new mongoose.Schema(
         instagramBusinessId: { type: String, default: '' },
         whatsappBusinessId: { type: String, default: '' },
       }],
+      scopes: [{ type: String }],
+      oauthConnectedAt: { type: Date, default: null },
+    },
+    // ── LinkedIn OAuth data (populated after LinkedIn Login) ──
+    linkedinOAuth: {
+      linkedinUserId: { type: String, default: '' },
+      organizationId: { type: String, default: '' },
       scopes: [{ type: String }],
       oauthConnectedAt: { type: Date, default: null },
     },
@@ -68,6 +77,9 @@ const CanalSchema = new mongoose.Schema(
       aceptaUrgentes: { type: Boolean, default: false },
       precioUrgente: { type: Number, default: 0 }
     },
+    // ── Pack opt-in ──
+    allowPacks: { type: Boolean, default: true },
+
     // ── Profile extras ──
     tags: [{ type: String }],
     foto: { type: String, default: '' },

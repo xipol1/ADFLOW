@@ -1,5 +1,11 @@
 require('dotenv').config();
 
+// Use public DNS to resolve MongoDB Atlas SRV records (Movistar router DNS fails)
+const dns = require('dns');
+if (process.env.NODE_ENV !== 'production') {
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+}
+
 const http = require('http');
 const app = require('./app');
 const fs = require('fs');
