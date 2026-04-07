@@ -5,33 +5,115 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#FAFAFA">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Channelad">
 
-    <!-- SEO & Open Graph -->
-    <meta name="description" content="Channelad es el marketplace de publicidad en comunidades reales. Conecta anunciantes con canales de WhatsApp, Telegram y Discord verificados. Pagos protegidos y metricas en tiempo real.">
+    <!-- SEO: static fallbacks, replaced by react-helmet-async per route -->
+    <meta name="description" data-rh="true" content="Channelad es el marketplace de publicidad en comunidades reales. Conecta anunciantes con canales de WhatsApp, Telegram y Discord verificados. Pagos protegidos y metricas en tiempo real.">
     <meta name="keywords" content="publicidad comunidades, WhatsApp ads, Telegram ads, Discord ads, marketplace publicidad, monetizar canal, comprar publicidad, channelad">
     <meta name="author" content="Channelad">
-
-    <!-- Open Graph -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Channelad — Publicidad en comunidades que escuchan">
-    <meta property="og:description" content="Conecta con canales verificados de WhatsApp, Telegram y Discord. Pagos protegidos con escrow y metricas en tiempo real.">
-    <meta property="og:site_name" content="Channelad">
-    <meta property="og:locale" content="es_ES">
-    <meta property="og:url" content="https://channelad.io">
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Channelad — Publicidad en comunidades que escuchan">
-    <meta name="twitter:description" content="Conecta con canales verificados de WhatsApp, Telegram y Discord. Pagos protegidos con escrow y metricas en tiempo real.">
-
-    <link rel="canonical" href="https://channelad.io">
+    <meta property="og:type" data-rh="true" content="website">
+    <meta property="og:title" data-rh="true" content="Channelad — Publicidad en comunidades que escuchan">
+    <meta property="og:description" data-rh="true" content="Conecta con canales verificados de WhatsApp, Telegram y Discord. Pagos protegidos con escrow y metricas en tiempo real.">
+    <meta property="og:site_name" data-rh="true" content="Channelad">
+    <meta property="og:locale" data-rh="true" content="es_ES">
+    <meta property="og:url" data-rh="true" content="https://channelad.io">
+    <meta name="twitter:card" data-rh="true" content="summary_large_image">
+    <meta name="twitter:title" data-rh="true" content="Channelad — Publicidad en comunidades que escuchan">
+    <meta name="twitter:description" data-rh="true" content="Conecta con canales verificados de WhatsApp, Telegram y Discord. Pagos protegidos con escrow y metricas en tiempo real.">
+    <link rel="canonical" data-rh="true" href="https://channelad.io">
     <title>Channelad — Publicidad en comunidades que escuchan</title>
+
+    <!-- Structured Data: Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Channelad",
+      "url": "https://channelad.io",
+      "logo": "https://channelad.io/logo.png",
+      "description": "Marketplace de publicidad nativa en comunidades de WhatsApp, Telegram y Discord. Conecta marcas con audiencias reales.",
+      "foundingDate": "2026",
+      "areaServed": ["ES", "LATAM"],
+      "knowsLanguage": ["es", "en"],
+      "sameAs": [],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "url": "https://channelad.io/soporte",
+        "availableLanguage": ["Spanish", "English"]
+      }
+    }
+    </script>
+
+    <!-- Structured Data: FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Como funciona la publicidad en comunidades de WhatsApp, Telegram y Discord?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Channelad conecta anunciantes con canales verificados de WhatsApp, Telegram y Discord. El anunciante elige un canal, envia su anuncio y el pago se retiene en custodia hasta que el canal publica. Las metricas se verifican automaticamente."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Cuanto cuesta anunciarse en canales de Telegram y WhatsApp?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Los precios los fija cada canal. Encontraras opciones desde 50 euros hasta mas de 1.000 euros por publicacion segun el tamano de la audiencia y el nicho. No hay costes fijos, suscripciones ni minimos de gasto."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Es seguro pagar por publicidad en comunidades?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Si. Channelad usa un sistema de pago custodiado (escrow). El dinero se retiene de forma segura y solo se libera al creador cuando se confirma la publicacion del anuncio segun los terminos acordados. Si el canal no cumple, el pago se devuelve automaticamente."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Como puedo monetizar mi canal de Telegram, WhatsApp o Discord?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Registra tu canal gratis en Channelad, completa la verificacion automatica y fija tus tarifas. Los anunciantes te encontraran en el marketplace. Solo se cobra una comision del 10% por campana completada. No hay costes fijos."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Que alternativas existen a Collaborator y Telega para publicidad en Telegram?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Channelad es la alternativa en espanol que cubre WhatsApp, Telegram y Discord en un solo marketplace. A diferencia de Collaborator o Telega.in, Channelad ofrece pagos custodiados, verificacion automatica de metricas y soporte para comunidades en espanol."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Structured Data: WebSite (enables sitelinks search) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Channelad",
+      "url": "https://channelad.io",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://channelad.io/marketplace?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
   </head>
   <body>
     <script>

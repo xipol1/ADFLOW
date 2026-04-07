@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
+import SEO from '../../components/SEO'
 import { PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK } from '../../theme/tokens'
 
 export default function SupportPage() {
+  const seo = <SEO title="Centro de ayuda" description="Soporte y preguntas frecuentes de Channelad. Resolvemos tus dudas sobre pagos custodiados, verificacion de canales, disputas y mas." path="/soporte" />
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -38,6 +40,7 @@ export default function SupportPage() {
 
   return (
     <div style={{ fontFamily: FONT_BODY, padding: '60px 24px 80px', maxWidth: '760px', margin: '0 auto' }}>
+      {seo}
       <Link to="/" style={{ fontSize: '13px', color: PURPLE, textDecoration: 'none', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px', marginBottom: '32px' }}>
         ← Volver al inicio
       </Link>

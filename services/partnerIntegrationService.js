@@ -708,6 +708,257 @@ const serializeCampaign = (campaign, channel) => ({
   }
 });
 
+// ── Auth: validate API key and return partner profile (SHA-256) ───────────────
+
+const authenticatePartner = async (apiKey, ip) => {
+  if (!apiKey) throw createApiError(401, 'API_KEY_REQUIRED', 'API key requerida');
+
+  const partner = await getPartnerByApiKey(apiKey);
+  if (!partner) throw createApiError(401, 'INVALID_CREDENTIALS', 'Credenciales invalidas');
+  if (partner.status !== 'active') throw createApiError(403, 'ACCESS_REVOKED', 'Acceso revocado');
+  if (partner.expiresAt && new Date(partner.expiresAt) < new Date()) {
+    throw createApiError(403, 'API_KEY_EXPIRED', 'API key caducada');
+  }
+  if (ip && !isIpAllowed(partner, ip)) {
+    throw createApiError(403, 'IP_NOT_ALLOWED', 'IP no autorizada');
+  }
+
+  touchPartnerUsage(partner._id, ip);
+  await audit(partner._id, 'auth.validate', { ip, metadata: { method: 'sha256' } });
+
+  return {
+    partnerId: partner._id.toString(),
+    name: partner.name,
+    slug: partner.slug,
+    status: partner.status,
+    apiKeyHint: partner.apiKeyHint || '',
+    rateLimitPerMinute: partner.rateLimitPerMinute || 60,
+    commissionRate: partner.commissionOverride != null ? partner.commissionOverride : 0.10,
+    allowedIps: (partner.allowedIps || []).length > 0 ? partner.allowedIps : ['*'],
+    webhookUrl: partner.webhookUrl || null,
+    expiresAt: partner.expiresAt || null,
+    lastUsedAt: partner.lastUsedAt || null,
+    createdAt: partner.createdAt
+  };
+};
+
+// ── Update campaign (only DRAFT) ──────────────────────────────────────────────
+
+const updateCampaign = async (partnerId, campaignId, payload) => {
+  await ensureDb();
+  const Campaign = require('../models/Campaign');
+  const mongoose = require('mongoose');
+
+  if (!mongoose.Types.ObjectId.isValid(campaignId)) {
+    throw createApiError(404, 'CAMPAIGN_NOT_FOUND', 'Campana no encontrada');
+  }
+
+  const campaign = await Campaign.findOne({ _id: campaignId, partner: partnerId });
+  if (!campaign) throw createApiError(404, 'CAMPAIGN_NOT_FOUND', 'Campana no encontrada');
+  if (campaign.status !== 'DRAFT') {
+    throw createApiError(409, 'INVALID_STATE', 'Solo se pueden editar campanas en estado DRAFT');
+  }
+
+  // Updatable fields
+  if (payload.content !== undefined) campaign.content = String(payload.content).trim();
+  if (payload.title !== undefined) campaign.content = String(payload.title).trim();
+  if (payload.targetUrl !== undefined) campaign.targetUrl = String(payload.targetUrl).trim();
+  if (payload.budget !== undefined) {
+    const price = Number(payload.budget);
+    if (!Number.isFinite(price) || price <= 0) {
+      throw createApiError(400, 'INVALID_BUDGET', 'Budget invalido');
+    }
+    campaign.price = price;
+  }
+  if (payload.deadline !== undefined) {
+    campaign.deadline = payload.deadline ? new Date(payload.deadline) : null;
+  }
+
+  await campaign.save();
+
+  await audit(partnerId, 'campaign.updated', {
+    campaignId: campaign._id,
+    metadata: { updatedFields: Object.keys(payload) }
+  });
+
+  const populated = await Campaign.findById(campaign._id)
+    .populate('channel', 'nombreCanal plataforma categoria').lean();
+  return serializeCampaign(populated, populated.channel);
+};
+
+// ── Billing: transaction history + balance ────────────────────────────────────
+
+const getPartnerBilling = async (partnerId, { from, to, status, page = 1, limit = 20 } = {}) => {
+  await ensureDb();
+  const Campaign = require('../models/Campaign');
+  const Transaccion = require('../models/Transaccion');
+
+  // Get all campaign IDs for this partner
+  const partnerCampaigns = await Campaign.find({ partner: partnerId }).select('_id').lean();
+  const campaignIds = partnerCampaigns.map((c) => c._id);
+
+  if (campaignIds.length === 0) {
+    return {
+      balance: { totalSpent: 0, pending: 0, settled: 0, refunded: 0, currency: 'eur' },
+      transactions: [],
+      pagination: { page: 1, limit: 20, total: 0, totalPages: 1 }
+    };
+  }
+
+  // Build transaction filter
+  const filter = { campaign: { $in: campaignIds } };
+  if (status) filter.status = status;
+  if (from || to) {
+    filter.createdAt = {};
+    if (from) filter.createdAt.$gte = new Date(from);
+    if (to) filter.createdAt.$lte = new Date(to);
+  }
+
+  const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 50);
+  const safePage = Math.max(Number(page) || 1, 1);
+
+  const [transactions, total] = await Promise.all([
+    Transaccion.find(filter)
+      .populate('campaign', 'content status partnerExternalRef')
+      .sort({ createdAt: -1 })
+      .skip((safePage - 1) * safeLimit)
+      .limit(safeLimit)
+      .lean(),
+    Transaccion.countDocuments(filter)
+  ]);
+
+  // Calculate balance aggregates
+  const allTransactions = await Transaccion.find({ campaign: { $in: campaignIds } }).lean();
+  const balance = {
+    totalSpent: 0,
+    pending: 0,
+    settled: 0,
+    refunded: 0,
+    currency: 'eur'
+  };
+
+  for (const tx of allTransactions) {
+    if (tx.tipo === 'reembolso') {
+      balance.refunded += tx.amount;
+    } else if (tx.tipo === 'pago' || tx.tipo === 'comision') {
+      if (tx.status === 'pending' || tx.status === 'escrow') {
+        balance.pending += tx.amount;
+      } else if (tx.status === 'paid') {
+        balance.settled += tx.amount;
+      }
+    }
+  }
+  balance.totalSpent = +(balance.pending + balance.settled).toFixed(2);
+  balance.pending = +balance.pending.toFixed(2);
+  balance.settled = +balance.settled.toFixed(2);
+  balance.refunded = +balance.refunded.toFixed(2);
+
+  await audit(partnerId, 'billing.read', { metadata: { from, to, status } });
+
+  return {
+    balance,
+    transactions: transactions.map((tx) => ({
+      id: tx._id.toString(),
+      campaignId: tx.campaign?._id?.toString() || null,
+      campaignRef: tx.campaign?.partnerExternalRef || null,
+      amount: tx.amount,
+      type: tx.tipo,
+      status: tx.status,
+      description: tx.description,
+      createdAt: tx.createdAt
+    })),
+    pagination: {
+      page: safePage,
+      limit: safeLimit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / safeLimit))
+    }
+  };
+};
+
+// ── Stats: aggregate partner metrics ──────────────────────────────────────────
+
+const getPartnerStats = async (partnerId, { period = 'month' } = {}) => {
+  await ensureDb();
+  const Campaign = require('../models/Campaign');
+  const Tracking = require('../models/Tracking');
+  const PartnerAuditLog = require('../models/PartnerAuditLog');
+
+  // Calculate date range
+  const now = new Date();
+  const periodDays = { week: 7, month: 30, quarter: 90, year: 365 }[period] || 30;
+  const since = new Date(now.getTime() - periodDays * 24 * 60 * 60 * 1000);
+
+  // Campaign stats
+  const allCampaigns = await Campaign.find({ partner: partnerId }).lean();
+  const periodCampaigns = allCampaigns.filter((c) => c.createdAt >= since);
+
+  const byStatus = {};
+  for (const c of allCampaigns) {
+    byStatus[c.status] = (byStatus[c.status] || 0) + 1;
+  }
+
+  const totalSpent = allCampaigns
+    .filter((c) => ['PAID', 'PUBLISHED', 'COMPLETED'].includes(c.status))
+    .reduce((sum, c) => sum + (c.price || 0), 0);
+
+  const completedCampaigns = allCampaigns.filter((c) => c.status === 'COMPLETED');
+  const avgBudget = allCampaigns.length > 0
+    ? +(allCampaigns.reduce((s, c) => s + c.price, 0) / allCampaigns.length).toFixed(2)
+    : 0;
+
+  // Click metrics
+  const campaignIds = allCampaigns.map((c) => c._id);
+  const [totalClicks, uniqueIps] = await Promise.all([
+    Tracking.countDocuments({ campaign: { $in: campaignIds } }),
+    Tracking.distinct('ip', { campaign: { $in: campaignIds } }).then((ips) => ips.length)
+  ]);
+
+  // API usage stats from audit log
+  const [apiRequestsTotal, apiRequestsPeriod, apiErrors] = await Promise.all([
+    PartnerAuditLog.countDocuments({ partner: partnerId, action: 'api.request' }),
+    PartnerAuditLog.countDocuments({ partner: partnerId, action: 'api.request', createdAt: { $gte: since } }),
+    PartnerAuditLog.countDocuments({
+      partner: partnerId,
+      action: 'api.request',
+      statusCode: { $gte: 400 },
+      createdAt: { $gte: since }
+    })
+  ]);
+
+  const errorRate = apiRequestsPeriod > 0 ? +(apiErrors / apiRequestsPeriod).toFixed(4) : 0;
+
+  await audit(partnerId, 'stats.read', { metadata: { period } });
+
+  return {
+    campaigns: {
+      total: allCampaigns.length,
+      periodNew: periodCampaigns.length,
+      byStatus,
+      avgBudget,
+      totalSpent: +totalSpent.toFixed(2),
+      activeNow: (byStatus.DRAFT || 0) + (byStatus.PAID || 0) + (byStatus.PUBLISHED || 0)
+    },
+    metrics: {
+      totalClicks,
+      uniqueClicks: uniqueIps,
+      avgClicksPerCampaign: completedCampaigns.length > 0
+        ? +(totalClicks / completedCampaigns.length).toFixed(1)
+        : 0
+    },
+    api: {
+      requestsTotal: apiRequestsTotal,
+      requestsPeriod: apiRequestsPeriod,
+      errorRate
+    },
+    period: {
+      name: period,
+      from: since.toISOString(),
+      to: now.toISOString()
+    }
+  };
+};
+
 // ── Exports ────────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -719,9 +970,11 @@ module.exports = {
   touchPartnerUsage,
   registerApiLog,
   audit,
+  authenticatePartner,
   listChannels,
   getChannel,
   createCampaign,
+  updateCampaign,
   createPaymentSession,
   confirmPayment,
   publishCampaign,
@@ -730,5 +983,7 @@ module.exports = {
   getCampaignMetrics,
   getPartnerCampaigns,
   getPartnerCampaign,
+  getPartnerBilling,
+  getPartnerStats,
   getOrCreatePartnerUser
 };

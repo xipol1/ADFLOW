@@ -5,11 +5,11 @@ const apiPaths = require('./swaggerPaths.json').paths || {};
 const spec = {
   openapi: '3.0.0',
   info: {
-    title: 'ADFLOW API',
-    version: '2.0.0',
+    title: 'ChannelAd API',
+    version: '2.1.0',
     description:
-      'Marketplace de publicidad en comunidades reales. Conecta anunciantes con creadores de canales en WhatsApp, Telegram, Discord, Instagram y mas.',
-    contact: { name: 'ADFLOW Team', url: 'https://adflow-unified.vercel.app' },
+      'Marketplace de publicidad en comunidades reales. Conecta anunciantes con creadores de canales en WhatsApp, Telegram, Discord, Instagram y mas. Incluye Partner API completa con autenticacion SHA-256, gestion de campanas, billing y estadisticas.',
+    contact: { name: 'ChannelAd Team', url: 'https://channelad.io' },
   },
   servers: [
     { url: 'https://adflow-unified.vercel.app', description: 'Production' },

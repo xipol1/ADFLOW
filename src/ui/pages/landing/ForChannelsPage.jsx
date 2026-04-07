@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import SEO from '../../components/SEO'
+import CrossLinks from '../../components/landing/CrossLinks'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { PURPLE as A, PURPLE_DARK as AD, purpleAlpha as AG, FONT_BODY, FONT_DISPLAY, MAX_W } from '../../theme/tokens'
 
@@ -122,6 +124,11 @@ export default function ForChannelsPage() {
 
   return (
     <div style={{ fontFamily: F, color: 'var(--text)', background: 'var(--bg)' }}>
+      <SEO
+        title="Monetiza tu canal de WhatsApp, Telegram o Discord"
+        description="Registra tu canal gratis y empieza a ganar dinero con publicidad. Sin minimo de seguidores. Pagos protegidos y solo 10% de comision por campana completada."
+        path="/para-canales"
+      />
 
       {/* ══════════════════════════════════════════════════════
           HERO
@@ -424,6 +431,8 @@ export default function ForChannelsPage() {
           </div>
         </motion.div>
       </Section>
+
+      <CrossLinks exclude="/para-canales" />
     </div>
   )
 }

@@ -59,6 +59,12 @@ app.use(cors({
 app.use(compression());
 app.use(morgan(ENV === 'development' ? 'dev' : 'combined'));
 
+// Structured logging & request metrics
+const logger = require('./lib/logger');
+const { requestMetrics, getMetrics } = require('./middleware/requestMetrics');
+app.use(requestMetrics);
+logger.info('ChannelAd API starting', { env: ENV });
+
 // Stripe webhook MUST be mounted before express.json() — it needs the raw body
 // for stripe.webhooks.constructEvent() HMAC signature verification.
 {
@@ -94,11 +100,14 @@ app.get('/health', async (req, res) => {
     const dbOk = database.estaConectado();
     const uptime = process.uptime();
     const memMB = Math.round(process.memoryUsage().rss / 1024 / 1024);
+    const appMetrics = getMetrics();
     res.status(dbOk ? 200 : 503).json({
       status: dbOk ? 'ok' : 'degraded',
       db: dbOk ? 'connected' : 'disconnected',
       uptime: `${Math.floor(uptime / 60)}m`,
       memoryMB: memMB,
+      requests: appMetrics.totalRequests,
+      errorRate: appMetrics.errorRate
     });
   } catch {
     res.status(200).json({ status: 'ok' });
@@ -357,6 +366,39 @@ const enabledRoutes = [
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));
 
+// ─── Static blog: serve pre-built HTML from public/blog/ ───
+const blogDir = path.join(__dirname, 'public', 'blog');
+app.get('/blog', (req, res, next) => {
+  const indexFile = path.join(blogDir, 'index.html');
+  if (fs.existsSync(indexFile)) return res.sendFile(indexFile);
+  next(); // fall through to React SPA if no static index
+});
+app.get('/blog/:slug', (req, res, next) => {
+  const file = path.join(blogDir, `${req.params.slug}.html`);
+  if (fs.existsSync(file)) return res.sendFile(file);
+  next(); // fall through to React SPA if no matching static file
+});
+
+// ─── Sitemap ───
+app.get('/sitemap.xml', (req, res, next) => {
+  const sitemapFile = path.join(__dirname, 'public', 'sitemap.xml');
+  if (fs.existsSync(sitemapFile)) {
+    res.setHeader('Content-Type', 'application/xml');
+    return res.sendFile(sitemapFile);
+  }
+  next();
+});
+
+// ─── Robots.txt ───
+app.get('/robots.txt', (req, res, next) => {
+  const robotsFile = path.join(__dirname, 'public', 'robots.txt');
+  if (fs.existsSync(robotsFile)) {
+    res.setHeader('Content-Type', 'text/plain');
+    return res.sendFile(robotsFile);
+  }
+  next();
+});
+
 const distPath = path.join(__dirname, 'dist');
 const distIndex = path.join(distPath, 'index.html');
 const hasDist = fs.existsSync(distIndex);
@@ -367,6 +409,7 @@ if (hasDist) {
     if (req.method !== 'GET') return next();
     if (req.path.startsWith('/api')) return next();
     if (req.path.startsWith('/uploads') || req.path.startsWith('/public')) return next();
+    if (req.path.startsWith('/blog')) return next();
     res.sendFile(distIndex);
   });
 }

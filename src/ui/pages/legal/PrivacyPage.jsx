@@ -1,10 +1,12 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import SEO from '../../components/SEO'
 import { PURPLE, FONT_BODY, FONT_DISPLAY } from '../../theme/tokens'
 
 export default function PrivacyPage() {
   return (
     <div style={{ fontFamily: FONT_BODY, padding: '60px 24px 80px', maxWidth: '760px', margin: '0 auto' }}>
+      <SEO title="Politica de Privacidad" description="Politica de privacidad de Channelad. Como protegemos tus datos personales y gestionamos la informacion de anunciantes y creadores." path="/privacidad" />
       <Link to="/" style={{ fontSize: '13px', color: PURPLE, textDecoration: 'none', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px', marginBottom: '32px' }}>
         ← Volver al inicio
       </Link>

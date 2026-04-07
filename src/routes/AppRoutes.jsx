@@ -46,6 +46,8 @@ import SupportPage from '../ui/pages/legal/SupportPage'
 import ForgotPasswordPage from '../ui/pages/auth/ForgotPasswordPage'
 import ForChannelsPage from '../ui/pages/landing/ForChannelsPage'
 import ForBrandsPage from '../ui/pages/landing/ForBrandsPage'
+import BlogIndex from '../ui/pages/blog/BlogIndex'
+import BlogPost from '../ui/pages/blog/BlogPost'
 
 // Guard for full-access-only pages — shows Coming Soon for limited users
 function FullAccessOnly({ children, feature }) {
@@ -83,6 +85,8 @@ export default function AppRoutes() {
         <Route path="soporte" element={<SupportPage />} />
         <Route path="para-canales" element={<ForChannelsPage />} />
         <Route path="para-anunciantes" element={<ForBrandsPage />} />
+        <Route path="blog" element={<BlogIndex />} />
+        <Route path="blog/:slug" element={<BlogPost />} />
 
         {/* Creator / Admin dashboard (uses public NavBar layout) */}
         <Route

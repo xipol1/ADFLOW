@@ -174,7 +174,7 @@ const registro = async (req, res) => {
     const crypto = require('crypto');
     const verificationToken = crypto.randomBytes(32).toString('hex');
 
-    const user = await Usuario.create({
+    const userData = {
       email: email.trim().toLowerCase(),
       password: hashedPassword,
       nombre,
@@ -182,9 +182,39 @@ const registro = async (req, res) => {
       emailVerificado: false,
       emailVerificationToken: verificationToken,
       emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
-    });
+    };
 
-    logDev('REGISTER: user created', { userId: user._id.toString() });
+    // ── Bot token validation (founder benefits) ──
+    const botToken = String(req.body?.botToken || '').trim();
+    let founderApplied = false;
+    if (botToken) {
+      const BotToken = require('../models/BotToken');
+      const tokenDoc = await BotToken.findOne({
+        token: botToken,
+        used: false,
+        expiresAt: { $gt: new Date() },
+      });
+      if (tokenDoc && tokenDoc.email.toLowerCase() === email) {
+        userData.botVerified = true;
+        userData.founderTier = true;
+        userData.telegramUserId = tokenDoc.telegramUserId;
+        userData.channelUsername = tokenDoc.channelUsername;
+        userData.channelTier = tokenDoc.channelTier;
+        userData.campaignCreditsBalance = 10; // €10 welcome bonus
+        founderApplied = true;
+        // Mark token as used
+        tokenDoc.used = true;
+        tokenDoc.usedAt = new Date();
+        await tokenDoc.save();
+        logDev('REGISTER: bot token validated, founder benefits applied', { email, channel: tokenDoc.channelUsername });
+      } else {
+        logDev('REGISTER: bot token invalid or email mismatch', { botToken: botToken.slice(0, 8) + '...', email });
+      }
+    }
+
+    const user = await Usuario.create(userData);
+
+    logDev('REGISTER: user created', { userId: user._id.toString(), founder: founderApplied });
 
     // Send verification email (non-blocking — don't fail registration if email fails)
     setImmediate(async () => {
@@ -207,7 +237,10 @@ const registro = async (req, res) => {
       refreshToken: tokens.tokenRefresco,
       expiresIn: tokens.expiresIn,
       emailVerificationRequired: true,
-      message: 'Cuenta creada. Revisa tu email para verificar tu cuenta.',
+      founderApplied,
+      message: founderApplied
+        ? 'Cuenta creada como Canal Fundador. €10 de bono acreditados.'
+        : 'Cuenta creada. Revisa tu email para verificar tu cuenta.',
     });
   } catch (error) {
     console.error('REGISTER ERROR:', error);
@@ -216,6 +249,86 @@ const registro = async (req, res) => {
       message: 'Error interno del servidor',
       ...errorPayload(error)
     });
+  }
+};
+
+// ── Bot token endpoints ──
+
+const BOT_API_KEY = process.env.BOT_API_KEY || '';
+
+const createBotToken = async (req, res) => {
+  try {
+    const apiKey = req.headers['x-bot-key'] || '';
+    if (!BOT_API_KEY || apiKey !== BOT_API_KEY) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    if (!database.estaConectado()) await database.conectar();
+
+    const { token, email, telegramUserId, channelUsername, channelTier, precioPost, ingresoMensual, niche } = req.body;
+    if (!token || !email || !telegramUserId) {
+      return res.status(400).json({ success: false, message: 'token, email and telegramUserId required' });
+    }
+
+    const BotToken = require('../models/BotToken');
+
+    // Invalidate previous tokens for this telegram user
+    await BotToken.updateMany(
+      { telegramUserId, used: false },
+      { used: true, usedAt: new Date() }
+    );
+
+    await BotToken.create({
+      token,
+      email: email.toLowerCase(),
+      telegramUserId,
+      channelUsername: channelUsername || '',
+      channelTier: channelTier || null,
+      precioPost: precioPost || 0,
+      ingresoMensual: ingresoMensual || 0,
+      niche: niche || '',
+      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48h
+    });
+
+    logDev('BOT TOKEN: created', { telegramUserId, email, channelUsername });
+    return res.status(201).json({ success: true });
+  } catch (error) {
+    console.error('BOT TOKEN CREATE ERROR:', error?.message);
+    return res.status(500).json({ success: false, message: 'Error interno' });
+  }
+};
+
+const validateBotToken = async (req, res) => {
+  try {
+    const tokenStr = String(req.query?.token || '').trim();
+    if (!tokenStr) {
+      return res.json({ success: false, valid: false });
+    }
+
+    if (!database.estaConectado()) await database.conectar();
+
+    const BotToken = require('../models/BotToken');
+    const tokenDoc = await BotToken.findOne({
+      token: tokenStr,
+      used: false,
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!tokenDoc) {
+      return res.json({ success: true, valid: false });
+    }
+
+    return res.json({
+      success: true,
+      valid: true,
+      email: tokenDoc.email,
+      channelUsername: tokenDoc.channelUsername,
+      channelTier: tokenDoc.channelTier,
+      niche: tokenDoc.niche,
+    });
+  } catch (error) {
+    console.error('BOT TOKEN VALIDATE ERROR:', error?.message);
+    return res.status(500).json({ success: false, valid: false });
   }
 };
 
@@ -476,5 +589,7 @@ module.exports = {
   actualizarPerfil,
   cambiarPassword,
   desactivarCuenta,
-  obtenerEstadisticas
+  obtenerEstadisticas,
+  createBotToken,
+  validateBotToken,
 };

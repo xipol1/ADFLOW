@@ -15,11 +15,19 @@
       "schedule": "0 3 * * *"
     }
   ],
+  "headers": [
+    {
+      "source": "/sitemap.xml",
+      "headers": [{ "key": "Content-Type", "value": "application/xml; charset=utf-8" }]
+    }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.js" },
     { "source": "/t/:code", "destination": "/api/index.js" },
     { "source": "/r/:campaignId", "destination": "/api/index.js" },
     { "source": "/health", "destination": "/api/index.js" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/blog", "destination": "/blog/index.html" },
+    { "source": "/blog/:slug", "destination": "/blog/:slug.html" },
+    { "source": "/((?!api/|blog/|sitemap\\.xml|robots\\.txt).*)", "destination": "/index.html" }
   ]
 }

@@ -9,7 +9,44 @@ const service = require('../services/partnerIntegrationService');
 
 const router = express.Router();
 
-// ── Middleware chain ───────────────────────────────────────────────────────────
+// ── Pre-auth endpoint (no middleware required) ────────────────────────────────
+
+// POST /api/partners/auth — validate API key (SHA-256) and return partner profile
+router.post(
+  '/auth',
+  partnerRequestContext,
+  [
+    body('apiKey').optional().isString().trim().notEmpty().withMessage('apiKey requerido en body o header')
+  ],
+  validarCampos,
+  async (req, res, next) => {
+    try {
+      // Accept API key from body, Bearer token, or X-API-Key header
+      const authHeader = String(req.headers.authorization || '').trim();
+      const apiKeyHeader = String(req.headers['x-api-key'] || '').trim();
+      const apiKey = req.body.apiKey
+        || (authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '')
+        || apiKeyHeader;
+
+      const clientIp = req.ip || req.headers['x-forwarded-for'] || req.connection?.remoteAddress || '';
+      const profile = await service.authenticatePartner(apiKey, clientIp);
+      return sendSuccess(res, {
+        authenticated: true,
+        partner: profile,
+        permissions: {
+          channels: { list: true, read: true },
+          campaigns: { create: true, read: true, update: true, cancel: true },
+          billing: { read: true },
+          stats: { read: true },
+          metrics: { read: true }
+        },
+        authMethod: 'sha256-api-key'
+      });
+    } catch (error) { next(error); }
+  }
+);
+
+// ── Middleware chain (all endpoints below require authentication) ──────────────
 router.use(partnerRequestContext);
 router.use(autenticarPartner);
 router.use(limitadorPartner);
@@ -130,6 +167,26 @@ router.get(
   }
 );
 
+// PUT /api/partners/campaigns/:id — update campaign (DRAFT only)
+router.put(
+  '/campaigns/:id',
+  [
+    param('id').isString().notEmpty(),
+    body('content').optional().isString().trim(),
+    body('title').optional().isString().trim(),
+    body('targetUrl').optional().isString().trim(),
+    body('budget').optional().isFloat({ gt: 0 }).toFloat(),
+    body('deadline').optional().isISO8601().withMessage('deadline debe ser ISO8601')
+  ],
+  validarCampos,
+  async (req, res, next) => {
+    try {
+      const campaign = await service.updateCampaign(req.partner._id, req.params.id, req.body);
+      return sendSuccess(res, campaign);
+    } catch (error) { next(error); }
+  }
+);
+
 // POST /api/partners/campaigns/:id/payment-session — create Stripe escrow session
 router.post(
   '/campaigns/:id/payment-session',
@@ -216,6 +273,53 @@ router.get(
     try {
       const metrics = await service.getCampaignMetrics(req.partner._id, req.params.id);
       return sendSuccess(res, metrics);
+    } catch (error) { next(error); }
+  }
+);
+
+// ── Billing ───────────────────────────────────────────────────────────────────
+
+// GET /api/partners/billing — transaction history & balance
+router.get(
+  '/billing',
+  [
+    query('page').optional().isInt({ min: 1 }).toInt(),
+    query('limit').optional().isInt({ min: 1, max: 50 }).toInt(),
+    query('status').optional().isString().trim(),
+    query('from').optional().isISO8601().withMessage('from debe ser ISO8601'),
+    query('to').optional().isISO8601().withMessage('to debe ser ISO8601')
+  ],
+  validarCampos,
+  async (req, res, next) => {
+    try {
+      const result = await service.getPartnerBilling(req.partner._id, {
+        from: req.query.from,
+        to: req.query.to,
+        status: req.query.status,
+        page: req.query.page,
+        limit: req.query.limit
+      });
+      return sendSuccess(res, result);
+    } catch (error) { next(error); }
+  }
+);
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+
+// GET /api/partners/stats — aggregate partner metrics & usage
+router.get(
+  '/stats',
+  [
+    query('period').optional().isString().isIn(['week', 'month', 'quarter', 'year'])
+      .withMessage('period debe ser week, month, quarter o year')
+  ],
+  validarCampos,
+  async (req, res, next) => {
+    try {
+      const result = await service.getPartnerStats(req.partner._id, {
+        period: req.query.period
+      });
+      return sendSuccess(res, result);
     } catch (error) { next(error); }
   }
 );

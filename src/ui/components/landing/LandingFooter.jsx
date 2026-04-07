@@ -15,6 +15,7 @@ const COLUMNS = [
   {
     title: 'Recursos',
     links: [
+      { label: 'Blog', to: '/blog' },
       { label: 'Centro de ayuda', to: '/soporte' },
       { label: 'Estado del servicio', to: '#' },
       { label: 'API (pronto)', to: '#' },

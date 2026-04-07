@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import SEO from '../../components/SEO'
+import CrossLinks from '../../components/landing/CrossLinks'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { PURPLE as A, PURPLE_DARK as AD, purpleAlpha as AG, FONT_BODY, FONT_DISPLAY, MAX_W } from '../../theme/tokens'
 
@@ -82,6 +84,11 @@ export default function ForBrandsPage() {
 
   return (
     <div style={{ fontFamily: F, color: 'var(--text)', background: 'var(--bg)' }}>
+      <SEO
+        title="Publicidad en comunidades para marcas"
+        description="Compra publicidad en canales verificados de WhatsApp, Telegram y Discord. Desde 50 euros por publicacion. Pagos custodiados, metricas verificadas y sin suscripciones."
+        path="/para-anunciantes"
+      />
 
       {/* ══════════════════════════════════════════════════════
           HERO
@@ -428,6 +435,8 @@ export default function ForBrandsPage() {
           </div>
         </motion.div>
       </Section>
+
+      <CrossLinks exclude="/para-anunciantes" />
     </div>
   )
 }

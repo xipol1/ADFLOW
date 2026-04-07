@@ -467,3 +467,240 @@
 /* Prevent horizontal overflow globally */
 html, body { overflow-x: hidden; }
 main { overflow-x: hidden; }
+
+/* ══════════════════════════════════════════════════════════
+   BLOG EDITORIAL STYLES
+   ══════════════════════════════════════════════════════════ */
+
+/* Drop cap — NYT aligned */
+[data-blog-content] > div > p:first-of-type::first-letter,
+[data-blog-content] > p:first-of-type::first-letter {
+  float: left;
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 72px;
+  line-height: 0.85;
+  padding-right: 8px;
+  padding-top: 4px;
+  color: #7C3AED;
+  font-weight: 400;
+}
+
+/* Pull quotes — Wired style editorial blockquotes */
+[data-blog-content] blockquote {
+  position: relative !important;
+  margin: 40px -20px !important;
+  padding: 28px 32px 28px 40px !important;
+  border-left: 3px solid #7C3AED !important;
+  background: transparent !important;
+  font-family: 'Instrument Serif', Georgia, serif !important;
+  font-style: italic !important;
+  font-size: 18px !important;
+  line-height: 1.6 !important;
+  color: var(--text) !important;
+  border-radius: 0 !important;
+}
+[data-blog-content] blockquote::before {
+  content: '\201C';
+  position: absolute;
+  top: -10px;
+  left: 8px;
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 72px;
+  color: #7C3AED;
+  opacity: 0.15;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Code blocks with macOS chrome */
+[data-blog-content] pre {
+  position: relative !important;
+  background: #1e1e2e !important;
+  border-radius: 12px !important;
+  padding: 44px 20px 20px !important;
+  margin: 28px 0 !important;
+  overflow-x: auto !important;
+  font-size: 13.5px !important;
+  line-height: 1.6 !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+[data-blog-content] pre::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ff5f57;
+  box-shadow: 20px 0 0 #febc2e, 40px 0 0 #28c840;
+}
+[data-blog-content] pre code {
+  background: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+  font-size: inherit !important;
+}
+
+/* Inline code */
+[data-blog-content] code {
+  font-size: 0.88em;
+  background: var(--bg2);
+  padding: 2px 6px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+}
+
+/* Tables — Semjuice style with colored headers */
+[data-blog-content] table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  margin: 32px 0 !important;
+  font-size: 14px !important;
+  font-family: 'DM Sans', system-ui, sans-serif !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 0 0 0 1px var(--border) !important;
+}
+[data-blog-content] thead tr {
+  background: rgba(124,58,237,0.06) !important;
+}
+[data-blog-content] thead th {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
+  color: #7C3AED !important;
+  padding: 14px 20px !important;
+  border-bottom: 2px solid rgba(124,58,237,0.12) !important;
+  text-align: left !important;
+}
+[data-blog-content] tbody td {
+  padding: 13px 20px !important;
+  border-bottom: 1px solid var(--border) !important;
+  transition: background 0.15s !important;
+  line-height: 1.5 !important;
+}
+[data-blog-content] tbody td:first-child {
+  font-weight: 500 !important;
+}
+[data-blog-content] tbody tr:hover {
+  background: rgba(124,58,237,0.03) !important;
+}
+[data-blog-content] tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* Headings — generous whitespace like NYT */
+[data-blog-content] h1,
+[data-blog-content] h2 {
+  font-family: 'Instrument Serif', Georgia, serif !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.5px !important;
+  margin-top: 64px !important;
+  margin-bottom: 20px !important;
+  line-height: 1.2 !important;
+  color: var(--text) !important;
+}
+[data-blog-content] h2 {
+  font-size: 32px !important;
+}
+[data-blog-content] h3 {
+  font-family: 'DM Sans', system-ui, sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 22px !important;
+  letter-spacing: -0.3px !important;
+  margin-top: 40px !important;
+  margin-bottom: 12px !important;
+  color: var(--text) !important;
+}
+
+/* Body prose */
+[data-blog-content] p {
+  font-family: 'DM Sans', system-ui, sans-serif !important;
+  font-size: 16px !important;
+  line-height: 1.75 !important;
+  margin-bottom: 20px !important;
+}
+
+/* Lists — custom violet bullets */
+[data-blog-content] ul {
+  font-family: 'DM Sans', system-ui, sans-serif !important;
+  font-size: 16px !important;
+  padding-left: 0 !important;
+  list-style: none !important;
+  margin: 24px 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+[data-blog-content] ul li {
+  padding-left: 24px !important;
+  position: relative !important;
+  line-height: 1.7 !important;
+  font-size: 16px !important;
+}
+[data-blog-content] ul li::before {
+  content: '' !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 10px !important;
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background: #7C3AED !important;
+}
+[data-blog-content] ol {
+  font-family: 'DM Sans', system-ui, sans-serif !important;
+  font-size: 16px !important;
+  line-height: 1.75 !important;
+  margin: 24px 0 !important;
+  padding-left: 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+[data-blog-content] ol li {
+  line-height: 1.7 !important;
+  font-size: 16px !important;
+}
+
+/* Images */
+[data-blog-content] img {
+  border-radius: 12px;
+  margin: 28px 0;
+  max-width: 100%;
+}
+
+/* Links */
+[data-blog-content] a {
+  color: #7C3AED !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+  text-decoration-color: rgba(139,92,246,0.3) !important;
+  transition: text-decoration-color 0.2s !important;
+}
+[data-blog-content] a:hover {
+  text-decoration-color: #7C3AED !important;
+}
+
+/* Strong emphasis */
+[data-blog-content] strong {
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* HR divider */
+[data-blog-content] hr {
+  border: none;
+  height: 1px;
+  background: var(--border);
+  margin: 48px 0;
+}
+
+/* TOC responsive: hide on small screens */
+@media (max-width: 1080px) {
+  .blog-toc-sidebar { display: none !important; }
+  .blog-content-area { max-width: 720px !important; margin: 0 auto !important; }
+}

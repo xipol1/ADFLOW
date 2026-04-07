@@ -1,8 +1,11 @@
 User-agent: *
 Allow: /
+Allow: /blog/
 Disallow: /api/
 Disallow: /uploads/
 Disallow: /auth/
 Disallow: /dashboard/
 Disallow: /advertiser/
 Disallow: /creator/
+
+Sitemap: https://channelad.io/sitemap.xml

@@ -4505,6 +4505,392 @@
           }
         }
       }
+    },
+    "/api/partners/auth": {
+      "post": {
+        "tags": ["Partner API"],
+        "summary": "Autenticar partner (SHA-256)",
+        "description": "Valida la API key del partner usando SHA-256 y devuelve el perfil completo con permisos. Endpoint pre-auth: no requiere middleware de autenticacion.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "apiKey": { "type": "string", "description": "API key del partner", "example": "pk_live_abc123def456" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Autenticacion exitosa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "authenticated": { "type": "boolean", "example": true },
+                        "partner": {
+                          "type": "object",
+                          "properties": {
+                            "partnerId": { "type": "string" },
+                            "name": { "type": "string", "example": "Getalink" },
+                            "slug": { "type": "string", "example": "getalink" },
+                            "status": { "type": "string", "example": "active" },
+                            "apiKeyHint": { "type": "string", "example": "pk_***abc" },
+                            "rateLimitPerMinute": { "type": "integer", "example": 60 },
+                            "commissionRate": { "type": "number", "example": 0.10 }
+                          }
+                        },
+                        "permissions": { "type": "object" },
+                        "authMethod": { "type": "string", "example": "sha256-api-key" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "API key invalida o no proporcionada" },
+          "403": { "description": "Acceso revocado, key expirada o IP no permitida" }
+        }
+      }
+    },
+    "/api/partners/health": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Health check del Partner API",
+        "security": [{ "partnerApiKey": [] }],
+        "responses": {
+          "200": { "description": "Partner API operativa" }
+        }
+      }
+    },
+    "/api/partners/channels": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Listar canales disponibles",
+        "description": "Lista canales reales del marketplace. No expone info de contacto (clause 13).",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20, "maximum": 50 } },
+          { "name": "platform", "in": "query", "schema": { "type": "string" }, "description": "Filtrar por plataforma" },
+          { "name": "category", "in": "query", "schema": { "type": "string" } },
+          { "name": "search", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Lista de canales con paginacion" }
+        }
+      }
+    },
+    "/api/partners/channels/{id}": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Detalle de un canal",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Detalle del canal" },
+          "404": { "description": "Canal no encontrado" }
+        }
+      }
+    },
+    "/api/partners/campaigns": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Listar campanas del partner",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20, "maximum": 50 } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["DRAFT", "PAID", "PUBLISHED", "COMPLETED", "CANCELLED"] } }
+        ],
+        "responses": {
+          "200": { "description": "Lista de campanas con paginacion y workflow state" }
+        }
+      },
+      "post": {
+        "tags": ["Partner API"],
+        "summary": "Crear campana",
+        "description": "Crea una campana en estado DRAFT. Flujo obligatorio: DRAFT -> payment -> PAID -> publish -> PUBLISHED -> complete -> COMPLETED.",
+        "security": [{ "partnerApiKey": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["channelId", "targetUrl", "budget"],
+                "properties": {
+                  "channelId": { "type": "string", "description": "ID del canal destino" },
+                  "content": { "type": "string", "description": "Texto del anuncio" },
+                  "title": { "type": "string", "description": "Alias de content" },
+                  "targetUrl": { "type": "string", "description": "URL destino del click" },
+                  "budget": { "type": "number", "description": "Presupuesto en EUR", "example": 150.00 },
+                  "deadline": { "type": "string", "format": "date-time" },
+                  "externalReference": { "type": "string", "description": "Referencia externa (dedup)" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Campana creada en DRAFT" },
+          "400": { "description": "Datos invalidos" },
+          "404": { "description": "Canal no encontrado" },
+          "409": { "description": "externalReference duplicado" }
+        }
+      }
+    },
+    "/api/partners/campaigns/{id}": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Detalle de campana",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Detalle con workflow state y acciones disponibles" },
+          "404": { "description": "Campana no encontrada" }
+        }
+      },
+      "put": {
+        "tags": ["Partner API"],
+        "summary": "Actualizar campana (solo DRAFT)",
+        "description": "Permite actualizar campos de una campana en estado DRAFT.",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": { "type": "string" },
+                  "title": { "type": "string" },
+                  "targetUrl": { "type": "string" },
+                  "budget": { "type": "number" },
+                  "deadline": { "type": "string", "format": "date-time" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Campana actualizada" },
+          "404": { "description": "Campana no encontrada" },
+          "409": { "description": "Solo DRAFT puede editarse" }
+        }
+      }
+    },
+    "/api/partners/campaigns/{id}/payment-session": {
+      "post": {
+        "tags": ["Partner API"],
+        "summary": "Crear sesion de pago Stripe (escrow)",
+        "description": "Crea un PaymentIntent con capture_method: manual (escrow). Solo en estado DRAFT.",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "201": { "description": "PaymentIntent creado con clientSecret" },
+          "409": { "description": "Campana no esta en DRAFT" }
+        }
+      }
+    },
+    "/api/partners/campaigns/{id}/confirm-payment": {
+      "post": {
+        "tags": ["Partner API"],
+        "summary": "Confirmar pago (DRAFT -> PAID)",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["paymentReference"],
+                "properties": {
+                  "paymentReference": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Campana en estado PAID" },
+          "409": { "description": "Estado invalido o pago no autorizado" }
+        }
+      }
+    },
+    "/api/partners/campaigns/{id}/publish": {
+      "post": {
+        "tags": ["Partner API"],
+        "summary": "Publicar campana (PAID -> PUBLISHED)",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Campana publicada" },
+          "409": { "description": "Solo PAID puede publicarse" }
+        }
+      }
+    },
+    "/api/partners/campaigns/{id}/complete": {
+      "post": {
+        "tags": ["Partner API"],
+        "summary": "Completar campana (PUBLISHED -> COMPLETED)",
+        "description": "Captura el pago escrow de Stripe y libera fondos. Crea transaccion de comision.",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Campana completada, fondos liberados" },
+          "409": { "description": "Solo PUBLISHED puede completarse" },
+          "502": { "description": "Error al capturar fondos en Stripe" }
+        }
+      }
+    },
+    "/api/partners/campaigns/{id}/cancel": {
+      "post": {
+        "tags": ["Partner API"],
+        "summary": "Cancelar campana",
+        "description": "Cancela la campana y reembolsa si hay pago. No se pueden cancelar COMPLETED o CANCELLED.",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Campana cancelada con reembolso si aplica" },
+          "409": { "description": "No se puede cancelar" }
+        }
+      }
+    },
+    "/api/partners/campaigns/{id}/metrics": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Metricas de clicks de campana",
+        "description": "Devuelve total clicks, clicks unicos. Solo disponible tras publicacion.",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Metricas de la campana" },
+          "409": { "description": "Metricas no disponibles antes de publicacion" }
+        }
+      }
+    },
+    "/api/partners/billing": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Historial de facturacion y balance",
+        "description": "Devuelve balance financiero (totalSpent, pending, settled, refunded) y lista de transacciones con paginacion.",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20, "maximum": 50 } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["pending", "escrow", "paid", "refunded", "failed"] } },
+          { "name": "from", "in": "query", "schema": { "type": "string", "format": "date-time" }, "description": "Fecha inicio ISO8601" },
+          { "name": "to", "in": "query", "schema": { "type": "string", "format": "date-time" }, "description": "Fecha fin ISO8601" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Balance y transacciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "balance": {
+                      "type": "object",
+                      "properties": {
+                        "totalSpent": { "type": "number", "example": 1500.00 },
+                        "pending": { "type": "number", "example": 200.00 },
+                        "settled": { "type": "number", "example": 1250.00 },
+                        "refunded": { "type": "number", "example": 50.00 },
+                        "currency": { "type": "string", "example": "eur" }
+                      }
+                    },
+                    "transactions": { "type": "array" },
+                    "pagination": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partners/stats": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Estadisticas y metricas del partner",
+        "description": "Devuelve metricas agregadas: campanas (total, byStatus, avgBudget), clicks (total, unique), uso API (requests, errorRate).",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "name": "period", "in": "query", "schema": { "type": "string", "enum": ["week", "month", "quarter", "year"], "default": "month" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Metricas agregadas del partner",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "campaigns": {
+                      "type": "object",
+                      "properties": {
+                        "total": { "type": "integer" },
+                        "periodNew": { "type": "integer" },
+                        "byStatus": { "type": "object" },
+                        "avgBudget": { "type": "number" },
+                        "totalSpent": { "type": "number" },
+                        "activeNow": { "type": "integer" }
+                      }
+                    },
+                    "metrics": {
+                      "type": "object",
+                      "properties": {
+                        "totalClicks": { "type": "integer" },
+                        "uniqueClicks": { "type": "integer" },
+                        "avgClicksPerCampaign": { "type": "number" }
+                      }
+                    },
+                    "api": {
+                      "type": "object",
+                      "properties": {
+                        "requestsTotal": { "type": "integer" },
+                        "requestsPeriod": { "type": "integer" },
+                        "errorRate": { "type": "number" }
+                      }
+                    },
+                    "period": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

@@ -1,8 +1,11 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import SEO from '../../components/SEO'
+import CrossLinks from '../../components/landing/CrossLinks'
 import { PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY } from '../../theme/tokens'
 
 export default function AboutPage() {
+  const seo = <SEO title="Sobre nosotros" description="Channelad es el marketplace de publicidad en comunidades de WhatsApp, Telegram y Discord. Hecho en Espana. Transparencia, confianza y pagos custodiados." path="/sobre-nosotros" />
   const stats = [
     { value: '12.4K', label: 'Canales verificados' },
     { value: '340K+', label: 'Anunciantes activos' },
@@ -19,6 +22,7 @@ export default function AboutPage() {
 
   return (
     <div style={{ fontFamily: FONT_BODY }}>
+      {seo}
       {/* Hero */}
       <section style={{ padding: '80px 24px 60px', textAlign: 'center', maxWidth: '760px', margin: '0 auto' }}>
         <Link to="/" style={{ fontSize: '13px', color: PURPLE, textDecoration: 'none', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px', marginBottom: '32px' }}>
@@ -110,6 +114,8 @@ export default function AboutPage() {
           </Link>
         </div>
       </section>
+
+      <CrossLinks exclude="/sobre-nosotros" />
     </div>
   )
 }

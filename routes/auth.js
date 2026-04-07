@@ -437,6 +437,22 @@ try {
   console.warn('2FA routes not loaded:', e.message);
 }
 
+// ── Bot token endpoints (called by Telegram bot) ──
+
+/**
+ * @route   POST /api/auth/bot-token
+ * @desc    Register a bot verification token (called by Telegram bot with API key)
+ * @access  Bot only (X-Bot-Key header)
+ */
+router.post('/bot-token', authController.createBotToken);
+
+/**
+ * @route   GET /api/auth/validate-bot-token?token=XXX
+ * @desc    Validate a bot token (called by frontend on register page load)
+ * @access  Public
+ */
+router.get('/validate-bot-token', authController.validateBotToken);
+
 // Middleware de manejo de errores específico para rutas de auth
 router.use((error, req, res, next) => {
   console.error('Error en rutas de autenticación:', error);

@@ -10,12 +10,14 @@ export default function AuthPage({ defaultTab = 'login' }) {
   const { login, register } = useAuth()
 
   const refCode = searchParams.get('ref') || ''
+  const botTokenParam = searchParams.get('bot_token') || ''
+  const botEmailParam = searchParams.get('email') || ''
 
-  const [tab, setTab]           = useState(refCode ? 'register' : defaultTab)
-  const [email, setEmail]       = useState('')
+  const [tab, setTab]           = useState((refCode || botTokenParam) ? 'register' : defaultTab)
+  const [email, setEmail]       = useState(botEmailParam)
   const [password, setPassword] = useState('')
   const [name, setName]         = useState('')
-  const [role, setRole]         = useState('advertiser')
+  const [role, setRole]         = useState(botTokenParam ? 'creator' : 'advertiser')
   const [referral, setReferral] = useState(refCode)
   const [remember, setRemember] = useState(false)
   const [showPass, setShowPass] = useState(false)
@@ -24,6 +26,26 @@ export default function AuthPage({ defaultTab = 'login' }) {
   const [needs2FA, setNeeds2FA] = useState(false)
   const [twoFACode, setTwoFACode] = useState('')
   const [twoFAEmail, setTwoFAEmail] = useState('')
+  const [botToken, setBotToken] = useState(botTokenParam)
+  const [founderData, setFounderData] = useState(null) // { valid, channelUsername, channelTier, niche }
+
+  // Validate bot token on mount
+  useEffect(() => {
+    if (!botTokenParam) return
+    const validate = async () => {
+      try {
+        const res = await apiService.request(`/auth/validate-bot-token?token=${encodeURIComponent(botTokenParam)}`, { method: 'GET', auth: false })
+        if (res?.valid) {
+          setFounderData(res)
+          if (res.email) setEmail(res.email)
+        } else {
+          setBotToken('')
+          setFounderData(null)
+        }
+      } catch { setBotToken(''); setFounderData(null) }
+    }
+    validate()
+  }, [botTokenParam])
 
   const F = FONT_BODY
   const D = FONT_DISPLAY
@@ -74,7 +96,9 @@ export default function AuthPage({ defaultTab = 'login' }) {
     if (!/[a-z]/.test(password)) { setError('La contraseña debe incluir al menos una minúscula'); return }
     if (!/\d/.test(password)) { setError('La contraseña debe incluir al menos un número'); return }
     setLoading(true)
-    const res = await register({ email, password, nombre: name, role })
+    const regData = { email, password, nombre: name, role }
+    if (botToken) regData.botToken = botToken
+    const res = await register(regData)
     if (res?.success) {
       // Apply referral code if present — synchronous to ensure it links
       const codeToApply = referral.trim() || refCode
@@ -287,6 +311,25 @@ export default function AuthPage({ defaultTab = 'login' }) {
           {tab === 'register' && (
             <form onSubmit={onRegister} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
+              {/* Founder badge */}
+              {founderData?.valid && (
+                <div style={{
+                  background: 'linear-gradient(135deg, rgba(139,92,246,0.08), rgba(236,72,153,0.08))',
+                  border: '1px solid rgba(139,92,246,0.25)',
+                  borderRadius: '12px', padding: '14px 16px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '16px' }}>🏆</span>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#8b5cf6', fontFamily: D }}>Canal Fundador</span>
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text)', lineHeight: 1.5, margin: 0 }}>
+                    {founderData.channelUsername && <><strong>{founderData.channelUsername}</strong> · </>}
+                    {founderData.niche && <>{founderData.niche} · </>}
+                    Comision del 10% permanente + €10 de bono de bienvenida
+                  </p>
+                </div>
+              )}
+
               <div>
                 <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
                   Nombre <span style={{ color: '#ef4444' }}>*</span>
@@ -307,12 +350,21 @@ export default function AuthPage({ defaultTab = 'login' }) {
                 </label>
                 <input
                   type="email" required value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={e => { if (!founderData?.valid) setEmail(e.target.value) }}
+                  readOnly={!!founderData?.valid}
                   onFocus={() => setFocusedField('email')}
                   onBlur={() => setFocusedField(null)}
                   placeholder="tu@email.com"
-                  style={inputStyle(focusedField === 'email')}
+                  style={{
+                    ...inputStyle(focusedField === 'email'),
+                    ...(founderData?.valid ? { opacity: 0.7, cursor: 'not-allowed' } : {}),
+                  }}
                 />
+                {founderData?.valid && (
+                  <p style={{ fontSize: '11px', color: '#8b5cf6', marginTop: '4px' }}>
+                    Email vinculado a tu verificacion del bot
+                  </p>
+                )}
               </div>
 
               <div>
@@ -325,8 +377,9 @@ export default function AuthPage({ defaultTab = 'login' }) {
                     onChange={e => setPassword(e.target.value)}
                     onFocus={() => setFocusedField('pass')}
                     onBlur={() => setFocusedField(null)}
-                    placeholder="Mín. 8 chars, mayúscula, minúscula y número"
+                    placeholder="Min. 8 chars, mayuscula, minuscula y numero"
                     style={{ ...inputStyle(focusedField === 'pass'), paddingRight: '44px' }}
+                    autoFocus={!!founderData?.valid}
                   />
                   <button type="button" onClick={() => setShowPass(!showPass)} style={{
                     position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
@@ -335,6 +388,8 @@ export default function AuthPage({ defaultTab = 'login' }) {
                 </div>
               </div>
 
+              {/* Role selector — hidden when coming from bot (auto-creator) */}
+              {!founderData?.valid && (
               <div>
                 <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '8px' }}>
                   Quiero usar Channelad para… <span style={{ color: '#ef4444' }}>*</span>
@@ -355,6 +410,7 @@ export default function AuthPage({ defaultTab = 'login' }) {
                   ))}
                 </div>
               </div>
+              )}
 
               {/* Referral code field */}
               <div>

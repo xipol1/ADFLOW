@@ -49,6 +49,13 @@ const UsuarioSchema = new mongoose.Schema(
     // Campaign credits (welcome bonus for referred users, spent on campaigns)
     campaignCreditsBalance: { type: Number, default: 0 },
 
+    // Bot verification & Founder program
+    botVerified: { type: Boolean, default: false },
+    founderTier: { type: Boolean, default: false },
+    telegramUserId: { type: String, default: null },
+    channelUsername: { type: String, default: null },
+    channelTier: { type: String, enum: ['super_canal', 'prometedor', 'pequeno', null], default: null },
+
     // Referral system
     referralCode: { type: String, unique: true, sparse: true, default: null },
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', default: null },

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
+import SEO from '../../components/SEO'
 import { useAuth } from '../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { PURPLE as A, PURPLE_DARK as AD, purpleAlpha as AG, PLATFORM_BRAND as PLAT, STATUS as BADGE, FONT_BODY, FONT_DISPLAY } from '../../theme/tokens'
@@ -190,6 +191,11 @@ export default function MarketplacePage() {
 
   return (
     <div style={{ background: 'var(--bg)', color: 'var(--text)', fontFamily: F, minHeight: '100vh' }}>
+      <SEO
+        title="Marketplace de canales"
+        description="Explora canales verificados de WhatsApp, Telegram y Discord para publicitar tu marca. Filtra por nicho, audiencia y precio. Pagos custodiados."
+        path="/marketplace"
+      />
 
       {/* Header */}
       <div style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg2)', padding: '32px 48px 24px' }}>
