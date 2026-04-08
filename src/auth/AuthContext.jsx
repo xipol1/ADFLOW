@@ -102,6 +102,18 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Called after email verification — updates session with fresh tokens
+  const setAuthFromVerification = (newToken, newRefreshToken, newUser) => {
+    if (newToken && newUser) {
+      localStorage.setItem('token', newToken)
+      localStorage.setItem('refreshToken', newRefreshToken || '')
+      localStorage.setItem('user', JSON.stringify(newUser))
+      setToken(newToken)
+      setRefreshToken(newRefreshToken || '')
+      setUser(newUser)
+    }
+  }
+
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('refreshToken')
@@ -129,6 +141,7 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
+      setAuthFromVerification,
       clearError: () => setError(''),
       isAnunciante: rol === 'anunciante',
       isCreador: rol === 'creador',

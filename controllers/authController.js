@@ -230,22 +230,29 @@ const registro = async (req, res) => {
 
     const user = await Usuario.create(userData);
 
-    // Update referrer counts after user is created (non-blocking)
+    // Update referrer counts after user is created (non-blocking, atomic)
     if (referralApplied && referrer) {
       setImmediate(async () => {
         try {
-          referrer.referralCount = (referrer.referralCount || 0) + 1;
-          // Recalculate tier
-          if (referrer.referralGMVGenerated >= 20000 || referrer.referralCount >= 20) referrer.referralTier = 'partner';
-          else if (referrer.referralGMVGenerated >= 5000 || referrer.referralCount >= 5) referrer.referralTier = 'power';
-          else referrer.referralTier = 'normal';
-          await referrer.save();
+          // Atomic increment to avoid race condition with concurrent registrations
+          const updated = await Usuario.findByIdAndUpdate(referrer._id, {
+            $inc: { referralCount: 1 },
+          }, { new: true });
+          // Recalculate tier based on fresh data
+          const newCount = updated.referralCount || 0;
+          const gmv = updated.referralGMVGenerated || 0;
+          let newTier = 'normal';
+          if (gmv >= 20000 || newCount >= 20) newTier = 'partner';
+          else if (gmv >= 5000 || newCount >= 5) newTier = 'power';
+          if (updated.referralTier !== newTier) {
+            await Usuario.findByIdAndUpdate(referrer._id, { referralTier: newTier });
+          }
           // Notify referrer by email
           try {
             const emailService = require('../services/emailService');
-            await emailService.enviarReferidoRegistrado(referrer, user.nombre || user.email, referrer.referralCount, referrer.referralCreditsBalance);
+            await emailService.enviarReferidoRegistrado(updated, user.nombre || user.email, newCount, updated.referralCreditsBalance);
           } catch {}
-          logDev('REGISTER: referrer updated', { referrerId: referrer._id.toString(), count: referrer.referralCount });
+          logDev('REGISTER: referrer updated atomically', { referrerId: referrer._id.toString(), count: newCount, tier: newTier });
         } catch (refErr) {
           console.error('REGISTER: failed to update referrer:', refErr?.message);
         }
@@ -493,7 +500,15 @@ const verificarEmail = async (req, res) => {
     user.emailVerificationToken = null;
     user.emailVerificationExpires = null;
     await user.save();
-    return res.json({ success: true, message: 'Email verificado correctamente' });
+    // Issue fresh tokens with emailVerificado=true so user doesn't need to re-login
+    const tokens = await AuthService.generarTokens(user);
+    return res.json({
+      success: true,
+      message: 'Email verificado correctamente',
+      token: tokens.tokenAcceso,
+      refreshToken: tokens.tokenRefresco,
+      user: buildUserResponse(user),
+    });
   } catch (e) {
     return res.status(500).json({ success: false, message: 'Error del servidor' });
   }
@@ -514,12 +529,7 @@ const reenviarVerificacion = async (req, res) => {
     await user.save();
     try {
       const emailService = require('../services/emailService');
-      const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verificar-email/${token}`;
-      await emailService.sendEmail({
-        to: user.email,
-        subject: 'Verifica tu email - ChannelAd',
-        html: `<p>Haz clic para verificar: <a href="${verifyUrl}">${verifyUrl}</a></p>`,
-      });
+      await emailService.enviarEmailVerificacion(user.email, user.nombre || '', token);
     } catch {}
     return res.json({ success: true, message: 'Email de verificacion enviado' });
   } catch (e) {

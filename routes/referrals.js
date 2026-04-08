@@ -195,19 +195,24 @@ router.post('/apply', autenticar, async (req, res) => {
     user.campaignCreditsBalance = (user.campaignCreditsBalance || 0) + WELCOME_BONUS
     await user.save()
 
-    referrer.referralCount += 1
-    referrer.referralTier = getReferralTier(referrer)
-    await referrer.save()
+    // Atomic increment to avoid race condition
+    const updatedReferrer = await Usuario.findByIdAndUpdate(referrer._id, {
+      $inc: { referralCount: 1 },
+    }, { new: true })
+    const newTier = getReferralTier(updatedReferrer)
+    if (updatedReferrer.referralTier !== newTier) {
+      await Usuario.findByIdAndUpdate(referrer._id, { referralTier: newTier })
+    }
 
     // Send email notification to referrer (non-blocking)
     setImmediate(async () => {
       try {
         const emailService = require('../services/emailService')
         await emailService.enviarReferidoRegistrado(
-          referrer,
+          updatedReferrer,
           user.nombre || user.email,
-          referrer.referralCount,
-          referrer.referralCreditsBalance
+          updatedReferrer.referralCount,
+          updatedReferrer.referralCreditsBalance
         )
       } catch (emailErr) {
         console.error('Referral email notification failed:', emailErr?.message)

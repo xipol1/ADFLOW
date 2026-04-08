@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { PURPLE as A, FONT_BODY as F, FONT_DISPLAY as D, OK } from '../../theme/tokens'
 
 export default function VerifyEmailPage() {
   const { token } = useParams()
   const navigate = useNavigate()
+  const { setAuthFromVerification } = useAuth()
   const [status, setStatus] = useState('verifying') // verifying | success | error
   const [message, setMessage] = useState('')
 
@@ -20,6 +22,10 @@ export default function VerifyEmailPage() {
       if (res?.success) {
         setStatus('success')
         setMessage(res.message || 'Email verificado correctamente.')
+        // Auto-login with fresh tokens if provided
+        if (res.token && res.user && setAuthFromVerification) {
+          setAuthFromVerification(res.token, res.refreshToken, res.user)
+        }
       } else {
         setStatus('error')
         setMessage(res?.message || 'Token inválido o expirado.')
@@ -75,14 +81,14 @@ export default function VerifyEmailPage() {
               {message}
             </p>
             <button
-              onClick={() => navigate('/auth/login')}
+              onClick={() => navigate('/dashboard')}
               style={{
                 background: A, color: '#fff', border: 'none', borderRadius: '12px',
                 padding: '12px 32px', fontSize: '14px', fontWeight: 700,
                 cursor: 'pointer', fontFamily: F,
               }}
             >
-              Ir al login
+              Ir al dashboard
             </button>
           </>
         )}
