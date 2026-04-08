@@ -17,7 +17,7 @@ const databaseUri = process.env.MONGODB_URI || '';
 
 module.exports = {
   app: {
-    nombre: process.env.APP_NAME || 'Plataforma Monetización'
+    nombre: process.env.APP_NAME || 'ChannelAd'
   },
   server: {
     environment: env,
@@ -35,8 +35,8 @@ module.exports = {
     refreshSecret: process.env.JWT_REFRESH_SECRET || '',
     expiresIn: process.env.JWT_EXPIRES_IN || '15m',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
-    issuer: process.env.JWT_ISSUER || 'plataforma-monetizacion',
-    audience: process.env.JWT_AUDIENCE || 'plataforma-monetizacion'
+    issuer: process.env.JWT_ISSUER || 'channelad',
+    audience: process.env.JWT_AUDIENCE || 'channelad'
   },
   security: {
     bcryptRounds: toInt(process.env.BCRYPT_ROUNDS, 10)
@@ -56,7 +56,7 @@ module.exports = {
       pass: process.env.EMAIL_PASS || ''
     },
     from: {
-      name: process.env.EMAIL_FROM_NAME || 'Plataforma Monetización',
+      name: process.env.EMAIL_FROM_NAME || 'ChannelAd',
       address: process.env.EMAIL_FROM_ADDRESS || ''
     },
     support: process.env.SUPPORT_EMAIL || ''

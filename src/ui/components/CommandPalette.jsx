@@ -111,7 +111,7 @@ export default function CommandPalette() {
       const current = document.documentElement.dataset.theme
       const next = current === 'dark' ? 'light' : 'dark'
       document.documentElement.dataset.theme = next
-      localStorage.setItem('adflow-theme', next)
+      localStorage.setItem('channelad-theme', next)
     } else if (cmd.path) {
       navigate(cmd.path)
     }

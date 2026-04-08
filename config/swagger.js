@@ -12,7 +12,8 @@ const spec = {
     contact: { name: 'ChannelAd Team', url: 'https://channelad.io' },
   },
   servers: [
-    { url: 'https://adflow-unified.vercel.app', description: 'Production' },
+    { url: 'https://channelad.io', description: 'Production' },
+    { url: 'https://channelad-staging.vercel.app', description: 'Staging' },
     { url: 'http://localhost:5000', description: 'Development' },
   ],
   components: {

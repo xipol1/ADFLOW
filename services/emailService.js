@@ -126,7 +126,7 @@ class EmailService {
       }
 
       // Replace global app variables
-      html = html.replace(/{{APP_NAME}}/g, config.app.nombre || 'ADFLOW');
+      html = html.replace(/{{APP_NAME}}/g, config.app.nombre || 'ChannelAd');
       html = html.replace(/{{APP_URL}}/g, config.frontend.url || '');
       html = html.replace(/{{SUPPORT_EMAIL}}/g, config.email.support || '');
       html = html.replace(/{{CURRENT_YEAR}}/g, String(new Date().getFullYear()));

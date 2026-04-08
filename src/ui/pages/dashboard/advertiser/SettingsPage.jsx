@@ -255,14 +255,14 @@ export default function SettingsPage() {
               <Toggle label="Campaña finalizada" desc="Aviso cuando termina el período de un anuncio" />
               <Toggle label="Saldo bajo" desc="Alerta cuando tu saldo baja de €50" badge="Importante" />
               <Toggle label="Resumen semanal" desc="Reporte de rendimiento cada lunes por la mañana" defaultOn={false} />
-              <Toggle label="Newsletter de Adflow" desc="Novedades, consejos y actualizaciones de la plataforma" defaultOn={false} />
+              <Toggle label="Newsletter de ChannelAd" desc="Novedades, consejos y actualizaciones de la plataforma" defaultOn={false} />
             </div>
           </Card>
 
           <Card title="Push / In-app" subtitle="Notificaciones dentro de la plataforma">
             <div>
               <Toggle label="Actividad en tiempo real" desc="Alertas instantáneas de rendimiento de campañas" />
-              <Toggle label="Mensajes de soporte" desc="Respuestas del equipo de soporte de Adflow" />
+              <Toggle label="Mensajes de soporte" desc="Respuestas del equipo de soporte de ChannelAd" />
               <Toggle label="Recordatorios de pago" desc="Aviso antes de que tu saldo se agote" />
             </div>
           </Card>
@@ -361,7 +361,7 @@ export default function SettingsPage() {
       {tab === 'api' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
 
-          <Card title="Clave API" subtitle="Usa tu clave para autenticar solicitudes a la API de Adflow">
+          <Card title="Clave API" subtitle="Usa tu clave para autenticar solicitudes a la API de ChannelAd">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
               {/* Warning */}
@@ -407,13 +407,13 @@ export default function SettingsPage() {
           <Card title="Documentación y SDKs">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Integra Adflow en tus aplicaciones usando nuestra API REST. Gestiona campañas programáticamente, consulta métricas en tiempo real y automatiza flujos de trabajo.
+                Integra ChannelAd en tus aplicaciones usando nuestra API REST. Gestiona campañas programáticamente, consulta métricas en tiempo real y automatiza flujos de trabajo.
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
                 {[
                   { label: 'Referencia API', desc: 'REST API docs' },
-                  { label: 'SDK para Node.js', desc: 'npm install adflow' },
-                  { label: 'SDK para Python', desc: 'pip install adflow' },
+                  { label: 'SDK para Node.js', desc: 'npm install channelad' },
+                  { label: 'SDK para Python', desc: 'pip install channelad' },
                   { label: 'Webhooks', desc: 'Eventos en tiempo real' },
                 ].map(item => (
                   <div key={item.label} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '14px', cursor: 'pointer', transition: 'border-color .15s' }}

@@ -26,7 +26,7 @@ export default function SupportPage() {
 
   const faqs = [
     { q: 'Como funciona el pago custodiado?', a: 'Cuando un anunciante contrata un espacio, el pago se retiene de forma segura. Solo se libera al creador una vez que se confirma la publicacion del anuncio segun los terminos acordados.' },
-    { q: 'Que comision cobra Adflow?', a: 'Adflow cobra una comision sobre cada transaccion completada. Las tarifas exactas dependen del plan y volumen. Consulta la seccion de Finanzas en tu dashboard para mas detalles.' },
+    { q: 'Que comision cobra ChannelAd?', a: 'ChannelAd cobra una comision sobre cada transaccion completada. Las tarifas exactas dependen del plan y volumen. Consulta la seccion de Finanzas en tu dashboard para mas detalles.' },
     { q: 'Como registro mi canal?', a: 'Accede a tu dashboard de creador, ve a "Mis Canales" y haz clic en "Registrar canal". Sigue el asistente para verificar la propiedad de tu canal y configurar tus tarifas.' },
     { q: 'Que hago si tengo una disputa?', a: 'Puedes abrir una disputa desde la seccion "Disputas" de tu dashboard. Nuestro equipo revisara el caso y mediara entre ambas partes en un plazo maximo de 48 horas laborables.' },
   ]
@@ -85,7 +85,7 @@ export default function SupportPage() {
           Contactanos
         </h2>
         <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '24px' }}>
-          Tambien puedes escribirnos a <a href="mailto:soporte@adflow.com" style={{ color: PURPLE, textDecoration: 'none' }}>soporte@adflow.com</a>
+          Tambien puedes escribirnos a <a href="mailto:soporte@channelad.io" style={{ color: PURPLE, textDecoration: 'none' }}>soporte@channelad.io</a>
         </p>
 
         {!sent ? (

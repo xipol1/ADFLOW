@@ -37,7 +37,7 @@ async function main() {
   }
 
   // Generate API key
-  const apiKey = `adflow_partner_${crypto.randomBytes(24).toString('hex')}`;
+  const apiKey = `chd_partner_${crypto.randomBytes(24).toString('hex')}`;
   const apiKeyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
   const apiKeyHint = apiKey.slice(-4);
 

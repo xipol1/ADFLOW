@@ -73,7 +73,14 @@ const validacionesRegistro = [
     .if(body('role').equals('advertiser'))
     .optional()
     .isLength({ min: 2, max: 50 })
-    .withMessage('La industria debe tener entre 2 y 50 caracteres')
+    .withMessage('La industria debe tener entre 2 y 50 caracteres'),
+  body('referralCode')
+    .optional()
+    .trim()
+    .isLength({ min: 3, max: 20 })
+    .withMessage('Codigo de referido invalido')
+    .matches(/^[A-Za-z0-9]+$/)
+    .withMessage('Codigo de referido solo puede contener letras y numeros'),
 ];
 
 const validacionesLogin = [
@@ -424,7 +431,21 @@ router.get('/estadisticas',
   authController.obtenerEstadisticas
 );
 
-router.post('/reenviar-verificacion', body('email').isEmail().withMessage('Email invalido'), authController.reenviarVerificacion);
+const limitarReenvio = limitarIntentos({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 3,
+  message: {
+    success: false,
+    message: 'Demasiadas solicitudes de reenvío. Intenta de nuevo en 5 minutos.'
+  }
+});
+
+router.post('/reenviar-verificacion',
+  limitarReenvio,
+  body('email').isEmail().withMessage('Email invalido'),
+  validarCampos,
+  authController.reenviarVerificacion
+);
 
 // ── 2FA / TOTP routes ──
 try {

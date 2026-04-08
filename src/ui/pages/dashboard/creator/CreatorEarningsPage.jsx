@@ -118,7 +118,7 @@ const exportCSV = (rows) => {
   const blob = new Blob([header + body], { type: 'text/csv;charset=utf-8;' })
   const link = document.createElement('a')
   link.href = URL.createObjectURL(blob)
-  link.download = `adflow-ganancias-${new Date().toISOString().slice(0, 10)}.csv`
+  link.download = `channelad-ganancias-${new Date().toISOString().slice(0, 10)}.csv`
   link.click()
 }
 
@@ -127,7 +127,7 @@ const TxDetailModal = ({ tx, onClose }) => {
   if (!tx) return null
   const printReceipt = () => {
     const w = window.open('', '_blank', 'width=600,height=700')
-    w.document.write(`<!DOCTYPE html><html><head><title>Factura Adflow</title>
+    w.document.write(`<!DOCTYPE html><html><head><title>Factura ChannelAd</title>
     <style>body{font-family:Inter,system-ui,sans-serif;padding:40px;color:#111}
     h1{font-size:22px;margin-bottom:4px}
     .label{color:#666;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
@@ -136,13 +136,13 @@ const TxDetailModal = ({ tx, onClose }) => {
     hr{border:none;border-top:1px solid #e5e7eb;margin:20px 0}
     .footer{font-size:11px;color:#999;margin-top:32px;text-align:center}
     @media print{button{display:none}}</style></head><body>
-    <h1>Adflow</h1><p style="color:#666;font-size:13px">Factura / Recibo</p><hr>
+    <h1>ChannelAd</h1><p style="color:#666;font-size:13px">Factura / Recibo</p><hr>
     <div class="label">Fecha</div><div class="val">${tx.date}</div>
     <div class="label">Descripcion</div><div class="val">${tx.desc}</div>
     <div class="label">Estado</div><div class="val">${tx.status}</div>
     ${tx.commission != null ? `<div class="label">Comision plataforma</div><div class="val">€${tx.commission.toFixed(2)} (${Math.round((tx.commissionRate || 0) * 100)}%)</div>` : ''}
     <hr><div class="label">Importe neto</div><div class="big">€${Math.abs(tx.amount).toFixed(2)}</div>
-    <div class="footer">Generado por Adflow · ${new Date().toLocaleDateString('es')}</div>
+    <div class="footer">Generado por ChannelAd · ${new Date().toLocaleDateString('es')}</div>
     <br><button onclick="window.print()" style="background:#25d366;color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer">Imprimir</button>
     </body></html>`)
     w.document.close()

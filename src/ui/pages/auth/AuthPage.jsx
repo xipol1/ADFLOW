@@ -98,18 +98,11 @@ export default function AuthPage({ defaultTab = 'login' }) {
     setLoading(true)
     const regData = { email, password, nombre: name, role }
     if (botToken) regData.botToken = botToken
+    // Pass referral code atomically in registration body
+    const codeToApply = (referral.trim() || refCode).toUpperCase()
+    if (codeToApply) regData.referralCode = codeToApply
     const res = await register(regData)
     if (res?.success) {
-      // Apply referral code if present — synchronous to ensure it links
-      const codeToApply = referral.trim() || refCode
-      if (codeToApply) {
-        try {
-          const refRes = await apiService.applyReferralCode(codeToApply)
-          if (!refRes?.success) console.warn('Referral code could not be applied:', refRes?.message)
-        } catch (refErr) {
-          console.warn('Referral code application failed:', refErr?.message)
-        }
-      }
       setLoading(false)
       navigate('/dashboard')
       return

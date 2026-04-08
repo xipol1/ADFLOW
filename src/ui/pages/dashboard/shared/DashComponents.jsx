@@ -1,6 +1,6 @@
 /**
  * DashComponents.jsx
- * Shared component library for Adflow SaaS Dashboard
+ * Shared component library for ChannelAd SaaS Dashboard
  * Design: Stripe / Fiverr Pro / Linear inspired
  */
 

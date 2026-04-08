@@ -825,7 +825,7 @@ export default function RegisterChannelPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <CopyBlock text={verifyLink.trackingUrl} />
                   <div style={{ fontSize: '11px', color: 'var(--muted)', lineHeight: 1.5 }}>
-                    Este enlace redirige a una pagina de Adflow. Cada click se registra con: IP, dispositivo, navegador, pais y hora exacta.
+                    Este enlace redirige a una pagina de ChannelAd. Cada click se registra con: IP, dispositivo, navegador, pais y hora exacta.
                   </div>
                 </div>
               ) : (

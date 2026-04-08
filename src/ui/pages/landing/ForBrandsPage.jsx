@@ -53,12 +53,12 @@ const STEPS = [
 ]
 
 const COMPARISONS = [
-  { feature: 'Coste por click promedio', ads: '€0.80 - €3.50', adflow: '€0.05 - €0.30' },
-  { feature: 'Engagement rate', ads: '0.5% - 2%', adflow: '15% - 45%' },
-  { feature: 'Confianza del mensaje', ads: 'Anuncio (baja)', adflow: 'Recomendacion (alta)' },
-  { feature: 'Segmentacion', ads: 'Algoritmica', adflow: 'Por comunidad real' },
-  { feature: 'Tiempo de setup', ads: '2-5 dias', adflow: '10 minutos' },
-  { feature: 'Fraude/bots', ads: '20-40% trafico falso', adflow: 'Metricas verificadas' },
+  { feature: 'Coste por click promedio', ads: '€0.80 - €3.50', channelad: '€0.05 - €0.30' },
+  { feature: 'Engagement rate', ads: '0.5% - 2%', channelad: '15% - 45%' },
+  { feature: 'Confianza del mensaje', ads: 'Anuncio (baja)', channelad: 'Recomendacion (alta)' },
+  { feature: 'Segmentacion', ads: 'Algoritmica', channelad: 'Por comunidad real' },
+  { feature: 'Tiempo de setup', ads: '2-5 dias', channelad: '10 minutos' },
+  { feature: 'Fraude/bots', ads: '20-40% trafico falso', channelad: 'Metricas verificadas' },
 ]
 
 const FAQS = [
@@ -310,7 +310,7 @@ export default function ForBrandsPage() {
               >
                 <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text)' }}>{c.feature}</span>
                 <span style={{ fontSize: '13px', color: 'var(--muted)', textAlign: 'center' }}>{c.ads}</span>
-                <span style={{ fontSize: '13px', color: A, fontWeight: 600, textAlign: 'center' }}>{c.adflow}</span>
+                <span style={{ fontSize: '13px', color: A, fontWeight: 600, textAlign: 'center' }}>{c.channelad}</span>
               </motion.div>
             ))}
           </motion.div>

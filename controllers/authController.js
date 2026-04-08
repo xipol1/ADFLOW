@@ -212,9 +212,47 @@ const registro = async (req, res) => {
       }
     }
 
+    // ── Referral code (atomic — applied during registration) ──
+    const referralCode = String(req.body?.referralCode || req.body?.ref || '').trim().toUpperCase();
+    let referralApplied = false;
+    let referrer = null;
+    if (referralCode) {
+      referrer = await Usuario.findOne({ referralCode });
+      if (referrer) {
+        userData.referredBy = referrer._id;
+        userData.campaignCreditsBalance = (userData.campaignCreditsBalance || 0) + 10; // €10 welcome bonus
+        referralApplied = true;
+        logDev('REGISTER: referral code valid, will apply atomically', { referralCode, referrerId: referrer._id.toString() });
+      } else {
+        logDev('REGISTER: referral code not found, ignoring', { referralCode });
+      }
+    }
+
     const user = await Usuario.create(userData);
 
-    logDev('REGISTER: user created', { userId: user._id.toString(), founder: founderApplied });
+    // Update referrer counts after user is created (non-blocking)
+    if (referralApplied && referrer) {
+      setImmediate(async () => {
+        try {
+          referrer.referralCount = (referrer.referralCount || 0) + 1;
+          // Recalculate tier
+          if (referrer.referralGMVGenerated >= 20000 || referrer.referralCount >= 20) referrer.referralTier = 'partner';
+          else if (referrer.referralGMVGenerated >= 5000 || referrer.referralCount >= 5) referrer.referralTier = 'power';
+          else referrer.referralTier = 'normal';
+          await referrer.save();
+          // Notify referrer by email
+          try {
+            const emailService = require('../services/emailService');
+            await emailService.enviarReferidoRegistrado(referrer, user.nombre || user.email, referrer.referralCount, referrer.referralCreditsBalance);
+          } catch {}
+          logDev('REGISTER: referrer updated', { referrerId: referrer._id.toString(), count: referrer.referralCount });
+        } catch (refErr) {
+          console.error('REGISTER: failed to update referrer:', refErr?.message);
+        }
+      });
+    }
+
+    logDev('REGISTER: user created', { userId: user._id.toString(), founder: founderApplied, referral: referralApplied });
 
     // Send verification email (non-blocking — don't fail registration if email fails)
     setImmediate(async () => {
@@ -238,9 +276,12 @@ const registro = async (req, res) => {
       expiresIn: tokens.expiresIn,
       emailVerificationRequired: true,
       founderApplied,
+      referralApplied,
       message: founderApplied
         ? 'Cuenta creada como Canal Fundador. €10 de bono acreditados.'
-        : 'Cuenta creada. Revisa tu email para verificar tu cuenta.',
+        : referralApplied
+          ? 'Cuenta creada. Has recibido 10€ en creditos de campana por tu codigo de referido. Revisa tu email para verificar tu cuenta.'
+          : 'Cuenta creada. Revisa tu email para verificar tu cuenta.',
     });
   } catch (error) {
     console.error('REGISTER ERROR:', error);
@@ -476,7 +517,7 @@ const reenviarVerificacion = async (req, res) => {
       const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verificar-email/${token}`;
       await emailService.sendEmail({
         to: user.email,
-        subject: 'Verifica tu email - Adflow',
+        subject: 'Verifica tu email - ChannelAd',
         html: `<p>Haz clic para verificar: <a href="${verifyUrl}">${verifyUrl}</a></p>`,
       });
     } catch {}

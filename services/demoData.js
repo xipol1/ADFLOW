@@ -1,4 +1,4 @@
-export const DEMO_EMAILS = ['demo@adflow.com', 'creator@adflow.com'];
+export const DEMO_EMAILS = ['demo@channelad.io', 'creator@channelad.io'];
 
 export const isDemoEmail = (email) => {
   if (!email) return false;

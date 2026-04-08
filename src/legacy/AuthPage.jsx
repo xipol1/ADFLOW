@@ -224,7 +224,7 @@ const AuthPage = () => {
                     variant="outline" 
                     className="w-full text-sm"
                     onClick={() => {
-                      setFormData(prev => ({...prev, email: 'demo@adflow.com', password: '123456'}));
+                      setFormData(prev => ({...prev, email: 'demo@channelad.io', password: '123456'}));
                       setTimeout(() => {
                         const fakeEvent = { preventDefault: () => {} };
                         handleLogin(fakeEvent);
@@ -238,7 +238,7 @@ const AuthPage = () => {
                     variant="outline" 
                     className="w-full text-sm"
                     onClick={() => {
-                      setFormData(prev => ({...prev, email: 'creator@adflow.com', password: '123456'}));
+                      setFormData(prev => ({...prev, email: 'creator@channelad.io', password: '123456'}));
                       setTimeout(() => {
                         const fakeEvent = { preventDefault: () => {} };
                         handleLogin(fakeEvent);

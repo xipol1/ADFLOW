@@ -27,7 +27,7 @@ const createExpressAccount = async (user) => {
     email: user.email,
     metadata: {
       userId: String(user._id || user.id),
-      platform: 'adflow'
+      platform: 'channelad'
     },
     capabilities: {
       card_payments: { requested: true },
@@ -104,10 +104,10 @@ const transferToCreator = async (amount, destinationAccountId, metadata = {}) =>
     destination: destinationAccountId,
     metadata: {
       ...metadata,
-      platform: 'adflow',
+      platform: 'channelad',
       type: 'creator_payout'
     },
-    description: `AdFlow Creator Payout — Campaign ${metadata.campaignId || 'N/A'}`
+    description: `ChannelAd Creator Payout — Campaign ${metadata.campaignId || 'N/A'}`
   });
   return transfer;
 };

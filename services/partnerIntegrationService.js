@@ -185,10 +185,10 @@ const createEscrowPaymentIntent = async (amount, currency, metadata) => {
     capture_method: 'manual',
     metadata: {
       ...metadata,
-      platform: 'adflow',
+      platform: 'channelad',
       type: 'partner_campaign_escrow'
     },
-    description: `AdFlow Partner Campaign Escrow — ${metadata.campaignId || 'new'}`
+    description: `ChannelAd Partner Campaign Escrow — ${metadata.campaignId || 'new'}`
   });
   return pi;
 };
@@ -223,7 +223,7 @@ const cancelEscrowPayment = async (paymentIntentId) => {
 
 const getOrCreatePartnerUser = async (partner) => {
   const Usuario = require('../models/Usuario');
-  const email = `partner+${partner.slug}@adflow.internal`;
+  const email = `partner+${partner.slug}@channelad.internal`;
 
   let user = await Usuario.findOne({ email }).lean();
   if (user) return user;
@@ -514,7 +514,7 @@ const completeCampaign = async (partnerId, campaignId) => {
     { $set: { status: 'paid' } }
   );
 
-  // Create commission transaction for AdFlow (clause 6.3)
+  // Create commission transaction for ChannelAd (clause 6.3)
   const commissionAmount = +(campaign.price * campaign.commissionRate).toFixed(2);
   if (commissionAmount > 0) {
     await Transaccion.create({
@@ -523,7 +523,7 @@ const completeCampaign = async (partnerId, campaignId) => {
       amount: commissionAmount,
       tipo: 'comision',
       status: 'paid',
-      description: `Comision AdFlow (${(campaign.commissionRate * 100).toFixed(0)}%) — partner campaign`
+      description: `Comision ChannelAd (${(campaign.commissionRate * 100).toFixed(0)}%) — partner campaign`
     });
   }
 
@@ -621,7 +621,7 @@ const getCampaignMetrics = async (partnerId, campaignId) => {
       publishedAt: campaign.publishedAt,
       completedAt: campaign.completedAt
     },
-    disclaimer: 'AdFlow provee click-tracking y metricas agregadas. No se garantizan conversiones ni ROI (clause 10.1).'
+    disclaimer: 'ChannelAd provee click-tracking y metricas agregadas. No se garantizan conversiones ni ROI (clause 10.1).'
   };
 };
 

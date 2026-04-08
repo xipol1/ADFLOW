@@ -997,7 +997,7 @@ class ApiService {
         try { return JSON.parse(text); } catch { return { success: false, message: text }; }
       }
       const blob = await response.blob();
-      return { success: true, blob, filename: params.type ? `adflow-${params.type}-report.csv` : 'adflow-report.csv' };
+      return { success: true, blob, filename: params.type ? `channelad-${params.type}-report.csv` : 'channelad-report.csv' };
     } catch (error) {
       return { success: false, message: 'No se pudo descargar el reporte', error: error?.message };
     }

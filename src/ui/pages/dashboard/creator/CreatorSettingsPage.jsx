@@ -380,7 +380,7 @@ export default function CreatorSettingsPage() {
           <Toggle label="Pago recibido" desc="Aviso cuando recibes un ingreso en tu cuenta" on={notifs.pagoRecibido} onChange={() => tn('pagoRecibido')} />
           <Toggle label="Retiro procesado" desc="Confirmación cuando tu retiro se ha procesado" on={notifs.retiroProcesado} onChange={() => tn('retiroProcesado')} />
           <Toggle label="Recordatorio de respuesta" desc="Aviso si llevas más de 24h sin responder a una solicitud" on={notifs.recordatorio} onChange={() => tn('recordatorio')} />
-          <Toggle label="Novedades de Adflow" desc="Actualizaciones y nuevas funcionalidades de la plataforma" on={notifs.novedades} onChange={() => tn('novedades')} />
+          <Toggle label="Novedades de ChannelAd" desc="Actualizaciones y nuevas funcionalidades de la plataforma" on={notifs.novedades} onChange={() => tn('novedades')} />
         </Card>
       )}
 

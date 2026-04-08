@@ -1,4 +1,4 @@
-// ─── ADFLOW Pricing Engine ───────────────────────────────────────────────────
+// ─── ChannelAd Pricing Engine ────────────────────────────────────────────────
 // Single source of truth for all pricing logic, packs, and launch urgency.
 
 // ── Manual commission tiers (based on basePrice) ─────────────────────────────

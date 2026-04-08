@@ -60,7 +60,7 @@ export default function AboutPage() {
           Democratizar la publicidad digital dando acceso a marcas de todos los tamanos a audiencias comprometidas en canales de comunicacion privados. Creemos que las comunidades reales generan resultados reales.
         </p>
         <p style={{ fontSize: '15px', color: 'var(--muted)', lineHeight: 1.8 }}>
-          Adflow nacio para resolver un problema claro: los creadores de canales de WhatsApp, Telegram y Discord no tenian una forma segura y profesional de monetizar sus audiencias, y los anunciantes no tenian acceso a estos canales de alto engagement.
+          ChannelAd nacio para resolver un problema claro: los creadores de canales de WhatsApp, Telegram y Discord no tenian una forma segura y profesional de monetizar sus audiencias, y los anunciantes no tenian acceso a estos canales de alto engagement.
         </p>
       </section>
 
@@ -91,7 +91,7 @@ export default function AboutPage() {
         marginBottom: '40px',
       }}>
         <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '22px', fontWeight: 700, color: 'var(--text)', marginBottom: '12px' }}>
-          Unete a Adflow hoy
+          Unete a ChannelAd hoy
         </h2>
         <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '24px' }}>
           Comienza a conectar con audiencias reales o monetiza tu comunidad.

@@ -518,7 +518,7 @@ function Backdrop({ visible, onClick }) {
 function ThemeToggle() {
   const [isDark, setIsDark] = useState(() => {
     if (typeof window === 'undefined') return true
-    const saved = localStorage.getItem('channelad-theme') || localStorage.getItem('adflow-theme')
+    const saved = localStorage.getItem('channelad-theme')
     return saved === 'dark'
   })
 

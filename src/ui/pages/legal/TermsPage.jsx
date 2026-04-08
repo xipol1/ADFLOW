@@ -19,11 +19,11 @@ export default function TermsPage() {
       {[
         {
           title: '1. Aceptacion de los terminos',
-          content: 'Al acceder o utilizar Adflow, aceptas estar sujeto a estos terminos de uso. Si no estas de acuerdo con alguna parte de estos terminos, no podras acceder a la plataforma.'
+          content: 'Al acceder o utilizar ChannelAd, aceptas estar sujeto a estos terminos de uso. Si no estas de acuerdo con alguna parte de estos terminos, no podras acceder a la plataforma.'
         },
         {
           title: '2. Descripcion del servicio',
-          content: 'Adflow es una plataforma de marketplace que conecta anunciantes con creadores de contenido en canales de comunicacion (WhatsApp, Telegram, Discord, entre otros). Facilitamos la contratacion de espacios publicitarios y proporcionamos herramientas de gestion de campanas.'
+          content: 'ChannelAd es una plataforma de marketplace que conecta anunciantes con creadores de contenido en canales de comunicacion (WhatsApp, Telegram, Discord, entre otros). Facilitamos la contratacion de espacios publicitarios y proporcionamos herramientas de gestion de campanas.'
         },
         {
           title: '3. Cuentas de usuario',
@@ -35,7 +35,7 @@ export default function TermsPage() {
         },
         {
           title: '5. Pagos y comisiones',
-          content: 'Los pagos entre anunciantes y creadores se procesan a traves de nuestro sistema de pago custodiado. Adflow cobra una comision sobre cada transaccion completada. Los fondos se liberan al creador una vez confirmada la publicacion del anuncio.'
+          content: 'Los pagos entre anunciantes y creadores se procesan a traves de nuestro sistema de pago custodiado. ChannelAd cobra una comision sobre cada transaccion completada. Los fondos se liberan al creador una vez confirmada la publicacion del anuncio.'
         },
         {
           title: '6. Contenido prohibido',
@@ -43,19 +43,19 @@ export default function TermsPage() {
         },
         {
           title: '7. Disputas',
-          content: 'En caso de desacuerdo entre anunciantes y creadores, ambas partes pueden abrir una disputa a traves del sistema integrado. Adflow actuara como mediador imparcial y su decision sera vinculante para ambas partes.'
+          content: 'En caso de desacuerdo entre anunciantes y creadores, ambas partes pueden abrir una disputa a traves del sistema integrado. ChannelAd actuara como mediador imparcial y su decision sera vinculante para ambas partes.'
         },
         {
           title: '8. Limitacion de responsabilidad',
-          content: 'Adflow actua como intermediario y no es responsable del contenido publicado en los canales de los creadores, ni de los resultados de las campanas publicitarias. La plataforma se proporciona "tal cual" sin garantias implicitas.'
+          content: 'ChannelAd actua como intermediario y no es responsable del contenido publicado en los canales de los creadores, ni de los resultados de las campanas publicitarias. La plataforma se proporciona "tal cual" sin garantias implicitas.'
         },
         {
           title: '9. Modificaciones',
-          content: 'Nos reservamos el derecho de modificar estos terminos en cualquier momento. Los cambios entraran en vigor al publicarse en la plataforma. El uso continuado de Adflow constituye la aceptacion de los terminos modificados.'
+          content: 'Nos reservamos el derecho de modificar estos terminos en cualquier momento. Los cambios entraran en vigor al publicarse en la plataforma. El uso continuado de ChannelAd constituye la aceptacion de los terminos modificados.'
         },
         {
           title: '10. Contacto',
-          content: 'Para consultas relacionadas con estos terminos, puedes contactarnos en soporte@adflow.com.'
+          content: 'Para consultas relacionadas con estos terminos, puedes contactarnos en soporte@channelad.io.'
         },
       ].map(section => (
         <div key={section.title} style={{ marginBottom: '32px' }}>
@@ -71,7 +71,7 @@ export default function TermsPage() {
       <div style={{ borderTop: '1px solid var(--border)', paddingTop: '24px', marginTop: '16px' }}>
         <p style={{ fontSize: '13px', color: 'var(--muted2)' }}>
           Si tienes preguntas sobre estos terminos, contactanos en{' '}
-          <a href="mailto:soporte@adflow.com" style={{ color: PURPLE, textDecoration: 'none' }}>soporte@adflow.com</a>
+          <a href="mailto:soporte@channelad.io" style={{ color: PURPLE, textDecoration: 'none' }}>soporte@channelad.io</a>
         </p>
       </div>
     </div>

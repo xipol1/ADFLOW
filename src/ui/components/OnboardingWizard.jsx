@@ -10,7 +10,7 @@ import { PURPLE, purpleAlpha, GREEN, greenAlpha, FONT_BODY, FONT_DISPLAY } from 
 const STEPS = {
   advertiser: [
     {
-      title: 'Bienvenido a Adflow',
+      title: 'Bienvenido a ChannelAd',
       desc: 'La plataforma premium para comprar espacios publicitarios en comunidades reales de WhatsApp, Telegram, Discord y mas.',
       icon: Zap,
       tip: 'Conecta con audiencias activas y verificadas',
@@ -44,7 +44,7 @@ const STEPS = {
   ],
   creator: [
     {
-      title: 'Bienvenido a Adflow',
+      title: 'Bienvenido a ChannelAd',
       desc: 'Monetiza tus canales de comunicacion. Recibe solicitudes de anunciantes, publica contenido patrocinado y cobra de forma segura.',
       icon: Zap,
       tip: 'Tus audiencias tienen valor real',
@@ -78,7 +78,7 @@ const STEPS = {
 }
 
 function getStorageKey(role) {
-  return `adflow-onboarding-${role}-done`
+  return `channelad-onboarding-${role}-done`
 }
 
 /**

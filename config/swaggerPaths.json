@@ -1488,7 +1488,7 @@
                     },
                     "shortUrl": {
                       "type": "string",
-                      "example": "https://adflow-unified.vercel.app/t/abc123"
+                      "example": "https://channelad.io/t/abc123"
                     }
                   }
                 }
@@ -1758,7 +1758,7 @@
                     },
                     "verificationUrl": {
                       "type": "string",
-                      "example": "https://adflow-unified.vercel.app/t/ver_abc123"
+                      "example": "https://channelad.io/t/ver_abc123"
                     },
                     "minClicks": {
                       "type": "number",
@@ -3890,11 +3890,11 @@
                   },
                   "successUrl": {
                     "type": "string",
-                    "example": "https://adflow-unified.vercel.app/campaigns?payment=success"
+                    "example": "https://channelad.io/campaigns?payment=success"
                   },
                   "cancelUrl": {
                     "type": "string",
-                    "example": "https://adflow-unified.vercel.app/campaigns?payment=cancel"
+                    "example": "https://channelad.io/campaigns?payment=cancel"
                   }
                 }
               }
@@ -4889,6 +4889,367 @@
               }
             }
           }
+        }
+      }
+    },
+    "/api/partners/auth": {
+      "post": {
+        "tags": ["Partner API"],
+        "summary": "Autenticar partner (SHA-256)",
+        "description": "Valida la API key del partner usando SHA-256 y devuelve el perfil completo con permisos. Endpoint pre-auth: no requiere middleware. Acepta key en body, Bearer token o X-API-Key header.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "apiKey": { "type": "string", "description": "API key del partner", "example": "chd_partner_abc123..." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Autenticacion exitosa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "authenticated": { "type": "boolean", "example": true },
+                        "partner": {
+                          "type": "object",
+                          "properties": {
+                            "partnerId": { "type": "string" },
+                            "name": { "type": "string", "example": "Getalink" },
+                            "slug": { "type": "string", "example": "getalink" },
+                            "status": { "type": "string", "example": "active" },
+                            "apiKeyHint": { "type": "string", "example": "...abcd" },
+                            "rateLimitPerMinute": { "type": "integer", "example": 120 },
+                            "commissionRate": { "type": "number", "example": 0.10 },
+                            "allowedIps": { "type": "array", "items": { "type": "string" }, "example": ["*"] },
+                            "webhookUrl": { "type": "string", "nullable": true },
+                            "expiresAt": { "type": "string", "format": "date-time", "nullable": true },
+                            "lastUsedAt": { "type": "string", "format": "date-time", "nullable": true },
+                            "createdAt": { "type": "string", "format": "date-time" }
+                          }
+                        },
+                        "permissions": { "type": "object" },
+                        "authMethod": { "type": "string", "example": "sha256-api-key" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "API_KEY_REQUIRED o INVALID_CREDENTIALS" },
+          "403": { "description": "ACCESS_REVOKED, API_KEY_EXPIRED o IP_NOT_ALLOWED" }
+        }
+      }
+    },
+    "/api/partners/health": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Health check (autenticado)",
+        "security": [{ "partnerApiKey": [] }],
+        "responses": {
+          "200": {
+            "description": "Estado del servicio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "partner": { "type": "string" },
+                        "status": { "type": "string", "example": "ok" },
+                        "auth": { "type": "string", "example": "api-key" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partners/channels": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Listar canales disponibles",
+        "description": "Devuelve canales reales del marketplace con paginacion y filtros. No expone datos de contacto del propietario (clause 13).",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1, "default": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 20 } },
+          { "in": "query", "name": "platform", "schema": { "type": "string" }, "description": "Filtrar por plataforma (telegram, whatsapp, discord...)" },
+          { "in": "query", "name": "category", "schema": { "type": "string" }, "description": "Filtrar por categoria" },
+          { "in": "query", "name": "search", "schema": { "type": "string" }, "description": "Busqueda por nombre" }
+        ],
+        "responses": {
+          "200": { "description": "Lista de canales con paginacion" }
+        }
+      }
+    },
+    "/api/partners/channels/{id}": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Detalle de un canal",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Detalle del canal" },
+          "404": { "description": "CHANNEL_NOT_FOUND" }
+        }
+      }
+    },
+    "/api/partners/campaigns": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Listar campanas del partner",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1, "default": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 20 } },
+          { "in": "query", "name": "status", "schema": { "type": "string" }, "description": "Filtrar por estado (DRAFT, PAID, PUBLISHED, COMPLETED, CANCELLED)" }
+        ],
+        "responses": {
+          "200": { "description": "Lista de campanas con paginacion" }
+        }
+      },
+      "post": {
+        "tags": ["Partner API"],
+        "summary": "Crear campana en un canal",
+        "description": "Crea una campana en estado DRAFT. Siguiente paso obligatorio: crear payment session.",
+        "security": [{ "partnerApiKey": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["channelId", "targetUrl", "budget"],
+                "properties": {
+                  "channelId": { "type": "string", "description": "ID del canal destino" },
+                  "content": { "type": "string", "description": "Texto del anuncio" },
+                  "title": { "type": "string", "description": "Titulo de la campana" },
+                  "targetUrl": { "type": "string", "description": "URL de destino del anuncio", "example": "https://miapp.com/landing" },
+                  "budget": { "type": "number", "minimum": 0.01, "description": "Presupuesto en EUR", "example": 150 },
+                  "deadline": { "type": "string", "format": "date-time", "description": "Fecha limite ISO8601" },
+                  "externalReference": { "type": "string", "description": "Referencia externa para idempotencia" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Campana creada en estado DRAFT" },
+          "404": { "description": "CHANNEL_NOT_FOUND" },
+          "422": { "description": "Validacion fallida" }
+        }
+      }
+    },
+    "/api/partners/campaigns/{id}": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Detalle de una campana",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Detalle de la campana" },
+          "404": { "description": "CAMPAIGN_NOT_FOUND" }
+        }
+      },
+      "put": {
+        "tags": ["Partner API"],
+        "summary": "Actualizar campana (solo DRAFT)",
+        "description": "Solo permite editar campanas en estado DRAFT.",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": { "type": "string" },
+                  "title": { "type": "string" },
+                  "targetUrl": { "type": "string" },
+                  "budget": { "type": "number", "minimum": 0.01 },
+                  "deadline": { "type": "string", "format": "date-time" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Campana actualizada" },
+          "404": { "description": "CAMPAIGN_NOT_FOUND" },
+          "409": { "description": "INVALID_STATE — solo DRAFT editable" }
+        }
+      }
+    },
+    "/api/partners/campaigns/{id}/payment-session": {
+      "post": {
+        "tags": ["Partner API"],
+        "summary": "Crear sesion de pago Stripe (escrow)",
+        "description": "Crea un PaymentIntent con capture_method: manual (escrow). Los fondos se retienen hasta completar la campana.",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "201": { "description": "Sesion de pago creada con client_secret" },
+          "404": { "description": "CAMPAIGN_NOT_FOUND" },
+          "409": { "description": "INVALID_STATE" }
+        }
+      }
+    },
+    "/api/partners/campaigns/{id}/confirm-payment": {
+      "post": {
+        "tags": ["Partner API"],
+        "summary": "Confirmar pago (DRAFT → PAID)",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["paymentReference"],
+                "properties": {
+                  "paymentReference": { "type": "string", "description": "Referencia del PaymentIntent de Stripe" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Pago confirmado, campana en estado PAID" },
+          "404": { "description": "CAMPAIGN_NOT_FOUND" },
+          "409": { "description": "INVALID_STATE" }
+        }
+      }
+    },
+    "/api/partners/campaigns/{id}/publish": {
+      "post": {
+        "tags": ["Partner API"],
+        "summary": "Publicar campana (PAID → PUBLISHED)",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "publishedAt": { "type": "string", "format": "date-time", "description": "Fecha de publicacion (opcional, default: ahora)" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Campana publicada" },
+          "404": { "description": "CAMPAIGN_NOT_FOUND" },
+          "409": { "description": "INVALID_STATE" }
+        }
+      }
+    },
+    "/api/partners/campaigns/{id}/complete": {
+      "post": {
+        "tags": ["Partner API"],
+        "summary": "Completar campana (PUBLISHED → COMPLETED)",
+        "description": "Libera los fondos del escrow al creador del canal.",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Campana completada, escrow liberado" },
+          "404": { "description": "CAMPAIGN_NOT_FOUND" },
+          "409": { "description": "INVALID_STATE" }
+        }
+      }
+    },
+    "/api/partners/campaigns/{id}/cancel": {
+      "post": {
+        "tags": ["Partner API"],
+        "summary": "Cancelar campana",
+        "description": "Cancela la campana desde cualquier estado. Si hay pago, se procesa reembolso.",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Campana cancelada (con reembolso si aplica)" },
+          "404": { "description": "CAMPAIGN_NOT_FOUND" }
+        }
+      }
+    },
+    "/api/partners/campaigns/{id}/metrics": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Metricas de click tracking",
+        "description": "Devuelve datos reales de clicks, dispositivos y paises para la campana.",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Metricas de la campana" },
+          "404": { "description": "CAMPAIGN_NOT_FOUND" }
+        }
+      }
+    },
+    "/api/partners/billing": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Historial de transacciones y balance",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1, "default": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 20 } },
+          { "in": "query", "name": "status", "schema": { "type": "string" }, "description": "Filtrar por status (pending, escrow, paid, refunded, failed)" },
+          { "in": "query", "name": "from", "schema": { "type": "string", "format": "date-time" }, "description": "Desde (ISO8601)" },
+          { "in": "query", "name": "to", "schema": { "type": "string", "format": "date-time" }, "description": "Hasta (ISO8601)" }
+        ],
+        "responses": {
+          "200": { "description": "Transacciones y balance del partner" }
+        }
+      }
+    },
+    "/api/partners/stats": {
+      "get": {
+        "tags": ["Partner API"],
+        "summary": "Estadisticas agregadas del partner",
+        "security": [{ "partnerApiKey": [] }],
+        "parameters": [
+          { "in": "query", "name": "period", "schema": { "type": "string", "enum": ["week", "month", "quarter", "year"] }, "description": "Periodo de agregacion" }
+        ],
+        "responses": {
+          "200": { "description": "Metricas y uso del partner por periodo" }
         }
       }
     }

@@ -65,13 +65,13 @@ export default function AutoBuyPage() {
   const [error, setError] = useState('')
 
   // Favorites lists from localStorage
-  const [favLists, setFavLists] = useState(() => JSON.parse(localStorage.getItem('adflow-fav-lists') || '[]'))
+  const [favLists, setFavLists] = useState(() => JSON.parse(localStorage.getItem('channelad-fav-lists') || '[]'))
   const [selectedListId, setSelectedListId] = useState('all')
   const [favChannelDetails, setFavChannelDetails] = useState([])
 
   // Manual mode
   const [showRecommended, setShowRecommended] = useState(false)
-  const [manualChannels, setManualChannels] = useState(() => JSON.parse(localStorage.getItem('adflow-autobuy-channels') || '[]'))
+  const [manualChannels, setManualChannels] = useState(() => JSON.parse(localStorage.getItem('channelad-autobuy-channels') || '[]'))
 
   // Pack selection
   const [selectedPack, setSelectedPack] = useState(null)
@@ -81,12 +81,12 @@ export default function AutoBuyPage() {
   // Persist form draft
   useEffect(() => {
     const draft = { budget, category, mode, adText, url }
-    localStorage.setItem('adflow-autobuy-draft', JSON.stringify(draft))
+    localStorage.setItem('channelad-autobuy-draft', JSON.stringify(draft))
   }, [budget, category, mode, adText, url])
 
   // Restore draft on mount
   useEffect(() => {
-    const saved = localStorage.getItem('adflow-autobuy-draft')
+    const saved = localStorage.getItem('channelad-autobuy-draft')
     if (saved) {
       try {
         const d = JSON.parse(saved)
@@ -484,7 +484,7 @@ export default function AutoBuyPage() {
               Selecciona tu inversion
             </h2>
             <p style={{ fontSize: '15px', color: 'var(--muted)', maxWidth: '460px', margin: '0 auto', lineHeight: 1.7 }}>
-              Accede a precios optimizados gracias a la automatizacion de Adflow
+              Accede a precios optimizados gracias a la automatizacion de ChannelAd
             </p>
           </div>
 
@@ -782,7 +782,7 @@ export default function AutoBuyPage() {
 
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => {
-                localStorage.setItem('adflow-autobuy-channels', JSON.stringify(manualChannels))
+                localStorage.setItem('channelad-autobuy-channels', JSON.stringify(manualChannels))
                 setShowRecommended(false)
               }} style={{
                 flex: 1, background: PURPLE, color: '#fff', border: 'none', borderRadius: '10px',
@@ -791,7 +791,7 @@ export default function AutoBuyPage() {
                 Seleccionar ({manualChannels.length})
               </button>
               <button onClick={() => {
-                localStorage.setItem('adflow-autobuy-channels', JSON.stringify(manualChannels))
+                localStorage.setItem('channelad-autobuy-channels', JSON.stringify(manualChannels))
                 setShowRecommended(false)
                 navigate('/advertiser/explore?from=autobuy')
               }} style={{
