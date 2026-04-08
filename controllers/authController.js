@@ -261,12 +261,19 @@ const registro = async (req, res) => {
 
     logDev('REGISTER: user created', { userId: user._id.toString(), founder: founderApplied, referral: referralApplied });
 
-    // Send verification email (non-blocking — don't fail registration if email fails)
+    // Send verification + welcome emails (non-blocking — don't fail registration if email fails)
     setImmediate(async () => {
       try {
         const emailService = require('../services/emailService');
         await emailService.enviarEmailVerificacion(user.email, user.nombre || '', verificationToken);
         logDev('REGISTER: verification email sent', { email: user.email });
+        // Welcome email with referral code (sent after verification email)
+        try {
+          await emailService.enviarBienvenida(user);
+          logDev('REGISTER: welcome email sent', { email: user.email });
+        } catch (welErr) {
+          console.error('REGISTER: failed to send welcome email:', welErr?.message);
+        }
       } catch (emailErr) {
         console.error('REGISTER: failed to send verification email:', emailErr?.message || emailErr);
       }

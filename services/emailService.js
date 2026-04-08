@@ -252,11 +252,14 @@ class EmailService {
    * Send welcome email after registration.
    */
   async enviarBienvenida(user) {
+    const referralCode = user.referralCode || '';
     const html = await this.renderTemplate('bienvenida', {
       nombre: user.nombre,
       email: user.email,
-      rol: user.tipoUsuario === 'creador' ? 'Creador de Contenido' : 'Anunciante',
-      dashboardUrl: `${config.frontend.url}/dashboard`
+      rol: user.tipoUsuario === 'creador' ? 'Creador de Contenido' : user.rol === 'creator' ? 'Creador de Contenido' : 'Anunciante',
+      dashboardUrl: `${config.frontend.url}/dashboard`,
+      referralCode,
+      referralLink: referralCode ? `${config.frontend.url}/auth/register?ref=${referralCode}` : '',
     });
 
     return this.enviarEmail({
