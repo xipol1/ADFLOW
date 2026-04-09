@@ -64,6 +64,10 @@ const UsuarioSchema = new mongoose.Schema(
     referralTier: { type: String, enum: ['normal', 'power', 'partner'], default: 'normal' },
     referralGMVGenerated: { type: Number, default: 0 },
     referralCount: { type: Number, default: 0 },
+
+    // Email reminders (used by scheduler to avoid re-sending)
+    recordatorioPerfil: { type: Boolean, default: false },
+    recordatorioPerfilAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

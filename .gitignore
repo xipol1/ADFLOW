@@ -22,7 +22,11 @@ plataforma-*/
 
 # Data files (generated at runtime)
 data/*.json
+data/whatsapp-session/
 !data/.gitkeep
+
+# Logs
+logs/
 
 # Uploads
 uploads/*
@@ -38,3 +42,16 @@ uploads/*
 settings.local.json
 
 .vercel
+
+# Claude Code local state (never commit)
+.claude/
+
+# Confidential company documents (kept locally)
+Adflow Gestion/
+*.pdf
+*.docx
+
+# Local SQLite databases
+*.db
+*.sqlite
+*.sqlite3

@@ -125,6 +125,17 @@ async function startServer() {
       console.warn('Campaign cron not available:', cronErr.message);
     }
 
+    // Start WhatsApp admin worker (VPS/local only — not on Vercel)
+    if (process.env.WHATSAPP_SESSION_PATH) {
+      try {
+        const whatsappAdmin = require('./services/WhatsAppAdminClient');
+        whatsappAdmin.initialize();
+        console.log('WhatsApp admin worker starting...');
+      } catch (waErr) {
+        console.warn('WhatsApp admin worker not available:', waErr.message);
+      }
+    }
+
     server.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
     });
@@ -139,6 +150,16 @@ async function startServer() {
         } catch (e) {
           console.error('Error disconnecting MongoDB:', e.message);
         }
+        // Shutdown WhatsApp worker
+        try {
+          const whatsappAdmin = require('./services/WhatsAppAdminClient');
+          whatsappAdmin.shutdown();
+        } catch (_) {}
+        // Disconnect Redis
+        try {
+          const { disconnectRedis } = require('./config/redis');
+          await disconnectRedis();
+        } catch (_) {}
         process.exit(0);
       });
       // Force exit after 10s if connections don't close
