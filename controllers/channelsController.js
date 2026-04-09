@@ -51,7 +51,10 @@ const listChannels = async (req, res) => {
       ];
     }
 
-    const sortMap = { precio: { precio: -1 }, audiencia: { 'estadisticas.seguidores': -1 }, score: { 'score': -1 }, createdAt: { createdAt: -1 } };
+    // 'score' is the public sort key — frontend still sends it — but it
+    // now maps to the v2 CAS field on the Canal document. The legacy
+    // 'score' path never existed in the schema.
+    const sortMap = { precio: { precio: -1 }, audiencia: { 'estadisticas.seguidores': -1 }, score: { CAS: -1 }, createdAt: { createdAt: -1 } };
     const sort = sortMap[ordenPor] || { createdAt: -1 };
 
     const total = await Canal.countDocuments(filter);
@@ -71,6 +74,7 @@ const listChannels = async (req, res) => {
 
     const normalized = items.map(c => {
       const m = metricsMap[String(c._id)];
+      const CAS = c.CAS ?? 50;
       return {
         id: c._id,
         nombre: c.nombreCanal || '',
@@ -82,7 +86,18 @@ const listChannels = async (req, res) => {
         verificado: c.estado === 'verificado',
         descripcion: c.descripcion || '',
         url: c.url || '',
-        score: m?.scores?.total || null,
+        // v2 scores (direct from Canal document)
+        CAS,
+        CAF: c.CAF ?? 50,
+        CTF: c.CTF ?? 50,
+        CER: c.CER ?? 50,
+        CVS: c.CVS ?? 50,
+        CAP: c.CAP ?? 50,
+        nivel: c.nivel || 'BRONZE',
+        CPMDinamico: c.CPMDinamico || 0,
+        confianzaScore: c.verificacion?.confianzaScore ?? 0,
+        // Legacy alias — ExplorePage.jsx still reads ch.score. Maps to CAS.
+        score: CAS,
         engagement: m?.engagementRate ? (m.engagementRate * 100).toFixed(1) : null,
         // propietario omitted from public response for security
       };
@@ -123,6 +138,7 @@ const getChannelById = async (req, res) => {
     }
 
     const metrics = await ChannelMetrics.findOne({ channel: canal._id }).lean();
+    const CAS = canal.CAS ?? 50;
     return res.json({
       success: true,
       data: {
@@ -136,7 +152,18 @@ const getChannelById = async (req, res) => {
         verificado: canal.estado === 'verificado',
         descripcion: canal.descripcion || '',
         url: canal.url || '',
-        score: metrics?.scores?.total || null,
+        // v2 scores (direct from Canal document)
+        CAS,
+        CAF: canal.CAF ?? 50,
+        CTF: canal.CTF ?? 50,
+        CER: canal.CER ?? 50,
+        CVS: canal.CVS ?? 50,
+        CAP: canal.CAP ?? 50,
+        nivel: canal.nivel || 'BRONZE',
+        CPMDinamico: canal.CPMDinamico || 0,
+        confianzaScore: canal.verificacion?.confianzaScore ?? 0,
+        // Legacy alias — ExplorePage.jsx still reads ch.score. Maps to CAS.
+        score: CAS,
         engagement: metrics?.engagementRate ? (metrics.engagementRate * 100).toFixed(1) : null,
       },
     });

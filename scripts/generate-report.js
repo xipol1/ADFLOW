@@ -394,7 +394,7 @@ const doc = new Document({
         // ── 8. VARIABLES DE ENTORNO ──
         heading1("8. Variables de Entorno"),
         heading2("8.1 Configuradas actualmente"),
-        ...["MONGODB_URI - Connection string de MongoDB Atlas", "JWT_SECRET / JWT_REFRESH_SECRET - Secretos de tokens", "FRONTEND_URL - URL del frontend para CORS", "NODE_ENV - Entorno (production)", "PLATFORM_COMMISSION_RATE - Comision de la plataforma (10%)"].map(t => bulletItem(t)),
+        ...["MONGODB_URI - Connection string de MongoDB Atlas", "JWT_SECRET / JWT_REFRESH_SECRET - Secretos de tokens", "FRONTEND_URL - URL del frontend para CORS", "NODE_ENV - Entorno (production)", "PLATFORM_COMMISSION_RATE - Comision estandar 20% (ver config/commissions.js)"].map(t => bulletItem(t)),
         spacer(80),
 
         heading2("8.2 Pendientes de configurar"),

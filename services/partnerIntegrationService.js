@@ -12,6 +12,7 @@
 const crypto = require('crypto');
 const { ensureDb } = require('../lib/ensureDb');
 const { createApiError } = require('../lib/partnerApiHttp');
+const { COMMISSION_TIERS } = require('../config/commissions');
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -285,7 +286,9 @@ const createCampaign = async (partner, payload) => {
 
   const advertiserUser = await getOrCreatePartnerUser(partner);
   const deadline = payload.deadline ? new Date(payload.deadline) : null;
-  const commissionRate = partner.commissionOverride != null ? partner.commissionOverride : 0.10;
+  const commissionRate = partner.commissionOverride != null
+    ? partner.commissionOverride
+    : COMMISSION_TIERS.partnerAPI;
 
   const campaign = await Campaign.create({
     advertiser: advertiserUser._id,
@@ -733,7 +736,7 @@ const authenticatePartner = async (apiKey, ip) => {
     status: partner.status,
     apiKeyHint: partner.apiKeyHint || '',
     rateLimitPerMinute: partner.rateLimitPerMinute || 60,
-    commissionRate: partner.commissionOverride != null ? partner.commissionOverride : 0.10,
+    commissionRate: partner.commissionOverride != null ? partner.commissionOverride : COMMISSION_TIERS.partnerAPI,
     allowedIps: (partner.allowedIps || []).length > 0 ? partner.allowedIps : ['*'],
     webhookUrl: partner.webhookUrl || null,
     expiresAt: partner.expiresAt || null,

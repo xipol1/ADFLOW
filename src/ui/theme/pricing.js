@@ -1,18 +1,28 @@
 // ─── ChannelAd Pricing Engine ────────────────────────────────────────────────
 // Single source of truth for all pricing logic, packs, and launch urgency.
 
-// ── Manual commission tiers (based on basePrice) ─────────────────────────────
+// ── Commission tiers (mirrors backend config/commissions.js) ─────────────────
+// Keep in sync with COMMISSION_TIERS on the backend. Single source of truth.
+export const COMMISSION_TIERS = {
+  standard:       0.20,
+  autoCampaign:   0.25,
+  collaborative:  0.28,
+  noAdminAccess:  0.22,
+  partnerAPI:     0.18,
+  volumeMid:      0.18,
+  volumeHigh:     0.15,
+}
+
+// Volume-based discounts (advertiser monthly GMV in €). Flat 0.20 standard
+// for one-off basePrice; real volume discounts are applied per-advertiser.
 const MANUAL_TIERS = [
-  { max: 500,   rate: 0.20 },
-  { max: 1500,  rate: 0.15 },
-  { max: 5000,  rate: 0.12 },
-  { max: Infinity, rate: 0.10 },
+  { max: Infinity, rate: COMMISSION_TIERS.standard },
 ]
 
 // ── AutoBuy commission tiers ─────────────────────────────────────────────────
 const AUTOBUY_TIERS = {
-  autobuy_basic:     0.20,
-  autobuy_optimized: 0.25,
+  autobuy_basic:     COMMISSION_TIERS.autoCampaign,
+  autobuy_optimized: COMMISSION_TIERS.collaborative,
   autobuy_full:      0.30,
 }
 
@@ -24,7 +34,7 @@ export function getManualCommissionRate(basePrice) {
   for (const tier of MANUAL_TIERS) {
     if (basePrice <= tier.max) return tier.rate
   }
-  return 0.10
+  return COMMISSION_TIERS.standard
 }
 
 export function getAutoBuyCommissionRate(mode = 'autobuy_basic') {

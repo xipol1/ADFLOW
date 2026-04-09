@@ -21,7 +21,8 @@ function generateInvoiceHTML(transaction, user) {
   const status = transaction.status || 'pending';
   const description = transaction.description || `Transaccion ${tipo}`;
 
-  const commissionRate = 0.10;
+  const { DEFAULT_COMMISSION_RATE } = require('../config/commissions');
+  const commissionRate = DEFAULT_COMMISSION_RATE;
   const commission = tipo === 'pago' ? +(amount * commissionRate).toFixed(2) : 0;
   const subtotal = amount;
   const total = amount;

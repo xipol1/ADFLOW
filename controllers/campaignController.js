@@ -266,6 +266,14 @@ const confirmCampaign = async (req, res, next) => {
     campaign.publishedAt = new Date();
     await campaign.save();
 
+    // Initialize the v2 metrics document + its 5-window snapshot schedule
+    // so the hourly capture cron can start picking it up. Non-blocking.
+    setImmediate(() => {
+      require('../services/campaignSnapshotService')
+        .initCampaignMetrics(campaign._id)
+        .catch((err) => console.error('initCampaignMetrics failed:', err?.message));
+    });
+
     // Deliver ad to platform (non-blocking with retry)
     setImmediate(async () => {
       try {
@@ -318,6 +326,24 @@ const completeCampaign = async (req, res, next) => {
     campaign.status = 'COMPLETED';
     campaign.completedAt = new Date();
     await campaign.save();
+
+    // Immediate final-snapshot capture + CAS recalc. The snapshot writes
+    // the `final` MetricPoint that feeds CAP in the next CAS run. Both
+    // are non-blocking so the user response is not delayed by scoring.
+    setImmediate(async () => {
+      try {
+        await require('../services/campaignSnapshotService')
+          .captureFinalSnapshot(campaign._id);
+      } catch (err) {
+        console.error('captureFinalSnapshot failed:', err?.message);
+      }
+      try {
+        await require('../services/scoringOrchestrator')
+          .recalcularCASCanal(campaign.channel, { trigger: 'campaign_completed' });
+      } catch (err) {
+        console.error('Post-campaign CAS recalc failed:', err?.message);
+      }
+    });
 
     // Release escrow: mark transaction as paid + capture Stripe PaymentIntent if exists
     const tx = await Transaccion.findOne({ campaign: campaign._id });

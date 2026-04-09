@@ -8,7 +8,7 @@ const CampaignSchema = new mongoose.Schema(
     targetUrl: { type: String, required: true, trim: true },
     price: { type: Number, required: true },
     netAmount: { type: Number, default: 0 },
-    commissionRate: { type: Number, default: 0.10 },
+    commissionRate: { type: Number, default: require('../config/commissions').DEFAULT_COMMISSION_RATE },
     status: {
       type: String,
       enum: ['DRAFT', 'PAID', 'PUBLISHED', 'COMPLETED', 'CANCELLED', 'EXPIRED', 'DISPUTED'],

@@ -32,6 +32,11 @@ try { _routes['./routes/oauth']          = require('./routes/oauth');          }
 try { _routes['./routes/referrals']      = require('./routes/referrals');      } catch (e) { _routes['./routes/referrals']      = e; }
 try { _routes['./routes/payouts']        = require('./routes/payouts');        } catch (e) { _routes['./routes/payouts']        = e; }
 try { _routes['./routes/invoices']       = require('./routes/invoices');       } catch (e) { _routes['./routes/invoices']       = e; }
+try { _routes['./routes/onboarding']     = require('./routes/onboarding');     } catch (e) { _routes['./routes/onboarding']     = e; }
+try { _routes['./routes/webhooks']       = require('./routes/webhooks');       } catch (e) { _routes['./routes/webhooks']       = e; }
+try { _routes['./routes/adminScoring']   = require('./routes/adminScoring');   } catch (e) { _routes['./routes/adminScoring']   = e; }
+try { _routes['./routes/adminMetrics']   = require('./routes/adminMetrics');   } catch (e) { _routes['./routes/adminMetrics']   = e; }
+try { _routes['./routes/channelIntelligence'] = require('./routes/channelIntelligence'); } catch (e) { _routes['./routes/channelIntelligence'] = e; }
 
 // Pre-load for Vercel nft tracer (require only, don't execute swagger-jsdoc at top level)
 let _swaggerPathsJson;
@@ -362,6 +367,11 @@ const enabledRoutes = [
   ['/api/referrals', './routes/referrals'],
   ['/api/payouts', './routes/payouts'],
   ['/api/invoices', './routes/invoices'],
+  ['/api/onboarding', './routes/onboarding'],
+  ['/api/webhooks', './routes/webhooks'],
+  ['/api/admin/scoring', './routes/adminScoring'],
+  ['/api/admin/metrics', './routes/adminMetrics'],
+  ['/api/channels', './routes/channelIntelligence'],
 ];
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));

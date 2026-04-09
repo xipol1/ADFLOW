@@ -13,6 +13,14 @@
     {
       "path": "/api/oauth/meta/cron-refresh",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/admin/scoring/run",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/admin/metrics/capture",
+      "schedule": "15 * * * *"
     }
   ],
   "headers": [

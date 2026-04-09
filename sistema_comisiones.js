@@ -10,7 +10,7 @@ class SistemaComisiones {
     this.stripeAPI = stripeAPI;
     this.paypalAPI = paypalAPI;
     this.cryptoAPI = cryptoAPI;
-    this.comisionPorcentaje = 10; // Comisión predeterminada del 10%
+    this.comisionPorcentaje = 20; // Comisión predeterminada del 20% (standard tier)
     this.comisionMinima = 1; // Comisión mínima en USD
   }
 

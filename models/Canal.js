@@ -85,10 +85,96 @@ const CanalSchema = new mongoose.Schema(
     foto: { type: String, default: '' },
     banner: { type: String, default: '' },
     idioma: { type: String, default: 'es' },
-    verificado: { type: Boolean, default: false, index: true }
+    verificado: { type: Boolean, default: false, index: true },
+
+    // ── Bot admin config (auto-onboarding) ──
+    botConfig: {
+      ultimaSync: Date,
+      telegram: {
+        botToken: String,
+        chatId: String,
+        isAdmin: { type: Boolean, default: false },
+        canPostMessages: { type: Boolean, default: false },
+        botUsername: String,
+        verificadoEn: Date,
+      },
+      discord: {
+        botToken: String,
+        guildId: String,
+        isPresent: { type: Boolean, default: false },
+        permissions: mongoose.Schema.Types.Mixed,
+        verificadoEn: Date,
+      },
+      instagram: {
+        accessToken: String,
+        igUserId: String,
+        username: String,
+        tokenExpiresAt: Date,
+        verificadoEn: Date,
+      },
+      whatsapp: {
+        adminNumber: String,
+        channelId: String,
+        channelName: String,
+        adminAccess: { type: Boolean, default: false },
+        seguidoresVerificados: { type: Number, default: 0 },
+        verificadoEn: Date,
+        ultimaLectura: Date,
+      },
+    },
+    nivelVerificacion: {
+      type: String,
+      enum: ['platino', 'oro', 'plata', 'bronce'],
+      default: 'bronce',
+    },
+
+    // ── Scoring v2.0 (channelScoringV2.js) ──────────────────────────────────
+    // Propietary scores updated nightly by the scoring cron and immediately
+    // after a campaign transitions to COMPLETED. All default to 50 (neutral)
+    // so existing channels remain valid without a migration.
+    CAF: { type: Number, default: 50, min: 0, max: 100 }, // Channel Attention Flow
+    CTF: { type: Number, default: 50, min: 0, max: 100 }, // Channel Trust Flow
+    CER: { type: Number, default: 50, min: 0, max: 100 }, // Channel Engagement Rate
+    CVS: { type: Number, default: 50, min: 0, max: 100 }, // Channel Velocity Score
+    CAP: { type: Number, default: 50, min: 0, max: 100 }, // Channel Ad Performance
+    CAS: { type: Number, default: 50, min: 0, max: 100 }, // Composite (final) score
+    nivel: {
+      type: String,
+      enum: ['BRONZE', 'SILVER', 'GOLD', 'ELITE'],
+      default: 'BRONZE',
+      index: true,
+    },
+    CPMDinamico: { type: Number, default: 0 },
+
+    // ── Verification enrichment ─────────────────────────────────────────────
+    verificacion: {
+      tipoAcceso: {
+        type: String,
+        enum: ['admin_directo', 'oauth_graph', 'bot_miembro', 'tracking_url', 'declarado'],
+        default: 'declarado',
+      },
+      confianzaScore: { type: Number, default: 30, min: 0, max: 100 },
+    },
+
+    // ── Anti-fraud signals ──────────────────────────────────────────────────
+    antifraude: {
+      ratioCTF_CAF: { type: Number, default: null },
+      flags: { type: [String], default: [] },
+      ultimaRevision: { type: Date, default: null },
+    },
+
+    // ── Public crawler data (WhatsApp channels, Telegram public channels) ──
+    crawler: {
+      ultimoPostNum: { type: Number, default: null },   // latest post number on the public URL
+      ultimaActualizacion: { type: Date, default: null },
+      urlPublica: { type: String, default: '' },        // whatsapp.com/channel/... or t.me/...
+    },
   },
-  { timestamps: true }
+  { timestamps: true, strict: true }
 );
+
+// Compound index for the daily scoring cron (status + last score date).
+CanalSchema.index({ estado: 1, nivel: 1 });
 
 CanalSchema.index({ plataforma: 1, identificadorCanal: 1 }, { unique: false });
 

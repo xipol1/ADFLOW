@@ -337,7 +337,8 @@ class EmailService {
     for (const user of userList) {
       const isCreator = user.tipoUsuario === 'creador';
       const price = campaign.precio || campaign.price || 0;
-      const commission = campaign.comision || (price * 0.1);
+      const { DEFAULT_COMMISSION_RATE } = require('../config/commissions');
+      const commission = campaign.comision || (price * DEFAULT_COMMISSION_RATE);
       const netAmount = isCreator ? (price - commission) : price;
 
       const html = await this.renderTemplate('campana-completada', {
@@ -514,6 +515,49 @@ class EmailService {
   }
 
   // ─── Helpers ───────────────────────────────────────────────���──────
+
+  // ─── Email 3: Profile reminder ─────────────────────────────────────
+
+  /**
+   * Send a reminder to creators with incomplete channel profiles.
+   * Triggered by the scheduler in campaignCron.js.
+   */
+  async enviarRecordatorioPerfil(email, nombre) {
+    const html = await this.renderTemplate('recordatorio-perfil', {
+      nombre: nombre || email.split('@')[0],
+      linkPerfil: `${config.frontend.url}/dashboard/perfil`,
+    });
+
+    return this.enviarEmail({
+      para: email,
+      asunto: `${nombre || 'Hola'}, tu perfil está incompleto — no podemos asignarte campañas todavía`,
+      html,
+    });
+  }
+
+  // ─── Email 4: Campaign available for channel ──────────────────────
+
+  /**
+   * Notify a channel owner that a new campaign proposal is available.
+   * Triggered from the campaign-assignment flow.
+   */
+  async enviarCampanaDisponible(email, datos) {
+    const html = await this.renderTemplate('campana-disponible', {
+      nombre: datos.nombre,
+      nombreCanal: datos.nombreCanal,
+      nombreAnunciante: datos.nombreAnunciante,
+      tipoCampana: datos.tipoCampana,
+      presupuesto: this._formatPrice(datos.presupuesto),
+      fechaPropuesta: datos.fechaPropuesta,
+      linkCampana: datos.linkCampana,
+    });
+
+    return this.enviarEmail({
+      para: email,
+      asunto: `Nueva propuesta de campaña para ${datos.nombreCanal} — ${this._formatPrice(datos.presupuesto)}€`,
+      html,
+    });
+  }
 
   _formatPrice(amount) {
     if (amount == null) return '0.00';
