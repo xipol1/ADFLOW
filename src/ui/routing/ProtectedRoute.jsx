@@ -1,10 +1,11 @@
 import React from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
+import BetaGatePage from '../pages/BetaGatePage'
 import { PURPLE as A, purpleAlpha as AG, FONT_DISPLAY as D } from '../theme/tokens'
 
-export default function ProtectedRoute({ children, allowedRoles = [] }) {
-  const { isAuthenticated, loading, user } = useAuth()
+export default function ProtectedRoute({ children, allowedRoles = [], requireBeta = false }) {
+  const { isAuthenticated, loading, user, betaAccess } = useAuth()
 
   // Show a spinner while verifying the token (prevents flash of redirect)
   if (loading) {
@@ -29,6 +30,10 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
   if (!isAuthenticated) return <Navigate to="/auth/login" replace />
   const rol = user?.rol || user?.role || ''
   if (allowedRoles.length > 0 && !allowedRoles.includes(rol)) return <Navigate to="/" replace />
+  // Beta gate. Render BetaGatePage in place — not a redirect — so the URL
+  // stays /advertiser or /creator and the user can bookmark it for when
+  // their beta access gets enabled.
+  if (requireBeta && !betaAccess) return <BetaGatePage />
   return children
 }
 

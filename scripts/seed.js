@@ -21,6 +21,7 @@ const UserSchema = new mongoose.Schema({
   rol: { type: String, enum: ['creator', 'advertiser', 'admin'], default: 'advertiser' },
   emailVerificado: { type: Boolean, default: false },
   activo: { type: Boolean, default: true },
+  betaAccess: { type: Boolean, default: false },
   perfilAnunciante: { type: mongoose.Schema.Types.Mixed, default: {} },
   perfilCreador:    { type: mongoose.Schema.Types.Mixed, default: {} },
 }, { timestamps: true });
@@ -34,6 +35,7 @@ const USERS = [
     password: 'Admin2026x',
     rol: 'admin',
     emailVerificado: true,
+    betaAccess: true,
   },
   {
     nombre: 'Creator Demo',
@@ -41,6 +43,7 @@ const USERS = [
     password: 'Creator2026x',
     rol: 'creator',
     emailVerificado: true,
+    betaAccess: true,
   },
   {
     nombre: 'Advertiser Demo',
@@ -48,6 +51,7 @@ const USERS = [
     password: 'Advert2026x',
     rol: 'advertiser',
     emailVerificado: true,
+    betaAccess: true,
     perfilAnunciante: { nombreEmpresa: 'Demo Company SL' },
   },
 ];
@@ -58,14 +62,26 @@ async function seed() {
   console.log('Connected.\n');
 
   for (const u of USERS) {
-    const exists = await Usuario.findOne({ email: u.email }).lean();
+    const exists = await Usuario.findOne({ email: u.email });
     if (exists) {
-      console.log(`  SKIP  ${u.email} (already exists, rol: ${exists.rol})`);
+      // Upgrade existing seeded users in place: make sure they carry the
+      // betaAccess flag even if the seed ran before the field existed.
+      let changed = false;
+      if (exists.betaAccess !== true) {
+        exists.betaAccess = true;
+        changed = true;
+      }
+      if (changed) {
+        await exists.save();
+        console.log(`  UPDATE ${u.email} (betaAccess=true)`);
+      } else {
+        console.log(`  SKIP   ${u.email} (already exists, rol: ${exists.rol})`);
+      }
       continue;
     }
     const hashed = await bcrypt.hash(u.password, 12);
     await Usuario.create({ ...u, password: hashed });
-    console.log(`  CREATE ${u.email}  [${u.rol}]`);
+    console.log(`  CREATE ${u.email}  [${u.rol}]  betaAccess=${u.betaAccess === true}`);
   }
 
   console.log('\nSeed complete.');

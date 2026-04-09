@@ -25,6 +25,13 @@ const FULL_ACCESS_EMAILS = (process.env.FULL_ACCESS_EMAILS || 'admin@channelad.i
 const buildUserResponse = (usuario) => {
   const email = (usuario?.email || '').toLowerCase();
   const rol = usuario?.rol || '';
+  // Beta program: admins always in, plus any user whose DB flag is true.
+  // FULL_ACCESS_EMAILS is kept as a legacy env fallback so existing deploys
+  // don't lose access on rollout before the DB migration runs.
+  const betaAccess =
+    rol === 'admin' ||
+    usuario?.betaAccess === true ||
+    FULL_ACCESS_EMAILS.includes(email);
   return {
     id: usuario?._id ? usuario._id.toString() : undefined,
     email: usuario?.email,
@@ -32,7 +39,10 @@ const buildUserResponse = (usuario) => {
     nombre: usuario?.nombre,
     apellido: usuario?.apellido,
     emailVerificado: usuario?.emailVerificado,
-    fullAccess: rol === 'admin' || FULL_ACCESS_EMAILS.includes(email),
+    // fullAccess is kept as an alias for betaAccess so existing frontend
+    // consumers (FullAccessOnly wrapper, isFullAccess) continue to work.
+    fullAccess: betaAccess,
+    betaAccess,
     campaignCredits: usuario?.campaignCreditsBalance || 0,
   };
 };

@@ -49,6 +49,11 @@ const UsuarioSchema = new mongoose.Schema(
     // Campaign credits (welcome bonus for referred users, spent on campaigns)
     campaignCreditsBalance: { type: Number, default: 0 },
 
+    // Beta program — gates access to the /advertiser and /creator dashboards.
+    // Admins are always beta. Normal users stay false until explicitly flipped
+    // (via admin panel, seed script, or manual DB update).
+    betaAccess: { type: Boolean, default: false, index: true },
+
     // Bot verification & Founder program
     botVerified: { type: Boolean, default: false },
     founderTier: { type: Boolean, default: false },

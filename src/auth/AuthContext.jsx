@@ -126,9 +126,14 @@ export function AuthProvider({ children }) {
 
   const value = useMemo(() => {
     const rol = user?.rol || user?.role || ''
-    // Full-access is determined by the backend (user.fullAccess flag) or admin role.
-    // Never hardcode email whitelists in the frontend — they're visible in the JS bundle.
-    const isFullAccess = rol === 'admin' || user?.fullAccess === true
+    // Beta access is the canonical gate for the dashboard. Backend fills
+    // both `betaAccess` (new) and `fullAccess` (legacy alias) so we accept
+    // either. Admins are always in. Never hardcode email whitelists here —
+    // the DB flag is the source of truth.
+    const betaAccess =
+      rol === 'admin' ||
+      user?.betaAccess === true ||
+      user?.fullAccess === true
 
     return {
       token,
@@ -143,10 +148,13 @@ export function AuthProvider({ children }) {
       logout,
       setAuthFromVerification,
       clearError: () => setError(''),
-      isAnunciante: rol === 'anunciante',
-      isCreador: rol === 'creador',
+      isAnunciante: rol === 'anunciante' || rol === 'advertiser',
+      isCreador: rol === 'creador' || rol === 'creator',
       isAdmin: rol === 'admin',
-      isFullAccess,
+      betaAccess,
+      // Legacy alias — kept so existing call sites (FullAccessOnly, etc.)
+      // keep working without churn.
+      isFullAccess: betaAccess,
     }
   }, [token, refreshToken, user, loading, error, isAuthenticated])
 
