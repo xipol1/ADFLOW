@@ -10,6 +10,34 @@ import apiService from '../../../../../services/api'
 import {
   PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK,
 } from '../../../theme/tokens'
+import { C } from '../../../theme/tokens'
+import ChannelCard from '../../../components/ChannelCard'
+
+// Map the advertiser-side explore shape (legacy: name/platform/category/
+// audience/pricePerPost/verified) to the canonical canal shape expected
+// by ChannelCard + scoring. Scoring v2 fields stay undefined unless the
+// API already returns them; ChannelCard degrades silently.
+const mapExploreChannel = (ch) => ({
+  id: ch.id,
+  nombre: ch.name,
+  plataforma: ch.platform,
+  nicho: ch.category,
+  seguidores: ch.audience || 0,
+  CAS: ch.CAS,
+  CAF: ch.CAF,
+  CTF: ch.CTF,
+  CER: ch.CER,
+  CVS: ch.CVS,
+  CAP: ch.CAP,
+  nivel: ch.nivel,
+  CPMDinamico: ch.CPMDinamico || ch.pricePerPost,
+  verificacion: ch.verificacion || {
+    confianzaScore: ch.verified ? 60 : 30,
+    tipoAcceso: ch.verified ? 'tracking_url' : 'declarado',
+  },
+  antifraude: ch.antifraude || { ratioCTF_CAF: null, flags: [] },
+  benchmark: ch.benchmark,
+})
 
 
 const fmtAudience = (n) => {
@@ -1285,6 +1313,9 @@ export default function ExplorePage() {
   const [channels, setChannels]     = useState([])
   const [apiLoaded, setApiLoaded]   = useState(false)
   const [channelsLoading, setChannelsLoading] = useState(true)
+  // New scoring-driven filters (Block E)
+  const [casMin, setCasMin]                 = useState(0)
+  const [soloDisponible, setSoloDisponible] = useState(false)
 
   // Fetch channels from API
   useEffect(() => {
@@ -1329,6 +1360,15 @@ export default function ExplorePage() {
       if (category !== 'all' && c.category !== category) return false
       if (onlyVerified && !c.verified) return false
       if (c.pricePerPost > maxPrice) return false
+      // Block E: CAS minimum. Channels without CAS data pass through
+      // when the minimum is 0; they're excluded once the user asks for
+      // any positive minimum because "unknown" can't be >= threshold.
+      if (casMin > 0) {
+        if (c.CAS == null || Number(c.CAS) < casMin) return false
+      }
+      // Block E: availability toggle. campaniaActiva is populated by
+      // the backend when the channel has a PAID/PUBLISHED campaign.
+      if (soloDisponible && c.campaniaActiva) return false
       return true
     })
     if (sortBy === 'price-asc')  arr = [...arr].sort((a, b) => a.pricePerPost - b.pricePerPost)
@@ -1336,7 +1376,7 @@ export default function ExplorePage() {
     if (sortBy === 'audience')   arr = [...arr].sort((a, b) => b.audience - a.audience)
     if (sortBy === 'engagement') arr = [...arr].sort((a, b) => b.engagement - a.engagement)
     return arr
-  }, [channels, search, platform, category, sortBy, onlyVerified, maxPrice])
+  }, [channels, search, platform, category, sortBy, onlyVerified, maxPrice, casMin, soloDisponible])
 
   const activeFilters = [
     platform !== 'all',
@@ -1474,7 +1514,7 @@ export default function ExplorePage() {
           {/* Other options */}
           <div>
             <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Opciones</label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginBottom: 10 }}>
               <div
                 onClick={() => setOnlyVerified(v => !v)}
                 style={{ width: '40px', height: '22px', borderRadius: '11px', background: onlyVerified ? PURPLE : 'var(--border)', position: 'relative', transition: 'background .2s', cursor: 'pointer', flexShrink: 0 }}
@@ -1483,12 +1523,47 @@ export default function ExplorePage() {
               </div>
               <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)' }}>Solo verificados</span>
             </label>
+            {/* Block E: only available toggle */}
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+              <div
+                onClick={() => setSoloDisponible(v => !v)}
+                style={{ width: '40px', height: '22px', borderRadius: '11px', background: soloDisponible ? C.teal : 'var(--border)', position: 'relative', transition: 'background .2s', cursor: 'pointer', flexShrink: 0 }}
+              >
+                <div style={{ position: 'absolute', top: '3px', left: soloDisponible ? '21px' : '3px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left .2s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
+              </div>
+              <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)' }}>Solo disponibles</span>
+            </label>
+          </div>
+
+          {/* Block E: CAS minimum slider */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                CAS mínimo
+              </label>
+              <span style={{ fontFamily: FONT_DISPLAY, fontSize: 14, fontWeight: 700, color: casMin > 0 ? C.teal : 'var(--muted)' }}>
+                {casMin > 0 ? casMin : 'Cualquiera'}
+              </span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={casMin}
+              onChange={(e) => setCasMin(Number(e.target.value))}
+              style={{ width: '100%', accentColor: C.teal }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+              <span style={{ fontSize: 11, color: 'var(--muted2)' }}>0</span>
+              <span style={{ fontSize: 11, color: 'var(--muted2)' }}>100</span>
+            </div>
           </div>
 
           {/* Reset */}
-          {activeFilters > 0 && (
+          {(activeFilters > 0 || casMin > 0 || soloDisponible) && (
             <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-              <button onClick={() => { setPlatform('all'); setCategory('all'); setOnlyVerified(false); setMaxPrice(2000) }} style={{ background: 'none', border: 'none', fontSize: '13px', color: '#ef4444', cursor: 'pointer', fontFamily: FONT_BODY, fontWeight: 600, padding: 0 }}>
+              <button onClick={() => { setPlatform('all'); setCategory('all'); setOnlyVerified(false); setMaxPrice(2000); setCasMin(0); setSoloDisponible(false) }} style={{ background: 'none', border: 'none', fontSize: '13px', color: '#ef4444', cursor: 'pointer', fontFamily: FONT_BODY, fontWeight: 600, padding: 0 }}>
                 ✕ Limpiar filtros
               </button>
             </div>
@@ -1519,13 +1594,29 @@ export default function ExplorePage() {
       ) : viewMode === 'grid' ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
           {filtered.map(ch => (
-            <ChannelCardGrid key={ch.id} ch={ch} onDetail={setModalCh} onHire={setHireCh} />
+            <ChannelCard
+              key={ch.id}
+              canal={mapExploreChannel(ch)}
+              variant="standard"
+              mode="advertiser"
+              disponible={!ch.campaniaActiva}
+              onSelect={() => setModalCh(ch)}
+              onCTA={() => setHireCh(ch)}
+            />
           ))}
         </div>
       ) : (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden' }}>
-          {filtered.map((ch, i) => (
-            <ChannelRowList key={ch.id} ch={ch} onDetail={setModalCh} onHire={setHireCh} isLast={i === filtered.length - 1} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {filtered.map((ch) => (
+            <ChannelCard
+              key={ch.id}
+              canal={mapExploreChannel(ch)}
+              variant="compact"
+              mode="advertiser"
+              disponible={!ch.campaniaActiva}
+              onSelect={() => setModalCh(ch)}
+              onCTA={() => setHireCh(ch)}
+            />
           ))}
         </div>
       )}

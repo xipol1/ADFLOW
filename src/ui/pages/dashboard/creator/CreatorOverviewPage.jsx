@@ -4,6 +4,8 @@ import { Radio, Inbox, DollarSign, TrendingUp, Plus, ChevronRight, Clock, Check,
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../../services/api'
 import { GREEN, greenAlpha, PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK as _OK, WARN as _WARN, BLUE as _BLUE, PLAT_COLORS } from '../../../theme/tokens'
+import { C, nivelFromCAS } from '../../../theme/tokens'
+import { CASBadge, ScoreGauge, CPMBadge, ConfianzaBadge, BenchmarkBar } from '../../../components/scoring'
 import { Sparkline, ErrorBanner } from '../shared/DashComponents'
 
 const WA  = GREEN
@@ -310,6 +312,22 @@ export default function CreatorOverviewPage() {
   const h = new Date().getHours()
   const greeting = h < 13 ? `Buenos días, ${nameFirst}` : h < 20 ? `Buenas tardes, ${nameFirst}` : `Buenas noches, ${nameFirst}`
 
+  // ── Main channel selection (for CAS Hero) ──────────────────────────────
+  // If the creator has multiple channels, default to the one with the
+  // highest CAS. The user can override via the header select below.
+  const [selectedChannelId, setSelectedChannelId] = useState(null)
+  const mainChannel = (() => {
+    if (!channels.length) return null
+    if (selectedChannelId) {
+      const found = channels.find(c => (c._id || c.id) === selectedChannelId)
+      if (found) return found
+    }
+    // Default: the channel with the highest CAS, or the first one
+    const sorted = channels.slice().sort((a, b) => (b.CAS || 0) - (a.CAS || 0))
+    return sorted[0]
+  })()
+  const mainChannelHasCAS = mainChannel && Number(mainChannel.CAS) > 0
+
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '1150px' }}>
 
@@ -336,6 +354,116 @@ export default function CreatorOverviewPage() {
       </div>
 
       {fetchError && <ErrorBanner message={fetchError} onRetry={() => { setFetchError(null); setRetryKey(k => k + 1) }} style={{ marginBottom: '20px' }} />}
+
+      {/* ── Channel selector (only if multiple channels) ── */}
+      {channels.length > 1 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 12, color: 'var(--muted)', fontFamily: F }}>Canal activo:</span>
+          <select
+            value={(mainChannel && (mainChannel._id || mainChannel.id)) || ''}
+            onChange={(e) => setSelectedChannelId(e.target.value)}
+            style={{
+              background: 'var(--surface)',
+              color: 'var(--text)',
+              border: '1px solid var(--border)',
+              borderRadius: 10,
+              padding: '8px 14px',
+              fontSize: 13,
+              fontFamily: F,
+              outline: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            {channels.map((ch) => (
+              <option key={ch._id || ch.id} value={ch._id || ch.id}>
+                {ch.nombreCanal || ch.nombre || 'Canal'} · {ch.plataforma || ''}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* ── CAS Hero ── */}
+      {mainChannelHasCAS ? (
+        <div
+          style={{
+            position: 'relative',
+            background: 'var(--surface)',
+            border: `1px solid ${C.borderEl}`,
+            borderRadius: 16,
+            padding: '20px 22px',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: `radial-gradient(circle at top right, ${C.tealGlow}, transparent 60%)`,
+              pointerEvents: 'none',
+            }}
+          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap', position: 'relative' }}>
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <div className="font-mono" style={{ fontSize: 12, color: C.t2, marginBottom: 6 }}>
+                @{mainChannel.nombreCanal || mainChannel.nombre || 'canal'}
+              </div>
+              <ScoreGauge CAS={mainChannel.CAS} nivel={mainChannel.nivel} showLabel height={8} />
+              <div className="font-mono" style={{ display: 'flex', gap: 12, marginTop: 10, fontSize: 11, color: C.t3 }}>
+                {mainChannel.CAF != null && <span>CAF {Math.round(mainChannel.CAF)}</span>}
+                {mainChannel.CTF != null && <span>CTF {Math.round(mainChannel.CTF)}</span>}
+                {mainChannel.CAP != null && <span>CAP {Math.round(mainChannel.CAP)}</span>}
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
+              {Number(mainChannel.CPMDinamico) > 0 && (
+                <CPMBadge CPM={mainChannel.CPMDinamico} plataforma={mainChannel.plataforma} size="lg" />
+              )}
+              {mainChannel.verificacion?.confianzaScore != null && (
+                <ConfianzaBadge
+                  score={mainChannel.verificacion.confianzaScore}
+                  fuente={mainChannel.verificacion.tipoAcceso}
+                  showScore
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      ) : channels.length > 0 ? (
+        <div
+          style={{
+            background: 'var(--surface)',
+            border: '1px dashed var(--border)',
+            borderRadius: 14,
+            padding: '16px 20px',
+            color: 'var(--muted)',
+            fontSize: 13,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
+          }}
+        >
+          <span>Verifica tu canal para obtener tu CAS Score</span>
+          <button
+            onClick={() => navigate('/creator/channels')}
+            style={{
+              background: 'transparent',
+              color: C.teal,
+              border: `1px solid ${C.teal}66`,
+              borderRadius: 8,
+              padding: '6px 14px',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: F,
+            }}
+          >
+            Verificar canal →
+          </button>
+        </div>
+      ) : null}
 
       {/* ── Period selector ── */}
       <div style={{ display: 'flex', gap: '2px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '3px', width: 'fit-content' }}>
@@ -421,6 +549,7 @@ export default function CreatorOverviewPage() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>{name}</span>
+                      {Number(ch.CAS) > 0 && <CASBadge CAS={ch.CAS} nivel={ch.nivel} size="xs" />}
                       <PlatBadge p={platLabel} />
                       {ch.verificado && <span style={{ fontSize: '10px', color: OK, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '3px' }}>✓ Verificado</span>}
                     </div>

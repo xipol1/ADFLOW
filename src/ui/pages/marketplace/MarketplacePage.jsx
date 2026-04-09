@@ -4,6 +4,31 @@ import SEO from '../../components/SEO'
 import { useAuth } from '../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { PURPLE as A, PURPLE_DARK as AD, purpleAlpha as AG, PLATFORM_BRAND as PLAT, STATUS as BADGE, FONT_BODY, FONT_DISPLAY } from '../../theme/tokens'
+import ChannelCard from '../../components/ChannelCard'
+
+// Map the marketplace listing shape (aggregated in MarketplacePage's
+// own useMemo with API + fallback mock data) to the canonical canal
+// shape ChannelCard expects. Unknown scoring v2 fields stay undefined.
+const mapListingChannel = (l) => ({
+  id: l.id,
+  nombre: l.name || l.title,
+  plataforma: (l.platCls || l.platform || '').toLowerCase(),
+  nicho: l.category,
+  seguidores: typeof l.audienceRaw === 'number' ? l.audienceRaw : undefined,
+  CAS: l.CAS,
+  CAF: l.CAF,
+  CTF: l.CTF,
+  CER: l.CER,
+  CVS: l.CVS,
+  CAP: l.CAP,
+  nivel: l.nivel,
+  CPMDinamico: l.CPMDinamico || l.priceNum,
+  verificacion: l.verificacion || {
+    confianzaScore: l.verified ? 65 : 30,
+    tipoAcceso: l.verified ? 'tracking_url' : 'declarado',
+  },
+  antifraude: l.antifraude || { ratioCTF_CAF: null, flags: [] },
+})
 
 const CATEGORY_ICONS = {
   'ecommerce': '🛒', 'fitness': '💪', 'marketing': '📈', 'gaming': '🎮',
@@ -50,7 +75,6 @@ export default function MarketplacePage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchInput, setSearchInput] = useState(searchParams.get('q') || '')
-  const [hovCard, setHovCard] = useState(null)
   const [apiChannels, setApiChannels] = useState(null)
   const [pagination, setPagination] = useState(null) // { total, totalPaginas }
   const [loading, setLoading] = useState(true)
@@ -134,11 +158,18 @@ export default function MarketplacePage() {
         rating: ch.rating || (4.5 + Math.random() * 0.5).toFixed(1),
         reviews: ch.reviews || Math.floor(50 + Math.random() * 400),
         members: fmtAudience(aud),
+        audienceRaw: aud, // raw number for ChannelCard seguidores
         price: `€${ch.precio || ch.pricePerPost || 0}`,
         priceNum: ch.precio || ch.pricePerPost || 0,
         icon: CATEGORY_ICONS[cat.toLowerCase()] || '📢',
         engagement: ch.engagement || '4.2%',
         verified: ch.verificado || ch.verified || false,
+        // Scoring v2 passthrough (undefined if API doesn't return them)
+        CAS: ch.CAS, CAF: ch.CAF, CTF: ch.CTF, CER: ch.CER, CVS: ch.CVS, CAP: ch.CAP,
+        nivel: ch.nivel,
+        CPMDinamico: ch.CPMDinamico,
+        verificacion: ch.verificacion,
+        antifraude: ch.antifraude,
       }
     })
 
@@ -317,107 +348,16 @@ export default function MarketplacePage() {
           </div>
         ) : !loading && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-            {listings.map((l, i) => {
-              const plat  = PLAT[l.platCls] || { color: A, bg: AG(0.12), label: l.platform }
-              const badge = l.badgeType ? BADGE[l.badgeType] : null
-              const isHov = hovCard === i
-              return (
-                <div key={l.id || i}
-                  onMouseEnter={() => setHovCard(i)}
-                  onMouseLeave={() => setHovCard(null)}
-                  style={{
-                    background: 'var(--surface)',
-                    border: `1px solid ${isHov ? 'var(--border-med)' : 'var(--border)'}`,
-                    borderRadius: '14px', overflow: 'hidden', cursor: 'pointer',
-                    transition: 'all .2s',
-                    transform: isHov ? 'translateY(-4px)' : 'none',
-                    boxShadow: isHov ? '0 20px 48px rgba(0,0,0,0.3)' : 'none',
-                  }}
-                >
-                  {/* Thumbnail */}
-                  <div style={{
-                    height: '120px', position: 'relative',
-                    background: 'var(--bg3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderBottom: '1px solid var(--border)',
-                  }}>
-                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '3px', background: plat.color }} />
-                    <div style={{
-                      width: '44px', height: '44px', borderRadius: '11px',
-                      background: plat.bg, border: `1px solid ${plat.color}25`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px',
-                    }}>{l.icon}</div>
-                    <div style={{
-                      position: 'absolute', top: '10px', left: '16px',
-                      background: plat.bg, color: plat.color,
-                      borderRadius: '6px', padding: '3px 8px',
-                      fontSize: '11px', fontWeight: 600,
-                    }}>{plat.label}</div>
-                    {badge && (
-                      <div style={{
-                        position: 'absolute', top: '10px', right: '10px',
-                        background: badge.bg, color: badge.color,
-                        border: `1px solid ${badge.border}`,
-                        borderRadius: '6px', padding: '2px 8px',
-                        fontSize: '10px', fontWeight: 700,
-                      }}>{l.badge}</div>
-                    )}
-                    {l.engagement && (
-                      <div style={{
-                        position: 'absolute', bottom: '10px', right: '10px',
-                        background: 'rgba(0,0,0,0.6)', color: '#fff',
-                        borderRadius: '5px', padding: '2px 7px',
-                        fontSize: '10px', fontWeight: 600, backdropFilter: 'blur(4px)',
-                      }}>⚡ {l.engagement}</div>
-                    )}
-                  </div>
-
-                  {/* Body */}
-                  <div style={{ padding: '16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                      <div style={{
-                        width: '26px', height: '26px', borderRadius: '50%',
-                        background: `${l.color}20`, border: `1px solid ${l.color}40`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '10px', fontWeight: 700, color: l.color, flexShrink: 0,
-                      }}>{l.initials}</div>
-                      <span style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {l.name || l.seller}
-                        {l.isPro && <span style={{ fontSize: '10px', background: AG(0.12), color: A, borderRadius: '4px', padding: '1px 6px', fontWeight: 600, marginLeft: '5px' }}>PRO</span>}
-                      </span>
-                    </div>
-
-                    <p style={{
-                      fontSize: '13px', lineHeight: 1.5, color: 'var(--text)', marginBottom: '12px',
-                      display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                    }}>{l.title}</p>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: 'var(--muted)', marginBottom: '14px' }}>
-                      <span style={{ color: '#f59e0b' }}>★ <span style={{ color: 'var(--text)', fontWeight: 600 }}>{l.rating}</span></span>
-                      <span>({l.reviews})</span>
-                      <span style={{ marginLeft: 'auto' }}>{l.members} seguidores</span>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
-                      <div>
-                        <span style={{ fontFamily: D, fontSize: '18px', fontWeight: 700 }}>{l.price}</span>
-                        <span style={{ fontSize: '11px', color: 'var(--muted)', marginLeft: '2px' }}>/post</span>
-                      </div>
-                      <button onClick={() => handleContract(l)} style={{
-                        background: 'transparent', color: A,
-                        border: `1px solid ${AG(0.3)}`,
-                        borderRadius: '7px', padding: '6px 14px',
-                        fontSize: '12px', fontWeight: 600,
-                        cursor: 'pointer', transition: 'all .2s',
-                      }}
-                        onMouseEnter={e => { e.currentTarget.style.background = A; e.currentTarget.style.color = '#fff' }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = A }}
-                      >{isAuthenticated ? 'Contratar' : 'Ver canal'}</button>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
+            {listings.map((l) => (
+              <ChannelCard
+                key={l.id}
+                canal={mapListingChannel(l)}
+                variant="standard"
+                mode="marketplace"
+                disponible
+                onCTA={() => navigate(`/channel/${l.id}`)}
+              />
+            ))}
           </div>
         )}
         {/* Pagination */}

@@ -9,6 +9,28 @@ import {
 import { PLATFORM_COLORS } from './mockDataCreator'
 import apiService from '../../../../../services/api'
 import { PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK as _OK, WARN, ERR, BLUE } from '../../../theme/tokens'
+import ChannelCard from '../../../components/ChannelCard'
+
+// Map the creator-side channel payload to the canonical shape the
+// scoring ChannelCard expects. Fields that don't exist in the API
+// response stay undefined so ChannelCard degrades silently.
+const mapCreatorChannel = (ch) => ({
+  id: ch._id || ch.id,
+  nombre: ch.nombreCanal,
+  plataforma: ch.plataforma,
+  nicho: ch.categoria,
+  seguidores: ch.estadisticas?.seguidores || 0,
+  CAS: ch.CAS,
+  CAF: ch.CAF,
+  CTF: ch.CTF,
+  CER: ch.CER,
+  CVS: ch.CVS,
+  CAP: ch.CAP,
+  nivel: ch.nivel,
+  CPMDinamico: ch.CPMDinamico,
+  verificacion: ch.verificacion,
+  antifraude: ch.antifraude,
+})
 
 // ─── Design tokens ──────────────────────────────────────────────────────────
 const A  = PURPLE
@@ -1359,50 +1381,17 @@ export default function CreatorChannelsPage() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {channels.map(ch => {
-            const platColor = PLATFORM_COLORS[(ch.plataforma || '').charAt(0).toUpperCase() + (ch.plataforma || '').slice(1)] || A
-            const enabledCount = (ch.disponibilidad?.diasSemana || [1,2,3,4,5]).length
-            const maxPub = ch.disponibilidad?.maxPublicacionesMes || 20
-            return (
-              <div key={ch._id || ch.id} onClick={() => setSelectedChannel(ch)} style={{
-                background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px',
-                overflow: 'hidden', cursor: 'pointer', transition: 'border-color .15s, box-shadow .15s',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = AG(0.35); e.currentTarget.style.boxShadow = `0 4px 20px ${AG(0.08)}` }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none' }}
-              >
-                <div style={{ height: '3px', background: platColor }} />
-                <div style={{ padding: '18px 22px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  {/* Avatar */}
-                  <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: ch.perfil?.foto ? `url(${ch.perfil.foto}) center/cover` : AG(0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: D, fontSize: '18px', fontWeight: 800, color: A, flexShrink: 0 }}>
-                    {!ch.perfil?.foto && (ch.nombreCanal || '?')[0].toUpperCase()}
-                  </div>
-
-                  {/* Info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                      <span style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>{ch.nombreCanal}</span>
-                      <span style={{ background: `${platColor}18`, color: platColor, border: `1px solid ${platColor}35`, borderRadius: '6px', padding: '1px 7px', fontSize: '10px', fontWeight: 600 }}>{ch.plataforma}</span>
-                      {ch.estado === 'activo' && <CheckCircle size={12} color={OK} />}
-                      <span style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '5px', padding: '1px 6px', fontSize: '10px', color: 'var(--muted)' }}>{ch.categoria}</span>
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
-                      {fmtK(ch.estadisticas?.seguidores || 0)} seguidores · {enabledCount} dias/semana · {maxPub} slots/mes
-                    </div>
-                  </div>
-
-                  {/* Price */}
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontFamily: D, fontSize: '22px', fontWeight: 800, color: 'var(--text)' }}>€{ch.precio || 0}</div>
-                    <div style={{ fontSize: '10px', color: 'var(--muted)' }}>precio base</div>
-                  </div>
-
-                  {/* Arrow */}
-                  <ArrowUpRight size={18} color="var(--muted)" style={{ flexShrink: 0 }} />
-                </div>
-              </div>
-            )
-          })}
+          {channels.map((ch) => (
+            <ChannelCard
+              key={ch._id || ch.id}
+              canal={mapCreatorChannel(ch)}
+              variant="compact"
+              mode="creator"
+              disponible={(ch.disponibilidad?.diasSemana?.length || 0) > 0}
+              onSelect={() => setSelectedChannel(ch)}
+              onCTA={() => navigate(`/creator/channels/${ch._id || ch.id}/analytics`)}
+            />
+          ))}
 
           {/* Add card */}
           <button onClick={() => goToRegister()} style={{

@@ -5,6 +5,7 @@ import AdvertiserDashboard from './AdvertiserDashboard'
 import CreatorDashboard from './CreatorDashboard'
 import AdminDashboard from './AdminDashboard'
 import { PURPLE as A, purpleAlpha as AG, FONT_BODY as F, FONT_DISPLAY as D } from '../../theme/tokens'
+import { C } from '../../theme/tokens'
 
 const dashboardByRole = {
   admin:      AdminDashboard,
@@ -23,16 +24,24 @@ const NAV_ITEMS = [
 export default function DashboardPage() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const { pathname } = useLocation()
+  const location = useLocation()
+  const { pathname } = location
 
   const role = user?.role || user?.rol || 'advertiser'
 
+  // Beta wall: ProtectedRoute bounced the user here because they don't
+  // have betaAccess. DO NOT auto-redirect them to /advertiser or /creator
+  // (that's what this page normally does for those roles) — otherwise we
+  // create an infinite loop. Instead, fall through and render the banner
+  // + a limited view (verify channel + invite friends).
+  const betaWall = location.state?.betaWall === true
+
   // Advertisers → full advertiser suite
-  if (role === 'advertiser' || role === 'anunciante') {
+  if (!betaWall && (role === 'advertiser' || role === 'anunciante')) {
     return <Navigate to="/advertiser" replace />
   }
   // Creators → full creator suite
-  if (role === 'creator' || role === 'creador') {
+  if (!betaWall && (role === 'creator' || role === 'creador')) {
     return <Navigate to="/creator" replace />
   }
 
@@ -128,6 +137,64 @@ export default function DashboardPage() {
 
       {/* ── Main content ─────────────────────────── */}
       <div style={{ flex: 1, padding: '28px 32px', minWidth: 0 }}>
+        {betaWall && (
+          <div
+            style={{
+              background: C.tealDim,
+              border: `1px solid ${C.teal}`,
+              borderRadius: 16,
+              padding: 20,
+              marginBottom: 24,
+            }}
+          >
+            <div style={{ color: C.t1, fontSize: 16, fontWeight: 700, marginBottom: 6 }}>
+              🚀 Estás en lista de acceso anticipado
+            </div>
+            <div style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>
+              Mientras preparamos tu acceso completo, puedes verificar tu canal
+              y empezar a invitar personas.
+            </div>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <Link
+                to={role === 'creator' || role === 'creador' ? '/creator/channels/new' : '/creator/channels/new'}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: C.teal,
+                  color: C.bg,
+                  borderRadius: 10,
+                  padding: '10px 18px',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  fontFamily: F,
+                }}
+              >
+                Verificar mi canal
+              </Link>
+              <Link
+                to={role === 'creator' || role === 'creador' ? '/creator/referrals' : '/advertiser/referrals'}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: 'transparent',
+                  color: C.teal,
+                  border: `1px solid ${C.teal}`,
+                  borderRadius: 10,
+                  padding: '10px 18px',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  fontFamily: F,
+                }}
+              >
+                Invitar amigos
+              </Link>
+            </div>
+          </div>
+        )}
         <RoleDashboard user={user} role={role} />
       </div>
     </div>
