@@ -178,6 +178,9 @@ CanalSchema.index({ estado: 1, nivel: 1 });
 
 CanalSchema.index({ plataforma: 1, identificadorCanal: 1 }, { unique: false });
 
+// Channel Explorer: filter by category + sort by CAS
+CanalSchema.index({ categoria: 1, CAS: 1 });
+
 // ── Encrypt sensitive credential fields before saving ──
 CanalSchema.pre('save', function (next) {
   try {

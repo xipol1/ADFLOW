@@ -16,10 +16,9 @@
  * Output: { CAF, CTF, CER, CVS, CAP, CAS, nivel, CPMDinamico,
  *           confianzaScore, ratioCTF_CAF, flags }
  *
- * v1 vs v2: channelScoring.js (v1) is still used during onboarding, when
- * a channel hasn't been verified yet. v2 runs nightly for verified/active
- * channels and uses real campaign performance (the CAP component) which
- * is the only score that can't be faked.
+ * v2 runs nightly for verified/active channels and uses real campaign
+ * performance (the CAP component) which is the only score that can't be
+ * faked.
  */
 
 const {

@@ -125,3 +125,81 @@ export const NOTIF_TYPE = {
   info:    { emoji: 'ℹ️',  color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
   warning: { emoji: '⚠️', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
 }
+
+// ─── Scoring UI tokens (dark-first, data-dense) ──────────────────────────────
+// Used by src/ui/components/scoring/* and downstream scoring pages.
+// Kept separate from the marketing/landing palette above so that legacy
+// consumers of the purple/green brand colors keep working unchanged.
+export const C = {
+  // Surfaces
+  bg:        '#0B1120',
+  surface:   '#111827',
+  surfaceEl: '#1C2A3F',
+  border:    '#1E2D45',
+  borderEl:  '#2A3F5F',
+
+  // Global accent
+  teal:      '#00D4B8',
+  tealDim:   'rgba(0,212,184,0.12)',
+  tealGlow:  'rgba(0,212,184,0.06)',
+
+  // Roles
+  adv:       '#818CF8',  // Advertiser — indigo
+  cre:       '#34D399',  // Creator — emerald
+  adm:       '#FBBF24',  // Admin — amber
+
+  // CAS levels
+  elite:     '#818CF8',
+  gold:      '#F59E0B',
+  silver:    '#94A3B8',
+  bronze:    '#B87333',
+
+  // Traffic-light semantics
+  ok:        '#10B981',
+  okDim:     'rgba(16,185,129,0.15)',
+  warn:      '#F59E0B',
+  warnDim:   'rgba(245,158,11,0.15)',
+  alert:     '#EF4444',
+  alertDim:  'rgba(239,68,68,0.15)',
+
+  // Text
+  t1:        '#F1F5F9',
+  t2:        '#94A3B8',
+  t3:        '#475569',
+}
+
+export const NIVEL = {
+  ELITE:  { color: C.elite,  label: 'ELITE',  min: 80 },
+  GOLD:   { color: C.gold,   label: 'GOLD',   min: 61 },
+  SILVER: { color: C.silver, label: 'SILVER', min: 41 },
+  BRONZE: { color: C.bronze, label: 'BRONZE', min: 0  },
+}
+
+export const nivelFromCAS = (cas) =>
+  cas >= 80 ? NIVEL.ELITE :
+  cas >= 61 ? NIVEL.GOLD  :
+  cas >= 41 ? NIVEL.SILVER : NIVEL.BRONZE
+
+export const confianzaColor = (n) =>
+  n >= 80 ? C.ok : n >= 50 ? C.warn : C.alert
+
+export const fuenteLabel = {
+  admin_directo: 'Admin',
+  oauth_graph:   'OAuth',
+  bot_miembro:   'Bot',
+  tracking_url:  'URL',
+  declarado:     'Decl.',
+}
+
+export const plataformaIcon = {
+  telegram:   '✈️',
+  whatsapp:   '📱',
+  discord:    '🎮',
+  instagram:  '📸',
+  facebook:   '📘',
+  newsletter: '📧',
+  blog:       '📝',
+}
+
+export const TIERS = ['free', 'starter', 'growth', 'pro', 'agency']
+export const tierAbove = (a, b) => TIERS.indexOf(a) >= TIERS.indexOf(b)

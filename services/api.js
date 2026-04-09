@@ -232,6 +232,14 @@ class ApiService {
   }
 
   /**
+   * Public channel intelligence endpoint. No auth required.
+   * Returns { canal, scores, historial, benchmark, campanias } or 404.
+   */
+  async getChannelIntelligence(id) {
+    return this.request(`/channels/${id}/intelligence`, { auth: false });
+  }
+
+  /**
    * Crear nuevo canal
    */
   async createChannel(channelData) {
