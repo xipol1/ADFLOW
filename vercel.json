@@ -20,7 +20,7 @@
     },
     {
       "path": "/api/admin/metrics/capture",
-      "schedule": "15 * * * *"
+      "schedule": "30 3 * * *"
     }
   ],
   "headers": [
