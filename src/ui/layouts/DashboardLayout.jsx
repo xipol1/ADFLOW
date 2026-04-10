@@ -337,8 +337,30 @@ function Avatar({ initials, size = 42, accentColor, accentAlpha }) {
 }
 
 
+// ─── Notification type mapping (campana.* → emoji + color) ───────────────────
+const NOTIF_MAP = {
+  'campana.nueva':       { emoji: '📥', color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
+  'campana.completada':  { emoji: '💰', color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
+  'campana.publicada':   { emoji: '📢', color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)' },
+  'campana.cancelada':   { emoji: '✕',  color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
+  'campana.mensaje':     { emoji: '💬', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+  'campana.pagada':      { emoji: '💳', color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
+  'success':             { emoji: '✅', color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
+  'info':                { emoji: 'ℹ️',  color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
+  'warning':             { emoji: '⚠️', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+}
+
+// Map notification type to a navigation path
+function notifNavPath(n, role) {
+  const tipo = n.type || n.tipo || ''
+  if (tipo.startsWith('campana.')) {
+    return role === 'creator' ? '/creator/requests' : '/advertiser/campaigns'
+  }
+  return role === 'creator' ? '/creator' : '/advertiser'
+}
+
 // ─── NotificationBell ────────────────────────────────────────────────────────
-function NotificationBell({ notifications, accentColor, accentAlpha, onNavigate }) {
+function NotificationBell({ notifications, accentColor, accentAlpha, onNavigate, role }) {
   const [open, setOpen] = useState(false)
   const [items, setItems] = useState(notifications)
   const [bellHovered, setBellHovered] = useState(false)
@@ -447,7 +469,7 @@ function NotificationBell({ notifications, accentColor, accentAlpha, onNavigate 
               </div>
             ) : items.slice(0, 8).map((n, i) => {
               const isRead = n.read || n.leida
-              const tc = NOTIF_TYPE[n.type || n.tipo] || NOTIF_TYPE.info
+              const tc = NOTIF_MAP[n.type || n.tipo] || NOTIF_MAP[n.tipo] || NOTIF_MAP.info
               return (
                 <div
                   key={n.id || n._id || i}
@@ -461,11 +483,18 @@ function NotificationBell({ notifications, accentColor, accentAlpha, onNavigate 
                   onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg2)' }}
                   onMouseLeave={e => { e.currentTarget.style.background = isRead ? 'transparent' : accentAlpha(0.04) }}
                   onClick={() => {
+                    // Mark as read
                     if (!isRead) {
                       apiService.markNotificationAsRead?.(n._id || n.id).catch(() => {})
                       setItems(prev => prev.map(x =>
                         (x._id || x.id) === (n._id || n.id) ? { ...x, read: true, leida: true } : x
                       ))
+                    }
+                    // Navigate to the relevant page
+                    const path = notifNavPath(n, role)
+                    if (path && onNavigate) {
+                      onNavigate(path)
+                      setOpen(false)
                     }
                   }}
                 >
@@ -501,11 +530,14 @@ function NotificationBell({ notifications, accentColor, accentAlpha, onNavigate 
 
           {/* Footer */}
           <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
-            <button style={{
-              background: 'none', border: 'none',
-              fontSize: '12px', color: accentColor, cursor: 'pointer',
-              fontFamily: FONT_BODY, fontWeight: 500,
-            }}>
+            <button
+              onClick={() => { onNavigate?.(role === 'creator' ? '/creator/notifications' : '/advertiser/notifications'); setOpen(false) }}
+              style={{
+                background: 'none', border: 'none',
+                fontSize: '12px', color: accentColor, cursor: 'pointer',
+                fontFamily: FONT_BODY, fontWeight: 500,
+              }}
+            >
               Ver todas las notificaciones
             </button>
           </div>
@@ -931,6 +963,8 @@ export default function DashboardLayout({ role = 'advertiser' }) {
               notifications={notifications}
               accentColor={cfg.color}
               accentAlpha={cfg.alpha}
+              role={role}
+              onNavigate={(path) => navigate(path)}
             />
 
             {/* Role badge (hidden on mobile for space) */}
