@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { useAuth } from '../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { PURPLE as A, PURPLE_DARK as AD, purpleAlpha as AG, FONT_BODY, FONT_DISPLAY } from '../../theme/tokens'
 
 export default function AuthPage({ defaultTab = 'login' }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const { login, register } = useAuth()
 
@@ -13,8 +14,12 @@ export default function AuthPage({ defaultTab = 'login' }) {
   const botTokenParam = searchParams.get('bot_token') || ''
   const botEmailParam = searchParams.get('email') || ''
 
+  // If redirected from ProtectedRoute because email not verified
+  const emailNotVerified = location.state?.emailNotVerified === true
+  const unverifiedEmail = location.state?.email || ''
+
   const [tab, setTab]           = useState((refCode || botTokenParam) ? 'register' : defaultTab)
-  const [email, setEmail]       = useState(botEmailParam)
+  const [email, setEmail]       = useState(botEmailParam || unverifiedEmail)
   const [password, setPassword] = useState('')
   const [name, setName]         = useState('')
   const [role, setRole]         = useState(botTokenParam ? 'creator' : 'advertiser')
@@ -69,7 +74,15 @@ export default function AuthPage({ defaultTab = 'login' }) {
       setTwoFAEmail(res.email || email)
       return
     }
-    if (res?.success) { navigate('/dashboard'); return }
+    if (res?.success) {
+      // Block unverified users from entering dashboard
+      if (res.user?.emailVerificado === false) {
+        setError('Verifica tu email antes de iniciar sesión. Revisa tu bandeja de entrada.')
+        return
+      }
+      navigate('/dashboard')
+      return
+    }
     setError(res?.message || 'Credenciales incorrectas')
   }
 
@@ -78,15 +91,24 @@ export default function AuthPage({ defaultTab = 'login' }) {
     if (twoFACode.length < 6) { setError('Introduce un codigo de 6 digitos'); return }
     setError('')
     setLoading(true)
-    // First validate the 2FA code
     const valRes = await apiService.validate2FA(twoFAEmail, twoFACode)
     if (!valRes?.success) { setLoading(false); setError(valRes?.message || 'Codigo invalido'); return }
-    // Then complete login (password already verified, backend will issue tokens)
     const res = await login({ email: twoFAEmail, password, twoFACode: twoFACode })
     setLoading(false)
-    if (res?.success) { navigate('/dashboard'); return }
+    if (res?.success) {
+      if (res.user?.emailVerificado === false) {
+        setError('Verifica tu email antes de iniciar sesión.')
+        return
+      }
+      navigate('/dashboard')
+      return
+    }
     setError(res?.message || 'Error al completar login')
   }
+
+  // Registration success state
+  const [registerSuccess, setRegisterSuccess] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState('')
 
   const onRegister = async (e) => {
     e.preventDefault()
@@ -98,16 +120,16 @@ export default function AuthPage({ defaultTab = 'login' }) {
     setLoading(true)
     const regData = { email, password, nombre: name, role }
     if (botToken) regData.botToken = botToken
-    // Pass referral code atomically in registration body
     const codeToApply = (referral.trim() || refCode).toUpperCase()
     if (codeToApply) regData.referralCode = codeToApply
     const res = await register(regData)
+    setLoading(false)
     if (res?.success) {
-      setLoading(false)
-      navigate('/dashboard')
+      // Don't navigate to dashboard — show "check your email" message
+      setRegisteredEmail(email)
+      setRegisterSuccess(true)
       return
     }
-    setLoading(false)
     setError(res?.message || 'No se pudo crear la cuenta')
   }
 
@@ -196,6 +218,19 @@ export default function AuthPage({ defaultTab = 'login' }) {
         </div>
 
         <div style={{ padding: '28px' }}>
+
+          {/* Email verification required banner */}
+          {emailNotVerified && (
+            <div style={{
+              background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)',
+              borderRadius: '10px', padding: '14px 16px',
+              fontSize: '13px', color: '#f59e0b', marginBottom: '16px',
+              lineHeight: 1.5,
+            }}>
+              <strong>Verifica tu email para continuar.</strong><br />
+              Hemos enviado un enlace de verificación a <strong>{unverifiedEmail}</strong>. Revisa tu bandeja de entrada y haz clic en el enlace antes de iniciar sesión.
+            </div>
+          )}
 
           {/* Error */}
           {error && (
@@ -300,8 +335,39 @@ export default function AuthPage({ defaultTab = 'login' }) {
             </form>
           )}
 
+          {/* REGISTER SUCCESS — verify email */}
+          {registerSuccess && (
+            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>📧</div>
+              <h3 style={{ fontFamily: FONT_DISPLAY, fontSize: '20px', fontWeight: 700, color: 'var(--text)', marginBottom: '12px' }}>
+                ¡Cuenta creada!
+              </h3>
+              <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '8px' }}>
+                Hemos enviado un enlace de verificación a:
+              </p>
+              <p style={{ fontSize: '15px', fontWeight: 700, color: A, marginBottom: '20px' }}>
+                {registeredEmail}
+              </p>
+              <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '24px' }}>
+                Haz clic en el enlace del email para activar tu cuenta y acceder a la plataforma.
+                Si no lo encuentras, revisa la carpeta de spam.
+              </p>
+              <button
+                onClick={() => { setRegisterSuccess(false); setTab('login') }}
+                style={{
+                  background: A, color: '#fff', border: 'none',
+                  borderRadius: '10px', padding: '12px 24px',
+                  fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+                  fontFamily: FONT_BODY,
+                }}
+              >
+                Ir a iniciar sesión
+              </button>
+            </div>
+          )}
+
           {/* REGISTER FORM */}
-          {tab === 'register' && (
+          {tab === 'register' && !registerSuccess && (
             <form onSubmit={onRegister} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
               {/* Founder badge */}

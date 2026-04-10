@@ -61,7 +61,7 @@ function FullAccessOnly({ children, feature }) {
 }
 
 export default function AppRoutes() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
 
   return (
     <Routes>
@@ -73,15 +73,15 @@ export default function AppRoutes() {
         <Route path="niche/:nicho" element={<NicheIntelligencePage />} /> {/* Public niche market intelligence */}
         <Route
           path="auth"
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth/login" replace />}
+          element={isAuthenticated && user?.emailVerificado !== false ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth/login" replace />}
         />
         <Route
           path="auth/login"
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+          element={isAuthenticated && user?.emailVerificado !== false ? <Navigate to="/dashboard" replace /> : <LoginPage />}
         />
         <Route
           path="auth/register"
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
+          element={isAuthenticated && user?.emailVerificado !== false ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
         />
         <Route path="auth/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="verificar-email/:token" element={<VerifyEmailPage />} />

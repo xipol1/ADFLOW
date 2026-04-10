@@ -240,54 +240,49 @@ const registro = async (req, res) => {
 
     const user = await Usuario.create(userData);
 
-    // Update referrer counts after user is created (non-blocking, atomic)
+    // Update referrer counts after user is created (synchronous for serverless).
     if (referralApplied && referrer) {
-      setImmediate(async () => {
-        try {
-          // Atomic increment to avoid race condition with concurrent registrations
-          const updated = await Usuario.findByIdAndUpdate(referrer._id, {
-            $inc: { referralCount: 1 },
-          }, { new: true });
-          // Recalculate tier based on fresh data
-          const newCount = updated.referralCount || 0;
-          const gmv = updated.referralGMVGenerated || 0;
-          let newTier = 'normal';
-          if (gmv >= 20000 || newCount >= 20) newTier = 'partner';
-          else if (gmv >= 5000 || newCount >= 5) newTier = 'power';
-          if (updated.referralTier !== newTier) {
-            await Usuario.findByIdAndUpdate(referrer._id, { referralTier: newTier });
-          }
-          // Notify referrer by email
-          try {
-            const emailService = require('../services/emailService');
-            await emailService.enviarReferidoRegistrado(updated, user.nombre || user.email, newCount, updated.referralCreditsBalance);
-          } catch {}
-          logDev('REGISTER: referrer updated atomically', { referrerId: referrer._id.toString(), count: newCount, tier: newTier });
-        } catch (refErr) {
-          console.error('REGISTER: failed to update referrer:', refErr?.message);
+      try {
+        const updated = await Usuario.findByIdAndUpdate(referrer._id, {
+          $inc: { referralCount: 1 },
+        }, { new: true });
+        const newCount = updated.referralCount || 0;
+        const gmv = updated.referralGMVGenerated || 0;
+        let newTier = 'normal';
+        if (gmv >= 20000 || newCount >= 20) newTier = 'partner';
+        else if (gmv >= 5000 || newCount >= 5) newTier = 'power';
+        if (updated.referralTier !== newTier) {
+          await Usuario.findByIdAndUpdate(referrer._id, { referralTier: newTier });
         }
-      });
+        try {
+          const emailService = require('../services/emailService');
+          await emailService.enviarReferidoRegistrado(updated, user.nombre || user.email, newCount, updated.referralCreditsBalance);
+        } catch {}
+        logDev('REGISTER: referrer updated', { referrerId: referrer._id.toString(), count: newCount, tier: newTier });
+      } catch (refErr) {
+        console.error('REGISTER: failed to update referrer:', refErr?.message);
+      }
     }
 
     logDev('REGISTER: user created', { userId: user._id.toString(), founder: founderApplied, referral: referralApplied });
 
-    // Send verification + welcome emails (non-blocking — don't fail registration if email fails)
-    setImmediate(async () => {
+    // Send verification + welcome emails BEFORE responding.
+    // Must be synchronous (await) in serverless — setImmediate callbacks
+    // get killed when the function returns the HTTP response.
+    try {
+      const emailService = require('../services/emailService');
+      await emailService.enviarEmailVerificacion(user.email, user.nombre || '', verificationToken);
+      logDev('REGISTER: verification email sent', { email: user.email });
       try {
-        const emailService = require('../services/emailService');
-        await emailService.enviarEmailVerificacion(user.email, user.nombre || '', verificationToken);
-        logDev('REGISTER: verification email sent', { email: user.email });
-        // Welcome email with referral code (sent after verification email)
-        try {
-          await emailService.enviarBienvenida(user);
-          logDev('REGISTER: welcome email sent', { email: user.email });
-        } catch (welErr) {
-          console.error('REGISTER: failed to send welcome email:', welErr?.message);
-        }
-      } catch (emailErr) {
-        console.error('REGISTER: failed to send verification email:', emailErr?.message || emailErr);
+        await emailService.enviarBienvenida(user);
+        logDev('REGISTER: welcome email sent', { email: user.email });
+      } catch (welErr) {
+        console.error('REGISTER: failed to send welcome email:', welErr?.message);
       }
-    });
+    } catch (emailErr) {
+      // Don't fail registration if email fails — user can resend later
+      console.error('REGISTER: failed to send verification email:', emailErr?.message || emailErr);
+    }
 
     const tokens = await AuthService.generarTokens(user);
     logDev('REGISTER: tokens generated', { userId: user._id.toString() });
