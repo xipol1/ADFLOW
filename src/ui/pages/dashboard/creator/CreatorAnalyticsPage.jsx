@@ -272,10 +272,10 @@ function CASEvolutionSection({ historial, period, onPeriodChange, campaignDates 
 
 // ─── Section 2: Score Decomposition ──────────────────────────────────────────
 const COMPONENTS = [
-  { key: 'CAF', label: 'CAF', desc: 'Channel Attention Flow', hasHistory: false },
+  { key: 'CAF', label: 'CAF', desc: 'Channel Attention Flow', hasHistory: true },
   { key: 'CTF', label: 'CTF', desc: 'Channel Trust Flow', hasHistory: true },
-  { key: 'CER', label: 'CER', desc: 'Channel Engagement Rate', hasHistory: false },
-  { key: 'CVS', label: 'CVS', desc: 'Channel Velocity Score', hasHistory: false },
+  { key: 'CER', label: 'CER', desc: 'Channel Engagement Rate', hasHistory: true },
+  { key: 'CVS', label: 'CVS', desc: 'Channel Velocity Score', hasHistory: true },
   { key: 'CAP', label: 'CAP', desc: 'Channel Ad Performance', hasHistory: true },
 ]
 

@@ -120,7 +120,7 @@ async function buildChannelIntelligence(canalId) {
   })
     .sort({ fecha: -1 })
     .limit(90)
-    .select('fecha CAS CTF CAP -_id')
+    .select('fecha CAF CTF CER CVS CAP CAS -_id')
     .lean();
 
   // 3. Completed campaign count — used only for the public tally. We do

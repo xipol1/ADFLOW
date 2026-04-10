@@ -43,6 +43,7 @@ const ROLE_CONFIG = {
       { path: '/campaigns',icon: BarChart3,       label: 'Mis Campanas', fullOnly: true },
       { path: '/ads',      icon: Megaphone,       label: 'Solicitudes',  fullOnly: true },
       { path: '/finances', icon: Wallet,          label: 'Finanzas',     fullOnly: true },
+      { path: '/analytics',icon: BarChart3,       label: 'Analytics',    fullOnly: true },
       { path: '/referrals',icon: Users,           label: 'Referidos'             },
       { path: '/disputes', icon: ShieldAlert,     label: 'Disputas',     fullOnly: true },
     ],
