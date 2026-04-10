@@ -205,7 +205,8 @@ function TrendsSection({ data, period, onPeriodChange, nicho }) {
 
   return (
     <SectionCard title={`Tendencias — ${NICHO_LABELS[nicho] || nicho}`} action={periodTabs}>
-      <ResponsiveContainer width="100%" height={280}>
+      <div style={{ width: '100%', height: 280 }}>
+      <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
           <CartesianGrid stroke={C.border} strokeDasharray="3 3" />
           <XAxis dataKey="fecha" tickFormatter={fmtDate} stroke={C.t3} tick={{ fontSize: 11, fill: C.t3 }} tickLine={false} axisLine={{ stroke: C.border }} />
@@ -218,6 +219,7 @@ function TrendsSection({ data, period, onPeriodChange, nicho }) {
           <Line yAxisId="cpm" type="monotone" dataKey="avgCPM" name="CPM medio" stroke={C.gold} strokeWidth={2} strokeDasharray="2 2" dot={false} />
         </LineChart>
       </ResponsiveContainer>
+      </div>
 
       {/* Delta summary */}
       {delta && (

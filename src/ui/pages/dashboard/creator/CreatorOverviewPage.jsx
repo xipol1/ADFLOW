@@ -544,14 +544,18 @@ export default function CreatorOverviewPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px' }}>
         <div>
           <KpiCard icon={DollarSign} label="Ganancias este mes" value={`€${monthEarnings.toLocaleString('es')}`} sub={momLabel} subColor={momChange !== null && momChange < 0 ? '#ef4444' : OK} sparkData={earnSparkData} accent={WA} />
-          <MetricContext delta={momChange != null ? `${momChange >= 0 ? '+' : ''}${momChange}%` : null} deltaLabel="vs mes anterior" />
+          <div style={{ padding: '6px 16px 0' }}>
+            <MetricContext delta={momChange != null ? `${momChange >= 0 ? '+' : ''}${momChange}%` : null} deltaLabel="vs mes anterior" />
+          </div>
         </div>
         <KpiCard icon={Radio} label="Canales activos" value={activeChannels} sub={`${channels.length} total`} accent={A} sparkData={[2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, activeChannels]} />
         <KpiCard icon={Inbox} label="Solicitudes pendientes" value={pendingReqs} sub={pendingReqs > 0 ? 'Requieren respuesta' : 'Al dia'} subColor={pendingReqs > 0 ? WARN : OK} sparkData={REQ_SPARK} accent={WARN} />
         <div>
           <KpiCard icon={TrendingUp} label="Ganancias totales" value={`€${totalEarnings.toLocaleString('es')}`} sub="Desde el inicio" accent={OK} sparkData={earnSparkData.map(v => v * 0.6)} />
           {mainChannel && Number(mainChannel.CAS) > 0 && (
-            <MetricContext percentil={`CAS ${mainChannel.CAS}`} nicho={mainChannel.categoria || 'general'} />
+            <div style={{ padding: '6px 16px 0' }}>
+              <MetricContext percentil={`CAS ${mainChannel.CAS}`} nicho={mainChannel.categoria || 'general'} />
+            </div>
           )}
         </div>
       </div>

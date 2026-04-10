@@ -93,8 +93,8 @@ function Skeleton({ variant = 'standard' }) {
     <div
       className="animate-pulse"
       style={{
-        background: C.surface,
-        border: `1px solid ${C.border}`,
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
         borderRadius: 16,
         padding: compact ? 12 : 16,
         height: compact ? 64 : undefined,
@@ -102,28 +102,28 @@ function Skeleton({ variant = 'standard' }) {
     >
       {compact ? (
         <div className="flex items-center" style={{ gap: 12 }}>
-          <div style={{ width: 40, height: 40, background: C.surfaceEl, borderRadius: 10 }} />
-          <div style={{ flex: 1, height: 10, background: C.surfaceEl, borderRadius: 4 }} />
-          <div style={{ width: 60, height: 18, background: C.surfaceEl, borderRadius: 999 }} />
+          <div style={{ width: 40, height: 40, background: 'var(--bg2, #1C2A3F)', borderRadius: 10 }} />
+          <div style={{ flex: 1, height: 10, background: 'var(--bg2, #1C2A3F)', borderRadius: 4 }} />
+          <div style={{ width: 60, height: 18, background: 'var(--bg2, #1C2A3F)', borderRadius: 999 }} />
         </div>
       ) : (
         <>
           <div className="flex justify-between mb-3">
-            <div style={{ height: 14, background: C.surfaceEl, borderRadius: 4, width: 128 }} />
-            <div style={{ height: 24, background: C.surfaceEl, borderRadius: 999, width: 64 }} />
+            <div style={{ height: 14, background: 'var(--bg2, #1C2A3F)', borderRadius: 4, width: 128 }} />
+            <div style={{ height: 24, background: 'var(--bg2, #1C2A3F)', borderRadius: 999, width: 64 }} />
           </div>
-          <div style={{ height: 6, background: C.surfaceEl, borderRadius: 999, marginBottom: 12 }} />
+          <div style={{ height: 6, background: 'var(--bg2, #1C2A3F)', borderRadius: 999, marginBottom: 12 }} />
           <div className="flex" style={{ gap: 8, marginBottom: 12 }}>
             {[1, 2, 3].map((i) => (
-              <div key={i} style={{ height: 10, background: C.surfaceEl, borderRadius: 4, width: 48 }} />
+              <div key={i} style={{ height: 10, background: 'var(--bg2, #1C2A3F)', borderRadius: 4, width: 48 }} />
             ))}
           </div>
           <div
             className="flex justify-between"
-            style={{ paddingTop: 12, borderTop: `1px solid ${C.border}` }}
+            style={{ paddingTop: 12, borderTop: '1px solid var(--border)' }}
           >
-            <div style={{ height: 10, background: C.surfaceEl, borderRadius: 4, width: 80 }} />
-            <div style={{ height: 22, background: C.surfaceEl, borderRadius: 6, width: 96 }} />
+            <div style={{ height: 10, background: 'var(--bg2, #1C2A3F)', borderRadius: 4, width: 80 }} />
+            <div style={{ height: 22, background: 'var(--bg2, #1C2A3F)', borderRadius: 6, width: 96 }} />
           </div>
         </>
       )}
@@ -183,7 +183,7 @@ export default function ChannelCard({
     : C.border
 
   const cardStyle = {
-    background: C.surface,
+    background: 'var(--surface)',
     border: `1px solid ${borderColor}`,
     borderRadius: 16,
     overflow: 'hidden',
@@ -298,7 +298,7 @@ export default function ChannelCard({
                 color: C.t3,
                 fontSize: 11,
                 padding: '4px 10px',
-                border: `1px dashed ${C.border}`,
+                border: '1px dashed var(--border)',
                 borderRadius: 999,
               }}
             >
@@ -440,7 +440,7 @@ export default function ChannelCard({
         className="flex items-center justify-between"
         style={{
           padding: '12px 16px',
-          borderTop: `1px solid ${C.border}`,
+          borderTop: '1px solid var(--border)',
           gap: 8,
         }}
       >

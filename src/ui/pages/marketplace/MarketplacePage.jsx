@@ -255,40 +255,7 @@ export default function MarketplacePage() {
             </div>
           </div>
 
-          {/* Search bar */}
-          <div style={{
-            display: 'flex', maxWidth: '560px',
-            background: 'var(--surface)',
-            border: '1px solid var(--border-med)',
-            borderRadius: '10px', overflow: 'hidden', height: '44px',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', flex: 1, padding: '0 14px', gap: '10px' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                style={{ color: 'var(--muted2)', flexShrink: 0 }}>
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input
-                type="text"
-                placeholder="Buscar canales, temáticas o vendedores..."
-                value={searchInput}
-                onChange={e => setSearchInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '14px', color: 'var(--text)', fontFamily: F }}
-              />
-              {searchInput && (
-                <button onClick={() => { setSearchInput(''); const next = new URLSearchParams(searchParams); next.delete('q'); setSearchParams(next) }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '16px', padding: '0 4px' }}>✕</button>
-              )}
-            </div>
-            <button onClick={handleSearch} style={{
-              background: A, color: '#fff', border: 'none', cursor: 'pointer',
-              padding: '0 20px', fontSize: '13px', fontWeight: 600,
-              transition: 'background .15s',
-            }}
-              onMouseEnter={e => e.currentTarget.style.background = AD}
-              onMouseLeave={e => e.currentTarget.style.background = A}
-            >Buscar</button>
-          </div>
+          {/* Search bar removed — global search in NavBar handles this now */}
         </div>
       </div>
 

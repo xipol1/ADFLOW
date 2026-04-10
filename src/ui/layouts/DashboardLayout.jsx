@@ -683,7 +683,7 @@ export default function DashboardLayout({ role = 'advertiser' }) {
               fontFamily: FONT_DISPLAY, fontWeight: 800, fontSize: '18px',
               letterSpacing: '-0.5px', color: 'var(--text)', whiteSpace: 'nowrap',
             }}>
-              Ad<span style={{ color: cfg.color }}>flow</span>
+              Channel<span style={{ color: cfg.color }}>ad</span>
             </span>
           )}
         </div>
