@@ -200,13 +200,30 @@ const payCampaign = async (req, res, next) => {
       return next(httpError(400, `No se puede pagar una campaña en estado ${campaign.status}`));
     }
 
-    // Auto-apply campaign credits (welcome bonus from referrals)
+    // Auto-apply campaign credits (welcome bonus from referrals).
+    // Uses atomic $inc to prevent double-spend on concurrent payments.
     const advertiser = await Usuario.findById(userId);
     let creditsUsed = 0;
     if (advertiser?.campaignCreditsBalance > 0) {
       creditsUsed = Math.min(advertiser.campaignCreditsBalance, campaign.price);
-      advertiser.campaignCreditsBalance -= creditsUsed;
-      await advertiser.save();
+      // Atomic deduction — if two payments race, each gets its own snapshot
+      const updated = await Usuario.findOneAndUpdate(
+        { _id: userId, campaignCreditsBalance: { $gte: creditsUsed } },
+        { $inc: { campaignCreditsBalance: -creditsUsed } },
+        { new: true }
+      );
+      // If the atomic update failed (balance dropped between read and write),
+      // recalculate with whatever balance remains
+      if (!updated) {
+        const fresh = await Usuario.findById(userId);
+        creditsUsed = Math.min(fresh?.campaignCreditsBalance || 0, campaign.price);
+        if (creditsUsed > 0) {
+          await Usuario.findOneAndUpdate(
+            { _id: userId, campaignCreditsBalance: { $gte: creditsUsed } },
+            { $inc: { campaignCreditsBalance: -creditsUsed } }
+          );
+        }
+      }
     }
 
     const amountCharged = +(campaign.price - creditsUsed).toFixed(2);

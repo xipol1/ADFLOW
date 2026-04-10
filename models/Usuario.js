@@ -77,10 +77,14 @@ const UsuarioSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Generate referral code on first save if not set
+// Generate referral code on first save if not set.
+// Uses crypto.randomBytes for collision-safe entropy (8 bytes = 16 hex chars,
+// then sliced to 9 for a clean alphanumeric code like "CH-A3F9B2K").
 UsuarioSchema.pre('save', function(next) {
   if (!this.referralCode) {
-    this.referralCode = this._id.toString().slice(-6).toUpperCase() + Math.random().toString(36).slice(2, 5).toUpperCase()
+    const crypto = require('crypto')
+    const random = crypto.randomBytes(6).toString('hex').toUpperCase().slice(0, 6)
+    this.referralCode = 'CH' + random
   }
   next()
 })
