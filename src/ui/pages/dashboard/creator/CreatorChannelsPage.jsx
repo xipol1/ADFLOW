@@ -489,7 +489,7 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
 
             {/* KPIs */}
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <Kpi label="Score" value={`${scoreData?.scores?.total || 0}/100`} icon={Zap} color={scoreData?.scores?.total >= 70 ? OK : scoreData?.scores?.total >= 40 ? WR : ER} />
+              <Kpi label="CAS Score" value={`${channel.CAS || scoreData?.scores?.total || 0}/100`} icon={Zap} color={(channel.CAS || scoreData?.scores?.total || 0) >= 70 ? OK : (channel.CAS || scoreData?.scores?.total || 0) >= 40 ? WR : ER} />
               <Kpi label="Precio rec." value={`€${scoreData?.recommendedPrice || avgPrice}`} icon={DollarSign} color={A} />
               <Kpi label="Slots/mes" value={maxPub} icon={Calendar} color={BL} />
               <Kpi label="Dias activos" value={`${enabledDays.size}/7`} icon={Clock} color={OK} />
@@ -522,34 +522,43 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
           <Section icon={Zap} title="Channel Score" subtitle="Puntuacion calculada automaticamente segun 5 factores"
             action={<button onClick={handleRecalculate} disabled={scoreLoading} style={{ background: A, color: '#fff', border: 'none', borderRadius: '10px', padding: '8px 18px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', gap: '6px', opacity: scoreLoading ? 0.6 : 1 }}><Zap size={13} /> {scoreLoading ? 'Calculando...' : 'Recalcular ahora'}</button>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Big score display */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-                <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: `conic-gradient(${scoreData?.scores?.total >= 70 ? OK : scoreData?.scores?.total >= 40 ? WR : ER} ${(scoreData?.scores?.total || 0) * 3.6}deg, var(--bg) 0deg)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                    <span style={{ fontFamily: D, fontSize: '28px', fontWeight: 800, color: 'var(--text)' }}>{scoreData?.scores?.total || 0}</span>
-                    <span style={{ fontSize: '10px', color: 'var(--muted)' }}>de 100</span>
+              {/* Big score display — uses v2 CAS if available, falls back to v1 */}
+              {(() => {
+                const cas = channel.CAS || scoreData?.scores?.total || 0
+                const casColor = cas >= 70 ? OK : cas >= 40 ? WR : ER
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+                    <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: `conic-gradient(${casColor} ${cas * 3.6}deg, var(--bg) 0deg)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                        <span style={{ fontFamily: D, fontSize: '28px', fontWeight: 800, color: 'var(--text)' }}>{cas}</span>
+                        <span style={{ fontSize: '10px', color: 'var(--muted)' }}>de 100</span>
+                      </div>
+                    </div>
+                    <div style={{ flex: 1, minWidth: '200px' }}>
+                      <div style={{ fontFamily: D, fontSize: '16px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>Precio recomendado</div>
+                      <div style={{ fontFamily: D, fontSize: '32px', fontWeight: 800, color: A, letterSpacing: '-0.03em' }}>€{scoreData?.recommendedPrice || channel.precio || 0}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
+                        {channel.nivel ? `Nivel ${channel.nivel} · ` : ''}
+                        Basado en 5 factores propietarios
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div style={{ flex: 1, minWidth: '200px' }}>
-                  <div style={{ fontFamily: D, fontSize: '16px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>Precio recomendado</div>
-                  <div style={{ fontFamily: D, fontSize: '32px', fontWeight: 800, color: A, letterSpacing: '-0.03em' }}>€{scoreData?.recommendedPrice || channel.precio || 0}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>Basado en atencion, confianza, rendimiento y liquidez</div>
-                </div>
-              </div>
+                )
+              })()}
 
-              {/* Score breakdown */}
+              {/* Score breakdown — v2 (CAF/CTF/CER/CVS/CAP) with v1 fallback */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
                 {[
-                  { label: 'Atencion', value: scoreData?.scores?.attention || 0, weight: '25%', color: '#8b5cf6' },
-                  { label: 'Intencion', value: scoreData?.scores?.intent || 0, weight: '15%', color: '#3b82f6' },
-                  { label: 'Confianza', value: scoreData?.scores?.trust || 0, weight: '20%', color: '#10b981' },
-                  { label: 'Rendimiento', value: scoreData?.scores?.performance || 0, weight: '25%', color: '#f59e0b' },
-                  { label: 'Liquidez', value: scoreData?.scores?.liquidity || 0, weight: '15%', color: '#ef4444' },
-                ].map(({ label, value, weight, color }) => (
+                  { label: 'CAF', fullLabel: 'Atención', value: channel.CAF || scoreData?.scores?.attention || 0, weight: '15%', color: '#8b5cf6' },
+                  { label: 'CTF', fullLabel: 'Confianza', value: channel.CTF || scoreData?.scores?.trust || 0, weight: '25%', color: '#10b981' },
+                  { label: 'CER', fullLabel: 'Engagement', value: channel.CER || scoreData?.scores?.intent || 0, weight: '20%', color: '#3b82f6' },
+                  { label: 'CVS', fullLabel: 'Velocidad', value: channel.CVS || scoreData?.scores?.liquidity || 0, weight: '10%', color: '#f59e0b' },
+                  { label: 'CAP', fullLabel: 'Rendimiento', value: channel.CAP || scoreData?.scores?.performance || 0, weight: '30%', color: '#ef4444' },
+                ].map(({ label, fullLabel, value, weight, color }) => (
                   <div key={label} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
                     <div style={{ fontSize: '20px', fontWeight: 700, color, fontFamily: D }}>{value}</div>
-                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text)', marginTop: '2px' }}>{label}</div>
-                    <div style={{ fontSize: '10px', color: 'var(--muted)' }}>{weight}</div>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text)', marginTop: '2px' }}>{fullLabel}</div>
+                    <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'JetBrains Mono, monospace' }}>{label} · {weight}</div>
                     <div style={{ height: '4px', background: 'var(--border)', borderRadius: '2px', marginTop: '6px', overflow: 'hidden' }}>
                       <div style={{ width: `${value}%`, height: '100%', background: color, borderRadius: '2px', transition: 'width .4s' }} />
                     </div>
@@ -803,7 +812,7 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
                   ))}
                 </div>
                 <div style={{ display: 'flex', gap: '6px' }}>
-                  <input className="cc-inp" value={newTag} onChange={e => setNewTag(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTag()} placeholder="Anadir tag..." style={{ ...inp, flex: 1 }} />
+                  <input className="cc-inp" value={newTag} onChange={e => setNewTag(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTag()} placeholder="Añadir tag..." style={{ ...inp, flex: 1 }} />
                   <button onClick={addTag} style={{ background: AG(0.1), border: `1px solid ${AG(0.2)}`, borderRadius: '10px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, color: A, cursor: 'pointer', fontFamily: F }}>+</button>
                 </div>
               </div>
@@ -1356,7 +1365,7 @@ export default function CreatorChannelsPage() {
           <p style={{ fontSize: '14px', color: 'var(--muted)' }}>{channels.length} canales registrados · Configura disponibilidad y precios</p>
         </div>
         <button onClick={() => goToRegister()} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: A, color: '#fff', border: 'none', borderRadius: '12px', padding: '11px 20px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', fontFamily: F, boxShadow: `0 4px 14px ${AG(0.3)}` }}>
-          <Plus size={16} /> Anadir canal
+          <Plus size={16} /> Añadir canal
         </button>
       </div>
 
@@ -1402,7 +1411,7 @@ export default function CreatorChannelsPage() {
             onMouseEnter={e => { e.currentTarget.style.borderColor = A; e.currentTarget.style.background = AG(0.04) }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = AG(0.3); e.currentTarget.style.background = 'transparent' }}
           >
-            <Plus size={18} /> Anadir nuevo canal
+            <Plus size={18} /> Añadir nuevo canal
           </button>
         </div>
       )}
