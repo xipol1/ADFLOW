@@ -45,15 +45,36 @@ function filterPublicFlags(flags) {
 }
 
 /**
- * Estimate a channel's position within its niche based ONLY on its CAS
- * score and the niche's CTR benchmarks. This is a cheap approximation
- * that avoids a countDocuments query — good enough for MVP. The precise
- * variant would be:
- *   Canal.countDocuments({ categoria: nicho, CAS: { $gt: canal.CAS }, estado: 'verificado' })
- * but that requires a { categoria: 1, CAS: 1 } index which we don't
- * have yet. TODO: add the index + swap in the precise count once the
- * channel catalog is large enough to matter.
+ * Compute exact percentile position within a niche using the
+ * { categoria: 1, CAS: 1 } compound index (added in Block 2 pre-req).
+ * Falls back to the CAS-based estimate if the query fails or
+ * there are too few channels.
  */
+async function computeNichePosition(nicho, CAS) {
+  const cas = Number(CAS) || 0;
+  try {
+    const { Canal } = models();
+    const activeFilter = {
+      categoria: nicho,
+      estado: { $in: ['verificado', 'activo'] },
+      CAS: { $gt: 0 },
+    };
+    const [total, above] = await Promise.all([
+      Canal.countDocuments(activeFilter),
+      Canal.countDocuments({ ...activeFilter, CAS: { $gt: cas } }),
+    ]);
+    if (total < 3) return estimateNichePosition(cas); // not enough data
+    const percentile = Math.round(((total - above) / total) * 100);
+    if (percentile >= 90) return 'top 10% del nicho';
+    if (percentile >= 75) return 'top 25% del nicho';
+    if (percentile >= 50) return 'top 50% del nicho';
+    return `top ${100 - percentile}% del nicho`;
+  } catch {
+    return estimateNichePosition(cas);
+  }
+}
+
+// Fallback for when DB is not available
 function estimateNichePosition(CAS) {
   const cas = Number(CAS) || 0;
   if (cas >= 85) return 'top 10% del nicho';
@@ -63,7 +84,7 @@ function estimateNichePosition(CAS) {
   return 'últimos percentiles del nicho';
 }
 
-function benchmarkSummary(nicho, canalCTR) {
+async function benchmarkSummary(nicho, canalCTR, CAS) {
   const bench = NICHE_BENCHMARKS[nicho] || NICHE_BENCHMARKS.otros;
   const p50 = bench.ctr[1];
   const ctr = Number(canalCTR) || 0;
@@ -72,10 +93,12 @@ function benchmarkSummary(nicho, canalCTR) {
     const delta = ((ctr - p50) / p50) * 100;
     canalCTRRatio = `${delta >= 0 ? '+' : ''}${delta.toFixed(0)}% vs la media del nicho`;
   }
+  // Use precise niche position based on countDocuments (index-backed)
+  const posicionNicho = await computeNichePosition(nicho, CAS);
   return {
     nichoMediaCTR: p50,
     canalCTRRatio,
-    posicionNicho: estimateNichePosition(canalCTR ? calcularPercentilCTR(nicho, ctr) : null),
+    posicionNicho,
   };
 }
 
@@ -139,7 +162,7 @@ async function buildChannelIntelligence(canalId) {
   const latestCAP = historial[0]?.CAP ?? canal.CAP ?? 50;
   const benchRef = NICHE_BENCHMARKS[nicho] || NICHE_BENCHMARKS.otros;
   const impliedCTR = (latestCAP / 100) * benchRef.ctr[3]; // CAP→CTR rough mapping
-  const benchmark = benchmarkSummary(nicho, impliedCTR);
+  const benchmark = await benchmarkSummary(nicho, impliedCTR, canal.CAS);
 
   // 6. CPMDinamico always recomputed from live CAS so listings never lag.
   const CPMDinamico = calcularCPMDinamico(canal.plataforma, canal.CAS);

@@ -1316,6 +1316,40 @@ export default function ExplorePage() {
   // New scoring-driven filters (Block E)
   const [casMin, setCasMin]                 = useState(0)
   const [soloDisponible, setSoloDisponible] = useState(false)
+  // Watchlist (Sprint 4)
+  const [savedChannelIds, setSavedChannelIds] = useState(new Set())
+  const [defaultListId, setDefaultListId]     = useState(null)
+
+  // Load watchlist on mount
+  useEffect(() => {
+    apiService.getMyLists().then((res) => {
+      if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+        const list = res.data[0]
+        setDefaultListId(list._id || list.id)
+        const ids = new Set((list.canales || []).map((c) => typeof c === 'string' ? c : c._id || c.id))
+        setSavedChannelIds(ids)
+      }
+    }).catch(() => {})
+  }, [])
+
+  const handleSaveChannel = async (canal) => {
+    const chId = canal.id
+    if (!chId) return
+    if (savedChannelIds.has(chId)) return // already saved
+    try {
+      let listId = defaultListId
+      if (!listId) {
+        // Create default list
+        const res = await apiService.createList({ nombre: 'Guardados' })
+        if (res?.success && res.data) {
+          listId = res.data._id || res.data.id
+          setDefaultListId(listId)
+        } else return
+      }
+      await apiService.addChannelToList(listId, chId)
+      setSavedChannelIds((prev) => new Set(prev).add(chId))
+    } catch { /* silent */ }
+  }
 
   // Fetch channels from API
   useEffect(() => {
@@ -1600,8 +1634,10 @@ export default function ExplorePage() {
               variant="standard"
               mode="advertiser"
               disponible={!ch.campaniaActiva}
+              saved={savedChannelIds.has(ch.id)}
               onSelect={() => setModalCh(ch)}
               onCTA={() => setHireCh(ch)}
+              onSave={handleSaveChannel}
             />
           ))}
         </div>
@@ -1614,8 +1650,10 @@ export default function ExplorePage() {
               variant="compact"
               mode="advertiser"
               disponible={!ch.campaniaActiva}
+              saved={savedChannelIds.has(ch.id)}
               onSelect={() => setModalCh(ch)}
               onCTA={() => setHireCh(ch)}
+              onSave={handleSaveChannel}
             />
           ))}
         </div>

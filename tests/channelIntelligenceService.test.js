@@ -65,20 +65,20 @@ describe('estimateNichePosition', () => {
 
 // ── benchmarkSummary ─────────────────────────────────────────────────────
 describe('benchmarkSummary', () => {
-  test('returns nichoMediaCTR from NICHE_BENCHMARKS p50', () => {
-    const s = benchmarkSummary('crypto', 0.022);
+  test('returns nichoMediaCTR from NICHE_BENCHMARKS p50', async () => {
+    const s = await benchmarkSummary('crypto', 0.022, 70);
     expect(s.nichoMediaCTR).toBe(0.022);
     expect(s.canalCTRRatio).toMatch(/^[+-]?\d/);
     expect(s.canalCTRRatio).toMatch(/vs la media del nicho/);
   });
 
-  test('falls back to otros for unknown niches', () => {
-    const s = benchmarkSummary('moda', 0.020);
+  test('falls back to otros for unknown niches', async () => {
+    const s = await benchmarkSummary('moda', 0.020, 50);
     expect(s.nichoMediaCTR).toBeGreaterThan(0);
   });
 
-  test('canalCTRRatio is null when ctr is 0', () => {
-    const s = benchmarkSummary('crypto', 0);
+  test('canalCTRRatio is null when ctr is 0', async () => {
+    const s = await benchmarkSummary('crypto', 0, 50);
     expect(s.canalCTRRatio).toBeNull();
   });
 

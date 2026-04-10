@@ -662,6 +662,35 @@ function CPMSimulatorSection({ currentCAS, currentCPM, plataforma }) {
           )}
         </div>
       )}
+
+      {/* Auto-pricing recommendation */}
+      {currentCAS > 0 && currentCPM > 0 && (
+        <div
+          style={{
+            marginTop: 16,
+            background: C.surfaceEl,
+            border: `1px solid ${C.borderEl}`,
+            borderRadius: 12,
+            padding: '14px 16px',
+          }}
+        >
+          <div style={{ color: C.t3, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600, marginBottom: 8 }}>
+            💡 Precio recomendado por publicación
+          </div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+            <span className="font-mono" style={{ color: C.teal, fontSize: 22, fontWeight: 700 }}>
+              €{Math.round(currentCPM * 10)}–{Math.round(currentCPM * 25)}
+            </span>
+            <span style={{ color: C.t3, fontSize: 11 }}>
+              basado en tu CPM €{currentCPM.toFixed(1)} × 10K–25K impresiones esperadas
+            </span>
+          </div>
+          <div style={{ color: C.t2, fontSize: 11, marginTop: 6, lineHeight: 1.5 }}>
+            Este rango maximiza competitividad frente a canales similares en tu nicho.
+            Ajusta según la exclusividad y el formato del anuncio.
+          </div>
+        </div>
+      )}
     </SectionCard>
   )
 }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Bookmark } from 'lucide-react'
 import {
   CASBadge,
   ScoreGauge,
@@ -137,8 +138,10 @@ export default function ChannelCard({
   mode = 'marketplace',
   disponible = true,
   selected = false,
+  saved = false,
   onSelect,
   onCTA,
+  onSave,
 }) {
   const [hover, setHover] = useState(false)
 
@@ -455,6 +458,23 @@ export default function ChannelCard({
           )}
           {mode === 'advertiser' && (
             <>
+              {onSave && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onSave(canal) }}
+                  title={saved ? 'Guardado' : 'Guardar canal'}
+                  style={{
+                    ...btnBase,
+                    background: saved ? C.tealDim : 'transparent',
+                    color: saved ? C.teal : C.t3,
+                    border: `1px solid ${saved ? C.teal + '44' : C.borderEl}`,
+                    padding: '6px 8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Bookmark size={13} fill={saved ? C.teal : 'none'} />
+                </button>
+              )}
               <OutlineBtn onClick={onSelect ? () => onSelect(canal) : undefined}>Ver</OutlineBtn>
               <FilledBtn
                 size={featured ? 'md' : 'sm'}

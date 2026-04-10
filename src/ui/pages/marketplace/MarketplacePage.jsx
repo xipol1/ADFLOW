@@ -312,7 +312,7 @@ export default function MarketplacePage() {
         </div>
 
         {/* Category filters */}
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
           {CATEGORIES.map(c => {
             const isActive = activeCategory === c || (c === 'Todas' && activeCategory === 'Todas')
             return (
@@ -327,6 +327,24 @@ export default function MarketplacePage() {
             )
           })}
         </div>
+        {/* Niche intel link */}
+        {activeCategory !== 'Todas' && (
+          <div style={{ marginBottom: '24px' }}>
+            <Link
+              to={`/niche/${activeCategory.toLowerCase()}`}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                color: A, fontSize: 12, fontWeight: 600, textDecoration: 'none',
+                opacity: 0.8, transition: 'opacity 150ms',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.opacity = '1' }}
+              onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.8' }}
+            >
+              📊 Ver inteligencia de mercado en {activeCategory} →
+            </Link>
+          </div>
+        )}
+        {activeCategory === 'Todas' && <div style={{ marginBottom: '20px' }} />}
 
         {/* Loading state */}
         {loading && (
