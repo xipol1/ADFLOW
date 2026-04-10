@@ -31,6 +31,7 @@ import CreatorEarningsPage  from '../ui/pages/dashboard/creator/CreatorEarningsP
 import CreatorSettingsPage  from '../ui/pages/dashboard/creator/CreatorSettingsPage'
 import RegisterChannelPage  from '../ui/pages/dashboard/creator/RegisterChannelPage'
 import CreatorReferralsPage from '../ui/pages/dashboard/creator/CreatorReferralsPage'
+import CreatorAnalyticsPage from '../ui/pages/dashboard/creator/CreatorAnalyticsPage'
 
 // Shared pages
 import DisputesPage from '../ui/pages/dashboard/DisputesPage'
@@ -136,6 +137,7 @@ export default function AppRoutes() {
         <Route path="channels/new" element={<RegisterChannelPage />} />
         <Route path="requests" element={<FullAccessOnly feature="Solicitudes"><CreatorRequestsPage /></FullAccessOnly>} />
         <Route path="earnings" element={<FullAccessOnly feature="Ganancias"><CreatorEarningsPage /></FullAccessOnly>} />
+        <Route path="analytics" element={<FullAccessOnly feature="Analytics"><CreatorAnalyticsPage /></FullAccessOnly>} />
         <Route path="referrals" element={<CreatorReferralsPage />} />
         <Route path="disputes" element={<FullAccessOnly feature="Disputas"><DisputesPage /></FullAccessOnly>} />
         <Route path="notifications" element={<NotificationsPage />} />

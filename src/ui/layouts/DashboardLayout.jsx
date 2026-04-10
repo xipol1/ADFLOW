@@ -60,6 +60,7 @@ const ROLE_CONFIG = {
       { path: '/channels', icon: Radio,           label: 'Mis Canales'             },
       { path: '/requests', icon: Inbox,           label: 'Solicitudes',  badge: true, fullOnly: true },
       { path: '/earnings', icon: Wallet,          label: 'Ganancias',    fullOnly: true },
+      { path: '/analytics',icon: BarChart3,       label: 'Analytics',    fullOnly: true },
       { path: '/referrals',icon: Users,           label: 'Referidos'               },
       { path: '/disputes', icon: ShieldAlert,     label: 'Disputas',     fullOnly: true },
     ],
