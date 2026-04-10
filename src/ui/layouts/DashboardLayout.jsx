@@ -14,6 +14,7 @@ import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../../services/api'
 import { relTime } from '../utils/relTime'
 import CommandPalette from '../components/CommandPalette'
+import GlobalSearchBar from '../components/GlobalSearchBar'
 import EmailVerificationBanner from '../components/EmailVerificationBanner'
 import OnboardingWizard, { shouldShowOnboarding } from '../components/OnboardingWizard'
 import {
@@ -37,18 +38,28 @@ const ROLE_CONFIG = {
     label: 'Anunciante',
     basePath: '/advertiser',
     nav: [
-      { path: '',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
-      { path: '/explore',  icon: Search,          label: 'Explorar',     fullOnly: true },
-      { path: '/autobuy',  icon: Zap,             label: 'Auto-Buy',     fullOnly: true },
-      { path: '/campaigns',icon: BarChart3,       label: 'Mis Campanas', fullOnly: true },
-      { path: '/ads',      icon: Megaphone,       label: 'Solicitudes',  fullOnly: true },
-      { path: '/finances', icon: Wallet,          label: 'Finanzas',     fullOnly: true },
-      { path: '/analytics',icon: BarChart3,       label: 'Analytics',    fullOnly: true },
-      { path: '/referrals',icon: Users,           label: 'Referidos'             },
-      { path: '/disputes', icon: ShieldAlert,     label: 'Disputas',     fullOnly: true },
+      { group: null, items: [
+        { path: '',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
+      ]},
+      { group: 'Canales', items: [
+        { path: '/explore',  icon: Search,          label: 'Explorar',     fullOnly: true },
+        { path: '/autobuy',  icon: Zap,             label: 'Auto-Buy',     fullOnly: true },
+      ]},
+      { group: 'Campañas', items: [
+        { path: '/campaigns',icon: BarChart3,       label: 'Mis Campañas', fullOnly: true },
+        { path: '/ads',      icon: Megaphone,       label: 'Solicitudes',  fullOnly: true },
+      ]},
+      { group: 'Análisis', items: [
+        { path: '/analytics',icon: BarChart3,       label: 'Analytics',    fullOnly: true },
+        { path: '/finances', icon: Wallet,          label: 'Finanzas',     fullOnly: true },
+      ]},
+      { group: 'Cuenta', items: [
+        { path: '/referrals',icon: Users,           label: 'Referidos'             },
+        { path: '/disputes', icon: ShieldAlert,     label: 'Disputas',     fullOnly: true },
+      ]},
     ],
     bottomNav: [
-      { path: '/settings', icon: Settings, label: 'Configuracion', fullOnly: true },
+      { path: '/settings', icon: Settings, label: 'Configuración', fullOnly: true },
     ],
   },
   creator: {
@@ -57,16 +68,22 @@ const ROLE_CONFIG = {
     label: 'Creador',
     basePath: '/creator',
     nav: [
-      { path: '',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
-      { path: '/channels', icon: Radio,           label: 'Mis Canales'             },
-      { path: '/requests', icon: Inbox,           label: 'Solicitudes',  badge: true, fullOnly: true },
-      { path: '/earnings', icon: Wallet,          label: 'Ganancias',    fullOnly: true },
-      { path: '/analytics',icon: BarChart3,       label: 'Analytics',    fullOnly: true },
-      { path: '/referrals',icon: Users,           label: 'Referidos'               },
-      { path: '/disputes', icon: ShieldAlert,     label: 'Disputas',     fullOnly: true },
+      { group: null, items: [
+        { path: '',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
+        { path: '/channels', icon: Radio,           label: 'Mis Canales'             },
+      ]},
+      { group: 'Análisis', items: [
+        { path: '/analytics',icon: BarChart3,       label: 'Analytics',    fullOnly: true },
+        { path: '/earnings', icon: Wallet,          label: 'Ganancias',    fullOnly: true },
+      ]},
+      { group: 'Gestión', items: [
+        { path: '/requests', icon: Inbox,           label: 'Solicitudes',  badge: true, fullOnly: true },
+        { path: '/referrals',icon: Users,           label: 'Referidos'               },
+        { path: '/disputes', icon: ShieldAlert,     label: 'Disputas',     fullOnly: true },
+      ]},
     ],
     bottomNav: [
-      { path: '/settings', icon: Settings, label: 'Configuracion', fullOnly: true },
+      { path: '/settings', icon: Settings, label: 'Configuración', fullOnly: true },
     ],
   },
 }
@@ -604,19 +621,24 @@ export default function DashboardLayout({ role = 'advertiser' }) {
 
   const onLogout = () => { logout(); navigate('/') }
 
-  // Resolve full paths — filter restricted items for limited-access users
-  const visibleNav = isFullAccess ? cfg.nav : cfg.nav.filter(n => !n.fullOnly)
-  const visibleBottomNav = isFullAccess ? cfg.bottomNav : cfg.bottomNav.filter(n => !n.fullOnly)
+  // Resolve full paths — filter restricted items for limited-access users.
+  // Nav is now grouped: [{ group: string|null, items: [...] }, ...]
+  const visibleNavGroups = cfg.nav.map(g => ({
+    group: g.group,
+    items: (g.items || []).filter(n => isFullAccess || !n.fullOnly).map(n => ({
+      ...n,
+      to: cfg.basePath + n.path,
+    })),
+  })).filter(g => g.items.length > 0)
 
-  const fullNav = visibleNav.map(n => ({
-    ...n,
-    to: cfg.basePath + n.path,
-  }))
+  // Flat list for breadcrumb + currentPage lookup
+  const flatNav = visibleNavGroups.flatMap(g => g.items)
+  const visibleBottomNav = isFullAccess ? cfg.bottomNav : cfg.bottomNav.filter(n => !n.fullOnly)
   const fullBottomNav = visibleBottomNav.map(n => ({
     ...n,
     to: cfg.basePath + n.path,
   }))
-  const allNav = [...fullNav, ...fullBottomNav]
+  const allNav = [...flatNav, ...fullBottomNav]
 
   // Find current page for breadcrumb
   const currentPage = allNav.find(n =>
@@ -734,29 +756,39 @@ export default function DashboardLayout({ role = 'advertiser' }) {
         display: 'flex', flexDirection: 'column', gap: '2px',
         overflowY: 'auto', overflowX: 'hidden',
       }}>
-        {!showCollapsed && (
-          <div style={{
-            fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em',
-            textTransform: 'uppercase', color: 'var(--muted2)',
-            fontFamily: FONT_BODY, padding: '2px 13px 6px', userSelect: 'none',
-          }}>
-            Menu
+        {visibleNavGroups.map((g, gi) => (
+          <div key={g.group || `g${gi}`}>
+            {/* Group label (only when expanded and group has a name) */}
+            {!showCollapsed && g.group && (
+              <div style={{
+                fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em',
+                textTransform: 'uppercase', color: 'var(--muted2)',
+                fontFamily: FONT_BODY, padding: gi === 0 ? '2px 13px 6px' : '12px 13px 6px',
+                userSelect: 'none',
+              }}>
+                {g.group}
+              </div>
+            )}
+            {/* Collapsed: tiny separator between groups */}
+            {showCollapsed && gi > 0 && (
+              <div style={{ height: 1, background: 'var(--border)', margin: '6px 8px' }} />
+            )}
+            {g.items.map(item => (
+              <SidebarLink
+                key={item.to}
+                to={item.to}
+                icon={item.icon}
+                label={item.label}
+                end={item.end}
+                collapsed={showCollapsed}
+                accentColor={cfg.color}
+                accentAlpha={cfg.alpha}
+                badge={item.badge}
+                badgeCount={pendingCount}
+                onNavigate={isMobile ? closeMobileNav : undefined}
+              />
+            ))}
           </div>
-        )}
-        {fullNav.map(item => (
-          <SidebarLink
-            key={item.to}
-            to={item.to}
-            icon={item.icon}
-            label={item.label}
-            end={item.end}
-            collapsed={showCollapsed}
-            accentColor={cfg.color}
-            accentAlpha={cfg.alpha}
-            badge={item.badge}
-            badgeCount={pendingCount}
-            onNavigate={isMobile ? closeMobileNav : undefined}
-          />
         ))}
       </nav>
 
@@ -868,49 +900,31 @@ export default function DashboardLayout({ role = 'advertiser' }) {
                 <Menu size={20} strokeWidth={2} />
               </button>
             )}
-            {currentPage && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <currentPage.icon size={14} color={cfg.color} strokeWidth={2} />
-                <span style={{
-                  fontSize: '13px', fontWeight: 500, color: 'var(--muted)', fontFamily: FONT_BODY,
-                }}>
-                  {currentPage.label}
-                </span>
-              </div>
-            )}
+            {/* Breadcrumb: Role > Group > Page */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>
+              <NavLink to={cfg.basePath} style={{ color: 'var(--muted)', textDecoration: 'none' }}
+                onMouseEnter={e => e.currentTarget.style.color = cfg.color}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
+              >
+                {cfg.label}
+              </NavLink>
+              {currentPage && currentPage.to !== cfg.basePath && (
+                <>
+                  <span style={{ color: 'var(--muted2)', fontSize: 10 }}>›</span>
+                  <span style={{ color: 'var(--text)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <currentPage.icon size={13} color={cfg.color} strokeWidth={2} />
+                    {currentPage.label}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Right: search + theme + notifications + role badge + avatar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            {/* Cmd+K search trigger */}
+            {/* Global search bar (replaces Cmd+K trigger) */}
             {!isMobile && (
-              <button
-                onClick={() => {
-                  document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }))
-                }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                  background: 'var(--bg)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '10px', padding: '7px 14px',
-                  fontSize: '12px', color: 'var(--muted)',
-                  fontFamily: FONT_BODY, cursor: 'pointer',
-                  transition: 'border-color .15s, color .15s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-med)'; e.currentTarget.style.color = 'var(--text)' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--muted)' }}
-              >
-                <Search size={13} strokeWidth={2} />
-                <span>Buscar...</span>
-                <kbd style={{
-                  background: 'var(--surface)', border: '1px solid var(--border)',
-                  borderRadius: '5px', padding: '1px 6px',
-                  fontSize: '10px', fontWeight: 500, fontFamily: FONT_BODY,
-                  marginLeft: '4px',
-                }}>
-                  {navigator.platform?.includes('Mac') ? '\u2318' : 'Ctrl'}+K
-                </kbd>
-              </button>
+              <GlobalSearchBar compact />
             )}
             <ThemeToggle />
             <NotificationBell

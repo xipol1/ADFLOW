@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { PURPLE, PURPLE_DARK, purpleAlpha, GREEN } from '../theme/tokens'
+import GlobalSearchBar from '../components/GlobalSearchBar'
 
 function MenuIcon({ size = 20 }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -231,8 +232,10 @@ export default function NavBar() {
           </div>
         </div>
 
-        {/* Spacer */}
-        <div style={{ flex: 1 }} />
+        {/* Global search bar */}
+        <div className="nav-search-bar" style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0 16px', minWidth: 0 }}>
+          <GlobalSearchBar />
+        </div>
 
         {/* Para Marcas / Para Creadores — always visible */}
         <div className="nav-audience-buttons" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

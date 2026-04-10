@@ -895,7 +895,7 @@ const HireModal = ({ ch, onClose, onSuccess }) => {
                         let opacity = 1
 
                         if (isSelected) {
-                          bg = purpleAlpha(0.12); border = A; textColor = A; priceColor = A
+                          bg = purpleAlpha(0.12); border = PURPLE; textColor = PURPLE; priceColor = PURPLE
                         } else if (day.status === 'past') {
                           opacity = 0.35; cursor = 'default'
                         } else if (day.status === 'disabled') {
