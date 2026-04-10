@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { FONT_DISPLAY, FONT_BODY, PURPLE, purpleAlpha } from '../../theme/tokens'
 
 const FAQS = [
@@ -25,19 +24,18 @@ const FAQS = [
   },
 ]
 
-const spring = [0.22, 1, 0.36, 1]
-
 export default function FAQSection() {
   const [open, setOpen] = useState(null)
 
   return (
     <section style={{ padding: 'clamp(60px,8vw,100px) clamp(16px,4vw,24px)', background: 'var(--bg)' }}>
+      <style>{`
+        @keyframes faq-fade { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:none } }
+        .faq-item { animation: faq-fade 0.4s ease both; }
+        .faq-answer { overflow:hidden; transition: max-height 0.3s ease, opacity 0.3s ease; }
+      `}</style>
       <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.6, ease: spring }}
+        <h2
           style={{
             fontFamily: FONT_DISPLAY, fontWeight: 700,
             fontSize: 'clamp(24px, 4vw, 36px)',
@@ -46,18 +44,16 @@ export default function FAQSection() {
           }}
         >
           Preguntas frecuentes
-        </motion.h2>
+        </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
           {FAQS.map((faq, i) => {
             const isOpen = open === i
             return (
-              <motion.div
+              <div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{ duration: 0.4, delay: i * 0.06, ease: spring }}
+                className="faq-item"
+                style={{ animationDelay: `${i * 60}ms` }}
               >
                 <button
                   onClick={() => setOpen(isOpen ? null : i)}
@@ -90,26 +86,22 @@ export default function FAQSection() {
                   </span>
                 </button>
 
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-                      style={{ overflow: 'hidden' }}
-                    >
-                      <p style={{
-                        fontFamily: FONT_BODY, fontSize: '14px', lineHeight: 1.7,
-                        color: 'var(--muted)', padding: '4px 24px 20px',
-                        margin: 0,
-                      }}>
-                        {faq.a}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
+                <div
+                  className="faq-answer"
+                  style={{
+                    maxHeight: isOpen ? '300px' : '0px',
+                    opacity: isOpen ? 1 : 0,
+                  }}
+                >
+                  <p style={{
+                    fontFamily: FONT_BODY, fontSize: '14px', lineHeight: 1.7,
+                    color: 'var(--muted)', padding: '4px 24px 20px',
+                    margin: 0,
+                  }}>
+                    {faq.a}
+                  </p>
+                </div>
+              </div>
             )
           })}
         </div>

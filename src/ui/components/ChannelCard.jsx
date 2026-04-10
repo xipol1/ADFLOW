@@ -213,12 +213,12 @@ export default function ChannelCard({
           <span style={{ fontSize: 16, flexShrink: 0 }}>{pIcon}</span>
           <div
             className="font-medium truncate"
-            style={{ color: C.t1, fontSize: 13, minWidth: 0, maxWidth: 180 }}
+            style={{ color: 'var(--text)', fontSize: 13, minWidth: 0, maxWidth: 180 }}
           >
             @{nombre}
           </div>
           {hasCAS && <CASBadge CAS={CAS} nivel={nivel} size="xs" />}
-          <span className="font-mono truncate" style={{ color: C.t3, fontSize: 11, flex: 1, minWidth: 0 }}>
+          <span className="font-mono truncate" style={{ color: 'var(--muted2, #475569)', fontSize: 11, flex: 1, minWidth: 0 }}>
             {plataforma} · {fmtSeg(seguidores)}
           </span>
           {hasCPM && (
@@ -269,11 +269,11 @@ export default function ChannelCard({
       >
         <div style={{ minWidth: 0, flex: 1 }}>
           <div className="flex items-center" style={{ gap: 6, marginBottom: 4 }}>
-            <span style={{ fontSize: 14, color: C.t3 }}>{pIcon}</span>
+            <span style={{ fontSize: 14, color: 'var(--muted2, #475569)' }}>{pIcon}</span>
             <span
               className="font-medium truncate"
               style={{
-                color: C.t1,
+                color: 'var(--text)',
                 fontSize: featured ? 16 : 14,
                 maxWidth: 170,
               }}
@@ -281,7 +281,7 @@ export default function ChannelCard({
               @{nombre || '—'}
             </span>
           </div>
-          <div className="font-mono" style={{ color: C.t3, fontSize: 11 }}>
+          <div className="font-mono" style={{ color: 'var(--muted2, #475569)', fontSize: 11 }}>
             {plataforma || '--'}
             {nicho && ` · ${nicho}`}
             {seguidores != null && ` · ${fmtSeg(seguidores)}`}
@@ -295,7 +295,7 @@ export default function ChannelCard({
             <span
               className="font-mono"
               style={{
-                color: C.t3,
+                color: 'var(--muted2, #475569)',
                 fontSize: 11,
                 padding: '4px 10px',
                 border: '1px dashed var(--border)',
@@ -330,11 +330,11 @@ export default function ChannelCard({
           <ScoreGauge CAS={CAS} nivel={nivel} showLabel={false} height={5} />
           <div
             className="flex font-mono"
-            style={{ gap: 12, marginTop: 8, fontSize: 11, color: C.t3 }}
+            style={{ gap: 12, marginTop: 8, fontSize: 11, color: 'var(--muted2, #475569)' }}
           >
             {CAF != null && (
               <span>
-                CAF <span style={{ color: C.t2 }}>{Math.round(CAF)}</span>
+                CAF <span style={{ color: 'var(--muted)' }}>{Math.round(CAF)}</span>
               </span>
             )}
             {CTF != null && (
@@ -348,7 +348,7 @@ export default function ChannelCard({
             )}
             {CAP != null && (
               <span>
-                CAP <span style={{ color: C.t2 }}>{Math.round(CAP)}</span>
+                CAP <span style={{ color: 'var(--muted)' }}>{Math.round(CAP)}</span>
               </span>
             )}
           </div>
@@ -370,7 +370,7 @@ export default function ChannelCard({
         {hasCPM ? (
           <CPMBadge CPM={CPMDinamico} plataforma={plataforma} size="sm" />
         ) : (
-          <span className="font-mono" style={{ color: C.t3, fontSize: 12 }}>
+          <span className="font-mono" style={{ color: 'var(--muted2, #475569)', fontSize: 12 }}>
             CPM --
           </span>
         )}
@@ -397,7 +397,7 @@ export default function ChannelCard({
         {(() => {
           if (ratioCTF_CAF == null) {
             return (
-              <span className="flex items-center font-mono" style={{ gap: 6, fontSize: 11, color: C.t3 }}>
+              <span className="flex items-center font-mono" style={{ gap: 6, fontSize: 11, color: 'var(--muted2, #475569)' }}>
                 <span style={{ width: 8, height: 8, borderRadius: 999, background: C.t3 }} />
                 Sin datos
               </span>

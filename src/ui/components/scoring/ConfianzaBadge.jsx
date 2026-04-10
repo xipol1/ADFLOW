@@ -20,7 +20,7 @@ export default function ConfianzaBadge({ score, fuente, showScore = false }) {
     <span
       className="inline-flex items-center font-mono"
       title={tooltip}
-      style={{ gap: 6, fontSize: 12, color: C.t2, cursor: 'help' }}
+      style={{ gap: 6, fontSize: 12, color: 'var(--muted)', cursor: 'help' }}
     >
       <span
         style={{

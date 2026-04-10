@@ -13,7 +13,7 @@ export default function ScoreGauge({ CAS, nivel, showLabel = false, height = 8 }
       <div
         style={{
           height,
-          background: C.border,
+          background: 'var(--border)',
           borderRadius: 999,
           overflow: 'hidden',
           position: 'relative',
@@ -37,7 +37,7 @@ export default function ScoreGauge({ CAS, nivel, showLabel = false, height = 8 }
           >
             {lvl.label}
           </span>
-          <span style={{ color: C.t2 }}>{pct} / 100</span>
+          <span style={{ color: 'var(--muted)' }}>{pct} / 100</span>
         </div>
       )}
     </div>

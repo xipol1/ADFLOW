@@ -343,8 +343,22 @@ export default function ChannelExplorerPage() {
             <span>·</span>
             <span>{fmtSeg(seguidores)} seguidores</span>
           </div>
-          <div style={{ marginTop: 8 }}>
+          <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <ConfianzaBadge score={confianzaScore} fuente="declarado" showScore />
+            {nicho && (
+              <Link
+                to={`/niche/${nicho}`}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  color: C.teal, fontSize: 11, fontWeight: 600,
+                  textDecoration: 'none', opacity: 0.8,
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = '1' }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.8' }}
+              >
+                📊 Ver mercado {nicho} →
+              </Link>
+            )}
             {Array.isArray(flags) && flags.length > 0 && (
               <span
                 className="font-mono"

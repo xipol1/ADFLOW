@@ -29,7 +29,7 @@ function Row({ label, value, color, barH, pulse }) {
         style={{
           flex: 1,
           height: barH,
-          background: C.border,
+          background: 'var(--border)',
           borderRadius: 999,
           overflow: 'hidden',
         }}
@@ -114,13 +114,13 @@ export default function ScoreBreakdown({
       {ratioCTF_CAF != null && (
         <div
           className="flex items-center justify-between pt-2 mt-1"
-          style={{ borderTop: `1px solid ${C.border}`, gap: 8 }}
+          style={{ borderTop: '1px solid var(--border)', gap: 8 }}
         >
-          <span className="font-mono" style={{ color: C.t2, fontSize: 11 }}>
+          <span className="font-mono" style={{ color: 'var(--muted)', fontSize: 11 }}>
             CTF/CAF
           </span>
           <div className="flex items-center" style={{ gap: 8 }}>
-            <span className="font-mono" style={{ color: C.t1, fontSize: 11 }}>
+            <span className="font-mono" style={{ color: 'var(--text)', fontSize: 11 }}>
               {ratioCTF_CAF.toFixed(2)}
             </span>
             {ratioBadge}

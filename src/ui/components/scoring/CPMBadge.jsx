@@ -27,7 +27,7 @@ export default function CPMBadge({ CPM, plataforma, size = 'md' }) {
             {cpmStr}
           </span>
         </div>
-        <span className="mt-1" style={{ color: C.t2, fontSize: 11 }}>
+        <span className="mt-1" style={{ color: 'var(--muted)', fontSize: 11 }}>
           por 1.000 vistas
         </span>
       </div>
@@ -39,7 +39,7 @@ export default function CPMBadge({ CPM, plataforma, size = 'md' }) {
     <span className="inline-flex items-center font-mono" style={{ gap: 6 }}>
       <span style={{ fontSize: 14 }}>{icon}</span>
       <span style={{ color: C.teal, fontSize: 15, fontWeight: 600 }}>{cpmStr}</span>
-      <span style={{ color: C.t2, fontSize: 12 }}>/ 1K views</span>
+      <span style={{ color: 'var(--muted)', fontSize: 12 }}>/ 1K views</span>
     </span>
   )
 }
