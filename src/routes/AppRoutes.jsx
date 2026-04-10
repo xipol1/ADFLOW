@@ -9,6 +9,7 @@ import LandingPage from '../ui/pages/landing/LandingPage'
 import DashboardPage from '../ui/pages/dashboard/DashboardPage'
 import MarketplacePage from '../ui/pages/marketplace/MarketplacePage'
 import ChannelExplorerPage from '../ui/pages/channel/ChannelExplorerPage'
+import NicheIntelligencePage from '../ui/pages/niche/NicheIntelligencePage'
 import { useAuth } from '../auth/AuthContext'
 
 // Advertiser dashboard suite
@@ -69,6 +70,7 @@ export default function AppRoutes() {
         <Route index element={<LandingPage />} />
         <Route path="marketplace" element={<MarketplacePage />} /> {/* Public browsing allowed */}
         <Route path="channel/:id" element={<ChannelExplorerPage />} /> {/* Public channel intelligence */}
+        <Route path="niche/:nicho" element={<NicheIntelligencePage />} /> {/* Public niche market intelligence */}
         <Route
           path="auth"
           element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth/login" replace />}

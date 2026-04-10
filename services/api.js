@@ -239,6 +239,17 @@ class ApiService {
     return this.request(`/channels/${id}/intelligence`, { auth: false });
   }
 
+  // ── Niche Intelligence (public, no auth) ──────────────────────────────
+  async getNicheLeaderboard(nicho, limit = 10) {
+    return this.request(`/niche/${encodeURIComponent(nicho)}/leaderboard?limit=${limit}`, { auth: false });
+  }
+  async getNicheTrends(nicho, days = 30) {
+    return this.request(`/niche/${encodeURIComponent(nicho)}/trends?days=${days}`, { auth: false });
+  }
+  async getNicheSupplyDemand(nicho) {
+    return this.request(`/niche/${encodeURIComponent(nicho)}/supply-demand`, { auth: false });
+  }
+
   /**
    * Crear nuevo canal
    */
