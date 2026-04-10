@@ -24,7 +24,7 @@ function Row({ label, value, color, barH, pulse }) {
   const pct = Math.max(0, Math.min(100, value ?? 0))
   return (
     <div className="flex items-center" style={{ gap: 8 }}>
-      <span className="font-mono" style={labelStyle(C.t2)}>{label}</span>
+      <span className="font-mono" style={labelStyle('var(--muted)')}>{label}</span>
       <div
         style={{
           flex: 1,
@@ -45,7 +45,7 @@ function Row({ label, value, color, barH, pulse }) {
           }}
         />
       </div>
-      <span className="font-mono" style={numStyle(C.t1)}>{Math.round(pct)}</span>
+      <span className="font-mono" style={numStyle('var(--text)')}>{Math.round(pct)}</span>
     </div>
   )
 }

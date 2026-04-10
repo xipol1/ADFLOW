@@ -37,8 +37,8 @@ export default function TierGate({
         <div
           className="text-center"
           style={{
-            background: C.surface,
-            border: `1px solid ${C.borderEl}`,
+            background: 'var(--surface)',
+            border: `1px solid ${'var(--border-med)'}`,
             borderRadius: 12,
             padding: 24,
             maxWidth: 320,
@@ -47,11 +47,11 @@ export default function TierGate({
           <div className="flex justify-center mb-3">
             <Lock size={22} color={C.teal} />
           </div>
-          <div style={{ color: C.t1, fontSize: 14, fontWeight: 600, marginBottom: 4 }}>
+          <div style={{ color: 'var(--text)', fontSize: 14, fontWeight: 600, marginBottom: 4 }}>
             Disponible en el plan {requiredTier} y superior
           </div>
           {feature && (
-            <div style={{ color: C.t2, fontSize: 12, marginBottom: 14 }}>
+            <div style={{ color: 'var(--muted)', fontSize: 12, marginBottom: 14 }}>
               {feature}
             </div>
           )}
@@ -59,7 +59,7 @@ export default function TierGate({
             onClick={onUpgrade}
             style={{
               background: C.teal,
-              color: C.bg,
+              color: 'var(--bg)',
               border: 'none',
               borderRadius: 8,
               padding: '8px 16px',

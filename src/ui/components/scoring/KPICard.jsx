@@ -13,12 +13,12 @@ export default function KPICard({
   onClick,
 }) {
   const clickable = typeof onClick === 'function'
-  const valColor = color || C.t1
+  const valColor = color || 'var(--text)'
 
   let trendEl = null
   if (trend != null && trend !== '') {
     const str = String(trend).trim()
-    let tcolor = C.t2
+    let tcolor = 'var(--muted)'
     let arrow = ''
     if (str.startsWith('+')) {
       tcolor = C.ok
@@ -41,8 +41,8 @@ export default function KPICard({
       style={{
         minHeight: 112,
         padding: 20,
-        background: C.surface,
-        border: `1px solid ${C.border}`,
+        background: 'var(--surface)',
+        border: `1px solid ${'var(--border)'}`,
         borderRadius: 12,
         cursor: clickable ? 'pointer' : 'default',
         transition: 'all 200ms cubic-bezier(.22,1,.36,1)',
@@ -51,11 +51,11 @@ export default function KPICard({
         justifyContent: 'space-between',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = C.borderEl
+        e.currentTarget.style.borderColor = 'var(--border-med)'
         if (clickable) e.currentTarget.style.boxShadow = `0 0 0 1px ${C.teal}`
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = C.border
+        e.currentTarget.style.borderColor = 'var(--border)'
         e.currentTarget.style.boxShadow = 'none'
       }}
     >
@@ -63,7 +63,7 @@ export default function KPICard({
         <span
           className="uppercase"
           style={{
-            color: C.t3,
+            color: 'var(--muted2)',
             fontSize: 11,
             letterSpacing: '0.12em',
             fontWeight: 600,
@@ -71,7 +71,7 @@ export default function KPICard({
         >
           {label}
         </span>
-        {icon && <span style={{ color: C.t3 }}>{icon}</span>}
+        {icon && <span style={{ color: 'var(--muted2)' }}>{icon}</span>}
       </div>
 
       <div>
@@ -90,7 +90,7 @@ export default function KPICard({
           {trendEl}
         </div>
         {context && (
-          <div style={{ color: C.t3, fontSize: 11, marginTop: 4 }}>{context}</div>
+          <div style={{ color: 'var(--muted2)', fontSize: 11, marginTop: 4 }}>{context}</div>
         )}
       </div>
     </div>

@@ -33,7 +33,7 @@ export default function BenchmarkBar({
   return (
     <div className="w-full">
       <div className="flex justify-between items-baseline mb-2">
-        <span style={{ color: C.t2, fontSize: 12 }}>{label}</span>
+        <span style={{ color: 'var(--muted)', fontSize: 12 }}>{label}</span>
         <span
           className="font-mono"
           style={{ color: deltaColor, fontSize: 13, fontWeight: 600 }}
@@ -43,14 +43,14 @@ export default function BenchmarkBar({
       </div>
 
       <div className="flex items-center" style={{ gap: 8, marginBottom: 4 }}>
-        <span className="font-mono" style={{ color: C.t3, fontSize: 10, width: 28 }}>
+        <span className="font-mono" style={{ color: 'var(--muted2)', fontSize: 10, width: 28 }}>
           Tú
         </span>
         <div
           style={{
             flex: 1,
             height: 6,
-            background: C.border,
+            background: 'var(--border)',
             borderRadius: 999,
             overflow: 'hidden',
           }}
@@ -65,20 +65,20 @@ export default function BenchmarkBar({
             }}
           />
         </div>
-        <span className="font-mono" style={{ color: C.t1, fontSize: 11, width: 44, textAlign: 'right' }}>
+        <span className="font-mono" style={{ color: 'var(--text)', fontSize: 11, width: 44, textAlign: 'right' }}>
           {formatVal(valor)}
         </span>
       </div>
 
       <div className="flex items-center" style={{ gap: 8 }}>
-        <span className="font-mono" style={{ color: C.t3, fontSize: 10, width: 28 }}>
+        <span className="font-mono" style={{ color: 'var(--muted2)', fontSize: 10, width: 28 }}>
           Nicho
         </span>
         <div
           style={{
             flex: 1,
             height: 6,
-            background: C.border,
+            background: 'var(--border)',
             borderRadius: 999,
             overflow: 'hidden',
           }}
@@ -87,12 +87,12 @@ export default function BenchmarkBar({
             style={{
               width: `${benchPct}%`,
               height: '100%',
-              background: C.t3,
+              background: 'var(--muted2)',
               borderRadius: 999,
             }}
           />
         </div>
-        <span className="font-mono" style={{ color: C.t2, fontSize: 11, width: 44, textAlign: 'right' }}>
+        <span className="font-mono" style={{ color: 'var(--muted)', fontSize: 11, width: 44, textAlign: 'right' }}>
           {formatVal(benchmark)}
         </span>
       </div>

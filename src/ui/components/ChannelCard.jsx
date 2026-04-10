@@ -19,7 +19,7 @@ const fmtSeg = (n) => {
 }
 
 const ctfColorByRatio = (ratio) => {
-  if (ratio == null) return C.t2
+  if (ratio == null) return 'var(--muted)'
   if (ratio >= 0.6) return C.ok
   if (ratio >= 0.5) return C.warn
   return C.alert
@@ -37,17 +37,17 @@ const btnBase = {
   whiteSpace: 'nowrap',
 }
 
-const OutlineBtn = ({ children, onClick, color = C.t2 }) => (
+const OutlineBtn = ({ children, onClick, color = 'var(--muted)' }) => (
   <button
     onClick={(e) => { e.stopPropagation(); onClick && onClick(e) }}
     style={{
       ...btnBase,
       background: 'transparent',
       color,
-      border: `1px solid ${C.borderEl}`,
+      border: `1px solid ${'var(--border-med, rgba(0,0,0,0.08))'}`,
     }}
     onMouseEnter={(e) => { e.currentTarget.style.borderColor = C.teal; e.currentTarget.style.color = C.teal }}
-    onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.borderEl; e.currentTarget.style.color = color }}
+    onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-med, rgba(0,0,0,0.08))'; e.currentTarget.style.color = color }}
   >
     {children}
   </button>
@@ -59,7 +59,7 @@ const FilledBtn = ({ children, onClick, size = 'sm' }) => (
     style={{
       ...btnBase,
       background: C.teal,
-      color: C.bg,
+      color: '#fff',
       border: 'none',
       fontWeight: 700,
       padding: size === 'md' ? '8px 16px' : '6px 12px',
@@ -102,28 +102,28 @@ function Skeleton({ variant = 'standard' }) {
     >
       {compact ? (
         <div className="flex items-center" style={{ gap: 12 }}>
-          <div style={{ width: 40, height: 40, background: 'var(--bg2, #1C2A3F)', borderRadius: 10 }} />
-          <div style={{ flex: 1, height: 10, background: 'var(--bg2, #1C2A3F)', borderRadius: 4 }} />
-          <div style={{ width: 60, height: 18, background: 'var(--bg2, #1C2A3F)', borderRadius: 999 }} />
+          <div style={{ width: 40, height: 40, background: 'var(--bg2)', borderRadius: 10 }} />
+          <div style={{ flex: 1, height: 10, background: 'var(--bg2)', borderRadius: 4 }} />
+          <div style={{ width: 60, height: 18, background: 'var(--bg2)', borderRadius: 999 }} />
         </div>
       ) : (
         <>
           <div className="flex justify-between mb-3">
-            <div style={{ height: 14, background: 'var(--bg2, #1C2A3F)', borderRadius: 4, width: 128 }} />
-            <div style={{ height: 24, background: 'var(--bg2, #1C2A3F)', borderRadius: 999, width: 64 }} />
+            <div style={{ height: 14, background: 'var(--bg2)', borderRadius: 4, width: 128 }} />
+            <div style={{ height: 24, background: 'var(--bg2)', borderRadius: 999, width: 64 }} />
           </div>
-          <div style={{ height: 6, background: 'var(--bg2, #1C2A3F)', borderRadius: 999, marginBottom: 12 }} />
+          <div style={{ height: 6, background: 'var(--bg2)', borderRadius: 999, marginBottom: 12 }} />
           <div className="flex" style={{ gap: 8, marginBottom: 12 }}>
             {[1, 2, 3].map((i) => (
-              <div key={i} style={{ height: 10, background: 'var(--bg2, #1C2A3F)', borderRadius: 4, width: 48 }} />
+              <div key={i} style={{ height: 10, background: 'var(--bg2)', borderRadius: 4, width: 48 }} />
             ))}
           </div>
           <div
             className="flex justify-between"
             style={{ paddingTop: 12, borderTop: '1px solid var(--border)' }}
           >
-            <div style={{ height: 10, background: 'var(--bg2, #1C2A3F)', borderRadius: 4, width: 80 }} />
-            <div style={{ height: 22, background: 'var(--bg2, #1C2A3F)', borderRadius: 6, width: 96 }} />
+            <div style={{ height: 10, background: 'var(--bg2)', borderRadius: 4, width: 80 }} />
+            <div style={{ height: 22, background: 'var(--bg2)', borderRadius: 6, width: 96 }} />
           </div>
         </>
       )}
@@ -180,7 +180,7 @@ export default function ChannelCard({
     ? C.teal
     : hover
     ? `${C.teal}66`
-    : C.border
+    : 'var(--border)'
 
   const cardStyle = {
     background: 'var(--surface)',
@@ -246,7 +246,7 @@ export default function ChannelCard({
   const featured = variant === 'featured'
 
   const headerBg = featured
-    ? `linear-gradient(180deg, ${C.tealGlow} 0%, transparent 100%)`
+    ? 'linear-gradient(180deg, rgba(0,212,184,0.06) 0%, transparent 100%)'
     : 'transparent'
 
   return (
@@ -398,7 +398,7 @@ export default function ChannelCard({
           if (ratioCTF_CAF == null) {
             return (
               <span className="flex items-center font-mono" style={{ gap: 6, fontSize: 11, color: 'var(--muted2, #475569)' }}>
-                <span style={{ width: 8, height: 8, borderRadius: 999, background: C.t3 }} />
+                <span style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--muted2)' }} />
                 Sin datos
               </span>
             )
@@ -465,8 +465,8 @@ export default function ChannelCard({
                   style={{
                     ...btnBase,
                     background: saved ? C.tealDim : 'transparent',
-                    color: saved ? C.teal : C.t3,
-                    border: `1px solid ${saved ? C.teal + '44' : C.borderEl}`,
+                    color: saved ? C.teal : 'var(--muted2)',
+                    border: `1px solid ${saved ? C.teal + '44' : 'var(--border-med, rgba(0,0,0,0.08))'}`,
                     padding: '6px 8px',
                     display: 'flex',
                     alignItems: 'center',

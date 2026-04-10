@@ -24,15 +24,15 @@ function CustomTooltip({ active, payload, label }) {
   return (
     <div
       style={{
-        background: C.surfaceEl,
-        border: `1px solid ${C.borderEl}`,
+        background: 'var(--bg2)',
+        border: `1px solid ${'var(--border-med)'}`,
         borderRadius: 8,
         padding: 12,
         fontFamily: 'JetBrains Mono, monospace',
         fontSize: 12,
       }}
     >
-      <div style={{ color: C.t2, marginBottom: 6 }}>{fmtDate(label)}</div>
+      <div style={{ color: 'var(--muted)', marginBottom: 6 }}>{fmtDate(label)}</div>
       {payload.map((p) => (
         <div
           key={p.dataKey}
@@ -54,7 +54,7 @@ export default function CASHistoryChart({ data = [], height = 200 }) {
         className="flex flex-col items-center justify-center"
         style={{
           height,
-          color: C.t3,
+          color: 'var(--muted2)',
           gap: 8,
         }}
       >
@@ -67,27 +67,27 @@ export default function CASHistoryChart({ data = [], height = 200 }) {
   return (
     <ResponsiveContainer width="100%" height={height}>
       <LineChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-        <CartesianGrid stroke={C.border} strokeDasharray="3 3" />
+        <CartesianGrid stroke={'var(--border)'} strokeDasharray="3 3" />
         <XAxis
           dataKey="fecha"
           tickFormatter={fmtDate}
-          stroke={C.t3}
-          tick={{ fontSize: 11, fill: C.t3 }}
+          stroke={'var(--muted2)'}
+          tick={{ fontSize: 11, fill: 'var(--muted2)' }}
           tickLine={false}
-          axisLine={{ stroke: C.border }}
+          axisLine={{ stroke: 'var(--border)' }}
         />
         <YAxis
           domain={[0, 100]}
           ticks={[0, 25, 50, 75, 100]}
-          stroke={C.t3}
-          tick={{ fontSize: 11, fill: C.t3 }}
+          stroke={'var(--muted2)'}
+          tick={{ fontSize: 11, fill: 'var(--muted2)' }}
           tickLine={false}
-          axisLine={{ stroke: C.border }}
+          axisLine={{ stroke: 'var(--border)' }}
         />
-        <Tooltip content={<CustomTooltip />} cursor={{ stroke: C.borderEl }} />
+        <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--border-med)' }} />
         <Legend
           iconType="line"
-          wrapperStyle={{ fontSize: 12, color: C.t2 }}
+          wrapperStyle={{ fontSize: 12, color: 'var(--muted)' }}
         />
         <Line
           type="monotone"
