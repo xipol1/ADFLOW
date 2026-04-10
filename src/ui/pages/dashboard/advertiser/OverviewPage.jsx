@@ -12,6 +12,8 @@ import { Sparkline } from '../shared/DashComponents'
 import {
   PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE,
 } from '../../../theme/tokens'
+import DashboardModule from '../../../components/DashboardModule'
+import MetricContext from '../../../components/MetricContext'
 
 
 // ─── Time-aware greeting ──────────────────────────────────────────────────────
@@ -404,6 +406,54 @@ export default function OverviewPage() {
         />
       </div>
 
+      {/* ── Recommendations ("Para ti") ── */}
+      {(() => {
+        const recs = []
+        if (activeAds === 0 && campaigns.length > 0) {
+          recs.push({ icon: '🎯', text: 'No tienes campañas activas — explora canales disponibles', link: '/advertiser/explore', cta: 'Explorar' })
+        }
+        if (campaigns.length === 0) {
+          recs.push({ icon: '🚀', text: 'Lanza tu primera campaña para empezar a ver resultados', link: '/advertiser/explore', cta: 'Buscar canales' })
+        }
+        if (campaigns.filter(c => c.status === 'COMPLETED').length > 0) {
+          recs.push({ icon: '📊', text: 'Revisa el rendimiento de tus campañas completadas', link: '/advertiser/analytics', cta: 'Ver analytics' })
+        }
+        if (recs.length === 0) return null
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {recs.slice(0, 2).map((r, i) => (
+              <div
+                key={i}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  background: `${PURPLE}08`,
+                  border: `1px solid ${PURPLE}22`,
+                  borderRadius: 12,
+                  padding: '10px 16px',
+                }}
+              >
+                <span style={{ fontSize: 18, flexShrink: 0 }}>{r.icon}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 1 }}>💡 Para ti</div>
+                  <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.4 }}>{r.text}</div>
+                </div>
+                <button
+                  onClick={() => navigate(r.link)}
+                  style={{
+                    background: purpleAlpha(0.1), color: PURPLE,
+                    border: `1px solid ${purpleAlpha(0.3)}`, borderRadius: 8,
+                    padding: '5px 12px', fontSize: 11, fontWeight: 600,
+                    cursor: 'pointer', fontFamily: FONT_BODY, flexShrink: 0, whiteSpace: 'nowrap',
+                  }}
+                >{r.cta} →</button>
+              </div>
+            ))}
+          </div>
+        )
+      })()}
+
       {/* ── 2-col main layout ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) minmax(280px, 1fr)', gap: '20px' }}>
 
@@ -411,42 +461,25 @@ export default function OverviewPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
           {/* Monthly spend chart */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
-            <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '2px' }}>Gasto mensual</h2>
-                <p style={{ fontSize: '12px', color: 'var(--muted)' }}>Últimos 12 meses</p>
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {['3M', '6M', '12M'].map((l, i) => (
-                  <button key={l} style={{
-                    background: i === 2 ? purpleAlpha(0.1) : 'transparent',
-                    border: `1px solid ${i === 2 ? purpleAlpha(0.3) : 'var(--border)'}`,
-                    borderRadius: '8px', padding: '4px 10px', fontSize: '12px',
-                    color: i === 2 ? PURPLE : 'var(--muted)', cursor: 'pointer', fontFamily: FONT_BODY,
-                  }}>{l}</button>
-                ))}
-              </div>
-            </div>
-            <div style={{ padding: '16px 24px 20px' }}>
-              <BarChart data={monthlySpend.length > 0 ? monthlySpend : []} />
-            </div>
-          </div>
+          <DashboardModule
+            title="Gasto mensual"
+            icon={DollarSign}
+            tooltip="Gasto acumulado en campañas publicadas y completadas por mes."
+            linkTo="/advertiser/analytics"
+            linkLabel="Ver análisis de gasto"
+          >
+            <BarChart data={monthlySpend.length > 0 ? monthlySpend : []} />
+          </DashboardModule>
 
           {/* Top campaigns table */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
-            <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '2px' }}>Campañas recientes</h2>
-                <p style={{ fontSize: '12px', color: 'var(--muted)' }}>{campaigns.length} campañas en total</p>
-              </div>
-              <button
-                onClick={() => navigate('/advertiser/ads')}
-                style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'none', border: 'none', fontSize: '13px', color: PURPLE, cursor: 'pointer', fontWeight: 600, fontFamily: FONT_BODY }}
-              >
-                Ver todas <ChevronRight size={14} />
-              </button>
-            </div>
+          <DashboardModule
+            title="Campañas recientes"
+            icon={Megaphone}
+            tooltip={`${campaigns.length} campañas en total. Haz clic en una para ver su rendimiento detallado.`}
+            linkTo="/advertiser/campaigns"
+            linkLabel="Ver todas las campañas"
+            noPadding
+          >
 
             {/* Table header */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 72px 72px 80px', padding: '10px 20px', borderBottom: '1px solid var(--border)', background: 'var(--bg2)', gap: '12px' }}>
@@ -458,15 +491,20 @@ export default function OverviewPage() {
             {campaigns.slice(0, 5).map((ad, i) => (
               <CampaignRow key={ad.id || ad._id} ad={ad} isLast={i === Math.min(4, campaigns.length - 1)} />
             ))}
-          </div>
+          </DashboardModule>
         </div>
 
         {/* ── Right column ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
           {/* Platform spend donut */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', padding: '20px' }}>
-            <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>Gasto por plataforma</h2>
+          <DashboardModule
+            title="Gasto por plataforma"
+            icon={Target}
+            tooltip="Distribución de tu gasto publicitario por plataforma este mes."
+            linkTo="/advertiser/analytics"
+            linkLabel="Ver análisis completo"
+          >
             <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '18px' }}>Este mes</p>
 
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px', position: 'relative' }}>
@@ -491,17 +529,17 @@ export default function OverviewPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </DashboardModule>
 
           {/* Top channels */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
-            <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>Top canales</h2>
-              <button
-                onClick={() => navigate('/advertiser/explore')}
-                style={{ background: 'none', border: 'none', fontSize: '12px', color: PURPLE, cursor: 'pointer', fontWeight: 600, fontFamily: FONT_BODY }}
-              >Explorar</button>
-            </div>
+          <DashboardModule
+            title="Top canales"
+            icon={TrendingUp}
+            tooltip="Los canales más rentables basados en tus campañas anteriores."
+            linkTo="/advertiser/explore"
+            linkLabel="Explorar canales"
+            noPadding
+          >
             {TOP_CHANNELS.map((ch, i) => (
               <div key={ch.name} style={{ padding: '13px 20px', borderBottom: i < TOP_CHANNELS.length - 1 ? '1px solid var(--border)' : 'none' }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg2)' }}
@@ -528,13 +566,15 @@ export default function OverviewPage() {
                 </div>
               </div>
             ))}
-          </div>
+          </DashboardModule>
 
           {/* Activity feed */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
-            <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border)' }}>
-              <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>Actividad reciente</h2>
-            </div>
+          <DashboardModule
+            title="Actividad reciente"
+            icon={Activity}
+            tooltip="Últimas acciones en tus campañas y transacciones."
+            noPadding
+          >
             <div style={{ padding: '8px 0' }}>
               {ACTIVITY.map((item, i) => (
                 <div key={item.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '11px 20px' }}
@@ -554,7 +594,7 @@ export default function OverviewPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </DashboardModule>
 
           {/* Quick budget widget */}
           <div style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, #7c3aed 100%)`, borderRadius: '18px', padding: '20px', color: '#fff' }}>

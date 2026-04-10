@@ -7,6 +7,8 @@ import { GREEN, greenAlpha, PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK as 
 import { C, nivelFromCAS } from '../../../theme/tokens'
 import { CASBadge, ScoreGauge, CPMBadge, ConfianzaBadge, BenchmarkBar } from '../../../components/scoring'
 import { Sparkline, ErrorBanner } from '../shared/DashComponents'
+import DashboardModule from '../../../components/DashboardModule'
+import MetricContext from '../../../components/MetricContext'
 
 const WA  = GREEN
 const WAG = greenAlpha
@@ -465,6 +467,65 @@ export default function CreatorOverviewPage() {
         </div>
       ) : null}
 
+      {/* ── Recommendations ("Para ti") ── */}
+      {(() => {
+        const recs = []
+        if (pendingReqs > 0) {
+          recs.push({ icon: '📥', text: `Tienes ${pendingReqs} solicitud${pendingReqs > 1 ? 'es' : ''} pendiente${pendingReqs > 1 ? 's' : ''} de respuesta`, link: '/creator/requests', cta: 'Responder' })
+        }
+        if (mainChannel && Number(mainChannel.CAS) > 0 && Number(mainChannel.CAS) < 60) {
+          recs.push({ icon: '📊', text: `Tu CAS Score es ${mainChannel.CAS} — verifica tu canal vía OAuth para subir tu CTF`, link: '/creator/analytics', cta: 'Ver analytics' })
+        }
+        if (channels.length > 0 && channels.every(c => !c.CAS || Number(c.CAS) === 0)) {
+          recs.push({ icon: '🔍', text: 'Ninguno de tus canales tiene CAS Score aún — verifica al menos uno', link: '/creator/channels', cta: 'Verificar' })
+        }
+        if (recs.length === 0) return null
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {recs.map((r, i) => (
+              <div
+                key={i}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  background: `${C.teal}08`,
+                  border: `1px solid ${C.teal}22`,
+                  borderRadius: 12,
+                  padding: '10px 16px',
+                }}
+              >
+                <span style={{ fontSize: 18, flexShrink: 0 }}>{r.icon}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 1 }}>
+                    💡 Para ti
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.4 }}>{r.text}</div>
+                </div>
+                <button
+                  onClick={() => navigate(r.link)}
+                  style={{
+                    background: C.tealDim,
+                    color: C.teal,
+                    border: `1px solid ${C.teal}44`,
+                    borderRadius: 8,
+                    padding: '5px 12px',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: F,
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {r.cta} →
+                </button>
+              </div>
+            ))}
+          </div>
+        )
+      })()}
+
       {/* ── Period selector ── */}
       <div style={{ display: 'flex', gap: '2px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '3px', width: 'fit-content' }}>
         {PERIOD_OPTS.map(p => {
@@ -481,10 +542,18 @@ export default function CreatorOverviewPage() {
 
       {/* ── KPI grid ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px' }}>
-        <KpiCard icon={DollarSign} label="Ganancias este mes" value={`€${monthEarnings.toLocaleString('es')}`} sub={momLabel} subColor={momChange !== null && momChange < 0 ? '#ef4444' : OK} sparkData={earnSparkData} accent={WA} />
+        <div>
+          <KpiCard icon={DollarSign} label="Ganancias este mes" value={`€${monthEarnings.toLocaleString('es')}`} sub={momLabel} subColor={momChange !== null && momChange < 0 ? '#ef4444' : OK} sparkData={earnSparkData} accent={WA} />
+          <MetricContext delta={momChange != null ? `${momChange >= 0 ? '+' : ''}${momChange}%` : null} deltaLabel="vs mes anterior" />
+        </div>
         <KpiCard icon={Radio} label="Canales activos" value={activeChannels} sub={`${channels.length} total`} accent={A} sparkData={[2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, activeChannels]} />
         <KpiCard icon={Inbox} label="Solicitudes pendientes" value={pendingReqs} sub={pendingReqs > 0 ? 'Requieren respuesta' : 'Al dia'} subColor={pendingReqs > 0 ? WARN : OK} sparkData={REQ_SPARK} accent={WARN} />
-        <KpiCard icon={TrendingUp} label="Ganancias totales" value={`€${totalEarnings.toLocaleString('es')}`} sub="Desde el inicio" accent={OK} sparkData={earnSparkData.map(v => v * 0.6)} />
+        <div>
+          <KpiCard icon={TrendingUp} label="Ganancias totales" value={`€${totalEarnings.toLocaleString('es')}`} sub="Desde el inicio" accent={OK} sparkData={earnSparkData.map(v => v * 0.6)} />
+          {mainChannel && Number(mainChannel.CAS) > 0 && (
+            <MetricContext percentil={`CAS ${mainChannel.CAS}`} nicho={mainChannel.categoria || 'general'} />
+          )}
+        </div>
       </div>
 
       {/* ── Quick actions ── */}
@@ -517,16 +586,15 @@ export default function CreatorOverviewPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
           {/* Active channels */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
-            <div style={{ padding: '18px 22px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <h2 style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '2px' }}>Mis Canales</h2>
-                <p style={{ fontSize: '12px', color: 'var(--muted)' }}>{channels.length} canales registrados</p>
-              </div>
-              <button onClick={() => navigate('/creator/channels')} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'none', border: 'none', fontSize: '13px', color: WA, cursor: 'pointer', fontWeight: 600, fontFamily: F }}>
-                Ver todos <ChevronRight size={14} />
-              </button>
-            </div>
+          <DashboardModule
+            title="Mis Canales"
+            icon={Radio}
+            tooltip={`${channels.length} canales registrados. El CAS Score se actualiza cada noche a las 03:00 UTC.`}
+            updatedAt={new Date()}
+            linkTo="/creator/channels"
+            linkLabel="Ver todos los canales"
+            noPadding
+          >
             {channels.map((ch, i) => {
               const plat = ch.plataforma || ch.platform || ''
               const platLabel = plat.charAt(0).toUpperCase() + plat.slice(1)
@@ -573,23 +641,22 @@ export default function CreatorOverviewPage() {
                 </div>
               )
             })}
-          </div>
+          </DashboardModule>
 
           {/* Pending requests */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
-            <div style={{ padding: '18px 22px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h2 style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>Solicitudes pendientes</h2>
-                {pendingReqs > 0 && (
-                  <span style={{ background: `${WARN}18`, color: WARN, border: `1px solid ${WARN}35`, borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 700 }}>
-                    {pendingReqs}
-                  </span>
-                )}
-              </div>
-              <button onClick={() => navigate('/creator/requests')} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'none', border: 'none', fontSize: '13px', color: WA, cursor: 'pointer', fontWeight: 600, fontFamily: F }}>
-                Ver todas <ChevronRight size={14} />
-              </button>
-            </div>
+          <DashboardModule
+            title="Solicitudes pendientes"
+            icon={Inbox}
+            tooltip="Solicitudes de campañas de anunciantes que requieren tu respuesta."
+            linkTo="/creator/requests"
+            linkLabel="Ver todas las solicitudes"
+            noPadding
+            action={pendingReqs > 0 ? (
+              <span style={{ background: `${WARN}18`, color: WARN, border: `1px solid ${WARN}35`, borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 700 }}>
+                {pendingReqs}
+              </span>
+            ) : undefined}
+          >
 
             {requests.filter(r => r.status === 'pendiente').length === 0 ? (
               <div style={{ padding: '40px', textAlign: 'center' }}>
@@ -632,31 +699,33 @@ export default function CreatorOverviewPage() {
                 </div>
               ))
             )}
-          </div>
+          </DashboardModule>
         </div>
 
         {/* ── Right column ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
           {/* Earnings chart */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <h3 style={{ fontFamily: D, fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>Ganancias mensuales</h3>
-              <span style={{ fontSize: '11px', color: 'var(--muted)' }}>Últimos 6 meses</span>
-            </div>
-            <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '14px' }}>Tendencia de ingresos</p>
+          <DashboardModule
+            title="Ganancias mensuales"
+            icon={DollarSign}
+            tooltip="Ingresos netos por campañas completadas. La comisión de la plataforma ya está descontada."
+            linkTo="/creator/earnings"
+            linkLabel="Ver detalle de ganancias"
+          >
+            <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '14px' }}>Tendencia de ingresos — últimos 6 meses</p>
             <BarChart data={barChartData} color={WA} />
-          </div>
+          </DashboardModule>
 
           {/* Activity feed */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Activity size={14} color={WA} />
-                <h3 style={{ fontFamily: D, fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>Actividad reciente</h3>
-              </div>
-              <button onClick={() => navigate('/creator/requests')} style={{ background: 'none', border: 'none', fontSize: '12px', color: WA, cursor: 'pointer', fontFamily: F, fontWeight: 600 }}>Ver todo</button>
-            </div>
+          <DashboardModule
+            title="Actividad reciente"
+            icon={Activity}
+            tooltip="Últimas campañas y solicitudes procesadas."
+            linkTo="/creator/requests"
+            linkLabel="Ver todo"
+            noPadding
+          >
             <div style={{ padding: '4px 0' }}>
               {(activityFeed.length > 0 ? activityFeed : [
                 { id: 1, icon: '📥', color: BLUE, title: 'Nueva solicitud', desc: 'Tech Insights ES — €450', time: 'Hace 2h' },
@@ -678,7 +747,7 @@ export default function CreatorOverviewPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </DashboardModule>
 
           {/* Balance withdrawal card */}
           <div style={{ background: `linear-gradient(135deg, ${WA} 0%, #1aa34a 100%)`, borderRadius: '18px', padding: '20px', color: '#fff', position: 'relative', overflow: 'hidden' }}>
