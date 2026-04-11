@@ -13,7 +13,7 @@
   <meta property="og:type" content="article">
   <meta property="og:title" content="{{title}}">
   <meta property="og:description" content="{{description}}">
-  <meta property="og:url" content="{{domain}}/blog/{{slug}}">
+  <meta property="og:url" content="{{canonicalUrl}}">
   <meta property="og:site_name" content="Channelad">
   <meta property="og:locale" content="es_ES">
   <meta property="og:image" content="{{domain}}/og-default.png">
@@ -38,7 +38,7 @@
     "dateModified": "{{dateModifiedISO}}",
     "author": { "@type": "Person", "name": "Rafa Ferrer", "jobTitle": "CEO", "worksFor": { "@type": "Organization", "name": "Channelad", "url": "{{domain}}" } },
     "publisher": { "@type": "Organization", "name": "Channelad", "url": "{{domain}}", "logo": { "@type": "ImageObject", "url": "{{domain}}/logo.png" } },
-    "mainEntityOfPage": "{{domain}}/blog/{{slug}}",
+    "mainEntityOfPage": "{{canonicalUrl}}",
     "image": "{{domain}}/og-default.png",
     "inLanguage": "{{lang}}",
     "keywords": "{{keywords}}"
@@ -52,7 +52,7 @@
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "{{domain}}/" },
       { "@type": "ListItem", "position": 2, "name": "Blog", "item": "{{domain}}/blog" },
-      { "@type": "ListItem", "position": 3, "name": "{{title}}", "item": "{{domain}}/blog/{{slug}}" }
+      { "@type": "ListItem", "position": 3, "name": "{{title}}", "item": "{{canonicalUrl}}" }
     ]
   }
   </script>

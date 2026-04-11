@@ -267,13 +267,18 @@ function build() {
       .replace(/{{related_html}}/g, relatedHtml)
       .replace(/{{faq_schema}}/g, faqSchema);
 
-    const outFile = path.join(OUTPUT_DIR, `${meta.slug}.html`);
-    fs.writeFileSync(outFile, html, 'utf-8');
-    // Also write extensionless copy for Vercel filesystem routing
-    const extlessDir = path.join(OUTPUT_DIR, meta.slug);
-    fs.mkdirSync(extlessDir, { recursive: true });
-    fs.writeFileSync(path.join(extlessDir, 'index.html'), html, 'utf-8');
-    console.log(`  \u2705 ${meta.slug}.html (${meta.readTime})`);
+    // Skip static HTML for posts that need SPA (interactive components)
+    if (meta.spaOnly === 'true') {
+      console.log(`  ⚛️  ${meta.slug} (SPA-only, skipping static HTML)`);
+    } else {
+      const outFile = path.join(OUTPUT_DIR, `${meta.slug}.html`);
+      fs.writeFileSync(outFile, html, 'utf-8');
+      // Also write extensionless copy for Vercel filesystem routing
+      const extlessDir = path.join(OUTPUT_DIR, meta.slug);
+      fs.mkdirSync(extlessDir, { recursive: true });
+      fs.writeFileSync(path.join(extlessDir, 'index.html'), html, 'utf-8');
+      console.log(`  \u2705 ${meta.slug}.html (${meta.readTime})`);
+    }
 
     const { _body, ...cleanMeta } = meta;
     posts.push(cleanMeta);
