@@ -4,7 +4,7 @@ description: "Descubre cuánto se puede ganar con un canal de Telegram en Españ
 slug: "monetizar-canal-telegram-espana"
 date: "2026-04-07"
 dateModified: "2026-04-11"
-category: "Monetización"
+category: "Monetizacion"
 readTime: "18 min"
 lang: "es"
 keywords: ["monetizar canal telegram", "cómo monetizar un canal de telegram", "ganar dinero telegram españa", "publicidad canal telegram", "vender publicidad telegram", "cuánto paga telegram por canal", "telegram creadores españa"]

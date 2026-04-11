@@ -4,7 +4,7 @@ description: "Todo lo que necesitas saber para hacer publicidad en servidores de
 slug: "publicidad-en-discord-guia-completa"
 date: "2026-04-10"
 dateModified: "2026-04-11"
-category: "Guías"
+category: "Guias"
 readTime: "15 min"
 lang: "es"
 keywords: ["publicidad discord", "anuncios discord", "discord ads", "marketing discord", "servidores discord publicidad", "publicidad servidores discord españa"]

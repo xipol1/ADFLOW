@@ -4,7 +4,7 @@ description: "Todo sobre el pago custodiado en publicidad: cómo funciona, por q
 slug: "escrow-publicidad-digital"
 date: "2026-04-16"
 dateModified: "2026-04-11"
-category: "Guías"
+category: "Guias"
 readTime: "12 min"
 lang: "es"
 keywords: ["escrow publicidad", "pago custodiado publicidad", "proteger inversión publicitaria", "escrow marketplace"]

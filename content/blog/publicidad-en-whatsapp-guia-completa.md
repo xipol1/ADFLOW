@@ -4,7 +4,7 @@ description: "Guía práctica para hacer publicidad en grupos y canales de Whats
 slug: "publicidad-en-whatsapp-guia-completa"
 date: "2026-04-14"
 dateModified: "2026-04-11"
-category: "Guías"
+category: "Guias"
 readTime: "14 min"
 lang: "es"
 keywords: ["publicidad whatsapp", "anuncios whatsapp", "marketing grupos whatsapp", "comprar publicidad whatsapp", "whatsapp ads"]

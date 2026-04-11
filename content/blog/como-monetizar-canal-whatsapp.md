@@ -4,7 +4,7 @@ description: "Guía paso a paso para ganar dinero con tu canal de WhatsApp en Es
 slug: "como-monetizar-canal-whatsapp"
 date: "2026-04-11"
 dateModified: "2026-04-11"
-category: "Monetización"
+category: "Monetizacion"
 readTime: "18 min"
 lang: "es"
 keywords: ["monetizar canal whatsapp", "ganar dinero canal whatsapp", "publicidad whatsapp canales", "whatsapp para creadores", "monetización whatsapp 2026", "cómo ganar dinero con whatsapp españa"]

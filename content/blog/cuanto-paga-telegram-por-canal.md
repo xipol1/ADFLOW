@@ -4,7 +4,7 @@ description: "Telegram no paga directamente, pero tu canal SÍ puede generar ing
 slug: "cuanto-paga-telegram-por-canal"
 date: "2026-04-07"
 dateModified: "2026-04-11"
-category: "Monetización"
+category: "Monetizacion"
 readTime: "10 min"
 lang: "es"
 keywords: ["cuánto paga telegram por canal", "cuánto gana un canal de telegram", "monetización telegram 2026", "telegram ingresos canal", "ganar dinero telegram españa"]

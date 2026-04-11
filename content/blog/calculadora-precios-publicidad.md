@@ -5,7 +5,7 @@ slug: "calculadora-precios-publicidad"
 spaOnly: "true"
 date: "2026-04-11"
 dateModified: "2026-04-11"
-category: "Guías"
+category: "Guias"
 readTime: "8 min"
 lang: "es"
 keywords: ["calculadora precios publicidad telegram", "cuánto cobrar publicidad canal", "CPM telegram whatsapp discord", "precio post patrocinado españa", "calculadora ingresos canal", "cuánto gana un canal de telegram"]

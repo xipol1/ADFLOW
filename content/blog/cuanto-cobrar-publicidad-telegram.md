@@ -4,7 +4,7 @@ description: "Fórmula exacta, tabla de CPMs por nicho y calculadora interactiva
 slug: "cuanto-cobrar-publicidad-telegram"
 date: "2026-04-09"
 dateModified: "2026-04-11"
-category: "Monetización"
+category: "Monetizacion"
 readTime: "12 min"
 lang: "es"
 keywords: ["cuánto cobrar publicidad telegram", "precio publicidad telegram", "CPM telegram canal", "tarifas anuncios telegram", "precios publicidad canal telegram", "facturar publicidad telegram España", "CPM telegram España"]
