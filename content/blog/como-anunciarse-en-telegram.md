@@ -81,7 +81,7 @@ Los riesgos principales son:
 
 ### La solucion: marketplaces verificados
 
-Plataformas como [Channelad](https://channelad.io) resuelven estos problemas:
+Plataformas como [Channelad](https://www.channelad.io) resuelven estos problemas:
 
 - **Verificacion de canales**: metricas reales auditadas, no auto-reportadas.
 - **Escrow (pago custodiado)**: tu dinero se retiene hasta que el anuncio se publica correctamente.
@@ -139,4 +139,4 @@ La clave esta en elegir los canales correctos, crear contenido que no parezca sp
 
 ---
 
-*¿Quieres empezar a anunciarte en canales de Telegram verificados? [Explora el marketplace de Channelad](https://channelad.io/marketplace) y encuentra canales con metricas reales y pagos protegidos.*
+*¿Quieres empezar a anunciarte en canales de Telegram verificados? [Explora el marketplace de Channelad](https://www.channelad.io/marketplace) y encuentra canales con metricas reales y pagos protegidos.*

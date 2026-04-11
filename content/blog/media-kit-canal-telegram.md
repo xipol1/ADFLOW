@@ -36,7 +36,7 @@ Rango de edad estimado, pais principal, intereses, nivel socieconomico.
 
 ### 4. Formatos disponibles y precios
 
-Lista clara con precios fijos. No digas «precios a consultar». Usa la [guia de precios](https://channelad.io/blog/cuanto-cobrar-publicidad-telegram) para calcular tus tarifas.
+Lista clara con precios fijos. No digas «precios a consultar». Usa la [guia de precios](https://www.channelad.io/blog/cuanto-cobrar-publicidad-telegram) para calcular tus tarifas.
 
 ### 5. Ejemplos de publicaciones anteriores
 
@@ -65,8 +65,8 @@ Telegram de contacto, email, y link a tu perfil en el marketplace.
 
 ## Como presentar el media kit
 
-O mejor aun: registrate en [Channelad](https://channelad.io/para-canales) y tus metricas se verifican automaticamente. Tu perfil funciona como un media kit vivo y actualizado.
+O mejor aun: registrate en [Channelad](https://www.channelad.io/para-canales) y tus metricas se verifican automaticamente. Tu perfil funciona como un media kit vivo y actualizado.
 
 ---
 
-*¿Listo para profesionalizar tu canal? [Registrate en Channelad](https://channelad.io/para-canales) — tu media kit automatizado.*
+*¿Listo para profesionalizar tu canal? [Registrate en Channelad](https://www.channelad.io/para-canales) — tu media kit automatizado.*

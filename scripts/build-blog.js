@@ -17,7 +17,7 @@ const CONTENT_DIR = path.join(ROOT, 'content', 'blog');
 const OUTPUT_DIR = path.join(ROOT, 'public', 'blog');
 const TEMPLATE_PATH = path.join(CONTENT_DIR, '_template.html');
 const SITEMAP_PATH = path.join(ROOT, 'public', 'sitemap.xml');
-const DOMAIN = 'https://channelad.io';
+const DOMAIN = 'https://www.channelad.io';
 
 // ─── Frontmatter parser ───
 function parseFrontmatter(content) {

@@ -89,11 +89,11 @@ export default function ForBrandsPage() {
         <script type="application/ld+json">{JSON.stringify({
           '@context': 'https://schema.org', '@type': 'WebPage', name: 'Publicidad en comunidades para marcas — Channelad',
           description: 'Compra publicidad en canales verificados de WhatsApp, Telegram y Discord.',
-          url: 'https://channelad.io/para-anunciantes',
-          publisher: { '@type': 'Organization', name: 'Channelad', url: 'https://channelad.io' },
+          url: 'https://www.channelad.io/para-anunciantes',
+          publisher: { '@type': 'Organization', name: 'Channelad', url: 'https://www.channelad.io' },
           breadcrumb: { '@type': 'BreadcrumbList', itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://channelad.io/' },
-            { '@type': 'ListItem', position: 2, name: 'Para marcas', item: 'https://channelad.io/para-anunciantes' },
+            { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://www.channelad.io/' },
+            { '@type': 'ListItem', position: 2, name: 'Para marcas', item: 'https://www.channelad.io/para-anunciantes' },
           ]},
         })}</script>
       </Helmet>

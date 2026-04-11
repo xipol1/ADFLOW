@@ -64,7 +64,7 @@ function BackToTop() {
 /* ─── Share Bar ─── */
 function ShareBar({ post }) {
   const [copied, setCopied] = useState(false)
-  const url = `https://channelad.io/blog/${post.slug}`
+  const url = `https://www.channelad.io/blog/${post.slug}`
   const copyLink = () => {
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true)
@@ -244,15 +244,15 @@ export default function BlogPost() {
       />
 
       <Helmet>
-        <link rel="alternate" type="application/rss+xml" title="Channelad Blog" href="https://channelad.io/blog/feed.xml" />
+        <link rel="alternate" type="application/rss+xml" title="Channelad Blog" href="https://www.channelad.io/blog/feed.xml" />
         <script type="application/ld+json">{JSON.stringify({
           '@context': 'https://schema.org', '@type': 'Article',
           headline: post.title, description: post.description,
           datePublished: post.date, dateModified: post.dateModified || post.date,
-          author: { '@type': 'Person', name: 'Rafa Ferrer', jobTitle: 'CEO', worksFor: { '@type': 'Organization', name: 'Channelad', url: 'https://channelad.io' } },
-          publisher: { '@type': 'Organization', name: 'Channelad', url: 'https://channelad.io', logo: { '@type': 'ImageObject', url: 'https://channelad.io/logo.png' } },
-          mainEntityOfPage: `https://channelad.io/blog/${post.slug}`,
-          image: 'https://channelad.io/og-default.png',
+          author: { '@type': 'Person', name: 'Rafa Ferrer', jobTitle: 'CEO', worksFor: { '@type': 'Organization', name: 'Channelad', url: 'https://www.channelad.io' } },
+          publisher: { '@type': 'Organization', name: 'Channelad', url: 'https://www.channelad.io', logo: { '@type': 'ImageObject', url: 'https://www.channelad.io/logo.png' } },
+          mainEntityOfPage: `https://www.channelad.io/blog/${post.slug}`,
+          image: 'https://www.channelad.io/og-default.png',
           inLanguage: post.lang, keywords: post.keywords?.join(', '),
         })}</script>
         {post.faq && (
@@ -267,9 +267,9 @@ export default function BlogPost() {
         <script type="application/ld+json">{JSON.stringify({
           '@context': 'https://schema.org', '@type': 'BreadcrumbList',
           itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://channelad.io/' },
-            { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://channelad.io/blog' },
-            { '@type': 'ListItem', position: 3, name: post.title, item: `https://channelad.io/blog/${post.slug}` },
+            { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://www.channelad.io/' },
+            { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://www.channelad.io/blog' },
+            { '@type': 'ListItem', position: 3, name: post.title, item: `https://www.channelad.io/blog/${post.slug}` },
           ],
         })}</script>
       </Helmet>

@@ -59,7 +59,7 @@ Si tu canal tiene un engagement por encima del 40%, puedes cobrar un 20-30% mas 
 | Noticias / Actualidad | 1,5 EUR | 3 EUR | 2,25 EUR |
 | Entretenimiento / Memes | 1 EUR | 2,5 EUR | 1,75 EUR |
 
-Datos propios de [Channelad](https://channelad.io/marketplace), basados en transacciones reales del mercado hispanohablante.
+Datos propios de [Channelad](https://www.channelad.io/marketplace), basados en transacciones reales del mercado hispanohablante.
 
 ## Precios segun el formato del anuncio
 
@@ -76,7 +76,7 @@ Ofrece siempre paquetes. Los anunciantes que compran paquetes se convierten en c
 
 ## Como saber si tu precio es competitivo
 
-- **Registrate en un marketplace.** En [Channelad](https://channelad.io/marketplace) puedes ver que precios tienen otros canales de tu nicho y tamano.
+- **Registrate en un marketplace.** En [Channelad](https://www.channelad.io/marketplace) puedes ver que precios tienen otros canales de tu nicho y tamano.
 - **Mide la tasa de aceptacion.** Si el 100% de los anunciantes acepta tu precio sin negociar, probablemente estas cobrando poco. Un ratio saludable es 60-70% de aceptacion.
 - **Compara con tus metricas.** Si tu engagement esta por encima del 40%, tus precios deberian estar en el rango alto.
 
@@ -100,8 +100,8 @@ Senales de que es momento de subir:
 
 Simplemente actualiza tus tarifas. Nunca he perdido un anunciante por subir un 15-20%.
 
-Para saber exactamente cuanto genera un canal segun su tamano, lee el articulo sobre [cuanto paga Telegram por canal](https://channelad.io/blog/cuanto-paga-telegram-por-canal). Y para la guia completa, el [articulo de monetizacion de Telegram](https://channelad.io/blog/monetizar-canal-telegram-espana) cubre todo el proceso.
+Para saber exactamente cuanto genera un canal segun su tamano, lee el articulo sobre [cuanto paga Telegram por canal](https://www.channelad.io/blog/cuanto-paga-telegram-por-canal). Y para la guia completa, el [articulo de monetizacion de Telegram](https://www.channelad.io/blog/monetizar-canal-telegram-espana) cubre todo el proceso.
 
 ---
 
-*¿Quieres saber cuanto pagan los anunciantes en tu nicho? [Registrate en Channelad](https://channelad.io/para-canales) y accede a datos reales del mercado con pago protegido por escrow.*
+*¿Quieres saber cuanto pagan los anunciantes en tu nicho? [Registrate en Channelad](https://www.channelad.io/para-canales) y accede a datos reales del mercado con pago protegido por escrow.*

@@ -41,9 +41,6 @@
       "headers": [{ "key": "Cache-Control", "value": "public, s-maxage=1800, stale-while-revalidate=3600" }]
     }
   ],
-  "redirects": [
-    { "source": "/:path(.*)", "has": [{ "type": "host", "value": "www.channelad.io" }], "destination": "https://channelad.io/:path", "permanent": true }
-  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.js" },
     { "source": "/t/:code", "destination": "/api/index.js" },
