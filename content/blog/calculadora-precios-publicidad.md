@@ -1,19 +1,19 @@
 ---
 title: "Calculadora de precios de publicidad en Telegram, WhatsApp y Discord (2026)"
-description: "Calcula cuanto cobrar por publicidad en tu canal de Telegram, WhatsApp o Discord. Calculadora interactiva con CPMs reales del mercado hispanohablante y estimador de ingresos."
+description: "Calcula cuánto cobrar por publicidad en tu canal de Telegram, WhatsApp o Discord. Calculadora interactiva con CPMs reales del mercado español y estimador de ingresos."
 slug: "calculadora-precios-publicidad"
 spaOnly: "true"
 date: "2026-04-11"
 dateModified: "2026-04-11"
-category: "Guias"
+category: "Guías"
 readTime: "8 min"
 lang: "es"
-keywords: ["calculadora precios publicidad telegram", "cuanto cobrar publicidad canal", "CPM telegram whatsapp discord", "precio post patrocinado", "calculadora ingresos canal", "cuanto gana un canal de telegram"]
+keywords: ["calculadora precios publicidad telegram", "cuánto cobrar publicidad canal", "CPM telegram whatsapp discord", "precio post patrocinado españa", "calculadora ingresos canal", "cuánto gana un canal de telegram"]
 ---
 
-Si tienes un canal de Telegram, WhatsApp o Discord y quieres empezar a monetizarlo con publicidad, la primera pregunta que te haces es siempre la misma: **cuanto deberia cobrar?**
+Si tienes un canal de Telegram, WhatsApp o Discord y quieres empezar a monetizarlo con publicidad, la primera pregunta que te haces es siempre la misma: **cuánto debería cobrar?**
 
-No hay una respuesta unica, pero si una formula que funciona. El precio de la publicidad en canales se calcula con el CPM (Coste Por Mil impresiones), que varia segun tu plataforma, tu nicho y el formato del anuncio. He creado esta calculadora para que puedas obtener un precio orientativo en segundos.
+No hay una respuesta única, pero sí una fórmula que funciona. El precio de la publicidad en canales se calcula con el CPM (Coste Por Mil impresiones), que varía según tu plataforma, tu nicho y el formato del anuncio. He creado esta calculadora con datos reales del mercado español para que puedas obtener un precio orientativo en segundos.
 
 ## Calculadora de precios por post patrocinado
 
@@ -25,7 +25,7 @@ Selecciona tu plataforma, introduce el numero de suscriptores activos de tu cana
 
 Mueve los sliders para ajustar tu numero de suscriptores y la cantidad de posts patrocinados que publicas cada mes. El estimador calcula tu ingreso mensual y anual basandose en precios medios del mercado.
 
-## Como se calcula el precio: la formula del CPM
+## Cómo se calcula el precio: la fórmula del CPM
 
 El CPM (Coste Por Mil) es el estandar de la industria publicitaria. Representa lo que un anunciante paga por cada 1.000 impresiones de su mensaje. La formula es:
 
@@ -33,7 +33,7 @@ El CPM (Coste Por Mil) es el estandar de la industria publicitaria. Representa l
 
 Por ejemplo, si tienes un canal de finanzas en Telegram con 10.000 suscriptores y el CPM medio de tu nicho es 7,5 EUR: (10.000 x 7,5) / 1.000 = **75 EUR por post estandar**.
 
-### Por que el CPM varia entre plataformas
+### Por qué el CPM varía entre plataformas
 
 **WhatsApp** tiene los CPMs mas altos porque el open rate es del 75-90%. Los anunciantes pagan mas porque saben que su mensaje llega a casi toda la audiencia.
 
@@ -41,7 +41,7 @@ Por ejemplo, si tienes un canal de finanzas en Telegram con 10.000 suscriptores 
 
 **Discord** tiene los CPMs mas bajos pero el mejor engagement real. Los miembros activos leen el 80% de los mensajes y la interaccion es muy superior a cualquier otra plataforma.
 
-### CPMs por nicho y plataforma (2026)
+### CPMs por nicho y plataforma en España (2026)
 
 | Nicho | Telegram | WhatsApp | Discord |
 |---|---|---|---|
@@ -65,7 +65,7 @@ No todos los formatos cuestan lo mismo. Estos son los multiplicadores estandar:
 - **Paquete 5 posts (-15%):** descuento por volumen para campanas mas largas
 - **Paquete 10 posts (-25%):** maximo descuento, ideal para anunciantes recurrentes
 
-## Cuando y como subir tus precios
+## Cuándo y cómo subir tus precios
 
 Mi regla personal: subo precios un 15-20% cada trimestre si mi canal ha crecido. Nunca he perdido un anunciante serio por una subida razonable.
 
