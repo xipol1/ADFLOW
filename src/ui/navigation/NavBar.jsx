@@ -148,6 +148,19 @@ export default function NavBar() {
               <ChevronDownIcon size={14} />
             </button>
 
+            {/* Blog link */}
+            <NavLink to="/blog" style={{
+              textDecoration: 'none', padding: '7px 16px',
+              fontSize: '13px', fontWeight: 600, borderRadius: '9px',
+              color: '#b45309',
+              background: isDark ? 'rgba(180,83,9,0.1)' : 'rgba(180,83,9,0.06)',
+              border: `1px solid ${isDark ? 'rgba(180,83,9,0.2)' : 'rgba(180,83,9,0.12)'}`,
+              transition: 'all .15s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.background = isDark ? 'rgba(180,83,9,0.18)' : 'rgba(180,83,9,0.1)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = isDark ? 'rgba(180,83,9,0.1)' : 'rgba(180,83,9,0.06)'; e.currentTarget.style.transform = 'none' }}
+            >Blog</NavLink>
+
             {/* Mega menu dropdown */}
             {megaOpen && (
               <div style={{

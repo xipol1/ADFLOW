@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useAuth } from '../../auth/AuthContext'
 import { Bookmark } from 'lucide-react'
 import {
   CASBadge,
@@ -144,6 +145,7 @@ export default function ChannelCard({
   onSave,
 }) {
   const [hover, setHover] = useState(false)
+  const { user } = useAuth()
 
   // Loading state
   if (!canal) return <Skeleton variant={variant} />
@@ -170,6 +172,9 @@ export default function ChannelCard({
 
   const { confianzaScore, tipoAcceso } = verificacion
   const { ratioCTF_CAF, flags = [] } = antifraude
+
+  // Mask channel name for non-authenticated users
+  const displayName = user ? (nombre || '—') : (nombre ? nombre.slice(0, 2) + '***' : '—')
 
   const pIcon = plataformaIcon[plataforma] || '📡'
   const hasCAS = CAS != null && !Number.isNaN(CAS)
@@ -215,7 +220,7 @@ export default function ChannelCard({
             className="font-medium truncate"
             style={{ color: 'var(--text)', fontSize: 13, minWidth: 0, maxWidth: 180 }}
           >
-            @{nombre}
+            @{displayName}
           </div>
           {hasCAS && <CASBadge CAS={CAS} nivel={nivel} size="xs" />}
           <span className="font-mono truncate" style={{ color: 'var(--muted2, #475569)', fontSize: 11, flex: 1, minWidth: 0 }}>
@@ -278,7 +283,7 @@ export default function ChannelCard({
                 maxWidth: 170,
               }}
             >
-              @{nombre || '—'}
+              @{displayName}
             </span>
           </div>
           <div className="font-mono" style={{ color: 'var(--muted2, #475569)', fontSize: 11 }}>
