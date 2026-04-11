@@ -1,8 +1,9 @@
 ---
 title: "Como crear un media kit para tu canal de Telegram que consiga anunciantes en 2026"
-description: "El media kit es el documento que convierte tu canal en un negocio. Los 7 elementos que debe tener, como obtener estadisticas y errores comunes."
+description: "El media kit es el documento que convierte tu canal de Telegram en un negocio serio. Los 7 elementos que debe incluir, como obtener estadisticas fiables, plantilla descargable y errores comunes."
 slug: "media-kit-canal-telegram"
 date: "2026-04-30"
+dateModified: "2026-04-11"
 category: "Guias"
 readTime: "10 min"
 lang: "es"

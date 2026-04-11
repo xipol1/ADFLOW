@@ -109,11 +109,12 @@ function ShareBar({ post }) {
 function AuthorBox() {
   return (
     <div style={{ maxWidth: 720, margin: '48px auto 0', padding: '32px 24px', borderTop: '1px solid var(--border)', display: 'flex', gap: 20, alignItems: 'flex-start' }}>
-      <div style={{ width: 56, height: 56, borderRadius: '50%', background: `linear-gradient(135deg, ${PURPLE}, #a78bfa)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 20, flexShrink: 0 }}>C</div>
+      <div style={{ width: 56, height: 56, borderRadius: '50%', background: `linear-gradient(135deg, ${PURPLE}, #a78bfa)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 20, flexShrink: 0 }}>RF</div>
       <div>
-        <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, fontFamily: SANS }}>Equipo Channelad</h4>
+        <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, fontFamily: SANS }}>Rafa Ferrer</h4>
+        <p style={{ fontSize: 11, color: PURPLE, fontWeight: 600, marginBottom: 4, fontFamily: SANS, textTransform: 'uppercase', letterSpacing: '0.5px' }}>CEO, Channelad</p>
         <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.55, marginBottom: 8, fontFamily: SANS }}>
-          Escribimos sobre publicidad en comunidades, monetizacion de canales y estrategias de marketing en WhatsApp, Telegram y Discord.
+          Escribo sobre publicidad en comunidades, monetizacion de canales y estrategias de marketing en WhatsApp, Telegram y Discord.
         </p>
         <Link to="/blog" style={{ fontSize: 12, fontWeight: 600, color: PURPLE, textDecoration: 'none', fontFamily: SANS }}>Ver todos los articulos →</Link>
       </div>
@@ -236,16 +237,22 @@ export default function BlogPost() {
       <ReadingProgress />
       <BackToTop />
 
-      <SEO title={post.title} description={post.description} path={`/blog/${post.slug}`} />
+      <SEO
+        title={post.title} description={post.description} path={`/blog/${post.slug}`}
+        type="article" date={post.date} dateModified={post.dateModified || post.date}
+        lang={post.lang}
+      />
 
       <Helmet>
+        <link rel="alternate" type="application/rss+xml" title="Channelad Blog" href="https://channelad.io/blog/feed.xml" />
         <script type="application/ld+json">{JSON.stringify({
           '@context': 'https://schema.org', '@type': 'Article',
           headline: post.title, description: post.description,
           datePublished: post.date, dateModified: post.dateModified || post.date,
-          author: { '@type': 'Organization', name: 'Channelad' },
-          publisher: { '@type': 'Organization', name: 'Channelad', url: 'https://channelad.io' },
+          author: { '@type': 'Person', name: 'Rafa Ferrer', jobTitle: 'CEO', worksFor: { '@type': 'Organization', name: 'Channelad', url: 'https://channelad.io' } },
+          publisher: { '@type': 'Organization', name: 'Channelad', url: 'https://channelad.io', logo: { '@type': 'ImageObject', url: 'https://channelad.io/logo.png' } },
           mainEntityOfPage: `https://channelad.io/blog/${post.slug}`,
+          image: 'https://channelad.io/og-default.png',
           inLanguage: post.lang, keywords: post.keywords?.join(', '),
         })}</script>
         {post.faq && (
@@ -292,7 +299,8 @@ export default function BlogPost() {
       <ShareBar post={post} />
 
       {/* ─── CONTENT AREA with TOC sidebar ─── */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 220px', gap: 48, padding: '32px 24px 0' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 220px', gap: 48, padding: '32px 24px 0' }} className="blog-layout-grid">
+        <style>{`.blog-layout-grid { grid-template-columns: 1fr 220px !important; } @media (max-width: 900px) { .blog-layout-grid { grid-template-columns: 1fr !important; } .blog-toc-sidebar { display: none !important; } }`}</style>
         <div className="blog-content-area" data-blog-content style={{ maxWidth: 720, minWidth: 0 }}>
           {ArticleContent ? (
             <Suspense fallback={

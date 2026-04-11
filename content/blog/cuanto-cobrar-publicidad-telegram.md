@@ -1,8 +1,9 @@
 ---
 title: "Cuanto cobrar por publicidad en Telegram: calculadora y precios reales 2026"
-description: "Formula exacta, tabla de CPMs por nicho y calculadora interactiva para poner el precio correcto a la publicidad en tu canal de Telegram. Datos del mercado hispanohablante."
+description: "Formula exacta, tabla de CPMs por nicho y calculadora interactiva para poner el precio correcto a la publicidad en tu canal de Telegram. Datos actualizados del mercado hispanohablante en 2026."
 slug: "cuanto-cobrar-publicidad-telegram"
 date: "2026-04-09"
+dateModified: "2026-04-11"
 category: "Monetizacion"
 readTime: "12 min"
 lang: "es"

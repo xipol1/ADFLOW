@@ -40,6 +40,75 @@ function parseFrontmatter(content) {
   return { meta, body: match[2] };
 }
 
+// ─── Load FAQ data from blogPosts.js ───
+const BLOG_POSTS_PATH = path.join(ROOT, 'src', 'ui', 'pages', 'blog', 'blogPosts.js');
+function loadFaqMap() {
+  const faqMap = {};
+  try {
+    const src = fs.readFileSync(BLOG_POSTS_PATH, 'utf-8');
+    // Extract each post block with slug and faq
+    const postBlocks = src.split(/\{\s*\n\s*slug:/);
+    for (const block of postBlocks) {
+      const slugMatch = block.match(/['"]([^'"]+)['"]/);
+      if (!slugMatch) continue;
+      const slug = slugMatch[1];
+      const faqMatch = block.match(/faq:\s*\[([\s\S]*?)\]\s*,?\s*\}/);
+      if (!faqMatch) continue;
+      const faqStr = faqMatch[1];
+      const questions = [];
+      const qRegex = /question:\s*['"`]([\s\S]*?)['"`]\s*,\s*answer:\s*['"`]([\s\S]*?)['"`]\s*\}/g;
+      let m;
+      while ((m = qRegex.exec(faqStr)) !== null) {
+        // Decode \uXXXX escape sequences from JS source
+        const decode = s => s.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+        questions.push({ question: decode(m[1]), answer: decode(m[2]) });
+      }
+      if (questions.length > 0) faqMap[slug] = questions;
+    }
+  } catch (e) {
+    console.warn('⚠️  Could not load FAQ data from blogPosts.js:', e.message);
+  }
+  return faqMap;
+}
+
+// ─── Extract published post slugs/dates from blogPosts.js for sitemap ───
+function loadReactOnlyPosts(mdSlugs) {
+  const reactPosts = [];
+  try {
+    const src = fs.readFileSync(BLOG_POSTS_PATH, 'utf-8');
+    const today = new Date().toISOString().slice(0, 10);
+    // Match slug and date from each post block
+    const blockRegex = /\{\s*\n\s*slug:\s*['"]([^'"]+)['"][\s\S]*?date:\s*['"]([^'"]+)['"]/g;
+    let m;
+    while ((m = blockRegex.exec(src)) !== null) {
+      const slug = m[1];
+      const date = m[2];
+      // Only include posts that are published (date <= today) and NOT already in markdown
+      if (date <= today && !mdSlugs.has(slug)) {
+        reactPosts.push({ slug, date });
+      }
+    }
+  } catch (e) {
+    console.warn('⚠️  Could not load React-only posts from blogPosts.js:', e.message);
+  }
+  return reactPosts;
+}
+
+function buildFaqSchema(slug, faqMap) {
+  const faqs = faqMap[slug];
+  if (!faqs || faqs.length === 0) return '';
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map(q => ({
+      '@type': 'Question',
+      name: q.question,
+      acceptedAnswer: { '@type': 'Answer', text: q.answer },
+    })),
+  };
+  return `<script type="application/ld+json">\n  ${JSON.stringify(schema, null, 2).replace(/\n/g, '\n  ')}\n  </script>`;
+}
+
 // ─── Configure marked ───
 marked.setOptions({ gfm: true, breaks: false, smartypants: false });
 
@@ -154,6 +223,10 @@ function build() {
   // Sort by date descending
   postsData.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
+  // ─── Load FAQ data ───
+  const faqMap = loadFaqMap();
+  console.log(`  📋 FAQ data loaded for ${Object.keys(faqMap).length} post(s)\n`);
+
   // ─── Pass 2: Generate HTML for each post ───
   const posts = []; // metadata only (no body)
 
@@ -165,11 +238,23 @@ function build() {
     const relatedHtml = buildRelatedHtml(postsData, meta.slug);
 
     const formattedDate = formatDate(meta.date, meta.lang || 'es');
+    const dateISO = meta.date || '';
+    const dateModifiedISO = meta.dateModified || meta.date || '';
+    const faqSchema = buildFaqSchema(meta.slug, faqMap);
+    const canonicalSlug = meta.canonical || meta.slug;
+    const canonicalUrl = `${DOMAIN}/blog/${canonicalSlug}`;
+
+    if (meta.canonical) {
+      console.log(`  🔗 ${meta.slug} → canonical: ${canonicalSlug}`);
+    }
 
     let html = template
       .replace(/{{title}}/g, meta.title)
       .replace(/{{description}}/g, meta.description || '')
       .replace(/{{slug}}/g, meta.slug)
+      .replace(/{{canonicalUrl}}/g, canonicalUrl)
+      .replace(/{{dateISO}}/g, dateISO)
+      .replace(/{{dateModifiedISO}}/g, dateModifiedISO)
       .replace(/{{date}}/g, formattedDate)
       .replace(/{{readTime}}/g, meta.readTime || '10 min')
       .replace(/{{category}}/g, meta.category || 'Guias')
@@ -179,7 +264,8 @@ function build() {
       .replace(/{{domain}}/g, DOMAIN)
       .replace(/{{tags_html}}/g, tagsHtml)
       .replace(/{{prev_next_html}}/g, prevNextHtml)
-      .replace(/{{related_html}}/g, relatedHtml);
+      .replace(/{{related_html}}/g, relatedHtml)
+      .replace(/{{faq_schema}}/g, faqSchema);
 
     const outFile = path.join(OUTPUT_DIR, `${meta.slug}.html`);
     fs.writeFileSync(outFile, html, 'utf-8');
@@ -228,12 +314,45 @@ function build() {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Blog — Channelad</title>
-  <meta name="description" content="Guias, estrategias y comparativas sobre publicidad en comunidades de WhatsApp, Telegram y Discord.">
+  <meta name="description" content="Guias, estrategias y comparativas sobre publicidad en comunidades de WhatsApp, Telegram y Discord. Por Rafa Ferrer, CEO de Channelad.">
+  <meta name="author" content="Rafa Ferrer">
   <link rel="canonical" href="${DOMAIN}/blog">
   <meta property="og:title" content="Blog — Channelad">
   <meta property="og:description" content="Guias, estrategias y comparativas sobre publicidad en comunidades.">
   <meta property="og:url" content="${DOMAIN}/blog">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="${DOMAIN}/og-default.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="Channelad">
+  <meta property="og:locale" content="es_ES">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Blog — Channelad">
+  <meta name="twitter:description" content="Guias, estrategias y comparativas sobre publicidad en comunidades.">
+  <meta name="twitter:image" content="${DOMAIN}/og-default.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Blog — Channelad",
+    "description": "Guias, estrategias y comparativas sobre publicidad en comunidades de WhatsApp, Telegram y Discord.",
+    "url": "${DOMAIN}/blog",
+    "publisher": { "@type": "Organization", "name": "Channelad", "url": "${DOMAIN}" },
+    "author": { "@type": "Person", "name": "Rafa Ferrer", "jobTitle": "CEO", "worksFor": { "@type": "Organization", "name": "Channelad" } },
+    "numberOfItems": ${posts.length}
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "${DOMAIN}/" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "${DOMAIN}/blog" }
+    ]
+  }
+  </script>
+  <link rel="alternate" type="application/rss+xml" title="Channelad Blog" href="${DOMAIN}/blog/feed.xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -322,7 +441,7 @@ function build() {
     { url: '/para-anunciantes', priority: '0.9', freq: 'monthly' },
     { url: '/para-canales', priority: '0.9', freq: 'monthly' },
     { url: '/marketplace', priority: '0.8', freq: 'weekly' },
-    { url: '/blog', priority: '0.8', freq: 'weekly' },
+    { url: '/blog', priority: '0.8', freq: 'weekly', lastmod: posts[0]?.date },
     { url: '/sobre-nosotros', priority: '0.5', freq: 'monthly' },
     { url: '/soporte', priority: '0.5', freq: 'monthly' },
     { url: '/privacidad', priority: '0.3', freq: 'yearly' },
@@ -336,7 +455,20 @@ function build() {
     lastmod: p.date,
   }));
 
-  const allEntries = [...staticPages, ...blogEntries];
+  // Include React-only posts (no markdown) in sitemap too
+  const mdSlugs = new Set(posts.map(p => p.slug));
+  const reactOnlyPosts = loadReactOnlyPosts(mdSlugs);
+  const reactEntries = reactOnlyPosts.map(p => ({
+    url: `/blog/${p.slug}`,
+    priority: '0.7',
+    freq: 'monthly',
+    lastmod: p.date,
+  }));
+  if (reactEntries.length > 0) {
+    console.log(`  📎 ${reactEntries.length} React-only post(s) added to sitemap: ${reactOnlyPosts.map(p => p.slug).join(', ')}`);
+  }
+
+  const allEntries = [...staticPages, ...blogEntries, ...reactEntries];
   const todayDate = new Date().toISOString().slice(0, 10);
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -351,6 +483,42 @@ ${allEntries.map(e => `  <url>
 
   fs.writeFileSync(SITEMAP_PATH, sitemap, 'utf-8');
   console.log(`  \u2705 sitemap.xml (${allEntries.length} URLs)`);
+
+  // ─── Generate RSS feed ───
+  const allPostsForFeed = [...posts, ...reactOnlyPosts].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const rssItems = allPostsForFeed.map(p => `    <item>
+      <title><![CDATA[${p.title || p.slug}]]></title>
+      <link>${DOMAIN}/blog/${p.slug}</link>
+      <guid isPermaLink="true">${DOMAIN}/blog/${p.slug}</guid>
+      <pubDate>${new Date(p.date + 'T10:00:00Z').toUTCString()}</pubDate>
+      <description><![CDATA[${p.description || ''}]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>${p.category || 'Guias'}</category>
+    </item>`).join('\n');
+
+  const rssFeed = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Channelad Blog</title>
+    <link>${DOMAIN}/blog</link>
+    <description>Guias, estrategias y comparativas sobre publicidad en comunidades de WhatsApp, Telegram y Discord. Por Rafa Ferrer, CEO de Channelad.</description>
+    <language>es</language>
+    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    <managingEditor>rafa@channelad.io (Rafa Ferrer)</managingEditor>
+    <webMaster>rafa@channelad.io (Rafa Ferrer)</webMaster>
+    <atom:link href="${DOMAIN}/blog/feed.xml" rel="self" type="application/rss+xml"/>
+    <image>
+      <url>${DOMAIN}/logo.png</url>
+      <title>Channelad Blog</title>
+      <link>${DOMAIN}/blog</link>
+    </image>
+${rssItems}
+  </channel>
+</rss>`;
+
+  const FEED_PATH = path.join(OUTPUT_DIR, 'feed.xml');
+  fs.writeFileSync(FEED_PATH, rssFeed, 'utf-8');
+  console.log(`  \u2705 feed.xml (${allPostsForFeed.length} items)`);
 
   console.log(`\n\u2728 Blog built: ${posts.length} articles \u2192 public/blog/\n`);
 }

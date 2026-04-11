@@ -16,6 +16,11 @@ export const BLOG_POSTS = [
     readTime: '12 min',
     lang: 'es',
     keywords: ['casos exito telegram monetizacion', 'channelad creadores', 'monetizar telegram casos reales', 'ganar dinero telegram ejemplos', 'channelad opiniones'],
+    faq: [
+      { question: '\u00bfCu\u00e1nto ganan los creadores de canales de Telegram con publicidad?', answer: 'Depende del nicho y tama\u00f1o. Canales de 5.000-10.000 suscriptores generan entre 200 y 600 EUR/mes con publicidad directa. Canales de nichos premium como finanzas o cripto pueden superar los 1.000 EUR/mes.' },
+      { question: '\u00bfEs rentable monetizar un canal de Telegram con Channelad?', answer: 'S\u00ed. Channelad conecta a creadores con anunciantes verificados y protege el pago con escrow. Los creadores reportan ingresos un 30-50% superiores a negociar por su cuenta, al eliminar impagos y atraer marcas de mayor calidad.' },
+      { question: '\u00bfQu\u00e9 tipo de canales de Telegram ganan m\u00e1s dinero?', answer: 'Los nichos m\u00e1s rentables son finanzas, criptomonedas, tecnolog\u00eda y marketing digital. El CPM en estos nichos oscila entre 5 y 12 EUR, frente a 1,5-3 EUR en nichos como gaming o entretenimiento.' },
+    ],
   },
   {
     slug: 'media-kit-canal-telegram',
@@ -109,6 +114,11 @@ export const BLOG_POSTS = [
     readTime: '10 min',
     lang: 'es',
     keywords: ['mejores canales whatsapp', 'canales whatsapp espanol', 'canales whatsapp recomendados', 'whatsapp canales 2026', 'canales whatsapp seguir'],
+    faq: [
+      { question: '\u00bfC\u00f3mo encontrar los mejores canales de WhatsApp en espa\u00f1ol?', answer: 'Puedes buscar directamente en la app de WhatsApp en la pesta\u00f1a de Canales, explorar directorios como Channelad, o seguir recomendaciones de creadores en redes sociales. Los canales verificados con la insignia verde son los m\u00e1s fiables.' },
+      { question: '\u00bfCu\u00e1les son los canales de WhatsApp m\u00e1s populares en espa\u00f1ol?', answer: 'Los canales m\u00e1s seguidos est\u00e1n en categor\u00edas como noticias, finanzas personales, tecnolog\u00eda y fitness. Algunos superan los 100.000 seguidores y publican contenido diario con tasas de apertura superiores al 80%.' },
+      { question: '\u00bfLos canales de WhatsApp son gratuitos?', answer: 'S\u00ed, seguir canales de WhatsApp es completamente gratuito. Solo necesitas tener la app actualizada. Los administradores del canal deciden si publicar contenido exclusivo de pago o mantenerlo 100% gratuito.' },
+    ],
   },
   {
     slug: 'publicidad-canales-whatsapp-marcas',
@@ -188,6 +198,11 @@ export const BLOG_POSTS = [
     readTime: '15 min',
     lang: 'es',
     keywords: ['publicidad discord', 'anuncios discord', 'discord ads', 'marketing discord', 'servidores discord publicidad'],
+    faq: [
+      { question: '\u00bfC\u00f3mo hacer publicidad en Discord?', answer: 'Puedes anunciarte en servidores de Discord mediante posts patrocinados en canales de anuncios, roles de patrocinador, eventos patrocinados o bots personalizados. Lo m\u00e1s efectivo es contactar administradores de servidores de tu nicho o usar un marketplace como Channelad.' },
+      { question: '\u00bfCu\u00e1nto cuesta la publicidad en Discord en 2026?', answer: 'Los precios var\u00edan seg\u00fan el tama\u00f1o y nicho del servidor. Un post patrocinado cuesta entre 15 y 80 EUR en servidores de 1.000-10.000 miembros activos. El CPM en Discord es de los m\u00e1s bajos del mercado: 1,5-3 EUR en gaming.' },
+      { question: '\u00bfMerece la pena anunciarse en Discord frente a redes sociales?', answer: 'S\u00ed, si tu audiencia es Gen Z o est\u00e1 en nichos como gaming, tecnolog\u00eda o cripto. El engagement en Discord supera el 15%, frente al 1-3% de Instagram o TikTok, porque los usuarios participan activamente en las comunidades.' },
+    ],
   },
   {
     slug: 'monetizar-canal-telegram-espana',
@@ -218,6 +233,11 @@ export const BLOG_POSTS = [
     readTime: '13 min',
     lang: 'en',
     keywords: ['telega alternative', 'telega.in review', 'telegram advertising platform', 'buy telegram ads'],
+    faq: [
+      { question: 'What are the best alternatives to Telega.in for Telegram advertising?', answer: 'The top alternatives include Channelad (escrow payments, verified metrics, multi-platform), Combot, and TGStat Ads. Channelad stands out for supporting Telegram, WhatsApp and Discord in a single marketplace with built-in payment protection.' },
+      { question: 'Is Telega.in safe for buying Telegram ads?', answer: 'Telega.in is a legitimate platform but lacks escrow payment protection, meaning you pay upfront with limited recourse if results are poor. Alternatives like Channelad hold funds in escrow until the campaign is verified as delivered.' },
+      { question: 'How much does it cost to advertise on Telegram through a marketplace?', answer: 'Prices depend on channel size and niche. A sponsored post in a 5,000-subscriber channel costs $30-120. Marketplaces typically charge a 10-20% service fee. Channelad uses a transparent fee model with no hidden costs.' },
+    ],
   },
   {
     slug: 'como-monetizar-canal-whatsapp',
@@ -247,6 +267,11 @@ export const BLOG_POSTS = [
     readTime: '14 min',
     lang: 'es',
     keywords: ['publicidad whatsapp', 'anuncios whatsapp', 'marketing grupos whatsapp', 'comprar publicidad whatsapp', 'whatsapp ads'],
+    faq: [
+      { question: '\u00bfC\u00f3mo hacer publicidad en WhatsApp en 2026?', answer: 'Puedes anunciarte en canales y grupos de WhatsApp mediante mensajes patrocinados. La forma m\u00e1s segura es usar un marketplace como Channelad que verifica las m\u00e9tricas del canal y protege el pago con escrow hasta que se confirme la publicaci\u00f3n.' },
+      { question: '\u00bfCu\u00e1nto cuesta un anuncio en WhatsApp?', answer: 'Un mensaje patrocinado en un canal de 5.000-10.000 seguidores cuesta entre 30 y 120 EUR. La tasa de apertura en WhatsApp supera el 80%, lo que lo convierte en uno de los canales con mejor coste por lectura del mercado.' },
+      { question: '\u00bfQu\u00e9 formatos de publicidad existen en WhatsApp?', answer: 'Los principales formatos son: mensaje patrocinado con imagen o v\u00eddeo, enlace con preview, encuesta patrocinada y menci\u00f3n de marca en contenido del creador. WhatsApp no permite banners ni pop-ups, lo que hace la publicidad menos intrusiva.' },
+    ],
   },
   {
     slug: 'escrow-publicidad-digital',
@@ -259,6 +284,11 @@ export const BLOG_POSTS = [
     readTime: '12 min',
     lang: 'es',
     keywords: ['escrow publicidad', 'pago custodiado publicidad', 'proteger inversion publicitaria', 'escrow marketplace'],
+    faq: [
+      { question: '\u00bfQu\u00e9 es el escrow en publicidad digital?', answer: 'El escrow o pago custodiado es un sistema donde un tercero de confianza retiene el dinero del anunciante hasta que el creador cumple con la publicaci\u00f3n acordada. Protege a ambas partes: el anunciante no pierde dinero y el creador tiene garant\u00eda de cobro.' },
+      { question: '\u00bfPor qu\u00e9 es importante el escrow al comprar publicidad en Telegram o WhatsApp?', answer: 'Sin escrow, el anunciante paga por adelantado y depende de la buena fe del creador. Con escrow, el dinero se libera solo cuando se verifica que el anuncio se public\u00f3 seg\u00fan lo acordado. Channelad incluye escrow autom\u00e1tico en todas las campa\u00f1as.' },
+      { question: '\u00bfQu\u00e9 plataformas de publicidad ofrecen escrow?', answer: 'Channelad es una de las pocas plataformas de publicidad en comunidades que incluye escrow nativo. Otras como Telega.in o TGStat no ofrecen protecci\u00f3n de pago integrada, lo que aumenta el riesgo para los anunciantes.' },
+    ],
   },
   {
     slug: 'publicidad-comunidades-vs-redes-sociales',
@@ -271,6 +301,10 @@ export const BLOG_POSTS = [
     readTime: '13 min',
     lang: 'es',
     keywords: ['publicidad comunidades', 'comunidades vs redes sociales', 'marketing comunidades', 'CPM comunidades', 'publicidad nativa comunidades'],
+    faq: [
+      { question: '\u00bfEs mejor anunciarse en comunidades o en redes sociales?', answer: 'Depende de tu objetivo. Las comunidades (Telegram, Discord, WhatsApp) ofrecen mayor engagement (15-40% vs 1-3%) y CPMs m\u00e1s bajos, pero menor alcance. Las redes sociales tienen m\u00e1s escala pero menor conversi\u00f3n. La estrategia \u00f3ptima combina ambas.' },
+      { question: '\u00bfCu\u00e1l es el CPM de publicidad en comunidades vs Instagram o TikTok?', answer: 'El CPM en comunidades oscila entre 1,5 y 12 EUR seg\u00fan el nicho. En Instagram Ads el CPM medio es 8-15 EUR y en TikTok Ads 5-12 EUR. La ventaja de comunidades es que el engagement real es mucho mayor.' },
+    ],
   },
 ]
 

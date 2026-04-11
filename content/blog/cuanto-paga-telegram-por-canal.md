@@ -1,8 +1,9 @@
 ---
 title: "Cuanto paga Telegram por canal en 2026: la respuesta real"
-description: "Telegram no paga directamente, pero tu canal SI puede generar ingresos. Datos reales de cuanto ganan los canales de Telegram en el mercado hispanohablante con publicidad."
+description: "Telegram no paga directamente, pero tu canal SI puede generar ingresos reales. Descubre cuanto ganan los canales de Telegram en el mercado hispanohablante con publicidad y como empezar."
 slug: "cuanto-paga-telegram-por-canal"
 date: "2026-04-07"
+dateModified: "2026-04-11"
 category: "Monetizacion"
 readTime: "10 min"
 lang: "es"

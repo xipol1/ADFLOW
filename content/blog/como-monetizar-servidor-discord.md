@@ -3,6 +3,7 @@ title: "Como monetizar un servidor de Discord en 2026: guia para administradores
 description: "Las 5 formas de ganar dinero con tu servidor de Discord. Publicidad, roles premium, merchandising y mas. Con datos reales de ingresos y precios del mercado."
 slug: "como-monetizar-servidor-discord"
 date: "2026-04-21"
+dateModified: "2026-04-11"
 category: "Monetizacion"
 readTime: "14 min"
 lang: "es"

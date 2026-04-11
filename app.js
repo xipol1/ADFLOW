@@ -382,13 +382,28 @@ enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePa
 const blogDir = path.join(__dirname, 'public', 'blog');
 app.get('/blog', (req, res, next) => {
   const indexFile = path.join(blogDir, 'index.html');
-  if (fs.existsSync(indexFile)) return res.sendFile(indexFile);
-  next(); // fall through to React SPA if no static index
+  if (fs.existsSync(indexFile)) {
+    res.setHeader('Cache-Control', 'public, max-age=1800, stale-while-revalidate=3600');
+    return res.sendFile(indexFile);
+  }
+  next();
+});
+app.get('/blog/feed.xml', (req, res, next) => {
+  const feedFile = path.join(blogDir, 'feed.xml');
+  if (fs.existsSync(feedFile)) {
+    res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return res.sendFile(feedFile);
+  }
+  next();
 });
 app.get('/blog/:slug', (req, res, next) => {
   const file = path.join(blogDir, `${req.params.slug}.html`);
-  if (fs.existsSync(file)) return res.sendFile(file);
-  next(); // fall through to React SPA if no matching static file
+  if (fs.existsSync(file)) {
+    res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+    return res.sendFile(file);
+  }
+  next();
 });
 
 // ─── Sitemap ───
