@@ -6,6 +6,25 @@ import { lazy } from 'react'
 
 export const BLOG_POSTS = [
   {
+    slug: 'calculadora-precios-publicidad',
+    component: lazy(() => import('./posts/CalculadoraPrecios')),
+    title: 'Calculadora de precios de publicidad en Telegram, WhatsApp y Discord (2026)',
+    description: 'Calcula cuanto cobrar por publicidad en tu canal de Telegram, WhatsApp o Discord. Calculadora interactiva con CPMs reales del mercado hispanohablante y estimador de ingresos.',
+    category: 'Guias',
+    platform: 'telegram',
+    date: '2026-04-11',
+    dateModified: '2026-04-11',
+    readTime: '8 min',
+    lang: 'es',
+    keywords: ['calculadora precios publicidad telegram', 'cuanto cobrar publicidad canal', 'CPM telegram whatsapp discord', 'precio post patrocinado', 'calculadora ingresos canal'],
+    faq: [
+      { question: '\u00bfC\u00f3mo se calcula el precio de un post patrocinado?', answer: 'Se usa la formula: Precio = (Suscriptores activos x CPM del nicho) / 1.000. El CPM varia por plataforma y nicho: WhatsApp tiene los CPMs mas altos (4-18 EUR), Telegram intermedios (1-12 EUR) y Discord los mas bajos (1-8 EUR).' },
+      { question: '\u00bfCu\u00e1nto puedo ganar al mes con un canal de 5.000 suscriptores?', answer: 'Con 5.000 suscriptores activos y 8 posts patrocinados al mes, puedes generar entre 350 y 1.200 EUR mensuales dependiendo de tu nicho y plataforma. Los nichos de finanzas y cripto son los mas rentables.' },
+      { question: '\u00bfQu\u00e9 plataforma paga mejor la publicidad en canales?', answer: 'WhatsApp tiene los CPMs mas altos por su tasa de apertura del 75-90%. Telegram tiene el mercado mas consolidado con mas anunciantes activos. Discord tiene los CPMs mas bajos pero el mejor engagement real.' },
+      { question: '\u00bfCu\u00e1ndo debo subir mis precios de publicidad?', answer: 'Sube precios un 15-20% cada trimestre si tu canal crece. Indicadores para subir: crecimiento del 20%+ en suscriptores, engagement alto, historial de campanas exitosas, o cuando rechazas mas propuestas de las que aceptas.' },
+    ],
+  },
+  {
     slug: 'casos-exito-monetizar-telegram-channelad',
     component: lazy(() => import('./posts/CasosExito')),
     title: '5 creadores que monetizan sus canales con Channelad: casos reales',
