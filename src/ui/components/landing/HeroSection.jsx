@@ -159,12 +159,14 @@ export default function HeroSection() {
             </AnimatePresence>
           </motion.div>
 
-          {/* Headline */}
-          <motion.div variants={revealUp} custom={0.4}>
+          {/* Headline — stable H1 for SEO, animated visual text */}
+          <h1 className="sr-only">Channelad — Publicidad en comunidades de WhatsApp, Telegram y Discord</h1>
+          <motion.div variants={revealUp} custom={0.4} aria-hidden="true">
             <AnimatePresence mode="wait">
-              <motion.h1
+              <motion.div
                 key={phase + '-h1'}
                 {...textSwap}
+                role="presentation"
                 style={{
                   fontFamily: FONT_DISPLAY, fontWeight: 700,
                   fontSize: 'clamp(42px, 6vw, 76px)',
@@ -180,7 +182,7 @@ export default function HeroSection() {
                     }
                   </div>
                 ))}
-              </motion.h1>
+              </motion.div>
             </AnimatePresence>
           </motion.div>
 

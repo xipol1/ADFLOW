@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import SEO from '../../components/SEO'
 import CrossLinks from '../../components/landing/CrossLinks'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
@@ -123,7 +124,19 @@ export default function ForChannelsPage() {
   const [openFaq, setOpenFaq] = useState(null)
 
   return (
-    <div style={{ fontFamily: F, color: 'var(--text)', background: 'var(--bg)' }}>
+    <main style={{ fontFamily: F, color: 'var(--text)', background: 'var(--bg)' }}>
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org', '@type': 'WebPage', name: 'Monetiza tu canal — Channelad',
+          description: 'Registra tu canal gratis y empieza a ganar dinero con publicidad en WhatsApp, Telegram o Discord.',
+          url: 'https://channelad.io/para-canales',
+          publisher: { '@type': 'Organization', name: 'Channelad', url: 'https://channelad.io' },
+          breadcrumb: { '@type': 'BreadcrumbList', itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://channelad.io/' },
+            { '@type': 'ListItem', position: 2, name: 'Para canales', item: 'https://channelad.io/para-canales' },
+          ]},
+        })}</script>
+      </Helmet>
       <SEO
         title="Monetiza tu canal de WhatsApp, Telegram o Discord"
         description="Registra tu canal gratis y empieza a ganar dinero con publicidad. Sin minimo de seguidores. Pagos protegidos y solo 10% de comision por campana completada."
@@ -433,6 +446,6 @@ export default function ForChannelsPage() {
       </Section>
 
       <CrossLinks exclude="/para-canales" />
-    </div>
+    </main>
   )
 }

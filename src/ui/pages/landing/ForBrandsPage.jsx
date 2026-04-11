@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import SEO from '../../components/SEO'
 import CrossLinks from '../../components/landing/CrossLinks'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
@@ -83,11 +84,24 @@ export default function ForBrandsPage() {
   const [openFaq, setOpenFaq] = useState(null)
 
   return (
-    <div style={{ fontFamily: F, color: 'var(--text)', background: 'var(--bg)' }}>
+    <main style={{ fontFamily: F, color: 'var(--text)', background: 'var(--bg)' }}>
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org', '@type': 'WebPage', name: 'Publicidad en comunidades para marcas — Channelad',
+          description: 'Compra publicidad en canales verificados de WhatsApp, Telegram y Discord.',
+          url: 'https://channelad.io/para-anunciantes',
+          publisher: { '@type': 'Organization', name: 'Channelad', url: 'https://channelad.io' },
+          breadcrumb: { '@type': 'BreadcrumbList', itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://channelad.io/' },
+            { '@type': 'ListItem', position: 2, name: 'Para marcas', item: 'https://channelad.io/para-anunciantes' },
+          ]},
+        })}</script>
+      </Helmet>
       <SEO
         title="Publicidad en comunidades para marcas"
         description="Compra publicidad en canales verificados de WhatsApp, Telegram y Discord. Desde 50 euros por publicacion. Pagos custodiados, metricas verificadas y sin suscripciones."
         path="/para-anunciantes"
+        type="website"
       />
 
       {/* ══════════════════════════════════════════════════════
@@ -437,6 +451,6 @@ export default function ForBrandsPage() {
       </Section>
 
       <CrossLinks exclude="/para-anunciantes" />
-    </div>
+    </main>
   )
 }

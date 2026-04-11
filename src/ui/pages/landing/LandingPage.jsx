@@ -40,7 +40,7 @@ export default function LandingPage() {
   useColorShift()
 
   return (
-    <div style={{ minHeight: '100vh' }}>
+    <main style={{ minHeight: '100vh' }}>
       <SEO
         title={null}
         description="Channelad es el marketplace de publicidad en comunidades reales. Conecta anunciantes con canales verificados de WhatsApp, Telegram y Discord. Pagos custodiados y metricas en tiempo real."
@@ -85,6 +85,6 @@ export default function LandingPage() {
       <Suspense fallback={<SectionFallback />}>
         <LandingFooter />
       </Suspense>
-    </div>
+    </main>
   )
 }

@@ -29,10 +29,10 @@ export default function AboutPage() {
           ← Volver al inicio
         </Link>
         <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: '36px', fontWeight: 800, color: 'var(--text)', marginBottom: '16px', letterSpacing: '-0.5px' }}>
-          Sobre Ad<span style={{ color: PURPLE }}>flow</span>
+          Sobre Channel<span style={{ color: PURPLE }}>ad</span>
         </h1>
         <p style={{ fontSize: '16px', color: 'var(--muted)', lineHeight: 1.8, maxWidth: '560px', margin: '0 auto' }}>
-          Somos el marketplace de publicidad en canales privados mas avanzado de Europa. Conectamos marcas con audiencias reales en WhatsApp, Telegram, Discord y mas.
+          Somos el marketplace de publicidad en comunidades mas avanzado de Europa. Conectamos marcas con audiencias reales en WhatsApp, Telegram, Discord y mas.
         </p>
       </section>
 
