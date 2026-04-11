@@ -57,7 +57,7 @@ Si la ultima vez que miraste WhatsApp Business fue en 2024, te has perdido mucho
 
 **Enero 2026**: WhatsApp lanzo los "Canales Promocionados" (Promoted Channels), un sistema de descubrimiento de pago. Puedes pagar para aparecer destacado en la seccion de exploracion de canales. No genera ingresos directamente, pero multiplica la visibilidad y el crecimiento organico.
 
-**Marzo 2026**: Meta abrio la API de canales para integraciones de terceros. Esto permite que plataformas como [Channelad](https://www.channelad.io/para-canales) conecten directamente con las metricas de tu canal para verificar audiencia y engagement de forma automatica. Antes, todo se hacia con capturas de pantalla y confianza ciega.
+**Marzo 2026**: Meta abrio la API de canales para integraciones de terceros. Esto permite que plataformas como [Channelad](https://channelad.io/para-canales) conecten directamente con las metricas de tu canal para verificar audiencia y engagement de forma automatica. Antes, todo se hacia con capturas de pantalla y confianza ciega.
 
 **Los numeros clave del ecosistema en 2026:**
 
@@ -80,7 +80,7 @@ La diferencia clave: el open rate. Un canal de Telegram con buen engagement tien
 
 El problema: el mercado es todavia inmaduro. No hay marketplaces consolidados como en Telegram, los precios no estan estandarizados, y la mayoria de transacciones se hacen por DM sin ningun tipo de proteccion.
 
-Yo he tenido dos experiencias malas con este sistema: un anunciante que no pago despues de la publicacion (120 EUR perdidos) y otro que pago pero exigio cambios infinitos en el copy. Desde entonces, solo trabajo con plataformas que ofrezcan escrow. [Channelad](https://www.channelad.io/para-canales) es actualmente la unica en el mercado hispanohablante que gestiona publicidad en canales de WhatsApp con verificacion automatica de metricas y pago custodiado.
+Yo he tenido dos experiencias malas con este sistema: un anunciante que no pago despues de la publicacion (120 EUR perdidos) y otro que pago pero exigio cambios infinitos en el copy. Desde entonces, solo trabajo con plataformas que ofrezcan escrow. [Channelad](https://channelad.io/para-canales) es actualmente la unica en el mercado hispanohablante que gestiona publicidad en canales de WhatsApp con verificacion automatica de metricas y pago custodiado.
 
 En mi caso, cobro entre 45 y 75 EUR por post patrocinado en mi canal de 6.000 suscriptores. Con una media de 5 posts patrocinados al mes, eso supone entre 225 y 375 EUR mensuales.
 
@@ -198,7 +198,7 @@ La monetizacion llega despues del crecimiento. Estas son las estrategias que me 
 ## Herramientas para gestionar tu canal profesionalmente
 
 - **WhatsApp Business API**: para canales de mayor escala, permite integraciones y automatizaciones
-- **[Channelad](https://www.channelad.io/para-canales)**: para conectar con anunciantes y gestionar campanas con escrow
+- **[Channelad](https://channelad.io/para-canales)**: para conectar con anunciantes y gestionar campanas con escrow
 - **Canva**: para crear imagenes y graficos profesionales para tus posts
 - **Google Analytics + UTM links**: para rastrear el trafico que genera tu canal
 - **Later o Buffer**: para planificar contenido (WhatsApp requiere publicacion manual en la mayoria de casos)
@@ -227,7 +227,7 @@ La monetizacion llega despues del crecimiento. Estas son las estrategias que me 
 
 4. **Activa las suscripciones premium al llegar a 1.000 seguidores.** Incluso con 5 suscriptores de pago, ese ingreso recurrente es tu base.
 
-5. **Registra tu canal en [Channelad](https://www.channelad.io/para-canales) al llegar a 500 seguidores.** La verificacion automatica te da credibilidad y el escrow te protege de impagos.
+5. **Registra tu canal en [Channelad](https://channelad.io/para-canales) al llegar a 500 seguidores.** La verificacion automatica te da credibilidad y el escrow te protege de impagos.
 
 6. **Mide todo.** Estadisticas del canal, rendimiento de cada post patrocinado, conversion de afiliados. Estos datos son tu portfolio para justificar subidas de precio.
 
@@ -237,4 +237,4 @@ El ecosistema de monetizacion de WhatsApp esta donde Telegram estaba hace dos an
 
 ---
 
-*¿Tienes un canal de WhatsApp? [Registralo en Channelad](https://www.channelad.io/para-canales) y empieza a monetizarlo hoy con pago protegido y anunciantes verificados.*
+*¿Tienes un canal de WhatsApp? [Registralo en Channelad](https://channelad.io/para-canales) y empieza a monetizarlo hoy con pago protegido y anunciantes verificados.*

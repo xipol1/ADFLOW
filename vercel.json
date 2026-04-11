@@ -47,7 +47,6 @@
     { "source": "/r/:campaignId", "destination": "/api/index.js" },
     { "source": "/health", "destination": "/api/index.js" },
     { "source": "/blog", "destination": "/blog/index.html" },
-    { "source": "/blog/:slug", "destination": "/blog/:slug.html" },
-    { "source": "/((?!api/|blog/|sitemap\\.xml|robots\\.txt).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|sitemap\\.xml|robots\\.txt|blog/feed\\.xml).*)", "destination": "/index.html" }
   ]
 }

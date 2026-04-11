@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async'
 
-const SITE = 'https://www.channelad.io'
+const SITE = 'https://channelad.io'
 const SITE_NAME = 'Channelad'
 const DEFAULT_DESC = 'Marketplace de publicidad en comunidades reales de WhatsApp, Telegram y Discord. Pagos protegidos y metricas en tiempo real.'
 const DEFAULT_IMAGE = `${SITE}/og-default.png`

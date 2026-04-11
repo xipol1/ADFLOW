@@ -2,22 +2,22 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Channelad Blog</title>
-    <link>https://www.channelad.io/blog</link>
+    <link>https://channelad.io/blog</link>
     <description>Guias, estrategias y comparativas sobre publicidad en comunidades de WhatsApp, Telegram y Discord. Por Rafa Ferrer, CEO de Channelad.</description>
     <language>es</language>
-    <lastBuildDate>Sat, 11 Apr 2026 12:21:58 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 11 Apr 2026 13:19:17 GMT</lastBuildDate>
     <managingEditor>rafa@channelad.io (Rafa Ferrer)</managingEditor>
     <webMaster>rafa@channelad.io (Rafa Ferrer)</webMaster>
-    <atom:link href="https://www.channelad.io/blog/feed.xml" rel="self" type="application/rss+xml"/>
+    <atom:link href="https://channelad.io/blog/feed.xml" rel="self" type="application/rss+xml"/>
     <image>
-      <url>https://www.channelad.io/logo.png</url>
+      <url>https://channelad.io/logo.png</url>
       <title>Channelad Blog</title>
-      <link>https://www.channelad.io/blog</link>
+      <link>https://channelad.io/blog</link>
     </image>
     <item>
       <title><![CDATA[Como monetizar un canal de WhatsApp en 2026: guia completa para creadores]]></title>
-      <link>https://www.channelad.io/blog/como-monetizar-canal-whatsapp</link>
-      <guid isPermaLink="true">https://www.channelad.io/blog/como-monetizar-canal-whatsapp</guid>
+      <link>https://channelad.io/blog/como-monetizar-canal-whatsapp</link>
+      <guid isPermaLink="true">https://channelad.io/blog/como-monetizar-canal-whatsapp</guid>
       <pubDate>Sat, 11 Apr 2026 10:00:00 GMT</pubDate>
       <description><![CDATA[Guia paso a paso para ganar dinero con tu canal de WhatsApp. Las 6 formas de monetizar, cuanto se puede ganar, diferencias con Telegram y como empezar hoy.]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>
@@ -25,8 +25,8 @@
     </item>
     <item>
       <title><![CDATA[Como crear un canal de Telegram desde cero y monetizarlo en 2026]]></title>
-      <link>https://www.channelad.io/blog/crear-canal-telegram-monetizar</link>
-      <guid isPermaLink="true">https://www.channelad.io/blog/crear-canal-telegram-monetizar</guid>
+      <link>https://channelad.io/blog/crear-canal-telegram-monetizar</link>
+      <guid isPermaLink="true">https://channelad.io/blog/crear-canal-telegram-monetizar</guid>
       <pubDate>Sat, 11 Apr 2026 10:00:00 GMT</pubDate>
       <description><![CDATA[Tutorial paso a paso para crear un canal de Telegram rentable: desde elegir el nicho hasta cobrar tu primer anuncio. Con estrategia de contenido y datos reales de crecimiento.]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>
@@ -34,8 +34,8 @@
     </item>
     <item>
       <title><![CDATA[Publicidad en Discord: Guia completa 2026]]></title>
-      <link>https://www.channelad.io/blog/publicidad-en-discord-guia-completa</link>
-      <guid isPermaLink="true">https://www.channelad.io/blog/publicidad-en-discord-guia-completa</guid>
+      <link>https://channelad.io/blog/publicidad-en-discord-guia-completa</link>
+      <guid isPermaLink="true">https://channelad.io/blog/publicidad-en-discord-guia-completa</guid>
       <pubDate>Fri, 10 Apr 2026 10:00:00 GMT</pubDate>
       <description><![CDATA[Todo lo que necesitas saber para hacer publicidad en servidores de Discord. Formatos que funcionan, precios reales, errores comunes y por que Discord es el canal mas infravalorado del marketing digital.]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>
@@ -43,8 +43,8 @@
     </item>
     <item>
       <title><![CDATA[Cuanto cobrar por publicidad en Telegram: calculadora y precios reales 2026]]></title>
-      <link>https://www.channelad.io/blog/cuanto-cobrar-publicidad-telegram</link>
-      <guid isPermaLink="true">https://www.channelad.io/blog/cuanto-cobrar-publicidad-telegram</guid>
+      <link>https://channelad.io/blog/cuanto-cobrar-publicidad-telegram</link>
+      <guid isPermaLink="true">https://channelad.io/blog/cuanto-cobrar-publicidad-telegram</guid>
       <pubDate>Thu, 09 Apr 2026 10:00:00 GMT</pubDate>
       <description><![CDATA[Formula exacta, tabla de CPMs por nicho y calculadora interactiva para poner el precio correcto a la publicidad en tu canal de Telegram. Datos actualizados del mercado hispanohablante en 2026.]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>
@@ -52,8 +52,8 @@
     </item>
     <item>
       <title><![CDATA[Como monetizar un canal de Telegram en 2026 [Guia completa]]]></title>
-      <link>https://www.channelad.io/blog/como-monetizar-canal-telegram</link>
-      <guid isPermaLink="true">https://www.channelad.io/blog/como-monetizar-canal-telegram</guid>
+      <link>https://channelad.io/blog/como-monetizar-canal-telegram</link>
+      <guid isPermaLink="true">https://channelad.io/blog/como-monetizar-canal-telegram</guid>
       <pubDate>Tue, 07 Apr 2026 10:00:00 GMT</pubDate>
       <description><![CDATA[Descubre cuanto se puede ganar con un canal de Telegram, que plataformas usar y como poner precios. Guia actualizada con datos reales del mercado hispanohablante.]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>
@@ -61,8 +61,8 @@
     </item>
     <item>
       <title><![CDATA[Cuanto paga Telegram por canal en 2026: la respuesta real]]></title>
-      <link>https://www.channelad.io/blog/cuanto-paga-telegram-por-canal</link>
-      <guid isPermaLink="true">https://www.channelad.io/blog/cuanto-paga-telegram-por-canal</guid>
+      <link>https://channelad.io/blog/cuanto-paga-telegram-por-canal</link>
+      <guid isPermaLink="true">https://channelad.io/blog/cuanto-paga-telegram-por-canal</guid>
       <pubDate>Tue, 07 Apr 2026 10:00:00 GMT</pubDate>
       <description><![CDATA[Telegram no paga directamente, pero tu canal SI puede generar ingresos reales. Descubre cuanto ganan los canales de Telegram en el mercado hispanohablante con publicidad y como empezar.]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>
@@ -70,8 +70,8 @@
     </item>
     <item>
       <title><![CDATA[monetizar-canal-telegram-espana]]></title>
-      <link>https://www.channelad.io/blog/monetizar-canal-telegram-espana</link>
-      <guid isPermaLink="true">https://www.channelad.io/blog/monetizar-canal-telegram-espana</guid>
+      <link>https://channelad.io/blog/monetizar-canal-telegram-espana</link>
+      <guid isPermaLink="true">https://channelad.io/blog/monetizar-canal-telegram-espana</guid>
       <pubDate>Tue, 07 Apr 2026 10:00:00 GMT</pubDate>
       <description><![CDATA[]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>

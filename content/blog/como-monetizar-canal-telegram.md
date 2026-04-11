@@ -42,7 +42,7 @@ La forma mas directa y comun. Un anunciante te paga por publicar un mensaje prom
 
 ### 2. Marketplaces de publicidad
 
-Plataformas como [Channelad](https://www.channelad.io/para-canales) conectan creadores con anunciantes de forma automatizada. Tu registras tu canal, estableces tus precios y formatos, y los anunciantes compran directamente.
+Plataformas como [Channelad](https://channelad.io/para-canales) conectan creadores con anunciantes de forma automatizada. Tu registras tu canal, estableces tus precios y formatos, y los anunciantes compran directamente.
 
 **Ventajas**:
 - **Escrow (pago custodiado)**: no tienes que perseguir pagos. El dinero se libera automaticamente cuando publicas el anuncio.
@@ -126,7 +126,7 @@ Poner un mensaje de "publicidad: @tuusuario" en la descripcion del canal. Los an
 
 Registrar tu canal en plataformas que conectan anunciantes con creadores:
 
-- **[Channelad](https://www.channelad.io)**: marketplace con escrow, metricas verificadas y enfocado en el mercado hispanohablante. Comision del 15%.
+- **[Channelad](https://channelad.io)**: marketplace con escrow, metricas verificadas y enfocado en el mercado hispanohablante. Comision del 15%.
 - **Telega.in**: enfocado en mercado ruso/CIS pero con presencia internacional. Comision variable.
 - **Collaborator**: plataforma generalista de marketing de contenidos con seccion de Telegram.
 
@@ -173,10 +173,10 @@ La clave de Carlos: mantener el engagement por encima del 50% controlando la fre
 
 1. **Revisa tus estadisticas**: entra en las analytics de tu canal y anota suscriptores, vistas medias y engagement.
 2. **Define tus formatos y precios**: usa la formula de CPM para calcular tu precio base.
-3. **Registrate en un marketplace**: [Channelad](https://www.channelad.io/para-canales) te permite empezar en minutos con verificacion automatica de metricas.
+3. **Registrate en un marketplace**: [Channelad](https://channelad.io/para-canales) te permite empezar en minutos con verificacion automatica de metricas.
 4. **Crea un media kit**: un mensaje fijado o una imagen con tus datos clave (nicho, suscriptores, engagement, precios, formatos disponibles).
 5. **Publica tu primer anuncio**: acepta una campana a precio competitivo para generar tu primer caso de exito y construir historial.
 
 ---
 
-*¿Listo para monetizar tu canal? [Registrate como creador en Channelad](https://www.channelad.io/para-canales) y empieza a recibir propuestas de anunciantes verificados con pagos protegidos por escrow.*
+*¿Listo para monetizar tu canal? [Registrate como creador en Channelad](https://channelad.io/para-canales) y empieza a recibir propuestas de anunciantes verificados con pagos protegidos por escrow.*

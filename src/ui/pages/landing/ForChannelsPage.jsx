@@ -129,11 +129,11 @@ export default function ForChannelsPage() {
         <script type="application/ld+json">{JSON.stringify({
           '@context': 'https://schema.org', '@type': 'WebPage', name: 'Monetiza tu canal — Channelad',
           description: 'Registra tu canal gratis y empieza a ganar dinero con publicidad en WhatsApp, Telegram o Discord.',
-          url: 'https://www.channelad.io/para-canales',
-          publisher: { '@type': 'Organization', name: 'Channelad', url: 'https://www.channelad.io' },
+          url: 'https://channelad.io/para-canales',
+          publisher: { '@type': 'Organization', name: 'Channelad', url: 'https://channelad.io' },
           breadcrumb: { '@type': 'BreadcrumbList', itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://www.channelad.io/' },
-            { '@type': 'ListItem', position: 2, name: 'Para canales', item: 'https://www.channelad.io/para-canales' },
+            { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://channelad.io/' },
+            { '@type': 'ListItem', position: 2, name: 'Para canales', item: 'https://channelad.io/para-canales' },
           ]},
         })}</script>
       </Helmet>

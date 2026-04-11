@@ -119,7 +119,7 @@ Contacta a 3-5 canales de tamano similar (o ligeramente mayor) y propone interca
 
 ### El minimo viable: 500 suscriptores activos
 
-La mayoria de marketplaces y anunciantes directos consideran que un canal es monetizable a partir de 500 suscriptores activos (no totales, activos). En [Channelad](https://www.channelad.io/para-canales), el umbral de entrada es 500 suscriptores verificados con un engagement minimo del 15%.
+La mayoria de marketplaces y anunciantes directos consideran que un canal es monetizable a partir de 500 suscriptores activos (no totales, activos). En [Channelad](https://channelad.io/para-canales), el umbral de entrada es 500 suscriptores verificados con un engagement minimo del 15%.
 
 ### Que metricas mirar antes de ofrecer publicidad
 
@@ -133,7 +133,7 @@ Usa la formula: (Suscriptores activos x CPM de tu nicho) / 1.000. Para un canal 
 
 ## Paso 6: Registrarse en Channelad y recibir tu primer pedido
 
-El paso final es registrar tu canal en un marketplace que te conecte con anunciantes de forma automatica. Yo use [Channelad](https://www.channelad.io/para-canales) porque es el unico marketplace de publicidad en comunidades enfocado en el mercado hispanohablante con sistema de escrow (pago custodiado).
+El paso final es registrar tu canal en un marketplace que te conecte con anunciantes de forma automatica. Yo use [Channelad](https://channelad.io/para-canales) porque es el unico marketplace de publicidad en comunidades enfocado en el mercado hispanohablante con sistema de escrow (pago custodiado).
 
 ### Que necesitas para registrarte
 
@@ -156,4 +156,4 @@ Para la guia completa de monetizacion con todos los errores que debes evitar, le
 
 ---
 
-*¿Listo para empezar? [Registra tu canal en Channelad](https://www.channelad.io/para-canales) y recibe tu primera propuesta de un anunciante verificado.*
+*¿Listo para empezar? [Registra tu canal en Channelad](https://channelad.io/para-canales) y recibe tu primera propuesta de un anunciante verificado.*

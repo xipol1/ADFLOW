@@ -44,7 +44,7 @@ Conclusion directa: la monetizacion oficial de Telegram existe pero no da para v
 
 Aqui es donde cambia todo. La publicidad directa — que una marca te pague por publicar un mensaje patrocinado en tu canal — es la fuente de ingresos principal para el 90% de los canales que monetizan en serio. Y los numeros son significativamente superiores a cualquier via oficial.
 
-Estos son datos reales del mercado hispanohablante, basados en lo que veo en [Channelad](https://www.channelad.io/marketplace) y en mi propia experiencia gestionando tres canales:
+Estos son datos reales del mercado hispanohablante, basados en lo que veo en [Channelad](https://channelad.io/marketplace) y en mi propia experiencia gestionando tres canales:
 
 | Suscriptores | Posts patrocinados/mes | Ingreso mensual estimado |
 |---|---|---|
@@ -110,12 +110,12 @@ Si tienes un canal con mas de 500 suscriptores activos y publicas contenido de f
 
 1. **Revisa tus estadisticas.** Suscriptores totales, vistas medias por post, tasa de crecimiento semanal.
 2. **Calcula tu precio base.** Formula: (Suscriptores activos x CPM de tu nicho) / 1.000.
-3. **Registrate en un marketplace.** [Channelad](https://www.channelad.io/para-canales) te permite empezar en minutos con verificacion automatica.
+3. **Registrate en un marketplace.** [Channelad](https://channelad.io/para-canales) te permite empezar en minutos con verificacion automatica.
 4. **Define tus formatos y condiciones.** Post estandar, post fijado 24h, mencion en contenido organico.
 5. **Publica tu primer anuncio.** Acepta una primera campana a precio competitivo para generar historial.
 
-Para una guia completa, lee el articulo sobre [como monetizar un canal de Telegram](https://www.channelad.io/blog/monetizar-canal-telegram-espana).
+Para una guia completa, lee el articulo sobre [como monetizar un canal de Telegram](https://channelad.io/blog/monetizar-canal-telegram-espana).
 
 ---
 
-*¿Listo para monetizar tu canal? [Registrate como creador en Channelad](https://www.channelad.io/para-canales) y empieza a recibir propuestas de anunciantes verificados con pagos protegidos por escrow.*
+*¿Listo para monetizar tu canal? [Registrate como creador en Channelad](https://channelad.io/para-canales) y empieza a recibir propuestas de anunciantes verificados con pagos protegidos por escrow.*

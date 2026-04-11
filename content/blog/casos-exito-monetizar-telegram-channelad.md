@@ -65,8 +65,8 @@ Pablo monetiza con posts patrocinados (~200 EUR), roles premium (~190 EUR) y tor
 - Escrow obligatorio (nunca aceptan pagos fuera de plataforma)
 - Filtran anunciantes (rechazan lo que no encaja)
 
-Para crear tu propio media kit profesional, lee la [guia de media kit](https://www.channelad.io/blog/media-kit-canal-telegram). Y para la guia completa de monetizacion, empieza por el [articulo pilar](https://www.channelad.io/blog/monetizar-canal-telegram-espana).
+Para crear tu propio media kit profesional, lee la [guia de media kit](https://channelad.io/blog/media-kit-canal-telegram). Y para la guia completa de monetizacion, empieza por el [articulo pilar](https://channelad.io/blog/monetizar-canal-telegram-espana).
 
 ---
 
-*Tu historia puede ser la proxima. [Registra tu canal en Channelad](https://www.channelad.io/para-canales) y empieza a monetizar.*
+*Tu historia puede ser la proxima. [Registra tu canal en Channelad](https://channelad.io/para-canales) y empieza a monetizar.*

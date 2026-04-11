@@ -64,10 +64,10 @@ Crear y gestionar servidores de Discord para marcas. Fees de 500 a 2.000 EUR/mes
 | Afiliados (hardware gaming) | ~40 EUR |
 | **Total** | **~520 EUR/mes** |
 
-La clave fue profesionalizar la gestion y registrar el servidor en [Channelad](https://www.channelad.io/para-canales) para recibir propuestas con pago garantizado.
+La clave fue profesionalizar la gestion y registrar el servidor en [Channelad](https://channelad.io/para-canales) para recibir propuestas con pago garantizado.
 
-Para la guia de publicidad en Discord desde la perspectiva del anunciante, lee la [guia de publicidad en Discord](https://www.channelad.io/blog/publicidad-en-discord-guia-completa).
+Para la guia de publicidad en Discord desde la perspectiva del anunciante, lee la [guia de publicidad en Discord](https://channelad.io/blog/publicidad-en-discord-guia-completa).
 
 ---
 
-*¿Listo para monetizar tu servidor? [Registrate en Channelad](https://www.channelad.io/para-canales) y empieza a recibir propuestas de anunciantes verificados.*
+*¿Listo para monetizar tu servidor? [Registrate en Channelad](https://channelad.io/para-canales) y empieza a recibir propuestas de anunciantes verificados.*
