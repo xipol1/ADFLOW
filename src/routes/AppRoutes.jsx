@@ -10,6 +10,8 @@ import DashboardPage from '../ui/pages/dashboard/DashboardPage'
 import MarketplacePage from '../ui/pages/marketplace/MarketplacePage'
 import ChannelExplorerPage from '../ui/pages/channel/ChannelExplorerPage'
 import NicheIntelligencePage from '../ui/pages/niche/NicheIntelligencePage'
+import RankingsPage from '../ui/pages/rankings/RankingsPage'
+import CandidatesReviewPage from '../ui/pages/admin/CandidatesReviewPage'
 import { useAuth } from '../auth/AuthContext'
 
 // Advertiser dashboard suite
@@ -69,8 +71,10 @@ export default function AppRoutes() {
       <Route path="/" element={<AppLayout />}>
         <Route index element={<LandingPage />} />
         <Route path="marketplace" element={<MarketplacePage />} /> {/* Public browsing allowed */}
-        <Route path="channel/:id" element={<ChannelExplorerPage />} /> {/* Public channel intelligence */}
+        <Route path="channel/:id" element={<ChannelExplorerPage />} /> {/* Public channel intelligence (by ID or username) */}
         <Route path="niche/:nicho" element={<NicheIntelligencePage />} /> {/* Public niche market intelligence */}
+        <Route path="rankings" element={<RankingsPage />} /> {/* Public channel rankings */}
+        <Route path="explore" element={<ExplorePage />} /> {/* Public explore directory */}
         <Route
           path="auth"
           element={isAuthenticated && user?.emailVerificado !== false ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth/login" replace />}
@@ -100,6 +104,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="admin/candidates"
+          element={
+            <ProtectedRoute>
+              <CandidatesReviewPage />
             </ProtectedRoute>
           }
         />

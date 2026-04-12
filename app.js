@@ -38,6 +38,8 @@ try { _routes['./routes/adminScoring']   = require('./routes/adminScoring');   }
 try { _routes['./routes/adminMetrics']   = require('./routes/adminMetrics');   } catch (e) { _routes['./routes/adminMetrics']   = e; }
 try { _routes['./routes/channelIntelligence'] = require('./routes/channelIntelligence'); } catch (e) { _routes['./routes/channelIntelligence'] = e; }
 try { _routes['./routes/nicheIntelligence']   = require('./routes/nicheIntelligence');   } catch (e) { _routes['./routes/nicheIntelligence']   = e; }
+try { _routes['./routes/telegramIntel']       = require('./routes/telegramIntel');       } catch (e) { _routes['./routes/telegramIntel']       = e; }
+try { _routes['./routes/channelCandidates']   = require('./routes/channelCandidates');   } catch (e) { _routes['./routes/channelCandidates']   = e; }
 
 // Pre-load for Vercel nft tracer (require only, don't execute swagger-jsdoc at top level)
 let _swaggerPathsJson;
@@ -374,6 +376,9 @@ const enabledRoutes = [
   ['/api/admin/metrics', './routes/adminMetrics'],
   ['/api/channels', './routes/channelIntelligence'],
   ['/api/niche',    './routes/nicheIntelligence'],
+  ['/api/jobs',     './routes/telegramIntel'],
+  ['/api/jobs',     './routes/channelCandidates'],
+  ['/api/channel-candidates', './routes/channelCandidates'],
 ];
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));

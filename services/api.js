@@ -239,6 +239,41 @@ class ApiService {
     return this.request(`/channels/${id}/intelligence`, { auth: false });
   }
 
+  async getChannelSnapshots(id, days = 30) {
+    return this.request(`/channels/${id}/snapshots?days=${days}`, { auth: false });
+  }
+
+  async getChannelByUsername(username) {
+    return this.request(`/channels/username/${encodeURIComponent(username)}`, { auth: false });
+  }
+
+  async getChannelRankings(categoria = '', limit = 20) {
+    const params = new URLSearchParams();
+    if (categoria && categoria !== 'all') params.set('categoria', categoria);
+    if (limit) params.set('limit', String(limit));
+    const qs = params.toString();
+    return this.request(`/channels/rankings${qs ? `?${qs}` : ''}`, { auth: false });
+  }
+
+  // ── Channel Candidates (admin) ─────────────────────────────────────────
+
+  async getCandidates(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/channel-candidates/candidates${qs ? `?${qs}` : ''}`);
+  }
+
+  async approveCandidate(id) {
+    return this.request(`/channel-candidates/candidates/${id}/approve`, { method: 'POST' });
+  }
+
+  async rejectCandidate(id, rejection_reason = '') {
+    return this.request(`/channel-candidates/candidates/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ rejection_reason }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   // ── Niche Intelligence (public, no auth) ──────────────────────────────
   async getNicheLeaderboard(nicho, limit = 10) {
     return this.request(`/niche/${encodeURIComponent(nicho)}/leaderboard?limit=${limit}`, { auth: false });

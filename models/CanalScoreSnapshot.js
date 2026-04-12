@@ -57,6 +57,16 @@ const CanalScoreSnapshotSchema = new mongoose.Schema(
     nicho:      { type: String, default: 'otros', index: true },
     plataforma: { type: String, default: '' },
 
+    // ── Telegram MTProto intel (optional, written by telegramIntelService) ──
+    telegramIntel: {
+      avg_views_last_20_posts:  { type: Number, default: null },
+      engagement_rate:          { type: Number, default: null },
+      post_frequency_per_week:  { type: Number, default: null },
+      views_trend:              { type: Number, default: null },
+      last_post_date:           { type: Date,   default: null },
+      verified:                 { type: Boolean, default: null },
+    },
+
     // ── Engine version ─────────────────────────────────────────────────────
     // Records which version of channelScoringV2 generated this snapshot.
     // When the engine evolves, historical queries can filter by version

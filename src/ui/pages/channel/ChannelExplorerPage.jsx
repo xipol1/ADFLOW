@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { Search, ArrowLeft, ShieldAlert, ShieldCheck, Package, Calendar, Radio } from 'lucide-react'
+import { Search, ArrowLeft, ShieldAlert, ShieldCheck, Package, Calendar, Radio, Users, Eye, Activity, DollarSign } from 'lucide-react'
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
 import apiService from '../../../../services/api'
 import {
   CASBadge,
@@ -143,38 +144,222 @@ const Stat = ({ label, value, color = C.t1 }) => (
   </div>
 )
 
+// ─── Quick stat card ────────────────────────────────────────────────────────
+const QuickStat = ({ icon: Icon, label, value, sub, color = C.teal }) => (
+  <div
+    style={{
+      background: C.surface,
+      border: `1px solid ${C.border}`,
+      borderRadius: 14,
+      padding: '18px 16px',
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: 14,
+    }}
+  >
+    <div
+      style={{
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        background: `${color}15`,
+        border: `1px solid ${color}30`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}
+    >
+      <Icon size={18} color={color} />
+    </div>
+    <div>
+      <div className="font-mono" style={{ fontSize: 22, fontWeight: 700, color: C.t1, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
+        {value}
+      </div>
+      <div style={{ fontSize: 12, color: C.t3, marginTop: 2 }}>{label}</div>
+      {sub && <div style={{ fontSize: 11, color: C.t3, marginTop: 2, opacity: 0.7 }}>{sub}</div>}
+    </div>
+  </div>
+)
+
+// ─── Subscribers + Views chart (dual Y axis) ────────────────────────────────
+const EvolutionChart = ({ snapshots }) => {
+  if (!snapshots || snapshots.length < 2) {
+    return (
+      <div style={{ color: C.t3, fontSize: 13, textAlign: 'center', padding: '40px 0' }}>
+        📊 Datos insuficientes para mostrar la evolucion (min. 2 dias)
+      </div>
+    )
+  }
+
+  const data = snapshots.map((s) => ({
+    fecha: new Date(s.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
+    seguidores: s.seguidores || 0,
+    avg_views: s.avg_views || 0,
+  }))
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (!active || !payload?.length) return null
+    return (
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: '10px 14px', fontSize: 12 }}>
+        <div style={{ color: C.t2, marginBottom: 6, fontWeight: 600 }}>{label}</div>
+        {payload.map((p) => (
+          <div key={p.dataKey} style={{ color: p.color, display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 2 }}>
+            <span>{p.dataKey === 'seguidores' ? 'Suscriptores' : 'Avg Views'}</span>
+            <span className="font-mono" style={{ fontWeight: 600 }}>{fmtSeg(p.value)}</span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={220}>
+      <LineChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke={C.border} />
+        <XAxis dataKey="fecha" tick={{ fontSize: 10, fill: C.t3 }} tickLine={false} axisLine={false} />
+        <YAxis yAxisId="left" tick={{ fontSize: 10, fill: C.t3 }} tickLine={false} axisLine={false} tickFormatter={fmtSeg} />
+        <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: C.t3 }} tickLine={false} axisLine={false} tickFormatter={fmtSeg} />
+        <Tooltip content={<CustomTooltip />} />
+        <Legend wrapperStyle={{ fontSize: 11, color: C.t3 }} />
+        <Line yAxisId="left" type="monotone" dataKey="seguidores" name="Suscriptores" stroke={C.teal} strokeWidth={2} dot={false} />
+        <Line yAxisId="right" type="monotone" dataKey="avg_views" name="Avg Views" stroke="#f59e0b" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+      </LineChart>
+    </ResponsiveContainer>
+  )
+}
+
+// ─── Score tooltip descriptions ─────────────────────────────────────────────
+const SCORE_DESC = {
+  CAF: 'Channel Authenticity Factor — Volumen de audiencia y tasa de visualizaciones',
+  CTF: 'Content Trust Factor — Verificacion del canal e historial de coherencia',
+  CER: 'Channel Engagement Rate — Tasa de interaccion vs benchmark del nicho',
+  CVS: 'Channel Velocity Score — Tendencia de crecimiento y regularidad de publicacion',
+  CAP: 'Channel Ad Performance — Rendimiento real de campanas completadas',
+  CAS: 'Channel Ad Score — Puntuacion global compuesta (0-100)',
+}
+
+const CAS_LABEL = (cas) => {
+  if (cas >= 80) return { text: 'Excelente', color: '#10b981' }
+  if (cas >= 61) return { text: 'Bueno', color: '#00D4B8' }
+  if (cas >= 41) return { text: 'Regular', color: '#f59e0b' }
+  return { text: 'Bajo', color: '#ef4444' }
+}
+
+// ─── Score bar with tooltip ─────────────────────────────────────────────────
+const ScoreBar = ({ label, value, desc }) => {
+  const [showTip, setShowTip] = useState(false)
+  const pct = Math.max(0, Math.min(100, value ?? 0))
+  const isCAS = label === 'CAS'
+  return (
+    <div style={{ marginBottom: isCAS ? 0 : 8 }}>
+      <div
+        className="flex items-center justify-between"
+        style={{ marginBottom: 4, position: 'relative' }}
+        onMouseEnter={() => setShowTip(true)}
+        onMouseLeave={() => setShowTip(false)}
+      >
+        <span className="font-mono" style={{ color: 'var(--muted)', fontSize: 12, fontWeight: 600, cursor: 'help' }}>
+          {label}
+        </span>
+        <span className="font-mono" style={{ color: 'var(--text)', fontSize: 12, fontWeight: 600 }}>
+          {Math.round(pct)}
+        </span>
+        {showTip && desc && (
+          <div style={{
+            position: 'absolute',
+            bottom: '100%',
+            left: 0,
+            marginBottom: 6,
+            background: C.surface,
+            border: `1px solid ${C.border}`,
+            borderRadius: 8,
+            padding: '8px 12px',
+            fontSize: 11,
+            color: C.t2,
+            maxWidth: 280,
+            zIndex: 10,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+            whiteSpace: 'normal',
+          }}>
+            {desc}
+          </div>
+        )}
+      </div>
+      <div style={{ height: isCAS ? 8 : 5, background: 'var(--border)', borderRadius: 999, overflow: 'hidden' }}>
+        <div style={{
+          width: `${pct}%`,
+          height: '100%',
+          background: isCAS ? CAS_LABEL(pct).color : C.teal,
+          borderRadius: 999,
+          transition: 'width 500ms cubic-bezier(.22,1,.36,1)',
+        }} />
+      </div>
+    </div>
+  )
+}
+
 // ─── Main page ───────────────────────────────────────────────────────────────
 export default function ChannelExplorerPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [state, setState] = useState('loading') // 'loading' | 'error' | 'data'
   const [data, setData] = useState(null)
+  const [snapshots, setSnapshots] = useState([])
   const [searchInput, setSearchInput] = useState('')
+
+  // Detect if param is a MongoDB ObjectId or a username
+  const isObjectId = /^[a-f\d]{24}$/i.test(id)
 
   useEffect(() => {
     let cancelled = false
     setState('loading')
     setData(null)
+    setSnapshots([])
 
-    apiService
-      .getChannelIntelligence(id)
-      .then((res) => {
+    const loadData = async () => {
+      let channelId = id
+
+      // If param is a username, resolve to ID first
+      if (!isObjectId) {
+        try {
+          const resolved = await apiService.getChannelByUsername(id)
+          if (resolved?.success && resolved.data?.id) {
+            channelId = resolved.data.id
+          } else {
+            if (!cancelled) setState('error')
+            return
+          }
+        } catch {
+          if (!cancelled) setState('error')
+          return
+        }
+      }
+
+      try {
+        const [intelRes, snapRes] = await Promise.all([
+          apiService.getChannelIntelligence(channelId),
+          apiService.getChannelSnapshots(channelId, 30).catch(() => ({ success: false })),
+        ])
+
         if (cancelled) return
-        if (res?.success && res.data) {
-          setData(res.data)
+        if (intelRes?.success && intelRes.data) {
+          setData(intelRes.data)
           setState('data')
         } else {
           setState('error')
         }
-      })
-      .catch(() => {
+        if (snapRes?.success && Array.isArray(snapRes.data)) {
+          setSnapshots(snapRes.data)
+        }
+      } catch {
         if (!cancelled) setState('error')
-      })
-
-    return () => {
-      cancelled = true
+      }
     }
-  }, [id])
+
+    loadData()
+    return () => { cancelled = true }
+  }, [id, isObjectId])
 
   // ── Layout shell ────────────────────────────────────────────────────
   const Shell = ({ children }) => (
@@ -380,6 +565,41 @@ export default function ChannelExplorerPage() {
         </div>
       </div>
 
+      {/* ── QUICK STATS ──────────────────────────────────────────── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 12,
+          marginBottom: 16,
+        }}
+      >
+        <QuickStat icon={Users} label="Suscriptores" value={fmtSeg(seguidores)} color={C.teal} />
+        <QuickStat
+          icon={Eye}
+          label="Avg Views (20 posts)"
+          value={snapshots.length > 0 && snapshots[snapshots.length - 1].avg_views
+            ? fmtSeg(snapshots[snapshots.length - 1].avg_views)
+            : '--'}
+          color="#8b5cf6"
+        />
+        <QuickStat
+          icon={Activity}
+          label="Engagement Rate"
+          value={snapshots.length > 0 && snapshots[snapshots.length - 1].engagement_rate != null
+            ? `${(snapshots[snapshots.length - 1].engagement_rate * 100).toFixed(1)}%`
+            : '--'}
+          color="#f59e0b"
+        />
+        <QuickStat
+          icon={DollarSign}
+          label="Precio / post"
+          value={CPMDinamico > 0 ? `€${Number(CPMDinamico).toFixed(0)}` : '--'}
+          sub={CPMDinamico > 0 ? 'CPM dinamico' : 'No configurado'}
+          color="#10b981"
+        />
+      </div>
+
       {/* ── CAS HERO ────────────────────────────────────────────── */}
       <div
         style={{
@@ -446,7 +666,7 @@ export default function ChannelExplorerPage() {
         </div>
       </div>
 
-      {/* ── BREAKDOWN + BENCHMARK ──────────────────────────────── */}
+      {/* ── SCORE BREAKDOWN (enhanced with tooltips) ─────────────── */}
       <div
         style={{
           display: 'grid',
@@ -455,15 +675,27 @@ export default function ChannelExplorerPage() {
           marginBottom: 16,
         }}
       >
-        <Card title="Composición del score">
-          <ScoreBreakdown
-            CAF={CAF}
-            CTF={CTF}
-            CER={CER}
-            CVS={CVS}
-            CAP={CAP}
-            ratioCTF_CAF={ratioCTF_CAF}
-          />
+        <Card title="Composicion del score">
+          {/* CAS total hero */}
+          {CAS != null && (
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 16 }}>
+              <span className="font-mono" style={{ fontSize: 36, fontWeight: 700, color: CAS_LABEL(CAS).color, lineHeight: 1 }}>
+                {Math.round(CAS)}
+              </span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: CAS_LABEL(CAS).color }}>
+                {CAS_LABEL(CAS).text}
+              </span>
+              <span style={{ fontSize: 11, color: C.t3 }}>/100</span>
+            </div>
+          )}
+          <ScoreBar label="CAF" value={CAF} desc={SCORE_DESC.CAF} />
+          <ScoreBar label="CTF" value={CTF} desc={SCORE_DESC.CTF} />
+          <ScoreBar label="CER" value={CER} desc={SCORE_DESC.CER} />
+          <ScoreBar label="CVS" value={CVS} desc={SCORE_DESC.CVS} />
+          <ScoreBar label="CAP" value={CAP} desc={SCORE_DESC.CAP} />
+          <div style={{ marginTop: 8 }}>
+            <ScoreBar label="CAS" value={CAS} desc={SCORE_DESC.CAS} />
+          </div>
           {ratioCTF_CAF != null && ratioCTF_CAF < 0.6 && (
             <div style={{ marginTop: 12 }}>
               <FraudFlag ratioCTF_CAF={ratioCTF_CAF} flags={flags} />
@@ -514,6 +746,11 @@ export default function ChannelExplorerPage() {
         </Card>
       </div>
 
+      {/* ── EVOLUTION CHART (subscribers + views) ────────────────── */}
+      <Card title="Evolucion — ultimos 30 dias" style={{ marginBottom: 16 }}>
+        <EvolutionChart snapshots={snapshots} />
+      </Card>
+
       {/* ── HISTORIAL + STATS ──────────────────────────────────── */}
       <div
         style={{
@@ -523,13 +760,13 @@ export default function ChannelExplorerPage() {
           marginBottom: 24,
         }}
       >
-        <Card title="Evolución CAS — 90 días">
+        <Card title="Evolucion CAS — 90 dias">
           <CASHistoryChart data={historial || []} height={200} />
         </Card>
 
-        <Card title="Estadísticas">
+        <Card title="Estadisticas">
           <Stat
-            label="Campañas completadas"
+            label="Campanas completadas"
             value={campanias?.completadas ?? 0}
           />
           <Stat
@@ -577,7 +814,7 @@ export default function ChannelExplorerPage() {
             e.currentTarget.style.boxShadow = `0 8px 24px ${C.teal}33`
           }}
         >
-          Comprar anuncio en este canal →
+          Contratar publicidad en este canal →
         </button>
         <div
           className="flex items-center justify-center"
