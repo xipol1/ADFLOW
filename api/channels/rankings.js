@@ -12,6 +12,6 @@ module.exports = async function handler(req, res) {
     const { getRankings } = require('../../controllers/channelsController');
     return getRankings(req, res);
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message, stack: err.stack?.split('\n').slice(0, 5) });
+    return res.status(500).json({ success: false, message: err.message });
   }
 };

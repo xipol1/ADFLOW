@@ -343,7 +343,7 @@ const getChannelSnapshots = async (req, res) => {
       nivel: s.nivel,
     }));
 
-    res.set('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
     return res.json({ success: true, data });
   } catch (err) {
     console.error('getChannelSnapshots error:', err.message);
@@ -374,7 +374,7 @@ const getRankings = async (req, res) => {
       .lean();
 
     if (items.length === 0) {
-      res.set('Cache-Control', 'public, max-age=1800');
+      res.setHeader('Cache-Control', 'public, max-age=1800');
       return res.json({ success: true, data: { rankings: [], deltas: {} } });
     }
 
@@ -447,11 +447,11 @@ const getRankings = async (req, res) => {
       }
     });
 
-    res.set('Cache-Control', 'public, max-age=1800');
+    res.setHeader('Cache-Control', 'public, max-age=1800');
     return res.json({ success: true, data: { rankings, deltas } });
   } catch (err) {
-    console.error('getRankings error:', err.message, err.stack);
-    return res.status(500).json({ success: false, message: 'Error interno', debug: err.message });
+    console.error('getRankings error:', err.message);
+    return res.status(500).json({ success: false, message: 'Error interno' });
   }
 };
 
@@ -473,7 +473,7 @@ const getChannelByUsername = async (req, res) => {
     const metrics = await ChannelMetrics.findOne({ channel: canal._id }).lean().catch(() => null);
     const CAS = canal.CAS ?? 50;
 
-    res.set('Cache-Control', 'public, max-age=1800');
+    res.setHeader('Cache-Control', 'public, max-age=1800');
     return res.json({
       success: true,
       data: {
