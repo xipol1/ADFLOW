@@ -8,6 +8,9 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
   try {
+    const { ensureDb } = require('../../lib/ensureDb');
+    const dbOk = await ensureDb();
+    if (!dbOk) return res.status(503).json({ success: false, message: 'DB unavailable' });
     const { batchDiscoverFromTGStat, DEFAULT_CATEGORIES } = require('../../services/tgstatScraperService');
     const categories = req.body?.categories || DEFAULT_CATEGORIES;
     const start = Date.now();
