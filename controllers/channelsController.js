@@ -450,8 +450,8 @@ const getRankings = async (req, res) => {
     res.set('Cache-Control', 'public, max-age=1800');
     return res.json({ success: true, data: { rankings, deltas } });
   } catch (err) {
-    console.error('getRankings error:', err.message);
-    return res.status(500).json({ success: false, message: 'Error interno' });
+    console.error('getRankings error:', err.message, err.stack);
+    return res.status(500).json({ success: false, message: 'Error interno', debug: err.message });
   }
 };
 
