@@ -26,9 +26,6 @@ const listChannels = async (req, res) => {
   const busqueda = req.query?.busqueda ? String(req.query.busqueda).toLowerCase() : '';
   const verificado = normalizeBool(req.query?.verificado);
   const ordenPor = req.query?.ordenPor || 'createdAt';
-  const minScore = Number(req.query?.minScore) || 0;
-  const minSubs = Number(req.query?.minSubs) || 0;
-  const maxSubs = Number(req.query?.maxSubs) || 0;
 
   const dbOk = await ensureDb();
   if (!dbOk) {
@@ -51,17 +48,13 @@ const listChannels = async (req, res) => {
         { nombreCanal: { $regex: busqueda, $options: 'i' } },
         { descripcion: { $regex: busqueda, $options: 'i' } },
         { categoria: { $regex: busqueda, $options: 'i' } },
-        { identificadorCanal: { $regex: busqueda, $options: 'i' } },
       ];
     }
-    if (minScore > 0) filter.CAS = { ...(filter.CAS || {}), $gte: minScore };
-    if (minSubs > 0 || maxSubs > 0) {
-      filter['estadisticas.seguidores'] = {};
-      if (minSubs > 0) filter['estadisticas.seguidores'].$gte = minSubs;
-      if (maxSubs > 0) filter['estadisticas.seguidores'].$lte = maxSubs;
-    }
 
-    const sortMap = { precio: { precio: -1 }, audiencia: { 'estadisticas.seguidores': -1 }, score: { CAS: -1 }, createdAt: { createdAt: -1 }, engagement: { CER: -1 } };
+    // 'score' is the public sort key — frontend still sends it — but it
+    // now maps to the v2 CAS field on the Canal document. The legacy
+    // 'score' path never existed in the schema.
+    const sortMap = { precio: { precio: -1 }, audiencia: { 'estadisticas.seguidores': -1 }, score: { CAS: -1 }, createdAt: { createdAt: -1 } };
     const sort = sortMap[ordenPor] || { createdAt: -1 };
 
     const total = await Canal.countDocuments(filter);
@@ -300,213 +293,4 @@ const updateChannelAvailability = async (req, res) => {
   }
 };
 
-// GET /api/channels/:id/snapshots?days=30
-const getChannelSnapshots = async (req, res) => {
-  const dbOk = await ensureDb();
-  if (!dbOk) return res.status(503).json({ success: false, message: 'DB unavailable' });
-
-  try {
-    const CanalScoreSnapshot = require('../models/CanalScoreSnapshot');
-    const days = Math.min(90, Math.max(1, Number(req.query.days) || 30));
-    const since = new Date();
-    since.setDate(since.getDate() - days);
-
-    const snapshots = await CanalScoreSnapshot.find({
-      canalId: req.params.id,
-      fecha: { $gte: since },
-    })
-      .sort({ fecha: 1 })
-      .select('fecha seguidores CAF CTF CER CVS CAP CAS nivel telegramIntel')
-      .lean();
-
-    const data = snapshots.map((s) => ({
-      date: s.fecha,
-      subscribers: s.seguidores || 0,
-      avg_views: s.telegramIntel?.avg_views_last_20_posts ?? null,
-      engagement_rate: s.telegramIntel?.engagement_rate ?? null,
-      scores: {
-        CAF: s.CAF,
-        CTF: s.CTF,
-        CER: s.CER,
-        CVS: s.CVS,
-        CAS: s.CAS,
-      },
-      // Flat aliases for backward-compat with ChannelExplorerPage
-      fecha: s.fecha,
-      seguidores: s.seguidores || 0,
-      CAF: s.CAF,
-      CTF: s.CTF,
-      CER: s.CER,
-      CVS: s.CVS,
-      CAP: s.CAP,
-      CAS: s.CAS,
-      nivel: s.nivel,
-    }));
-
-    res.set('Cache-Control', 'public, max-age=3600');
-    return res.json({ success: true, data });
-  } catch (err) {
-    console.error('getChannelSnapshots error:', err.message);
-    return res.status(500).json({ success: false, message: 'Error interno' });
-  }
-};
-
-// GET /api/channels/rankings?categoria=finanzas&limit=20
-const getRankings = async (req, res) => {
-  const dbOk = await ensureDb();
-  if (!dbOk) {
-    return res.json({ success: true, data: { rankings: [], deltas: {} } });
-  }
-
-  try {
-    const CanalScoreSnapshot = require('../models/CanalScoreSnapshot');
-    const categoria = req.query?.categoria ? String(req.query.categoria).toLowerCase() : '';
-    const limit = Math.min(50, Math.max(1, Number(req.query?.limit) || 20));
-
-    // Build filter: only active/verified channels
-    const filter = { estado: { $in: ['activo', 'verificado'] }, CAS: { $gt: 0 } };
-    if (categoria && categoria !== 'all') filter.categoria = categoria;
-
-    // Fetch top channels sorted by CAS
-    const items = await Canal.find(filter)
-      .sort({ CAS: -1 })
-      .limit(limit)
-      .lean();
-
-    if (items.length === 0) {
-      res.set('Cache-Control', 'public, max-age=1800');
-      return res.json({ success: true, data: { rankings: [], deltas: {} } });
-    }
-
-    // Build current rankings
-    const rankings = items.map((c, idx) => ({
-      position: idx + 1,
-      id: c._id,
-      nombre: c.nombreCanal || '',
-      username: c.identificadorCanal || '',
-      plataforma: c.plataforma || '',
-      categoria: c.categoria || '',
-      seguidores: c.estadisticas?.seguidores || 0,
-      CAS: c.CAS ?? 0,
-      CAF: c.CAF ?? 50,
-      CTF: c.CTF ?? 50,
-      CER: c.CER ?? 50,
-      CVS: c.CVS ?? 50,
-      CAP: c.CAP ?? 50,
-      nivel: c.nivel || 'BRONZE',
-      CPMDinamico: c.CPMDinamico || 0,
-      precio: c.precio || 0,
-      verificado: c.estado === 'verificado',
-      engagement: c.CER ?? 0,
-    }));
-
-    // Calculate Δ 7 days: fetch snapshots from ~7 days ago
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const dayAfter = new Date(sevenDaysAgo);
-    dayAfter.setDate(dayAfter.getDate() + 1);
-
-    const channelIds = items.map((c) => c._id);
-
-    // Get one snapshot per channel from ~7 days ago
-    const oldSnapshots = await CanalScoreSnapshot.aggregate([
-      {
-        $match: {
-          canalId: { $in: channelIds },
-          fecha: { $gte: sevenDaysAgo, $lte: dayAfter },
-        },
-      },
-      { $sort: { fecha: -1 } },
-      {
-        $group: {
-          _id: '$canalId',
-          CAS: { $first: '$CAS' },
-        },
-      },
-    ]);
-
-    // Build old scores map and compute old ranking order
-    const oldScores = {};
-    oldSnapshots.forEach((s) => { oldScores[String(s._id)] = s.CAS; });
-
-    // Sort old scores to determine old positions
-    const oldRanked = channelIds
-      .map((id) => ({ id: String(id), cas: oldScores[String(id)] ?? null }))
-      .filter((e) => e.cas != null)
-      .sort((a, b) => b.cas - a.cas);
-
-    const oldPositionMap = {};
-    oldRanked.forEach((e, i) => { oldPositionMap[e.id] = i + 1; });
-
-    // Compute deltas
-    const deltas = {};
-    rankings.forEach((r) => {
-      const oldPos = oldPositionMap[String(r.id)];
-      if (oldPos != null) {
-        deltas[String(r.id)] = oldPos - r.position; // positive = moved up
-      }
-    });
-
-    res.set('Cache-Control', 'public, max-age=1800');
-    return res.json({ success: true, data: { rankings, deltas } });
-  } catch (err) {
-    console.error('getRankings error:', err.message);
-    return res.status(500).json({ success: false, message: 'Error interno' });
-  }
-};
-
-// GET /api/channels/username/:username
-const getChannelByUsername = async (req, res) => {
-  const dbOk = await ensureDb();
-  if (!dbOk) return res.status(503).json({ success: false, message: 'DB unavailable' });
-
-  try {
-    const username = String(req.params.username).replace(/^@/, '').trim().toLowerCase();
-    if (!username) return res.status(400).json({ success: false, message: 'Username requerido' });
-
-    const canal = await Canal.findOne({
-      identificadorCanal: { $regex: new RegExp(`^@?${username}$`, 'i') },
-    }).lean();
-
-    if (!canal) return res.status(404).json({ success: false, message: 'Canal no encontrado' });
-
-    const metrics = await ChannelMetrics.findOne({ channel: canal._id }).lean().catch(() => null);
-    const CAS = canal.CAS ?? 50;
-
-    res.set('Cache-Control', 'public, max-age=1800');
-    return res.json({
-      success: true,
-      data: {
-        id: canal._id,
-        nombre: canal.nombreCanal || '',
-        plataforma: canal.plataforma || '',
-        categoria: canal.categoria || '',
-        descripcion: canal.descripcion || '',
-        audiencia: canal.estadisticas?.seguidores || 0,
-        precio: canal.precio || 0,
-        verificado: canal.estado === 'verificado',
-        CAS,
-        CAF: canal.CAF ?? 50,
-        CTF: canal.CTF ?? 50,
-        CER: canal.CER ?? 50,
-        CVS: canal.CVS ?? 50,
-        CAP: canal.CAP ?? 50,
-        nivel: canal.nivel || 'BRONZE',
-        CPMDinamico: canal.CPMDinamico || 0,
-        confianzaScore: canal.verificacion?.confianzaScore ?? 0,
-        score: CAS,
-        engagement: metrics?.engagementRate ? (metrics.engagementRate * 100).toFixed(1) : null,
-        username: canal.identificadorCanal || '',
-        createdAt: canal.createdAt,
-        views_trend: canal.crawler?.ultimaActualizacion ? 'estable' : null,
-        post_frequency: null,
-        last_post_date: null,
-      },
-    });
-  } catch (err) {
-    console.error('getChannelByUsername error:', err.message);
-    return res.status(500).json({ success: false, message: 'Error interno' });
-  }
-};
-
-module.exports = { listChannels, getChannelById, getChannelByUsername, getChannelAvailability, updateChannelAvailability, getChannelSnapshots, getRankings };
+module.exports = { listChannels, getChannelById, getChannelAvailability, updateChannelAvailability };
