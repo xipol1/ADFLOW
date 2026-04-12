@@ -5,7 +5,7 @@ module.exports = async function handler(req, res) {
   const secret = process.env.CRON_SECRET;
   if (!secret) return res.status(503).json({ success: false, message: 'CRON_SECRET not configured' });
   if (req.headers.authorization !== `Bearer ${secret}`) {
-    return res.status(401).json({ success: false, message: 'Unauthorized' });
+    return res.status(401).json({ success: false, message: 'Unauthorized', hint: `secret_len=${secret.length}, auth_header_present=${!!req.headers.authorization}` });
   }
   try {
     const { batchDiscoverFromTGStat, DEFAULT_CATEGORIES } = require('../../services/tgstatScraperService');
