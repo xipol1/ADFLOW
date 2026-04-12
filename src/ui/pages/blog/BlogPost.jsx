@@ -245,33 +245,7 @@ export default function BlogPost() {
 
       <Helmet>
         <link rel="alternate" type="application/rss+xml" title="Channelad Blog" href="https://channelad.io/blog/feed.xml" />
-        <script type="application/ld+json">{JSON.stringify({
-          '@context': 'https://schema.org', '@type': 'Article',
-          headline: post.title, description: post.description,
-          datePublished: post.date, dateModified: post.dateModified || post.date,
-          author: { '@type': 'Person', name: 'Rafa Ferrer', jobTitle: 'CEO', worksFor: { '@type': 'Organization', name: 'Channelad', url: 'https://channelad.io' } },
-          publisher: { '@type': 'Organization', name: 'Channelad', url: 'https://channelad.io', logo: { '@type': 'ImageObject', url: 'https://channelad.io/logo.png' } },
-          mainEntityOfPage: `https://channelad.io/blog/${post.slug}`,
-          image: 'https://channelad.io/og-default.png',
-          inLanguage: post.lang, keywords: post.keywords?.join(', '),
-        })}</script>
-        {post.faq && (
-          <script type="application/ld+json">{JSON.stringify({
-            '@context': 'https://schema.org', '@type': 'FAQPage',
-            mainEntity: post.faq.map(q => ({
-              '@type': 'Question', name: q.question,
-              acceptedAnswer: { '@type': 'Answer', text: q.answer },
-            })),
-          })}</script>
-        )}
-        <script type="application/ld+json">{JSON.stringify({
-          '@context': 'https://schema.org', '@type': 'BreadcrumbList',
-          itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://channelad.io/' },
-            { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://channelad.io/blog' },
-            { '@type': 'ListItem', position: 3, name: post.title, item: `https://channelad.io/blog/${post.slug}` },
-          ],
-        })}</script>
+        {/* Schema (Article, FAQPage, BreadcrumbList) is already in the static HTML built by build-blog.js — do NOT duplicate here */}
       </Helmet>
 
       {/* ─── HEADER ─── */}

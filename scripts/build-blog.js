@@ -273,10 +273,6 @@ function build() {
     } else {
       const outFile = path.join(OUTPUT_DIR, `${meta.slug}.html`);
       fs.writeFileSync(outFile, html, 'utf-8');
-      // Also write extensionless copy for Vercel filesystem routing
-      const extlessDir = path.join(OUTPUT_DIR, meta.slug);
-      fs.mkdirSync(extlessDir, { recursive: true });
-      fs.writeFileSync(path.join(extlessDir, 'index.html'), html, 'utf-8');
       console.log(`  \u2705 ${meta.slug}.html (${meta.readTime})`);
     }
 

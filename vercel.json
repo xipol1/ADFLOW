@@ -1,5 +1,7 @@
 {
   "version": 2,
+  "cleanUrls": true,
+  "trailingSlash": false,
   "installCommand": "npm install --include=dev",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
@@ -46,7 +48,6 @@
     { "source": "/t/:code", "destination": "/api/index.js" },
     { "source": "/r/:campaignId", "destination": "/api/index.js" },
     { "source": "/health", "destination": "/api/index.js" },
-    { "source": "/blog", "destination": "/blog/index.html" },
-    { "source": "/((?!api/|sitemap\\.xml|robots\\.txt|blog/feed\\.xml).*)", "destination": "/index.html" }
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
