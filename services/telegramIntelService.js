@@ -9,9 +9,16 @@
  * Only processes channels already mapped in MongoDB (no mass scraping).
  */
 
-const { TelegramClient } = require('telegram');
-const { StringSession } = require('telegram/sessions');
-const { Api } = require('telegram/tl');
+// Lazy-loaded to avoid bundling GramJS into every Vercel function invocation
+let _TelegramClient, _StringSession, _Api;
+function loadGramJS() {
+  if (!_TelegramClient) {
+    _TelegramClient = require('telegram').TelegramClient;
+    _StringSession = require('telegram/sessions').StringSession;
+    _Api = require('telegram/tl').Api;
+  }
+  return { TelegramClient: _TelegramClient, StringSession: _StringSession, Api: _Api };
+}
 
 const RATE_LIMIT_MS = 2500;
 
@@ -32,6 +39,7 @@ async function getClient() {
     throw new Error('TELEGRAM_API_ID and TELEGRAM_API_HASH are required');
   }
 
+  const { TelegramClient, StringSession } = loadGramJS();
   const session = new StringSession(sessionStr);
   _client = new TelegramClient(session, apiId, apiHash, {
     connectionRetries: 3,
@@ -66,6 +74,7 @@ function sleep(ms) {
  * @returns {object|null} — Metrics object or null if unavailable
  */
 async function getChannelMetrics(username) {
+  const { Api } = loadGramJS();
   const client = await getClient();
   const cleanUsername = username.replace(/^@/, '').trim();
 

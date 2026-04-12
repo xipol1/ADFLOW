@@ -7,7 +7,8 @@
  */
 
 const express = require('express');
-const { runTelegramIntelJob } = require('../jobs/telegramIntelJob');
+// Lazy-loaded to avoid bundling GramJS into every Vercel function invocation
+const loadJob = () => require('../jobs/telegramIntelJob');
 
 const router = express.Router();
 
@@ -24,6 +25,7 @@ function requireCronSecret(req, res, next) {
 
 async function handleTelegramIntel(req, res) {
   try {
+    const { runTelegramIntelJob } = loadJob();
     const result = await runTelegramIntelJob();
     return res.json({
       success: true,

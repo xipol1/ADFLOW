@@ -10,7 +10,8 @@
 
 const express = require('express');
 const mongoose = require('mongoose');
-const { batchDiscoverFromTGStat, DEFAULT_CATEGORIES } = require('../services/tgstatScraperService');
+// Lazy-loaded to avoid bundling axios/cheerio into every Vercel function invocation
+const loadTgstat = () => require('../services/tgstatScraperService');
 const { autenticar } = require('../middleware/auth');
 
 const router = express.Router();
@@ -38,6 +39,7 @@ function requireCronSecret(req, res, next) {
 // ── Cron: TGStat Discovery ──────────────────────────────────────────────
 async function handleTGStatDiscover(req, res) {
   try {
+    const { batchDiscoverFromTGStat, DEFAULT_CATEGORIES } = loadTgstat();
     const categories = req.body?.categories || req.query?.categories?.split(',') || DEFAULT_CATEGORIES;
     const start = Date.now();
 
