@@ -9,13 +9,15 @@
  * Only processes channels already mapped in MongoDB (no mass scraping).
  */
 
-// Lazy-loaded to avoid bundling GramJS into every Vercel function invocation
+// Lazy-loaded with dynamic path to prevent Vercel NFT from bundling GramJS
 let _TelegramClient, _StringSession, _Api;
 function loadGramJS() {
   if (!_TelegramClient) {
-    _TelegramClient = require('telegram').TelegramClient;
-    _StringSession = require('telegram/sessions').StringSession;
-    _Api = require('telegram/tl').Api;
+    // Dynamic path prevents Vercel's Node File Tracer from bundling at build time
+    const pkg = 'telegram';
+    _TelegramClient = require(pkg).TelegramClient;
+    _StringSession = require(pkg + '/sessions').StringSession;
+    _Api = require(pkg + '/tl').Api;
   }
   return { TelegramClient: _TelegramClient, StringSession: _StringSession, Api: _Api };
 }

@@ -383,15 +383,6 @@ const enabledRoutes = [
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));
 
-// Debug: list mounted routes (remove after diagnosis)
-app.get('/api/debug/routes', (req, res) => {
-  const mounted = enabledRoutes.map(([mp, mod]) => {
-    const r = _routes[mod];
-    return { path: mp, module: mod, status: r instanceof Error ? `ERROR: ${r.message}` : 'OK' };
-  });
-  res.json({ mounted, total: mounted.length, errors: mounted.filter(m => m.status !== 'OK').length });
-});
-
 // ─── Static blog: serve pre-built HTML from public/blog/ ───
 const blogDir = path.join(__dirname, 'public', 'blog');
 app.get('/blog', (req, res, next) => {
