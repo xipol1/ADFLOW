@@ -19,9 +19,18 @@ router.get(
   channelsController.listChannels
 );
 
+// Rankings (public, cached) — must be before /:id to avoid matching
+router.get('/rankings', limitadorAPI, channelsController.getRankings);
+
+// Username lookup (public) — must be before /:id
+router.get('/username/:username', limitadorAPI, channelsController.getChannelByUsername);
+
 router.get('/:id', limitadorAPI, channelsController.getChannelById);
 
 // Calendar / availability (public — no auth required for read)
 router.get('/:id/availability', limitadorAPI, channelsController.getChannelAvailability);
+
+// Score snapshots for charts (public, last 30 days)
+router.get('/:id/snapshots', limitadorAPI, channelsController.getChannelSnapshots);
 
 module.exports = router;
