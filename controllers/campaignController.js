@@ -279,6 +279,29 @@ const confirmCampaign = async (req, res, next) => {
       return next(httpError(400, `No se puede confirmar una campaña en estado ${campaign.status}`));
     }
 
+    // Generate tracking link for the campaign
+    try {
+      const TrackingLink = require('../models/TrackingLink');
+      const crypto = require('crypto');
+      const code = crypto.randomBytes(4).toString('hex');
+      const trackingLink = await TrackingLink.create({
+        code,
+        targetUrl: campaign.targetUrl,
+        createdBy: userId,
+        type: 'campaign',
+        campaign: campaign._id,
+        channel: campaign.channel,
+        active: true,
+        stats: { totalClicks: 0, uniqueClicks: 0 },
+      });
+      campaign.trackingUrl = `https://channelad.io/t/${code}`;
+      campaign.trackingLinkId = trackingLink._id;
+    } catch (trackErr) {
+      console.error('TrackingLink creation failed:', trackErr?.message);
+      // Fallback: use original URL
+      campaign.trackingUrl = campaign.targetUrl;
+    }
+
     campaign.status = 'PUBLISHED';
     campaign.publishedAt = new Date();
     await campaign.save();

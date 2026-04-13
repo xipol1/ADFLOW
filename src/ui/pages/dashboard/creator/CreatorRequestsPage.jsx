@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { ErrorBanner } from '../shared/DashComponents'
 import apiService from '../../../../../services/api'
 import DeliveryBadge from '../../../components/DeliveryBadge'
-import { PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK as _OK, BLUE as _BLUE, WARN, ERR } from '../../../theme/tokens'
+import { FONT_BODY, FONT_DISPLAY, OK as _OK, BLUE as _BLUE, WARN, ERR } from '../../../theme/tokens'
 
 /* ── Design tokens ─────────────────────────────────────────────────────────── */
-const V  = PURPLE
-const VG = purpleAlpha
+const V  = 'var(--accent, #00D4A8)'
+const VG = (o) => `var(--accent-dim, rgba(0,212,168,${o}))`
 const F  = FONT_BODY
 const D  = FONT_DISPLAY
 const OK = _OK
@@ -341,10 +341,28 @@ const DetailModal = ({ campaign: c, onClose, onConfirm, onComplete, onDecline, o
             <div style={{ fontSize: '11px', fontWeight: 600, color: V, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>Contenido del anuncio</div>
             <div style={{ fontSize: '14px', color: 'var(--text)', lineHeight: 1.65, whiteSpace: 'pre-wrap', marginBottom: '10px' }}>{c.content}</div>
             {c.targetUrl && (
-              <a href={c.targetUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: V, textDecoration: 'none', fontWeight: 500 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                {c.targetUrl}
-              </a>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>URL del anunciante:</div>
+                <a href={c.targetUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: V, textDecoration: 'none', fontWeight: 500 }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  {c.targetUrl}
+                </a>
+                {c.trackingUrl && c.trackingUrl !== c.targetUrl && (
+                  <div style={{ marginTop: '8px', padding: '10px 14px', background: 'var(--accent-dim, rgba(0,212,168,0.06))', border: '1px solid var(--accent-border, rgba(0,212,168,0.19))', borderRadius: '10px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 700, marginBottom: '4px' }}>🔗 Link de tracking (usa ESTE en la publicacion):</div>
+                    <code style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-mono, monospace)', wordBreak: 'break-all' }}>
+                      {c.trackingUrl}
+                    </code>
+                    <button
+                      onClick={() => { navigator.clipboard?.writeText(c.trackingUrl) }}
+                      style={{ marginLeft: '8px', background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}
+                    >Copiar</button>
+                    <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '6px' }}>
+                      Este link redirige a la URL del anunciante y registra clicks unicos, CPC y alcance automaticamente.
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -393,6 +411,30 @@ const DetailModal = ({ campaign: c, onClose, onConfirm, onComplete, onDecline, o
                   <div style={{ fontSize: '13px', color: 'var(--text)', lineHeight: 1.5 }}>{c.deliverables}</div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Message preview (how it will look in the channel) */}
+          {c.status === 'PAID' && c.content && (
+            <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '16px', padding: '18px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 600, color: V, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>
+                👁️ Vista previa del mensaje
+              </div>
+              <div style={{ background: 'var(--surface)', borderRadius: '12px', padding: '16px', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '14px', color: 'var(--text)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                  {c.content}
+                  {c.targetUrl && (
+                    <span style={{ display: 'block', marginTop: '8px' }}>
+                      <span style={{ color: V, textDecoration: 'underline' }}>
+                        {c.trackingUrl || c.targetUrl}
+                      </span>
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '8px' }}>
+                Asi se vera el mensaje en tu canal. Puedes editar antes de publicar chateando con el anunciante.
+              </div>
             </div>
           )}
 
