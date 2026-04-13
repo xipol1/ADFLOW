@@ -145,8 +145,8 @@ function ChartTooltip({ active, payload, label }) {
             color: p.color,
           }}
         >
-          <span>{p.dataKey}</span>
-          <span style={{ fontWeight: 600 }}>{p.value}</span>
+          <span>{p.name || p.dataKey}</span>
+          <span style={{ fontWeight: 600 }}>{Math.round(p.value)}</span>
         </div>
       ))}
     </div>
@@ -225,9 +225,9 @@ function CASEvolutionSection({ historial, period, onPeriodChange, campaignDates 
           />
           <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'var(--border-med)' }} />
           <Legend iconType="line" wrapperStyle={{ fontSize: 12, color: 'var(--text-secondary)' }} />
-          <Line type="monotone" dataKey="CAS" stroke={'var(--accent)'} strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: 'var(--accent)' }} />
-          <Line type="monotone" dataKey="CTF" stroke={'var(--accent)'} strokeWidth={2} strokeDasharray="4 2" dot={false} />
-          <Line type="monotone" dataKey="CAP" stroke={'var(--accent)'} strokeWidth={2} strokeDasharray="2 2" dot={false} />
+          <Line type="monotone" dataKey="CAS" stroke={'var(--accent)'} strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: 'var(--accent)' }} name="CAS Total" />
+          <Line type="monotone" dataKey="CTF" stroke={'#10b981'} strokeWidth={2} strokeDasharray="4 2" dot={false} name="Confianza" />
+          <Line type="monotone" dataKey="CAP" stroke={'#f59e0b'} strokeWidth={2} strokeDasharray="2 2" dot={false} name="Rendimiento" />
           {campaignDots.map((d, i) => (
             <ReferenceDot
               key={i}
@@ -319,6 +319,7 @@ function ScoreDecompositionSection({ scores, historial }) {
                   alignItems: 'center',
                   gap: 12,
                   padding: '8px 0',
+                  flexWrap: 'wrap',
                 }}
               >
                 {/* Label */}
@@ -525,8 +526,8 @@ function CPMSimulatorSection({ currentCAS, currentCPM, plataforma }) {
 
   const estimatedCPM = calcCPM(plataforma, targetCAS)
   const deltaCPM = currentCPM ? estimatedCPM - currentCPM : 0
-  const improvement = currentCPM && currentCPM > 0
-    ? Math.max(0, Math.round((1 - estimatedCPM / currentCPM) * 100))
+  const deltaPct = currentCPM && currentCPM > 0
+    ? Math.round(((estimatedCPM - currentCPM) / currentCPM) * 100)
     : 0
 
   if (!currentCAS && currentCAS !== 0) {
@@ -642,22 +643,25 @@ function CPMSimulatorSection({ currentCAS, currentCPM, plataforma }) {
       {showSummary && (
         <div
           style={{
-            background: deltaCPM < 0 ? 'var(--accent-dim)' : 'var(--gold-dim)',
-            border: `1px solid ${deltaCPM < 0 ? `${'var(--accent)'}44` : `${'var(--gold)'}44`}`,
+            background: deltaCPM > 0 ? 'var(--accent-dim)' : 'var(--gold-dim)',
+            border: `1px solid ${deltaCPM > 0 ? `${'var(--accent)'}44` : `${'var(--gold)'}44`}`,
             borderRadius: 12,
             padding: '12px 16px',
             fontSize: 13,
             lineHeight: 1.6,
-            color: deltaCPM < 0 ? 'var(--accent)' : 'var(--gold)',
+            color: deltaCPM > 0 ? 'var(--accent)' : 'var(--gold)',
           }}
         >
           Si tu CAS {targetCAS > currentCAS ? 'sube' : 'baja'} de{' '}
           <strong>{currentCAS}</strong> a <strong>{targetCAS}</strong>, tu CPM{' '}
-          {deltaCPM < 0 ? 'baja' : 'sube'} de{' '}
+          {deltaCPM > 0 ? 'sube' : 'baja'} de{' '}
           <strong>€{(currentCPM || 0).toFixed(1)}</strong> a{' '}
           <strong>€{estimatedCPM.toFixed(1)}</strong>
-          {improvement > 0 && deltaCPM < 0 && (
-            <span> — atraerías ~{improvement}% más anunciantes</span>
+          {deltaPct !== 0 && (
+            <span> ({deltaPct > 0 ? '+' : ''}{deltaPct}%)</span>
+          )}
+          {deltaCPM > 0 && (
+            <span> — ganarás más por publicación</span>
           )}
         </div>
       )}
@@ -889,6 +893,22 @@ export default function CreatorAnalyticsPage() {
         </div>
 
         {/* Channel selector */}
+        {channels.length === 1 && (
+          <div
+            style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 10,
+              padding: '8px 14px',
+              fontSize: 13,
+              fontFamily: F,
+              color: 'var(--text)',
+              fontWeight: 600,
+            }}
+          >
+            {channels[0].nombreCanal || 'Canal'} · {channels[0].plataforma || ''}
+          </div>
+        )}
         {channels.length > 1 && (
           <select
             value={selectedChannelId || ''}
