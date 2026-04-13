@@ -21,12 +21,8 @@ const F = FONT_BODY
 const D = FONT_DISPLAY
 
 
-const RECOMMENDED_CHANNELS = [
-  { id: 'rec-1', name: 'Ecom Growth Hub', platform: 'WhatsApp', audience: '12.4K', price: 320, category: 'Ecommerce' },
-  { id: 'rec-2', name: 'Tech Audience ES', platform: 'Telegram', audience: '8.2K', price: 450, category: 'Tecnología' },
-  { id: 'rec-3', name: 'Gaming Deals Hub', platform: 'Discord', audience: '15K', price: 280, category: 'Gaming' },
-  { id: 'rec-4', name: 'Fitness Daily', platform: 'WhatsApp', audience: '6.5K', price: 200, category: 'Fitness' },
-]
+// Recommended channels — fetched from API on mount
+const RECOMMENDED_CHANNELS_FALLBACK = []
 
 const ModeCard = ({ icon: Icon, label, desc, badge, selected, onClick }) => (
   <button onClick={onClick} style={{
@@ -75,6 +71,35 @@ export default function AutoBuyPage() {
 
   // Pack selection
   const [selectedPack, setSelectedPack] = useState(null)
+
+  // Recommended channels from API
+  const [recommendedChannels, setRecommendedChannels] = useState(RECOMMENDED_CHANNELS_FALLBACK)
+  const [loadingRec, setLoadingRec] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    const fetchRecommended = async () => {
+      setLoadingRec(true)
+      try {
+        const res = await apiService.searchChannels({ limit: 8, status: 'activo' })
+        if (cancelled) return
+        if (res?.success) {
+          const items = Array.isArray(res.data) ? res.data : res.data?.items || []
+          setRecommendedChannels(items.map(ch => ({
+            id: ch._id || ch.id,
+            name: ch.nombreCanal || ch.nombre || ch.name || 'Canal',
+            platform: ch.plataforma || ch.platform || 'Telegram',
+            audience: (ch.estadisticas?.seguidores || ch.audience || 0).toLocaleString('es'),
+            price: ch.precio || ch.price || 0,
+            category: ch.categoria || ch.category || '',
+          })))
+        }
+      } catch { /* keep empty fallback */ }
+      if (!cancelled) setLoadingRec(false)
+    }
+    fetchRecommended()
+    return () => { cancelled = true }
+  }, [])
 
   const urgency = getLaunchUrgency()
 
@@ -739,7 +764,12 @@ export default function AutoBuyPage() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-              {RECOMMENDED_CHANNELS.filter(c => !category || c.category === category || category === 'Todas').slice(0, 4).map(ch => {
+              {loadingRec ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)', fontSize: '13px' }}>Cargando canales...</div>
+              ) : recommendedChannels.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)', fontSize: '13px' }}>No hay canales disponibles en esta categoría</div>
+              ) : null}
+              {recommendedChannels.filter(c => !category || c.category === category || category === 'Todas').slice(0, 4).map(ch => {
                 const selected = manualChannels.find(m => m.id === ch.id)
                 return (
                   <div key={ch.id} onClick={() => {

@@ -186,10 +186,10 @@ const AddChannelModal = ({ onClose }) => {
   )
 }
 
-// ─── Mock sparklines ──────────────────────────────────────────────────────────
-const EARN_SPARK = [820, 940, 870, 1100, 1050, 1280, 1190, 1380, 1310, 1520, 1480, 1730]
-const VIEWS_SPARK = [11, 13, 12, 15, 14, 17, 16, 19, 18, 22, 21, 24]
-const REQ_SPARK   = [2, 4, 3, 5, 4, 6, 5, 7, 6, 8, 7, 9]
+// ─── Empty sparklines (shown when no real data yet) ──────────────────────────
+const EARN_SPARK = Array(12).fill(0)
+const VIEWS_SPARK = Array(12).fill(0)
+const REQ_SPARK   = Array(12).fill(0)
 
 // ─── Period selector options ─────────────────────────────────────────────────
 const PERIOD_OPTS = [
@@ -549,7 +549,7 @@ export default function CreatorOverviewPage() {
           </div>
         </div>
         <KpiCard icon={Radio} label="Canales activos" value={activeChannels} sub={`${channels.length} total`} accent={A} sparkData={[2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, activeChannels]} />
-        <KpiCard icon={Inbox} label="Solicitudes pendientes" value={pendingReqs} sub={pendingReqs > 0 ? 'Requieren respuesta' : 'Al dia'} subColor={pendingReqs > 0 ? WARN : OK} sparkData={REQ_SPARK} accent={WARN} />
+        <KpiCard icon={Inbox} label="Solicitudes pendientes" value={pendingReqs} sub={pendingReqs > 0 ? 'Requieren respuesta' : 'Al dia'} subColor={pendingReqs > 0 ? WARN : OK} sparkData={creatorCampaigns.length > 0 ? (() => { const b = Array(12).fill(0); creatorCampaigns.forEach(c => { const d = new Date(c.createdAt); const ma = (now.getFullYear() - d.getFullYear()) * 12 + now.getMonth() - d.getMonth(); if (ma >= 0 && ma < 12) b[11 - ma]++ }); return b })() : REQ_SPARK} accent={WARN} />
         <div>
           <KpiCard icon={TrendingUp} label="Ganancias totales" value={`€${totalEarnings.toLocaleString('es')}`} sub="Desde el inicio" accent={OK} sparkData={earnSparkData.map(v => v * 0.6)} />
           {mainChannel && Number(mainChannel.CAS) > 0 && (

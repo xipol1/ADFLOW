@@ -75,8 +75,8 @@ function CreateModal({ onClose, onCreated }) {
         onCreated()
         onClose()
       }
-    } catch (err) {
-      console.error('Error creating dispute:', err)
+    } catch {
+      // silently handled — toast or banner could be added
     } finally {
       setSending(false)
     }
@@ -257,8 +257,8 @@ function DisputeDetail({ dispute, onBack }) {
         setDetail(result.data)
         setNewMessage('')
       }
-    } catch (err) {
-      console.error('Error sending message:', err)
+    } catch {
+      // network error — message not sent
     } finally {
       setSending(false)
     }
@@ -477,8 +477,7 @@ export default function DisputesPage() {
       if (result?.success) {
         setDisputes(result.data?.items || [])
       }
-    } catch (err) {
-      console.error('Error loading disputes:', err)
+    } catch {
       setFetchError('No se pudieron cargar los datos. Verifica tu conexion.')
     } finally {
       setLoading(false)
@@ -491,8 +490,8 @@ export default function DisputesPage() {
     try {
       const result = await apiService.getDispute(id)
       if (result?.success) setSelectedDispute(result.data)
-    } catch (err) {
-      console.error('Error loading dispute:', err)
+    } catch {
+      // dispute detail load failed silently
     }
   }
 

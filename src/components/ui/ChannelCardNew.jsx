@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import Badge from './Badge'
 import { scoreLabel } from './ScoreBar'
+import { CASBadge, CPMBadge, ConfianzaBadge } from '../../ui/components/scoring'
 
 function maskName(name) {
   if (!name || name.length <= 2) return '••••••'
@@ -64,6 +65,7 @@ export default function ChannelCardNew({ channel, onClick }) {
     views_trend,
     avg_views,
     claimed,
+    confianzaScore,
   } = channel
 
   const cId = id || _id
@@ -134,16 +136,12 @@ export default function ChannelCardNew({ channel, onClick }) {
         <MiniStat label="€/post" value={isAuthenticated ? (cPrice > 0 ? `€${cPrice}` : '—') : '€••'} />
       </div>
 
-      {/* Score */}
-      {cScore != null && (
-        <div className="px-4 pb-3">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--muted2)' }}>Score</span>
-            <span className="text-lg font-medium" style={{ color: scoreColor(cScore), fontFamily: 'var(--font-mono)' }}>{Math.round(cScore)}</span>
-          </div>
-          <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-            <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${cScore}%`, background: scoreColor(cScore) }} />
-          </div>
+      {/* Score + Intelligence badges */}
+      {(cScore != null || cPrice > 0 || confianzaScore != null) && (
+        <div className="px-4 pb-3 flex flex-wrap items-center gap-1.5">
+          {cScore != null && <CASBadge CAS={Math.round(cScore)} nivel={nivel} size="sm" />}
+          {isAuthenticated && cPrice > 0 && <CPMBadge CPM={cPrice} plataforma={cPlatform} size="sm" />}
+          {confianzaScore != null && <ConfianzaBadge score={confianzaScore} showScore />}
         </div>
       )}
 

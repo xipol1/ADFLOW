@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
-import { User, Bell, Lock, FileText, Key, Shield, Check, Eye, EyeOff, Copy, RefreshCw, AlertTriangle } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { User, Bell, Lock, FileText, Key, Shield, Check, Eye, EyeOff, Copy, RefreshCw, AlertTriangle, Loader2 } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
+import apiService from '../../../../../services/api'
 import {
-  PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN,
+  PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, ERR,
 } from '../../../theme/tokens'
 import TwoFactorCard from '../../../components/TwoFactorCard'
 
@@ -16,12 +17,12 @@ const TABS = [
 ]
 
 // ─── Form field ───────────────────────────────────────────────────────────────
-const Field = ({ label, type = 'text', value, placeholder, hint, required }) => {
-  const [val, setVal]     = useState(value || '')
+const Field = ({ label, type = 'text', value, onChange, placeholder, hint, required, disabled, error }) => {
   const [show, setShow]   = useState(false)
   const [focused, setFocused] = useState(false)
   const isPassword = type === 'password'
   const actualType = isPassword ? (show ? 'text' : 'password') : type
+  const borderColor = error ? ERR : focused ? purpleAlpha(0.5) : 'var(--border-med)'
 
   return (
     <div>
@@ -30,14 +31,15 @@ const Field = ({ label, type = 'text', value, placeholder, hint, required }) => 
       </label>
       {type === 'textarea' ? (
         <textarea
-          value={val} onChange={e => setVal(e.target.value)}
-          placeholder={placeholder} rows={3}
+          value={value || ''} onChange={e => onChange?.(e.target.value)}
+          placeholder={placeholder} rows={3} disabled={disabled}
           onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
           style={{
             width: '100%', boxSizing: 'border-box',
-            background: 'var(--bg)', borderRadius: '11px', padding: '11px 14px',
+            background: disabled ? 'var(--bg2)' : 'var(--bg)', borderRadius: '11px', padding: '11px 14px',
             fontSize: '14px', color: 'var(--text)', fontFamily: FONT_BODY, outline: 'none', resize: 'vertical',
-            border: `1px solid ${focused ? purpleAlpha(0.5) : 'var(--border-med)'}`,
+            opacity: disabled ? 0.6 : 1,
+            border: `1px solid ${borderColor}`,
             boxShadow: focused ? `0 0 0 3px ${purpleAlpha(0.07)}` : 'none',
             transition: 'border-color .15s, box-shadow .15s',
           }}
@@ -45,15 +47,16 @@ const Field = ({ label, type = 'text', value, placeholder, hint, required }) => 
       ) : (
         <div style={{ position: 'relative' }}>
           <input
-            type={actualType} value={val} onChange={e => setVal(e.target.value)}
-            placeholder={placeholder}
+            type={actualType} value={value || ''} onChange={e => onChange?.(e.target.value)}
+            placeholder={placeholder} disabled={disabled}
             onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
             style={{
               width: '100%', boxSizing: 'border-box',
-              background: 'var(--bg)', borderRadius: '11px',
+              background: disabled ? 'var(--bg2)' : 'var(--bg)', borderRadius: '11px',
               padding: isPassword ? '11px 44px 11px 14px' : '11px 14px',
               fontSize: '14px', color: 'var(--text)', fontFamily: FONT_BODY, outline: 'none',
-              border: `1px solid ${focused ? purpleAlpha(0.5) : 'var(--border-med)'}`,
+              opacity: disabled ? 0.6 : 1,
+              border: `1px solid ${borderColor}`,
               boxShadow: focused ? `0 0 0 3px ${purpleAlpha(0.07)}` : 'none',
               transition: 'border-color .15s, box-shadow .15s',
             }}
@@ -68,7 +71,8 @@ const Field = ({ label, type = 'text', value, placeholder, hint, required }) => 
           )}
         </div>
       )}
-      {hint && <div style={{ fontSize: '11px', color: 'var(--muted2)', marginTop: '5px', lineHeight: 1.4 }}>{hint}</div>}
+      {error && <div style={{ fontSize: '11px', color: ERR, marginTop: '5px', lineHeight: 1.4 }}>{error}</div>}
+      {hint && !error && <div style={{ fontSize: '11px', color: 'var(--muted2)', marginTop: '5px', lineHeight: 1.4 }}>{hint}</div>}
     </div>
   )
 }
@@ -162,16 +166,116 @@ export default function SettingsPage() {
   const [tab, setTab]           = useState('perfil')
   const [saveState, setSaveState] = useState('idle') // idle | saving | saved
   const [apiKeyVisible, setApiKeyVisible] = useState(false)
-  const [newPassword, setNewPassword] = useState('')
+  const [errors, setErrors]     = useState({})
 
-  const save = async () => {
-    setSaveState('saving')
-    await new Promise(r => setTimeout(r, 800))
-    setSaveState('saved')
-    setTimeout(() => setSaveState('idle'), 2500)
+  // ── Controlled form state ──
+  const [profile, setProfile] = useState({
+    nombre: '', email: '', empresa: '', telefono: '', timezone: 'Europe/Madrid (GMT+1)', sitioWeb: '', bio: '',
+  })
+  const up = (k, v) => { setProfile(p => ({ ...p, [k]: v })); setErrors(e => ({ ...e, [k]: null })) }
+
+  const [notifs, setNotifs] = useState({
+    campanaAprobada: true, campanaPublicada: true, hitoImpresiones: true,
+    campanaFinalizada: true, saldoBajo: true, resumenSemanal: false, newsletter: false,
+  })
+
+  const [security, setSecurity] = useState({ actual: '', nueva: '', confirmar: '' })
+  const uSec = (k, v) => { setSecurity(p => ({ ...p, [k]: v })); setErrors(e => ({ ...e, [k]: null })) }
+
+  const [billing, setBilling] = useState({
+    razonSocial: '', nif: '', direccion: '', cp: '', ciudad: '', pais: 'España', emailFacturacion: '',
+  })
+  const uBill = (k, v) => { setBilling(p => ({ ...p, [k]: v })); setErrors(e => ({ ...e, [k]: null })) }
+
+  // ── Load profile on mount ──
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        const res = await apiService.request('/auth/perfil')
+        if (cancelled) return
+        if (res?.success) {
+          const u = res.data || res.user || {}
+          setProfile({
+            nombre: u.nombre || user?.nombre || '',
+            email: u.email || user?.email || '',
+            empresa: u.perfilAnunciante?.nombreEmpresa || '',
+            telefono: u.perfilAnunciante?.telefono || '',
+            timezone: u.perfilAnunciante?.timezone || 'Europe/Madrid (GMT+1)',
+            sitioWeb: u.perfilAnunciante?.sitioWeb || '',
+            bio: u.perfilAnunciante?.descripcion || '',
+          })
+          if (u.preferenciasNotificacion) setNotifs(p => ({ ...p, ...u.preferenciasNotificacion }))
+          if (u.datosFacturacion) setBilling(p => ({ ...p, ...u.datosFacturacion }))
+        }
+      } catch { /* keep defaults from auth context */ }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [user])
+
+  // ── Validation ──
+  const validateProfile = () => {
+    const e = {}
+    if (!profile.nombre.trim()) e.nombre = 'El nombre es obligatorio'
+    setErrors(e)
+    return Object.keys(e).length === 0
+  }
+  const validateSecurity = () => {
+    const e = {}
+    if (!security.actual) e.actual = 'Introduce tu contraseña actual'
+    if (!security.nueva) e.nueva = 'Introduce la nueva contraseña'
+    else if (security.nueva.length < 8) e.nueva = 'Mínimo 8 caracteres'
+    else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(security.nueva)) e.nueva = 'Debe incluir mayúscula, minúscula y número'
+    if (security.nueva !== security.confirmar) e.confirmar = 'Las contraseñas no coinciden'
+    setErrors(e)
+    return Object.keys(e).length === 0
   }
 
-  const API_KEY = 'adf_live_sk_f8g7h2j1k3l4m5n6o7p8q9r0s1t2u3v4'
+  // ── Real save handlers ──
+  const save = async () => {
+    setSaveState('saving')
+    try {
+      if (tab === 'perfil') {
+        if (!validateProfile()) { setSaveState('idle'); return }
+        await apiService.request('/auth/perfil', {
+          method: 'PUT',
+          body: JSON.stringify({
+            nombre: profile.nombre,
+            perfilAnunciante: {
+              nombreEmpresa: profile.empresa, telefono: profile.telefono,
+              timezone: profile.timezone, sitioWeb: profile.sitioWeb, descripcion: profile.bio,
+            },
+          }),
+        })
+      } else if (tab === 'notificaciones') {
+        await apiService.request('/auth/perfil', {
+          method: 'PUT',
+          body: JSON.stringify({ preferenciasNotificacion: notifs }),
+        })
+      } else if (tab === 'seguridad') {
+        if (!validateSecurity()) { setSaveState('idle'); return }
+        const res = await apiService.request('/auth/cambiar-password', {
+          method: 'POST',
+          body: JSON.stringify({ passwordActual: security.actual, passwordNueva: security.nueva }),
+        })
+        if (res?.success) setSecurity({ actual: '', nueva: '', confirmar: '' })
+        else { setErrors({ actual: res?.message || 'Error al cambiar contraseña' }); setSaveState('idle'); return }
+      } else if (tab === 'facturacion') {
+        await apiService.request('/auth/perfil', {
+          method: 'PUT',
+          body: JSON.stringify({ datosFacturacion: billing }),
+        })
+      }
+      setSaveState('saved')
+      setTimeout(() => setSaveState('idle'), 2500)
+    } catch {
+      setErrors({ _global: 'Error de conexión' })
+      setSaveState('idle')
+    }
+  }
+
+  const API_KEY = user?.apiKey || 'adf_live_sk_••••••••••••••••••••••••••••'
 
   return (
     <div style={{ fontFamily: FONT_BODY, display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '900px' }}>
@@ -229,16 +333,16 @@ export default function SettingsPage() {
           <Card title="Información personal" subtitle="Datos básicos de tu cuenta de anunciante">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                <Field label="Nombre completo" value={user?.nombre || 'Usuario'} required />
-                <Field label="Email" type="email" value={user?.email || ''} required />
+                <Field label="Nombre completo" value={profile.nombre} onChange={v => up('nombre', v)} required error={errors.nombre} />
+                <Field label="Email" type="email" value={profile.email} disabled hint="El email no se puede cambiar" />
               </div>
-              <Field label="Empresa" value={user?.perfilAnunciante?.nombreEmpresa || ''} placeholder="Nombre de tu empresa u organización" />
+              <Field label="Empresa" value={profile.empresa} onChange={v => up('empresa', v)} placeholder="Nombre de tu empresa u organización" />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                <Field label="Teléfono" placeholder="+34 600 000 000" />
-                <Field label="Zona horaria" value="Europe/Madrid (GMT+1)" />
+                <Field label="Teléfono" value={profile.telefono} onChange={v => up('telefono', v)} placeholder="+34 600 000 000" />
+                <Field label="Zona horaria" value={profile.timezone} onChange={v => up('timezone', v)} />
               </div>
-              <Field label="Sitio web" placeholder="https://tuempresa.com" hint="Aparecerá en tu perfil de anunciante" />
-              <Field label="Sobre mí / empresa" type="textarea" placeholder="Describe brevemente tu empresa o caso de uso..." />
+              <Field label="Sitio web" value={profile.sitioWeb} onChange={v => up('sitioWeb', v)} placeholder="https://tuempresa.com" hint="Aparecerá en tu perfil de anunciante" />
+              <Field label="Sobre mí / empresa" type="textarea" value={profile.bio} onChange={v => up('bio', v)} placeholder="Describe brevemente tu empresa o caso de uso..." />
             </div>
           </Card>
         </div>
@@ -275,15 +379,12 @@ export default function SettingsPage() {
 
           <Card title="Cambiar contraseña" subtitle="Usa una contraseña única y segura">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <Field label="Contraseña actual" type="password" placeholder="••••••••" />
+              <Field label="Contraseña actual" type="password" placeholder="••••••••" value={security.actual} onChange={v => uSec('actual', v)} error={errors.actual} />
               <div>
-                <Field label="Nueva contraseña" type="password" placeholder="Mínimo 8 caracteres"
-                  value={newPassword}
-                />
-                {/* We'd normally track the password field value, but here we show a static example */}
-                <PasswordStrength password="MyP@ss1" />
+                <Field label="Nueva contraseña" type="password" placeholder="Mínimo 8 caracteres" value={security.nueva} onChange={v => uSec('nueva', v)} error={errors.nueva} />
+                <PasswordStrength password={security.nueva} />
               </div>
-              <Field label="Confirmar nueva contraseña" type="password" placeholder="Repite la contraseña" />
+              <Field label="Confirmar nueva contraseña" type="password" placeholder="Repite la contraseña" value={security.confirmar} onChange={v => uSec('confirmar', v)} error={errors.confirmar} />
             </div>
           </Card>
 
@@ -320,16 +421,16 @@ export default function SettingsPage() {
           <Card title="Datos de facturación" subtitle="Información que aparecerá en tus facturas">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                <Field label="Nombre / Razón social" value={user?.perfilAnunciante?.nombreEmpresa || ''} required />
-                <Field label="NIF / CIF" placeholder="B12345678" required />
+                <Field label="Nombre / Razón social" value={billing.razonSocial} onChange={v => uBill('razonSocial', v)} required />
+                <Field label="NIF / CIF" value={billing.nif} onChange={v => uBill('nif', v)} placeholder="B12345678" required />
               </div>
-              <Field label="Dirección" placeholder="Calle, número, piso, puerta" />
+              <Field label="Dirección" value={billing.direccion} onChange={v => uBill('direccion', v)} placeholder="Calle, número, piso, puerta" />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: '14px' }}>
-                <Field label="Código postal" placeholder="28001" />
-                <Field label="Ciudad" placeholder="Madrid" />
-                <Field label="País" value="España" />
+                <Field label="Código postal" value={billing.cp} onChange={v => uBill('cp', v)} placeholder="28001" />
+                <Field label="Ciudad" value={billing.ciudad} onChange={v => uBill('ciudad', v)} placeholder="Madrid" />
+                <Field label="País" value={billing.pais} onChange={v => uBill('pais', v)} />
               </div>
-              <Field label="Email de facturación" type="email" value={user?.email || ''} hint="Recibirás las facturas en este email" />
+              <Field label="Email de facturación" type="email" value={billing.emailFacturacion} onChange={v => uBill('emailFacturacion', v)} hint="Recibirás las facturas en este email" />
             </div>
           </Card>
 
