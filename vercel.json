@@ -57,6 +57,6 @@
     { "source": "/t/:code", "destination": "/api/index.js" },
     { "source": "/r/:campaignId", "destination": "/api/index.js" },
     { "source": "/health", "destination": "/api/index.js" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/:path*", "destination": "/index.html" }
   ]
 }
