@@ -66,6 +66,29 @@ async function handleTGStatDiscover(req, res) {
 router.get('/tgstat-discover', requireCronSecret, handleTGStatDiscover);
 router.post('/tgstat-discover', requireCronSecret, handleTGStatDiscover);
 
+// ── Massive seed (one-shot, background) ─────────────────────────────────
+router.post('/massive-seed', requireCronSecret, async (req, res) => {
+  try {
+    const { startMassiveSeedJob } = require('../jobs/massiveSeedJob');
+    const jobId = startMassiveSeedJob();
+    return res.json({ success: true, jobId, status: 'started', message: 'Job running in background. Poll /api/jobs/:jobId/status for progress.' });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ── Job status polling ──────────────────────────────────────────────────
+router.get('/:jobId/status', requireCronSecret, async (req, res) => {
+  try {
+    const JobLog = require('../models/JobLog');
+    const log = await JobLog.findOne({ jobId: req.params.jobId }).lean();
+    if (!log) return res.status(404).json({ success: false, message: 'Job not found' });
+    return res.json({ success: true, data: log });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ── Admin: List candidates ──────────────────────────────────────────────
 router.get('/candidates', autenticar, async (req, res) => {
   try {

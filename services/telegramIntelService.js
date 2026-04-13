@@ -332,17 +332,52 @@ async function syncAllMappedChannels() {
 
 // ─── Discovery: keyword search via contacts.Search ──────────────────────
 
-// 8 keywords optimized for Vercel 60s timeout (8 × 3s = 24s)
-// Rotate through the full set across runs via Date-based offset
+// Full keyword set for massive discovery (80+ terms)
 const ALL_KEYWORDS = [
-  'finanzas España', 'inversión bolsa', 'criptomonedas español',
-  'marketing digital', 'emprendimiento España', 'tecnología startup',
-  'trading forex', 'inmobiliaria España', 'ecommerce tienda online',
-  'inteligencia artificial español', 'salud bienestar',
-  'nutrición fitness', 'educación online cursos',
-  'noticias España', 'humor memes español',
-  'fútbol liga española', 'viajes España',
-  'gaming videojuegos', 'música española', 'cocina recetas',
+  // Finanzas/Inversión
+  'bolsa española', 'invertir en bolsa', 'trading español',
+  'fondos de inversión', 'dividendos acciones', 'IBEX 35',
+  'finanzas personales', 'ahorro España', 'hipoteca consejos',
+  'crypto español', 'bitcoin español', 'ethereum comunidad',
+  'DeFi español', 'NFT español', 'forex trading español',
+  // Marketing/Negocios
+  'marketing digital España', 'SEO español', 'growth hacking',
+  'emprendedores españoles', 'startups España', 'ecommerce España',
+  'dropshipping español', 'Amazon FBA español', 'copywriting español',
+  'redes sociales marketing', 'email marketing', 'publicidad digital',
+  'community manager', 'content creator español', 'personal branding',
+  // Tecnología
+  'programación español', 'desarrollo web', 'inteligencia artificial',
+  'machine learning español', 'ciberseguridad', 'blockchain español',
+  'apps movil', 'SaaS español', 'no-code herramientas', 'python español',
+  // Salud/Fitness
+  'fitness español', 'nutrición deportiva', 'gym motivación',
+  'pérdida de peso', 'running España', 'yoga español',
+  'salud mental', 'meditación mindfulness', 'dieta cetogénica',
+  'crossfit comunidad',
+  // Educación
+  'cursos online español', 'inglés aprende', 'oposiciones España',
+  'universidad España', 'productividad personal', 'hábitos éxito',
+  'libros resúmenes', 'idiomas aprendizaje', 'certificaciones IT',
+  'formación profesional',
+  // Lifestyle/Entretenimiento
+  'viajes España', 'viajes baratos', 'fotografía español',
+  'cocina recetas español', 'series películas', 'música española',
+  'fútbol noticias', 'humor español', 'gaming español', 'anime español',
+  // Inmobiliario/Legal
+  'inmobiliaria inversión', 'alquiler pisos', 'comprar casa España',
+  'autónomos España', 'fiscalidad España', 'derecho laboral',
+  'seguros comparar', 'noticias economía', 'política España',
+  'actualidad España',
+];
+
+// Seed channels for social graph discovery (large Spanish channels)
+const SEED_CHANNELS = [
+  'forocoches', 'elconfidencial', 'expansion_com',
+  'lasexta', 'elespanol', 'larazon_es', 'okdiario',
+  'elmundo_es', 'elpais', 'abc_es',
+  'inversoresbolsa', 'tradingespanol', 'cryptoespanol',
+  'marketingdigitalespana', 'emprendedores_es',
 ];
 const KEYWORDS_PER_RUN = 8;
 function getKeywordsForRun() {
@@ -499,6 +534,10 @@ module.exports = {
   syncAllMappedChannels,
   discoverByKeywords,
   discoverFromSocialGraph,
+  sleep,
+  loadGramJS,
   RATE_LIMIT_MS,
   DISCOVERY_KEYWORDS,
+  ALL_KEYWORDS,
+  SEED_CHANNELS,
 };
