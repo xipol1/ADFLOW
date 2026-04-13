@@ -19,6 +19,7 @@ import { useAuth } from '../auth/AuthContext'
 import AdvertiserLayout from '../ui/pages/dashboard/advertiser/AdvertiserLayout'
 import OverviewPage     from '../ui/pages/dashboard/advertiser/OverviewPage'
 import ExplorePage      from '../ui/pages/dashboard/advertiser/ExplorePage'
+import NewCampaignPage  from '../ui/pages/dashboard/advertiser/NewCampaignPage'
 import AutoBuyPage      from '../ui/pages/dashboard/advertiser/AutoBuyPage'
 import AdsPage          from '../ui/pages/dashboard/advertiser/AdsPage'
 import CampaignsPage    from '../ui/pages/dashboard/advertiser/CampaignsPage'
@@ -132,6 +133,7 @@ export default function AppRoutes() {
         <Route path="explore"  element={<FullAccessOnly feature="Marketplace"><ExplorePage /></FullAccessOnly>} />
         <Route path="autobuy"  element={<FullAccessOnly feature="Auto-compra"><AutoBuyPage /></FullAccessOnly>} />
         <Route path="campaigns" element={<FullAccessOnly feature="Campanas"><CampaignsPage /></FullAccessOnly>} />
+        <Route path="campaigns/new" element={<FullAccessOnly feature="Campanas"><NewCampaignPage /></FullAccessOnly>} />
         <Route path="ads"      element={<FullAccessOnly feature="Anuncios"><AdsPage /></FullAccessOnly>} />
         <Route path="finances" element={<FullAccessOnly feature="Finanzas"><FinancesPage /></FullAccessOnly>} />
         <Route path="analytics" element={<FullAccessOnly feature="Analytics"><AdvertiserAnalyticsPage /></FullAccessOnly>} />

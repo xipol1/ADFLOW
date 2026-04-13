@@ -328,7 +328,7 @@ export default function ChannelExplorerPage() {
         {/* ── SECTION 6: CTA ───────────────────────────────────── */}
         <div className="text-center mb-8">
           <button
-            onClick={() => navigate(`/advertiser/explore?canal=${encodeURIComponent(canal.id)}`)}
+            onClick={() => navigate(`/advertiser/campaigns/new?channel=${encodeURIComponent(canal.id)}`)}
             className="px-8 py-3 rounded-xl text-base font-bold transition-all"
             style={{ background: 'var(--accent)', color: '#080C10', border: 'none', cursor: 'pointer', boxShadow: 'var(--shadow-btn-glow)' }}
             onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.filter = 'brightness(1.1)' }}
