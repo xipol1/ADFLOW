@@ -549,7 +549,7 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
               {/* Score breakdown — v2 (CAF/CTF/CER/CVS/CAP) with v1 fallback */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
                 {[
-                  { label: 'CAF', fullLabel: 'Atención', value: channel.CAF || scoreData?.scores?.attention || 0, weight: '15%', color: '#8b5cf6' },
+                  { label: 'CAF', fullLabel: 'Atención', value: channel.CAF || scoreData?.scores?.attention || 0, weight: '15%', color: 'var(--accent)' },
                   { label: 'CTF', fullLabel: 'Confianza', value: channel.CTF || scoreData?.scores?.trust || 0, weight: '25%', color: '#10b981' },
                   { label: 'CER', fullLabel: 'Engagement', value: channel.CER || scoreData?.scores?.intent || 0, weight: '20%', color: '#3b82f6' },
                   { label: 'CVS', fullLabel: 'Velocidad', value: channel.CVS || scoreData?.scores?.liquidity || 0, weight: '10%', color: '#f59e0b' },

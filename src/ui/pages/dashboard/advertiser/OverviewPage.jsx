@@ -10,8 +10,12 @@ import { PLATFORM_COLORS } from './mockData'
 import apiService from '../../../../../services/api'
 import { Sparkline } from '../shared/DashComponents'
 import {
-  PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE,
+  FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE,
 } from '../../../theme/tokens'
+
+// Use CSS variables for accent color (works in both light/dark themes)
+const PURPLE = 'var(--accent, #00D4A8)'
+const purpleAlpha = (o) => `var(--accent-dim, rgba(0,212,168,${o}))`
 import DashboardModule from '../../../components/DashboardModule'
 import MetricContext from '../../../components/MetricContext'
 
@@ -597,7 +601,7 @@ export default function OverviewPage() {
           </DashboardModule>
 
           {/* Quick budget widget */}
-          <div style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, #7c3aed 100%)`, borderRadius: '18px', padding: '20px', color: '#fff' }}>
+          <div style={{ background: 'var(--accent)', borderRadius: '18px', padding: '20px', color: '#fff' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
               <div>
                 <div style={{ fontSize: '12px', opacity: 0.8, marginBottom: '4px' }}>Presupuesto mensual</div>

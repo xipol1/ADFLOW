@@ -6,7 +6,9 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
-import { PURPLE as A, GREEN as AG, purpleAlpha, FONT_BODY, FONT_DISPLAY, SPARKLINE, ERR, OK, WARN, BLUE } from '../../../theme/tokens';
+import { GREEN as AG, FONT_BODY, FONT_DISPLAY, SPARKLINE, ERR, OK, WARN, BLUE } from '../../../theme/tokens';
+const A = 'var(--accent, #00D4A8)';
+const purpleAlpha = (o) => `var(--accent-dim, rgba(0,212,168,${o}))`;
 
 // ─── Keyframe injection (runs once) ──────────────────────────────────────────
 const KEYFRAMES = `

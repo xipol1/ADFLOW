@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Radio, Inbox, DollarSign, TrendingUp, Plus, ChevronRight, Clock, Check, X, Zap, Activity } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../../services/api'
-import { GREEN, greenAlpha, PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK as _OK, WARN as _WARN, BLUE as _BLUE, PLAT_COLORS } from '../../../theme/tokens'
+import { GREEN, greenAlpha, FONT_BODY, FONT_DISPLAY, OK as _OK, WARN as _WARN, BLUE as _BLUE, PLAT_COLORS } from '../../../theme/tokens'
 import { C, nivelFromCAS } from '../../../theme/tokens'
 import { CASBadge, ScoreGauge, CPMBadge, ConfianzaBadge, BenchmarkBar } from '../../../components/scoring'
 import { Sparkline, ErrorBanner } from '../shared/DashComponents'
@@ -12,8 +12,8 @@ import MetricContext from '../../../components/MetricContext'
 
 const WA  = GREEN
 const WAG = greenAlpha
-const A   = PURPLE
-const AG  = purpleAlpha
+const A   = 'var(--accent, #00D4A8)'
+const AG  = (o) => `var(--accent-dim, rgba(0,212,168,${o}))`
 const F   = FONT_BODY
 const D   = FONT_DISPLAY
 const OK  = _OK

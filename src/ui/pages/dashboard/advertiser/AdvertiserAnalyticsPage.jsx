@@ -20,7 +20,7 @@ import {
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../../services/api'
 import { C } from '../../../theme/tokens'
-import { FONT_BODY as F, FONT_DISPLAY as D, PURPLE, purpleAlpha } from '../../../theme/tokens'
+import { FONT_BODY as F, FONT_DISPLAY as D } from '../../../theme/tokens'
 import { KPICard, CASBadge } from '../../../components/scoring'
 import ChannelCard from '../../../components/ChannelCard'
 import { ErrorBanner } from '../shared/DashComponents'
