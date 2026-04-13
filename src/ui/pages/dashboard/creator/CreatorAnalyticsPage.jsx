@@ -14,7 +14,6 @@ import {
 } from 'recharts'
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../../services/api'
-import { C } from '../../../theme/tokens'
 import { FONT_BODY as F, FONT_DISPLAY as D } from '../../../theme/tokens'
 import { BenchmarkBar } from '../../../components/scoring'
 import { Sparkline, ErrorBanner } from '../shared/DashComponents'
@@ -49,8 +48,8 @@ function SectionCard({ title, subtitle, children, action }) {
   return (
     <div
       style={{
-        background: C.surface,
-        border: `1px solid ${C.border}`,
+        background: 'var(--surface)',
+        border: `1px solid ${'var(--border)'}`,
         borderRadius: 16,
         padding: 24,
       }}
@@ -66,11 +65,11 @@ function SectionCard({ title, subtitle, children, action }) {
         }}
       >
         <div>
-          <h3 style={{ color: C.t1, fontSize: 15, fontWeight: 700, margin: 0, fontFamily: D }}>
+          <h3 style={{ color: 'var(--text)', fontSize: 15, fontWeight: 700, margin: 0, fontFamily: D }}>
             {title}
           </h3>
           {subtitle && (
-            <div style={{ color: C.t3, fontSize: 11, marginTop: 3 }}>{subtitle}</div>
+            <div style={{ color: 'var(--muted2)', fontSize: 11, marginTop: 3 }}>{subtitle}</div>
           )}
         </div>
         {action}
@@ -87,7 +86,7 @@ function PeriodTabs({ period, onChange }) {
       style={{
         display: 'flex',
         gap: 2,
-        background: C.surfaceEl,
+        background: 'var(--bg3)',
         borderRadius: 10,
         padding: 3,
       }}
@@ -100,9 +99,9 @@ function PeriodTabs({ period, onChange }) {
             onClick={() => onChange(p.key)}
             className="font-mono"
             style={{
-              background: active ? C.tealDim : 'transparent',
-              color: active ? C.teal : C.t3,
-              border: active ? `1px solid ${C.teal}44` : '1px solid transparent',
+              background: active ? 'var(--accent-dim)' : 'transparent',
+              color: active ? 'var(--accent)' : 'var(--muted2)',
+              border: active ? `1px solid ${'var(--accent)'}44` : '1px solid transparent',
               borderRadius: 8,
               padding: '6px 14px',
               fontSize: 12,
@@ -126,15 +125,15 @@ function ChartTooltip({ active, payload, label }) {
   return (
     <div
       style={{
-        background: C.surfaceEl,
-        border: `1px solid ${C.borderEl}`,
+        background: 'var(--bg3)',
+        border: `1px solid ${'var(--border-med)'}`,
         borderRadius: 8,
         padding: 12,
         fontFamily: 'JetBrains Mono, monospace',
         fontSize: 12,
       }}
     >
-      <div style={{ color: C.t2, marginBottom: 6 }}>{fmtDate(label)}</div>
+      <div style={{ color: 'var(--text-secondary)', marginBottom: 6 }}>{fmtDate(label)}</div>
       {payload.map((p) => (
         <div
           key={p.dataKey}
@@ -192,7 +191,7 @@ function CASEvolutionSection({ historial, period, onPeriodChange, campaignDates 
             alignItems: 'center',
             justifyContent: 'center',
             height: 200,
-            color: C.t3,
+            color: 'var(--muted2)',
             gap: 8,
           }}
         >
@@ -207,36 +206,36 @@ function CASEvolutionSection({ historial, period, onPeriodChange, campaignDates 
     <SectionCard title="Evolución CAS" action={<PeriodTabs period={period} onChange={onPeriodChange} />}>
       <ResponsiveContainer width="100%" height={320}>
         <LineChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-          <CartesianGrid stroke={C.border} strokeDasharray="3 3" />
+          <CartesianGrid stroke={'var(--border)'} strokeDasharray="3 3" />
           <XAxis
             dataKey="fecha"
             tickFormatter={fmtDate}
-            stroke={C.t3}
-            tick={{ fontSize: 11, fill: C.t3 }}
+            stroke={'var(--muted2)'}
+            tick={{ fontSize: 11, fill: 'var(--muted2)' }}
             tickLine={false}
-            axisLine={{ stroke: C.border }}
+            axisLine={{ stroke: 'var(--border)' }}
           />
           <YAxis
             domain={[0, 100]}
             ticks={[0, 25, 50, 75, 100]}
-            stroke={C.t3}
-            tick={{ fontSize: 11, fill: C.t3 }}
+            stroke={'var(--muted2)'}
+            tick={{ fontSize: 11, fill: 'var(--muted2)' }}
             tickLine={false}
-            axisLine={{ stroke: C.border }}
+            axisLine={{ stroke: 'var(--border)' }}
           />
-          <Tooltip content={<ChartTooltip />} cursor={{ stroke: C.borderEl }} />
-          <Legend iconType="line" wrapperStyle={{ fontSize: 12, color: C.t2 }} />
-          <Line type="monotone" dataKey="CAS" stroke={C.teal} strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: C.teal }} />
-          <Line type="monotone" dataKey="CTF" stroke={C.adv} strokeWidth={2} strokeDasharray="4 2" dot={false} />
-          <Line type="monotone" dataKey="CAP" stroke={C.cre} strokeWidth={2} strokeDasharray="2 2" dot={false} />
+          <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'var(--border-med)' }} />
+          <Legend iconType="line" wrapperStyle={{ fontSize: 12, color: 'var(--text-secondary)' }} />
+          <Line type="monotone" dataKey="CAS" stroke={'var(--accent)'} strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: 'var(--accent)' }} />
+          <Line type="monotone" dataKey="CTF" stroke={'var(--accent)'} strokeWidth={2} strokeDasharray="4 2" dot={false} />
+          <Line type="monotone" dataKey="CAP" stroke={'var(--accent)'} strokeWidth={2} strokeDasharray="2 2" dot={false} />
           {campaignDots.map((d, i) => (
             <ReferenceDot
               key={i}
               x={d.fecha}
               y={d.CAS}
               r={5}
-              fill={C.gold}
-              stroke={C.bg}
+              fill={'var(--gold)'}
+              stroke={'var(--bg)'}
               strokeWidth={2}
             />
           ))}
@@ -256,14 +255,14 @@ function CASEvolutionSection({ historial, period, onPeriodChange, campaignDates 
           }}
         >
           {delta > 0 ? (
-            <TrendingUp size={14} color={C.ok} />
+            <TrendingUp size={14} color={'var(--accent)'} />
           ) : delta < 0 ? (
-            <TrendingDown size={14} color={C.alert} />
+            <TrendingDown size={14} color={'var(--red)'} />
           ) : null}
-          <span style={{ color: delta > 0 ? C.ok : delta < 0 ? C.alert : C.t2, fontWeight: 600 }}>
+          <span style={{ color: delta > 0 ? 'var(--accent)' : delta < 0 ? 'var(--red)' : 'var(--text-secondary)', fontWeight: 600 }}>
             CAS {delta > 0 ? '+' : ''}{delta}
           </span>
-          <span style={{ color: C.t3 }}>vs hace {periodDays} días</span>
+          <span style={{ color: 'var(--muted2)' }}>vs hace {periodDays} días</span>
         </div>
       )}
     </SectionCard>
@@ -283,7 +282,7 @@ function ScoreDecompositionSection({ scores, historial }) {
   if (!scores) {
     return (
       <SectionCard title="Composición del score" subtitle="Desglose de los 5 componentes">
-        <div style={{ color: C.t3, fontSize: 12, textAlign: 'center', padding: '24px 0' }}>
+        <div style={{ color: 'var(--muted2)', fontSize: 12, textAlign: 'center', padding: '24px 0' }}>
           Datos insuficientes — publica tu primer canal para ver tu puntuación
         </div>
       </SectionCard>
@@ -327,7 +326,7 @@ function ScoreDecompositionSection({ scores, historial }) {
                   className="font-mono"
                   title={comp.desc}
                   style={{
-                    color: C.t2,
+                    color: 'var(--text-secondary)',
                     fontSize: 12,
                     fontWeight: 600,
                     width: 32,
@@ -343,7 +342,7 @@ function ScoreDecompositionSection({ scores, historial }) {
                   style={{
                     flex: 1,
                     height: 6,
-                    background: C.border,
+                    background: 'var(--border)',
                     borderRadius: 999,
                     overflow: 'hidden',
                   }}
@@ -352,7 +351,7 @@ function ScoreDecompositionSection({ scores, historial }) {
                     style={{
                       width: `${Math.max(0, Math.min(100, current ?? 0))}%`,
                       height: '100%',
-                      background: C.teal,
+                      background: 'var(--accent)',
                       borderRadius: 999,
                       transition: 'width 400ms',
                     }}
@@ -362,7 +361,7 @@ function ScoreDecompositionSection({ scores, historial }) {
                 {/* Current value */}
                 <span
                   className="font-mono"
-                  style={{ color: C.t1, fontSize: 12, fontWeight: 600, width: 28, textAlign: 'right', flexShrink: 0 }}
+                  style={{ color: 'var(--text)', fontSize: 12, fontWeight: 600, width: 28, textAlign: 'right', flexShrink: 0 }}
                 >
                   {current != null ? Math.round(current) : '--'}
                 </span>
@@ -370,11 +369,11 @@ function ScoreDecompositionSection({ scores, historial }) {
                 {/* Sparkline or placeholder */}
                 <div style={{ width: 84, flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
                   {sparkData ? (
-                    <Sparkline data={sparkData} color={C.teal} w={84} h={28} />
+                    <Sparkline data={sparkData} color={'var(--accent)'} w={84} h={28} />
                   ) : (
                     <span
                       className="font-mono"
-                      style={{ color: C.t3, fontSize: 10 }}
+                      style={{ color: 'var(--muted2)', fontSize: 10 }}
                       title="Historial detallado disponible próximamente"
                     >
                       —
@@ -386,7 +385,7 @@ function ScoreDecompositionSection({ scores, historial }) {
                 <span
                   className="font-mono"
                   style={{
-                    color: delta == null ? C.t3 : delta > 0 ? C.ok : delta < 0 ? C.alert : C.t2,
+                    color: delta == null ? 'var(--muted2)' : delta > 0 ? 'var(--accent)' : delta < 0 ? 'var(--red)' : 'var(--text-secondary)',
                     fontSize: 11,
                     fontWeight: 600,
                     width: 40,
@@ -405,7 +404,7 @@ function ScoreDecompositionSection({ scores, historial }) {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 6,
-                    color: C.warn,
+                    color: 'var(--gold)',
                     fontSize: 11,
                     marginLeft: 44,
                     marginTop: 2,
@@ -430,7 +429,7 @@ function BenchmarkMatrixSection({ scores, benchmark, plataforma }) {
   if (!scores || !benchmark) {
     return (
       <SectionCard title="Benchmark vs nicho">
-        <div style={{ color: C.t3, fontSize: 12, textAlign: 'center', padding: '24px 0' }}>
+        <div style={{ color: 'var(--muted2)', fontSize: 12, textAlign: 'center', padding: '24px 0' }}>
           Necesitamos más datos para comparar tu canal con el nicho
         </div>
       </SectionCard>
@@ -461,9 +460,9 @@ function BenchmarkMatrixSection({ scores, benchmark, plataforma }) {
         <div
           className="font-mono"
           style={{
-            background: C.tealDim,
-            color: C.teal,
-            border: `1px solid ${C.teal}33`,
+            background: 'var(--accent-dim)',
+            color: 'var(--accent)',
+            border: `1px solid ${'var(--accent)'}33`,
             borderRadius: 999,
             padding: '6px 16px',
             fontSize: 12,
@@ -533,7 +532,7 @@ function CPMSimulatorSection({ currentCAS, currentCPM, plataforma }) {
   if (!currentCAS && currentCAS !== 0) {
     return (
       <SectionCard title="Simulador de CPM">
-        <div style={{ color: C.t3, fontSize: 12, textAlign: 'center', padding: '24px 0' }}>
+        <div style={{ color: 'var(--muted2)', fontSize: 12, textAlign: 'center', padding: '24px 0' }}>
           Registra un canal para simular tu CPM
         </div>
       </SectionCard>
@@ -556,11 +555,11 @@ function CPMSimulatorSection({ currentCAS, currentCPM, plataforma }) {
             justifyContent: 'space-between',
             marginBottom: 8,
             fontSize: 12,
-            color: C.t2,
+            color: 'var(--text-secondary)',
           }}
         >
           <span>CAS objetivo</span>
-          <span style={{ color: C.teal, fontWeight: 700, fontSize: 16 }}>{targetCAS}</span>
+          <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 16 }}>{targetCAS}</span>
         </div>
         <input
           type="range"
@@ -569,7 +568,7 @@ function CPMSimulatorSection({ currentCAS, currentCPM, plataforma }) {
           step={1}
           value={targetCAS}
           onChange={(e) => setTargetCAS(Number(e.target.value))}
-          style={{ width: '100%', accentColor: C.teal }}
+          style={{ width: '100%', accentColor: 'var(--accent)' }}
         />
         <div
           className="font-mono"
@@ -578,7 +577,7 @@ function CPMSimulatorSection({ currentCAS, currentCPM, plataforma }) {
             justifyContent: 'space-between',
             marginTop: 4,
             fontSize: 10,
-            color: C.t3,
+            color: 'var(--muted2)',
           }}
         >
           <span>0</span>
@@ -599,41 +598,41 @@ function CPMSimulatorSection({ currentCAS, currentCPM, plataforma }) {
         <div
           style={{
             flex: 1,
-            background: C.surfaceEl,
+            background: 'var(--bg3)',
             borderRadius: 12,
             padding: 16,
             minWidth: 140,
           }}
         >
-          <div style={{ color: C.t3, fontSize: 11, marginBottom: 6 }}>CPM actual</div>
+          <div style={{ color: 'var(--muted2)', fontSize: 11, marginBottom: 6 }}>CPM actual</div>
           <div
             className="font-mono"
-            style={{ color: C.t2, fontSize: 24, fontWeight: 700 }}
+            style={{ color: 'var(--text-secondary)', fontSize: 24, fontWeight: 700 }}
           >
             €{(currentCPM || 0).toFixed(1)}
           </div>
-          <div className="font-mono" style={{ color: C.t3, fontSize: 11, marginTop: 4 }}>
+          <div className="font-mono" style={{ color: 'var(--muted2)', fontSize: 11, marginTop: 4 }}>
             CAS {currentCAS}
           </div>
         </div>
         <div
           style={{
             flex: 1,
-            background: C.surfaceEl,
+            background: 'var(--bg3)',
             borderRadius: 12,
             padding: 16,
-            border: showSummary ? `1px solid ${C.teal}44` : `1px solid transparent`,
+            border: showSummary ? `1px solid ${'var(--accent)'}44` : `1px solid transparent`,
             minWidth: 140,
           }}
         >
-          <div style={{ color: C.t3, fontSize: 11, marginBottom: 6 }}>CPM estimado</div>
+          <div style={{ color: 'var(--muted2)', fontSize: 11, marginBottom: 6 }}>CPM estimado</div>
           <div
             className="font-mono"
-            style={{ color: C.teal, fontSize: 24, fontWeight: 700 }}
+            style={{ color: 'var(--accent)', fontSize: 24, fontWeight: 700 }}
           >
             €{estimatedCPM.toFixed(1)}
           </div>
-          <div className="font-mono" style={{ color: C.t3, fontSize: 11, marginTop: 4 }}>
+          <div className="font-mono" style={{ color: 'var(--muted2)', fontSize: 11, marginTop: 4 }}>
             CAS {targetCAS}
           </div>
         </div>
@@ -643,13 +642,13 @@ function CPMSimulatorSection({ currentCAS, currentCPM, plataforma }) {
       {showSummary && (
         <div
           style={{
-            background: deltaCPM < 0 ? C.okDim : C.warnDim,
-            border: `1px solid ${deltaCPM < 0 ? `${C.ok}44` : `${C.warn}44`}`,
+            background: deltaCPM < 0 ? 'var(--accent-dim)' : 'var(--gold-dim)',
+            border: `1px solid ${deltaCPM < 0 ? `${'var(--accent)'}44` : `${'var(--gold)'}44`}`,
             borderRadius: 12,
             padding: '12px 16px',
             fontSize: 13,
             lineHeight: 1.6,
-            color: deltaCPM < 0 ? C.ok : C.warn,
+            color: deltaCPM < 0 ? 'var(--accent)' : 'var(--gold)',
           }}
         >
           Si tu CAS {targetCAS > currentCAS ? 'sube' : 'baja'} de{' '}
@@ -668,24 +667,24 @@ function CPMSimulatorSection({ currentCAS, currentCPM, plataforma }) {
         <div
           style={{
             marginTop: 16,
-            background: C.surfaceEl,
-            border: `1px solid ${C.borderEl}`,
+            background: 'var(--bg3)',
+            border: `1px solid ${'var(--border-med)'}`,
             borderRadius: 12,
             padding: '14px 16px',
           }}
         >
-          <div style={{ color: C.t3, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600, marginBottom: 8 }}>
+          <div style={{ color: 'var(--muted2)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600, marginBottom: 8 }}>
             💡 Precio recomendado por publicación
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-            <span className="font-mono" style={{ color: C.teal, fontSize: 22, fontWeight: 700 }}>
+            <span className="font-mono" style={{ color: 'var(--accent)', fontSize: 22, fontWeight: 700 }}>
               €{Math.round(currentCPM * 10)}–{Math.round(currentCPM * 25)}
             </span>
-            <span style={{ color: C.t3, fontSize: 11 }}>
+            <span style={{ color: 'var(--muted2)', fontSize: 11 }}>
               basado en tu CPM €{currentCPM.toFixed(1)} × 10K–25K impresiones esperadas
             </span>
           </div>
-          <div style={{ color: C.t2, fontSize: 11, marginTop: 6, lineHeight: 1.5 }}>
+          <div style={{ color: 'var(--text-secondary)', fontSize: 11, marginTop: 6, lineHeight: 1.5 }}>
             Este rango maximiza competitividad frente a canales similares en tu nicho.
             Ajusta según la exclusividad y el formato del anuncio.
           </div>
@@ -796,19 +795,19 @@ export default function CreatorAnalyticsPage() {
           textAlign: 'center',
         }}
       >
-        <Radio size={36} color={C.t3} />
-        <h2 style={{ color: C.t1, fontSize: 20, fontWeight: 700, fontFamily: D, margin: 0 }}>
+        <Radio size={36} color={'var(--muted2)'} />
+        <h2 style={{ color: 'var(--text)', fontSize: 20, fontWeight: 700, fontFamily: D, margin: 0 }}>
           Registra tu primer canal para ver analytics
         </h2>
-        <p style={{ color: C.t2, fontSize: 14, maxWidth: 400 }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 14, maxWidth: 400 }}>
           Una vez que tu canal esté verificado, podrás ver tu CAS Score, benchmarks
           del nicho y simular tu CPM óptimo.
         </p>
         <button
           onClick={() => navigate('/creator/channels/new')}
           style={{
-            background: C.teal,
-            color: C.bg,
+            background: 'var(--accent)',
+            color: 'var(--bg)',
             border: 'none',
             borderRadius: 10,
             padding: '12px 24px',
@@ -842,7 +841,7 @@ export default function CreatorAnalyticsPage() {
             key={i}
             style={{
               height: h,
-              background: C.surfaceEl,
+              background: 'var(--bg3)',
               borderRadius: 16,
             }}
           />
