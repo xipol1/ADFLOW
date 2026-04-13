@@ -223,10 +223,11 @@ app.get('/r/:campaignId', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SMART TRACKING REDIRECT: GET /t/:code
-// Tracks clicks with full analytics then redirects to target URL
+// TRACKING REDIRECTS: /t/:code (short), /r/:slug (custom), /go/* (domain)
+// All formats redirect through the same TrackingLink lookup
 // ═══════════════════════════════════════════════════════════════════════════════
-app.get('/t/:code', async (req, res) => {
+// Normalize all tracking link formats to code lookup
+const trackingRedirectHandler = async (req, res) => {
   const { code } = req.params;
 
   try {
@@ -322,7 +323,12 @@ app.get('/t/:code', async (req, res) => {
   } catch (_) {
     return res.redirect(302, '/');
   }
-});
+};
+
+// Mount all 3 tracking link formats
+app.get('/t/:code', trackingRedirectHandler);
+app.get('/r/:code', trackingRedirectHandler);
+app.get('/go/*', (req, res) => { req.params.code = 'go/' + req.params[0]; return trackingRedirectHandler(req, res); });
 
 const safeMount = (mountPath, modulePath) => {
   const preloaded = _routes[modulePath];

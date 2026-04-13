@@ -24,6 +24,8 @@ const CampaignSchema = new mongoose.Schema(
     expiredAt: { type: Date, default: null },
     trackingUrl: { type: String, default: '' },
     trackingLinkId: { type: mongoose.Schema.Types.ObjectId, ref: 'TrackingLink', default: null },
+    trackingLinkFormat: { type: String, enum: ['short', 'domain', 'custom'], default: 'domain' },
+    trackingLinkSlug: { type: String, default: '' },
     partner: { type: mongoose.Schema.Types.ObjectId, ref: 'Partner', default: null, index: true },
     partnerExternalRef: { type: String, default: null },
 

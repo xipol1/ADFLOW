@@ -50,6 +50,8 @@ const createCampaign = async (req, res, next) => {
     if (!canal) return next(httpError(404, 'Canal no encontrado'));
 
     const deadline = req.body?.deadline ? new Date(req.body.deadline) : null;
+    const trackingLinkFormat = ['short', 'domain', 'custom'].includes(req.body?.trackingLinkFormat) ? req.body.trackingLinkFormat : 'domain';
+    const trackingLinkSlug = (req.body?.trackingLinkSlug || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').slice(0, 40);
 
     const campaign = await Campaign.create({
       advertiser: userId,
@@ -58,6 +60,8 @@ const createCampaign = async (req, res, next) => {
       targetUrl,
       price,
       deadline,
+      trackingLinkFormat,
+      trackingLinkSlug,
       status: 'DRAFT',
       createdAt: new Date()
     });
@@ -279,11 +283,27 @@ const confirmCampaign = async (req, res, next) => {
       return next(httpError(400, `No se puede confirmar una campaña en estado ${campaign.status}`));
     }
 
-    // Generate tracking link for the campaign
+    // Generate tracking link based on advertiser's chosen format
     try {
       const TrackingLink = require('../models/TrackingLink');
       const crypto = require('crypto');
-      const code = crypto.randomBytes(4).toString('hex');
+      const fmt = campaign.trackingLinkFormat || 'domain';
+      let code;
+
+      if (fmt === 'custom' && campaign.trackingLinkSlug) {
+        // Custom slug: channelad.io/r/mi-oferta-especial
+        code = campaign.trackingLinkSlug;
+      } else if (fmt === 'domain') {
+        // Show target domain: channelad.io/go/su-web.com/oferta
+        try {
+          const parsed = new URL(campaign.targetUrl);
+          code = 'go/' + parsed.host + parsed.pathname;
+        } catch { code = crypto.randomBytes(4).toString('hex'); }
+      } else {
+        // Short hash: channelad.io/t/a8f3c2d1
+        code = crypto.randomBytes(4).toString('hex');
+      }
+
       const trackingLink = await TrackingLink.create({
         code,
         targetUrl: campaign.targetUrl,
@@ -294,11 +314,12 @@ const confirmCampaign = async (req, res, next) => {
         active: true,
         stats: { totalClicks: 0, uniqueClicks: 0 },
       });
-      campaign.trackingUrl = `https://channelad.io/t/${code}`;
+
+      const prefix = fmt === 'custom' ? '/r/' : fmt === 'domain' ? '/' : '/t/';
+      campaign.trackingUrl = `https://channelad.io${prefix}${code}`;
       campaign.trackingLinkId = trackingLink._id;
     } catch (trackErr) {
       console.error('TrackingLink creation failed:', trackErr?.message);
-      // Fallback: use original URL
       campaign.trackingUrl = campaign.targetUrl;
     }
 
