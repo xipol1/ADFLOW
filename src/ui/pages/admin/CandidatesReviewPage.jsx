@@ -1,142 +1,59 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import {
-  CheckCircle, XCircle, ExternalLink, X, Loader2,
-} from 'lucide-react'
+import { CheckCircle, XCircle, ExternalLink, X, Loader2 } from 'lucide-react'
 import apiService from '../../../../services/api'
-import { C } from '../../theme/tokens'
-
-// ─── Constants ──────────────────────────────────────────────────────────────
-
-const FONT = "'DM Sans', 'Inter', system-ui, sans-serif"
+import { Badge, TableRowSkeleton } from '../../../components/ui'
 
 const STATUS_TABS = [
-  { key: 'pending_review', label: 'Pendientes', color: '#f59e0b' },
-  { key: 'approved', label: 'Aprobados', color: C.ok },
-  { key: 'rejected', label: 'Rechazados', color: C.alert },
+  { key: 'pending_review', label: '⏳ Pendientes', color: 'var(--gold)' },
+  { key: 'approved', label: '✅ Aprobados', color: 'var(--accent)' },
+  { key: 'rejected', label: '❌ Rechazados', color: 'var(--red)' },
 ]
 
 const SOURCE_FILTERS = [
-  { key: '', label: 'Todas' },
-  { key: 'tgstat', label: 'TGStat' },
-  { key: 'social_graph', label: 'Social Graph' },
+  { key: '', label: 'Todos' },
+  { key: 'tgstat', label: 'MTProto' },
+  { key: 'social_graph', label: 'Grafo social' },
   { key: 'manual', label: 'Manual' },
 ]
 
-const fmtNum = (n) => {
-  if (n == null) return '--'
-  if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`
-  if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`
-  return String(n)
-}
+const SOURCE_COLORS = { tgstat: 'var(--blue)', social_graph: '#8B5CF6', telemetr: 'var(--gold)', manual: 'var(--text-secondary)' }
 
-const fmtDate = (d) => {
-  if (!d) return '--'
-  return new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: '2-digit' })
-}
+const fmtNum = (n) => { if (n == null) return '—'; if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`; if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`; return String(n) }
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '—'
 
-// ─── Reject modal ───────────────────────────────────────────────────────────
-
+// ── Reject modal ────────────────────────────────────────────────────────
 function RejectModal({ candidate, onClose, onReject }) {
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
-
-  const handleSubmit = async () => {
-    setSubmitting(true)
-    await onReject(candidate._id || candidate.id, reason)
-    setSubmitting(false)
-    onClose()
-  }
+  const handleSubmit = async () => { setSubmitting(true); await onReject(candidate._id || candidate.id, reason); setSubmitting(false); onClose() }
 
   return (
     <>
-      <div
-        onClick={onClose}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100 }}
-      />
-      <div
-        style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          background: C.surface,
-          border: `1px solid ${C.border}`,
-          borderRadius: 16,
-          padding: 24,
-          width: 400,
-          maxWidth: '90vw',
-          zIndex: 101,
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.t1 }}>
-            Rechazar @{candidate.username}
-          </h3>
-          <button
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
-          >
-            <X size={18} color={C.t3} />
-          </button>
+      <div className="fixed inset-0 z-40 bg-black/50" onClick={onClose} />
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[400px] max-w-[90vw] rounded-xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-base font-bold" style={{ color: 'var(--text)' }}>Rechazar @{candidate.username}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted2)' }}><X size={18} /></button>
         </div>
-
-        <textarea
+        <select
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="Motivo del rechazo (opcional)..."
-          rows={3}
-          style={{
-            width: '100%',
-            boxSizing: 'border-box',
-            background: C.bg,
-            border: `1px solid ${C.border}`,
-            borderRadius: 10,
-            padding: 12,
-            color: C.t1,
-            fontSize: 13,
-            fontFamily: FONT,
-            resize: 'vertical',
-            outline: 'none',
-            marginBottom: 16,
-          }}
-        />
-
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button
-            onClick={onClose}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 8,
-              border: `1px solid ${C.border}`,
-              background: 'transparent',
-              color: C.t2,
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: FONT,
-            }}
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 8,
-              border: 'none',
-              background: C.alert,
-              color: '#fff',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              fontFamily: FONT,
-              opacity: submitting ? 0.7 : 1,
-            }}
-          >
-            {submitting ? 'Rechazando...' : 'Rechazar'}
+          className="w-full rounded-lg px-3 py-2.5 text-sm mb-3"
+          style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', fontFamily: 'var(--font-sans)' }}
+        >
+          <option value="">Selecciona un motivo...</option>
+          <option value="Canal inactivo">Canal inactivo</option>
+          <option value="Spam">Spam</option>
+          <option value="Contenido inapropiado">Contenido inapropiado</option>
+          <option value="Pocos suscriptores">Pocos suscriptores</option>
+          <option value="Otro">Otro</option>
+        </select>
+        <div className="flex gap-2 justify-end">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium" style={{ border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>Cancelar</button>
+          <button onClick={handleSubmit} disabled={submitting} className="px-4 py-2 rounded-lg text-sm font-semibold" style={{ background: 'var(--red)', color: '#fff', border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }}>
+            {submitting ? 'Rechazando...' : 'Confirmar rechazo'}
           </button>
         </div>
       </div>
@@ -144,38 +61,7 @@ function RejectModal({ candidate, onClose, onReject }) {
   )
 }
 
-// ─── Table skeleton ─────────────────────────────────────────────────────────
-
-function TableSkeleton() {
-  return (
-    <div className="animate-pulse">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div
-          key={i}
-          style={{
-            height: 56,
-            borderBottom: `1px solid ${C.border}`,
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 16px',
-            gap: 16,
-          }}
-        >
-          <div style={{ width: 120, height: 12, background: C.surfaceEl, borderRadius: 4 }} />
-          <div style={{ width: 60, height: 12, background: C.surfaceEl, borderRadius: 4 }} />
-          <div style={{ width: 60, height: 12, background: C.surfaceEl, borderRadius: 4 }} />
-          <div style={{ flex: 1 }} />
-          <div style={{ width: 80, height: 28, background: C.surfaceEl, borderRadius: 6 }} />
-        </div>
-      ))}
-    </div>
-  )
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
-// MAIN COMPONENT
-// ═══════════════════════════════════════════════════════════════════════════
-
 export default function CandidatesReviewPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const activeStatus = searchParams.get('status') || 'pending_review'
@@ -186,327 +72,143 @@ export default function CandidatesReviewPage() {
   const [pagination, setPagination] = useState({ total: 0, pages: 1 })
   const [loading, setLoading] = useState(true)
   const [rejectTarget, setRejectTarget] = useState(null)
-  const [actionLoading, setActionLoading] = useState(null) // candidate ID being actioned
+  const [actionId, setActionId] = useState(null)
+  const [toast, setToast] = useState(null)
 
   const setParam = useCallback((key, value) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev)
-      if (!value) next.delete(key)
-      else next.set(key, value)
-      if (key !== 'page') next.delete('page')
-      return next
-    })
+    setSearchParams((prev) => { const n = new URLSearchParams(prev); if (!value) n.delete(key); else n.set(key, value); if (key !== 'page') n.delete('page'); return n })
   }, [setSearchParams])
 
-  // Fetch candidates
   useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-
-    apiService
-      .getCandidates({ status: activeStatus, source: activeSource, page, limit: 25 })
-      .then((res) => {
-        if (cancelled) return
-        if (res?.success) {
-          setCandidates(res.data || [])
-          setPagination(res.pagination || { total: 0, pages: 1 })
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setCandidates([])
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => { cancelled = true }
+    let c = false; setLoading(true)
+    apiService.getCandidates({ status: activeStatus, source: activeSource, page, limit: 25 }).then((res) => {
+      if (c) return; if (res?.success) { setCandidates(res.data || []); setPagination(res.pagination || { total: 0, pages: 1 }) }
+    }).catch(() => { if (!c) setCandidates([]) }).finally(() => { if (!c) setLoading(false) })
+    return () => { c = true }
   }, [activeStatus, activeSource, page])
 
-  const handleApprove = async (id) => {
-    setActionLoading(id)
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 4000) }
+
+  const handleApprove = async (cid) => {
+    setActionId(cid)
     try {
-      const res = await apiService.approveCandidate(id)
-      if (res?.success) {
-        setCandidates((prev) => prev.filter((c) => (c._id || c.id) !== id))
-        setPagination((prev) => ({ ...prev, total: Math.max(0, prev.total - 1) }))
-      }
-    } catch { /* silent */ }
-    setActionLoading(null)
+      const res = await apiService.approveCandidate(cid)
+      if (res?.success) { setCandidates((p) => p.filter((c) => (c._id || c.id) !== cid)); showToast(`Canal anadido al marketplace ✓`) }
+    } catch {}
+    setActionId(null)
   }
 
-  const handleReject = async (id, reason) => {
-    setActionLoading(id)
-    try {
-      const res = await apiService.rejectCandidate(id, reason)
-      if (res?.success) {
-        setCandidates((prev) => prev.filter((c) => (c._id || c.id) !== id))
-        setPagination((prev) => ({ ...prev, total: Math.max(0, prev.total - 1) }))
-      }
-    } catch { /* silent */ }
-    setActionLoading(null)
+  const handleReject = async (cid, reason) => {
+    setActionId(cid)
+    try { await apiService.rejectCandidate(cid, reason); setCandidates((p) => p.filter((c) => (c._id || c.id) !== cid)); showToast('Canal rechazado') } catch {}
+    setActionId(null)
   }
 
   const pendingCount = activeStatus === 'pending_review' ? pagination.total : null
-
-  const thStyle = {
-    padding: '10px 12px',
-    fontSize: 10,
-    fontWeight: 700,
-    color: C.t3,
-    textTransform: 'uppercase',
-    letterSpacing: '0.08em',
-    whiteSpace: 'nowrap',
-    borderBottom: `1px solid ${C.border}`,
-    textAlign: 'left',
-  }
+  const th = 'px-3 py-2.5 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap text-left'
 
   return (
-    <div style={{ fontFamily: FONT, minHeight: '100vh' }}>
-      <Helmet>
-        <title>Revision de Candidatos · Admin · Channelad</title>
-      </Helmet>
+    <div className="min-h-screen" style={{ fontFamily: 'var(--font-sans)' }}>
+      <Helmet><title>Candidatos · Admin · Channelad</title></Helmet>
 
-      {/* ── HEADER ──────────────────────────────────────────────── */}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text)', margin: 0, letterSpacing: '-0.02em' }}>
-          Revision de Candidatos
-        </h1>
-        <p style={{ fontSize: 13, color: 'var(--muted)', margin: '4px 0 0' }}>
-          {pendingCount != null
-            ? `${pendingCount} candidato${pendingCount !== 1 ? 's' : ''} pendiente${pendingCount !== 1 ? 's' : ''} de revision`
-            : `Mostrando ${candidates.length} de ${pagination.total} resultados`}
-        </p>
+      {/* Header */}
+      <div className="flex items-baseline justify-between mb-5">
+        <div>
+          <h1 className="text-xl font-bold" style={{ color: 'var(--text)' }}>Candidatos descubiertos</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+            {pendingCount != null ? `${pendingCount} pendiente${pendingCount !== 1 ? 's' : ''} de revision` : `${candidates.length} de ${pagination.total}`}
+          </p>
+        </div>
+        {pendingCount != null && pendingCount > 0 && (
+          <span className="px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: 'var(--accent-dim)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}>{pendingCount}</span>
+        )}
       </div>
 
-      {/* ── STATUS TABS ─────────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 16, padding: 4, background: 'var(--surface)', borderRadius: 12, border: `1px solid var(--border)` }}>
-        {STATUS_TABS.map((tab) => {
-          const active = activeStatus === tab.key
-          return (
-            <button
-              key={tab.key}
-              onClick={() => setParam('status', tab.key)}
-              style={{
-                padding: '8px 18px',
-                borderRadius: 8,
-                border: 'none',
-                background: active ? tab.color : 'transparent',
-                color: active ? '#fff' : 'var(--muted)',
-                fontSize: 13,
-                fontWeight: active ? 700 : 500,
-                cursor: 'pointer',
-                fontFamily: FONT,
-                transition: 'all 150ms',
-              }}
-            >
-              {tab.label}
-            </button>
-          )
-        })}
+      {/* Status tabs */}
+      <div className="flex gap-1 mb-4 p-1 rounded-lg" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        {STATUS_TABS.map((t) => (
+          <button key={t.key} onClick={() => setParam('status', t.key)}
+            className="px-4 py-2 rounded-md text-[13px] font-medium whitespace-nowrap"
+            style={{ background: activeStatus === t.key ? t.color : 'transparent', color: activeStatus === t.key ? '#fff' : 'var(--text-secondary)', border: 'none', cursor: 'pointer' }}
+          >{t.label}</button>
+        ))}
       </div>
 
-      {/* ── SOURCE FILTER ───────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 20 }}>
-        {SOURCE_FILTERS.map((sf) => {
-          const active = activeSource === sf.key
-          return (
-            <button
-              key={sf.key}
-              onClick={() => setParam('source', sf.key)}
-              style={{
-                padding: '5px 12px',
-                borderRadius: 999,
-                border: active ? `1px solid ${C.teal}` : '1px solid var(--border)',
-                background: active ? `${C.teal}15` : 'transparent',
-                color: active ? C.teal : 'var(--muted)',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontFamily: FONT,
-              }}
-            >
-              {sf.label}
-            </button>
-          )
-        })}
+      {/* Source filter */}
+      <div className="flex gap-2 mb-5">
+        {SOURCE_FILTERS.map((sf) => (
+          <button key={sf.key} onClick={() => setParam('source', sf.key)}
+            className="px-3 py-1.5 rounded-full text-xs font-medium"
+            style={{ border: `1px solid ${activeSource === sf.key ? 'var(--accent)' : 'var(--border)'}`, background: activeSource === sf.key ? 'var(--accent-dim)' : 'transparent', color: activeSource === sf.key ? 'var(--accent)' : 'var(--text-secondary)', cursor: 'pointer' }}
+          >{sf.label}</button>
+        ))}
       </div>
 
-      {/* ── TABLE ───────────────────────────────────────────────── */}
-      <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 16,
-          overflow: 'hidden',
-        }}
-      >
+      {/* Table */}
+      <div className="rounded-xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
         {loading ? (
-          <TableSkeleton />
+          <table className="w-full"><tbody>{Array.from({ length: 6 }).map((_, i) => <TableRowSkeleton key={i} cols={7} />)}</tbody></table>
         ) : candidates.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--muted)' }}>
-            <div style={{ fontSize: 36, marginBottom: 8 }}>📭</div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
-              No hay candidatos {STATUS_TABS.find((t) => t.key === activeStatus)?.label.toLowerCase()}
-            </div>
-            <div style={{ fontSize: 12 }}>Los candidatos se descubren automaticamente via TGStat</div>
+          <div className="text-center py-16">
+            <div className="text-3xl mb-3">📭</div>
+            <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>No hay candidatos {STATUS_TABS.find((t) => t.key === activeStatus)?.label?.replace(/[⏳✅❌] /, '').toLowerCase()}</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--muted2)' }}>Los candidatos se descubren automaticamente via MTProto</p>
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 750 }}>
+            <table className="w-full" style={{ minWidth: 750, borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ background: `${C.bg}80` }}>
-                  <th style={thStyle}>@Username</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Suscriptores</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Avg Views</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Engagement</th>
-                  <th style={thStyle}>Fuente</th>
-                  <th style={thStyle}>Descubierto</th>
-                  <th style={{ ...thStyle, textAlign: 'center' }}>Acciones</th>
+                <tr style={{ background: 'var(--bg3)' }}>
+                  <th className={th} style={{ color: 'var(--text-secondary)' }}>Canal</th>
+                  <th className={`${th} text-right`} style={{ color: 'var(--text-secondary)' }}>Subs</th>
+                  <th className={`${th} text-right`} style={{ color: 'var(--text-secondary)' }}>Avg Views</th>
+                  <th className={`${th} text-right`} style={{ color: 'var(--text-secondary)' }}>Engagement</th>
+                  <th className={th} style={{ color: 'var(--text-secondary)' }}>Fuente</th>
+                  <th className={th} style={{ color: 'var(--text-secondary)' }}>Descubierto</th>
+                  <th className={`${th} text-center`} style={{ color: 'var(--text-secondary)' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {candidates.map((c) => {
                   const cid = c._id || c.id
                   const m = c.raw_metrics || {}
-                  const isActioning = actionLoading === cid
+                  const isActioning = actionId === cid
+                  const srcColor = SOURCE_COLORS[c.source] || 'var(--text-secondary)'
 
                   return (
-                    <tr
-                      key={cid}
-                      style={{
-                        borderBottom: `1px solid var(--border)`,
-                        opacity: isActioning ? 0.5 : 1,
-                        transition: 'opacity 200ms',
-                      }}
-                    >
-                      <td style={{ padding: '12px', fontSize: 13 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <div
-                            style={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: 8,
-                              background: C.surfaceEl,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: 13,
-                              fontWeight: 700,
-                              color: C.teal,
-                              flexShrink: 0,
-                            }}
-                          >
+                    <tr key={cid} style={{ borderBottom: '1px solid var(--border)', opacity: isActioning ? 0.4 : 1, transition: 'opacity 300ms' }}>
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0" style={{ background: 'var(--bg3)', color: 'var(--accent)' }}>
                             {(c.username || '?').charAt(0).toUpperCase()}
                           </div>
-                          <div>
-                            <div style={{ fontWeight: 600, color: 'var(--text)' }}>@{c.username}</div>
-                            {m.title && (
-                              <div style={{ fontSize: 11, color: 'var(--muted)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {m.title}
-                              </div>
-                            )}
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium" style={{ color: 'var(--text)' }}>@{c.username}</div>
+                            {m.title && <div className="text-[11px] truncate" style={{ color: 'var(--muted2)', maxWidth: 180 }}>{m.title}</div>}
                           </div>
                         </div>
                       </td>
-                      <td style={{ padding: '12px', textAlign: 'right', fontFamily: 'monospace', fontSize: 13, color: 'var(--text)' }}>
-                        {fmtNum(m.subscribers)}
+                      <td className="px-3 py-3 text-right text-sm" style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)' }}>{fmtNum(m.subscribers)}</td>
+                      <td className="px-3 py-3 text-right text-xs" style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>{m.avg_views != null ? fmtNum(m.avg_views) : '—'}</td>
+                      <td className="px-3 py-3 text-right text-xs" style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>{m.engagement_rate != null ? `${(m.engagement_rate * 100).toFixed(1)}%` : '—'}</td>
+                      <td className="px-3 py-3">
+                        <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase" style={{ background: `${srcColor}12`, color: srcColor, border: `1px solid ${srcColor}25` }}>{c.source}</span>
                       </td>
-                      <td style={{ padding: '12px', textAlign: 'right', fontFamily: 'monospace', fontSize: 13, color: 'var(--muted)' }}>
-                        {m.avg_views != null ? fmtNum(m.avg_views) : '--'}
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'right', fontFamily: 'monospace', fontSize: 13, color: 'var(--muted)' }}>
-                        {m.engagement_rate != null ? `${(m.engagement_rate * 100).toFixed(1)}%` : '--'}
-                      </td>
-                      <td style={{ padding: '12px' }}>
-                        <span
-                          style={{
-                            padding: '2px 8px',
-                            borderRadius: 999,
-                            fontSize: 10,
-                            fontWeight: 600,
-                            background: c.source === 'tgstat' ? '#8b5cf615' : `${C.teal}15`,
-                            color: c.source === 'tgstat' ? '#8b5cf6' : C.teal,
-                            border: `1px solid ${c.source === 'tgstat' ? '#8b5cf630' : C.teal + '30'}`,
-                            textTransform: 'uppercase',
-                          }}
-                        >
-                          {c.source}
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px', fontSize: 12, color: 'var(--muted)' }}>
-                        {fmtDate(c.scraped_at)}
-                      </td>
-                      <td style={{ padding: '12px' }}>
-                        <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
+                      <td className="px-3 py-3 text-xs" style={{ color: 'var(--muted2)' }}>{fmtDate(c.scraped_at)}</td>
+                      <td className="px-3 py-3">
+                        <div className="flex gap-1.5 justify-center">
                           {activeStatus === 'pending_review' && (
                             <>
-                              <button
-                                onClick={() => handleApprove(cid)}
-                                disabled={isActioning}
-                                title="Aprobar"
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 4,
-                                  padding: '6px 12px',
-                                  borderRadius: 8,
-                                  border: 'none',
-                                  background: C.ok,
-                                  color: '#fff',
-                                  fontSize: 11,
-                                  fontWeight: 600,
-                                  cursor: isActioning ? 'not-allowed' : 'pointer',
-                                  fontFamily: FONT,
-                                }}
-                              >
-                                {isActioning ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={12} />}
-                                Aprobar
+                              <button onClick={() => handleApprove(cid)} disabled={isActioning} className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold" style={{ background: 'var(--accent)', color: '#080C10', border: 'none', cursor: isActioning ? 'not-allowed' : 'pointer' }}>
+                                {isActioning ? <Loader2 size={10} className="animate-spin" /> : <CheckCircle size={10} />} Aprobar
                               </button>
-                              <button
-                                onClick={() => setRejectTarget(c)}
-                                disabled={isActioning}
-                                title="Rechazar"
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 4,
-                                  padding: '6px 12px',
-                                  borderRadius: 8,
-                                  border: `1px solid ${C.alert}40`,
-                                  background: 'transparent',
-                                  color: C.alert,
-                                  fontSize: 11,
-                                  fontWeight: 600,
-                                  cursor: isActioning ? 'not-allowed' : 'pointer',
-                                  fontFamily: FONT,
-                                }}
-                              >
-                                <XCircle size={12} />
-                                Rechazar
+                              <button onClick={() => setRejectTarget(c)} disabled={isActioning} className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold" style={{ border: '1px solid var(--red)', background: 'transparent', color: 'var(--red)', cursor: isActioning ? 'not-allowed' : 'pointer' }}>
+                                <XCircle size={10} /> Rechazar
                               </button>
                             </>
                           )}
-                          <a
-                            href={`https://tgstat.com/channel/@${c.username}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Ver en TGStat"
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 4,
-                              padding: '6px 10px',
-                              borderRadius: 8,
-                              border: `1px solid var(--border)`,
-                              background: 'transparent',
-                              color: 'var(--muted)',
-                              fontSize: 11,
-                              fontWeight: 600,
-                              textDecoration: 'none',
-                            }}
-                          >
-                            <ExternalLink size={12} />
-                            TGStat
+                          <a href={`https://tgstat.com/channel/@${c.username}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px]" style={{ border: '1px solid var(--border)', color: 'var(--muted2)' }}>
+                            <ExternalLink size={10} /> TG
                           </a>
                         </div>
                       </td>
@@ -519,43 +221,14 @@ export default function CandidatesReviewPage() {
         )}
       </div>
 
-      {/* ── PAGINATION ──────────────────────────────────────────── */}
-      {pagination.pages > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 24 }}>
-          {Array.from({ length: Math.min(pagination.pages, 10) }).map((_, i) => {
-            const p = i + 1
-            return (
-              <button
-                key={p}
-                onClick={() => setParam('page', String(p))}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 8,
-                  border: page === p ? `1px solid ${C.teal}` : `1px solid var(--border)`,
-                  background: page === p ? `${C.teal}15` : 'transparent',
-                  color: page === p ? C.teal : 'var(--text)',
-                  fontSize: 13,
-                  fontWeight: page === p ? 700 : 500,
-                  cursor: 'pointer',
-                  fontFamily: 'monospace',
-                }}
-              >
-                {p}
-              </button>
-            )
-          })}
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg text-sm font-medium shadow-lg animate-fadeIn" style={{ background: 'var(--accent)', color: '#080C10' }}>
+          {toast}
         </div>
       )}
 
-      {/* ── REJECT MODAL ────────────────────────────────────────── */}
-      {rejectTarget && (
-        <RejectModal
-          candidate={rejectTarget}
-          onClose={() => setRejectTarget(null)}
-          onReject={handleReject}
-        />
-      )}
+      {rejectTarget && <RejectModal candidate={rejectTarget} onClose={() => setRejectTarget(null)} onReject={handleReject} />}
     </div>
   )
 }

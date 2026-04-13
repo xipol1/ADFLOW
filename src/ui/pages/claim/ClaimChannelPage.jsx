@@ -4,9 +4,6 @@ import { Helmet } from 'react-helmet-async'
 import { CheckCircle, Copy, Loader2, ShieldCheck, ArrowRight } from 'lucide-react'
 import { useAuth } from '../../../auth/AuthContext'
 import apiService from '../../../../services/api'
-import { C } from '../../theme/tokens'
-
-const FONT = "'DM Sans', 'Inter', system-ui, sans-serif"
 
 const steps = [
   { num: 1, label: 'Identidad' },
@@ -16,28 +13,22 @@ const steps = [
 
 function StepIndicator({ current }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 32 }}>
+    <div className="flex items-center justify-center gap-2 mb-8">
       {steps.map((s, i) => (
         <React.Fragment key={s.num}>
-          {i > 0 && (
-            <div style={{ width: 40, height: 2, background: current > s.num ? C.teal : C.border }} />
-          )}
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 999,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 13,
-              fontWeight: 700,
-              background: current >= s.num ? C.teal : C.surfaceEl,
-              color: current >= s.num ? '#fff' : C.t3,
-              border: current === s.num ? `2px solid ${C.teal}` : '2px solid transparent',
-            }}
-          >
-            {current > s.num ? <CheckCircle size={16} /> : s.num}
+          {i > 0 && <div className="w-10 h-0.5 rounded-full" style={{ background: current > s.num ? 'var(--accent)' : 'var(--border)' }} />}
+          <div className="flex flex-col items-center gap-1">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+              style={{
+                background: current >= s.num ? 'var(--accent)' : 'var(--bg3)',
+                color: current >= s.num ? '#080C10' : 'var(--muted2)',
+                border: current === s.num ? '2px solid var(--accent)' : '2px solid transparent',
+              }}
+            >
+              {current > s.num ? <CheckCircle size={14} /> : s.num}
+            </div>
+            <span className="text-[10px] font-medium" style={{ color: current >= s.num ? 'var(--text)' : 'var(--muted2)' }}>{s.label}</span>
           </div>
         </React.Fragment>
       ))}
@@ -48,7 +39,7 @@ function StepIndicator({ current }) {
 export default function ClaimChannelPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated } = useAuth()
 
   const [step, setStep] = useState(isAuthenticated ? 2 : 1)
   const [channel, setChannel] = useState(null)
@@ -58,13 +49,9 @@ export default function ClaimChannelPage() {
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
 
-  // Resolve channel (id or username)
   useEffect(() => {
     const isOid = /^[a-f\d]{24}$/i.test(id)
-    const fetcher = isOid
-      ? apiService.getChannelIntelligence(id)
-      : apiService.getChannelByUsername(id)
-
+    const fetcher = isOid ? apiService.getChannelIntelligence(id) : apiService.getChannelByUsername(id)
     fetcher.then((res) => {
       if (res?.success && res.data) {
         const d = res.data.canal || res.data
@@ -73,209 +60,118 @@ export default function ClaimChannelPage() {
     }).catch(() => {})
   }, [id])
 
-  // Auto-advance to step 2 when authenticated
-  useEffect(() => {
-    if (isAuthenticated && step === 1) setStep(2)
-  }, [isAuthenticated, step])
+  useEffect(() => { if (isAuthenticated && step === 1) setStep(2) }, [isAuthenticated, step])
 
-  // Init claim when entering step 2
   useEffect(() => {
     if (step !== 2 || !channel?.id || !isAuthenticated) return
-    setLoading(true)
-    setError('')
-
+    setLoading(true); setError('')
     apiService.initClaim(channel.id).then((res) => {
-      if (res?.success) {
-        setClaimCode(res.data.claimCode)
-      } else {
-        setError(res?.message || 'Error al iniciar la reclamacion')
-      }
-    }).catch((err) => {
-      setError(err.message || 'Error de conexion')
-    }).finally(() => setLoading(false))
+      if (res?.success) setClaimCode(res.data.claimCode)
+      else setError(res?.message || 'Error al iniciar')
+    }).catch((e) => setError(e.message)).finally(() => setLoading(false))
   }, [step, channel?.id, isAuthenticated])
 
   const handleVerify = async () => {
-    setVerifying(true)
-    setError('')
+    setVerifying(true); setError('')
     try {
       const res = await apiService.verifyClaim(channel.id)
-      if (res?.success && res.verified) {
-        setStep(3)
-      } else {
-        setError(res?.message || 'Codigo no encontrado en la descripcion')
-      }
-    } catch (err) {
-      setError(err.message || 'Error de verificacion')
-    }
+      if (res?.success && res.verified) setStep(3)
+      else setError(res?.message || 'Codigo no encontrado en la descripcion')
+    } catch (e) { setError(e.message) }
     setVerifying(false)
   }
 
-  const handleCopy = () => {
-    navigator.clipboard?.writeText(claimCode)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+  const handleCopy = () => { navigator.clipboard?.writeText(claimCode); setCopied(true); setTimeout(() => setCopied(false), 2000) }
+
+  const card = 'rounded-xl p-6 sm:p-8'
 
   return (
-    <div style={{ fontFamily: FONT, minHeight: '100vh', background: C.bg }}>
-      <Helmet>
-        <title>Reclamar canal · Channelad</title>
-      </Helmet>
+    <div className="min-h-screen" style={{ background: 'var(--bg)', fontFamily: 'var(--font-sans)' }}>
+      <Helmet><title>Reclamar canal · Channelad</title></Helmet>
 
-      <div style={{ maxWidth: 540, margin: '0 auto', padding: '48px 24px' }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: C.t1, textAlign: 'center', marginBottom: 8 }}>
-          Reclamar canal
-        </h1>
-        <p style={{ fontSize: 14, color: C.t2, textAlign: 'center', marginBottom: 32 }}>
+      <div className="max-w-lg mx-auto px-4 py-12">
+        <h1 className="text-xl font-bold text-center mb-1" style={{ color: 'var(--text)' }}>Reclamar canal</h1>
+        <p className="text-sm text-center mb-8" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
           {channel ? `@${(channel.username || '').replace(/^@/, '')}` : '...'}
         </p>
 
         <StepIndicator current={step} />
 
-        {/* ── STEP 1: Auth ──────────────────────────────────────── */}
+        {/* Step 1 — Auth */}
         {step === 1 && (
-          <div style={{
-            background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 32, textAlign: 'center',
-          }}>
-            <ShieldCheck size={40} color={C.teal} style={{ marginBottom: 16 }} />
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: C.t1, marginBottom: 8 }}>
-              Verifica tu identidad
-            </h2>
-            <p style={{ fontSize: 13, color: C.t2, marginBottom: 24 }}>
-              Necesitas una cuenta en ChannelAd para reclamar este canal.
-            </p>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <Link
-                to="/auth/login"
-                style={{
-                  padding: '10px 24px', borderRadius: 10, background: C.teal,
-                  color: '#fff', fontSize: 14, fontWeight: 600, textDecoration: 'none',
-                }}
-              >
-                Iniciar sesion
-              </Link>
-              <Link
-                to="/auth/register"
-                style={{
-                  padding: '10px 24px', borderRadius: 10, border: `1px solid ${C.border}`,
-                  background: 'transparent', color: C.t1, fontSize: 14, fontWeight: 600, textDecoration: 'none',
-                }}
-              >
-                Registrarse
-              </Link>
+          <div className={card} style={{ background: 'var(--surface)', border: '1px solid var(--border)', textAlign: 'center' }}>
+            <ShieldCheck size={36} style={{ color: 'var(--accent)', margin: '0 auto 16px' }} />
+            <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--text)' }}>Verifica tu identidad</h2>
+            <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>Necesitas una cuenta en ChannelAd para reclamar este canal.</p>
+            <div className="flex gap-3 justify-center">
+              <Link to="/auth/login" className="px-5 py-2.5 rounded-lg text-sm font-semibold" style={{ background: 'var(--accent)', color: '#080C10' }}>Iniciar sesion</Link>
+              <Link to="/auth/register" className="px-5 py-2.5 rounded-lg text-sm font-semibold" style={{ border: '1px solid var(--border)', color: 'var(--text)' }}>Registrarse</Link>
             </div>
           </div>
         )}
 
-        {/* ── STEP 2: Verify ────────────────────────────────────── */}
+        {/* Step 2 — Verify */}
         {step === 2 && (
-          <div style={{
-            background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 32,
-          }}>
+          <div className={card} style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
             {loading ? (
-              <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                <Loader2 size={24} color={C.teal} className="animate-spin" />
-                <p style={{ color: C.t2, fontSize: 13, marginTop: 12 }}>Generando codigo de verificacion...</p>
+              <div className="text-center py-8">
+                <Loader2 size={24} className="animate-spin mx-auto mb-3" style={{ color: 'var(--accent)' }} />
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Generando codigo...</p>
               </div>
             ) : (
               <>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: C.t1, marginBottom: 16, textAlign: 'center' }}>
-                  Anade el codigo de verificacion
-                </h2>
+                <h2 className="text-lg font-semibold mb-5 text-center" style={{ color: 'var(--text)' }}>Anade el codigo de verificacion</h2>
 
-                <div style={{
-                  background: C.bg, border: `1px solid ${C.teal}33`, borderRadius: 12, padding: 16, marginBottom: 20,
-                }}>
-                  <p style={{ fontSize: 12, color: C.t3, marginBottom: 8 }}>
-                    Anade este texto en la descripcion de tu canal de Telegram:
-                  </p>
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    background: C.surfaceEl, borderRadius: 8, padding: '10px 14px',
-                  }}>
-                    <code style={{ flex: 1, fontSize: 14, fontWeight: 600, color: C.teal, wordBreak: 'break-all' }}>
-                      {claimCode}
-                    </code>
-                    <button
-                      onClick={handleCopy}
-                      style={{
-                        background: 'none', border: 'none', cursor: 'pointer', padding: 4,
-                        color: copied ? C.ok : C.t3, flexShrink: 0,
-                      }}
-                    >
-                      {copied ? <CheckCircle size={18} /> : <Copy size={18} />}
+                <div className="rounded-lg p-4 mb-5" style={{ background: 'var(--bg)', border: '1px solid var(--accent-border)' }}>
+                  <p className="text-[11px] font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Anade este texto en la descripcion de tu canal de Telegram:</p>
+                  <div className="flex items-center gap-2 rounded-md px-3 py-2.5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                    <code className="flex-1 text-sm font-semibold break-all" style={{ color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>{claimCode}</code>
+                    <button onClick={handleCopy} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: copied ? 'var(--accent)' : 'var(--muted2)', flexShrink: 0 }}>
+                      {copied ? <CheckCircle size={16} /> : <Copy size={16} />}
                     </button>
                   </div>
                 </div>
 
-                <ol style={{ fontSize: 13, color: C.t2, lineHeight: 1.8, paddingLeft: 20, marginBottom: 24 }}>
-                  <li>Abre tu canal en Telegram</li>
+                <ol className="text-sm leading-7 mb-6 pl-5 list-decimal" style={{ color: 'var(--text-secondary)' }}>
+                  <li>Abre tu canal <strong>@{(channel?.username || '').replace(/^@/, '')}</strong> en Telegram</li>
                   <li>Edita la descripcion del canal</li>
                   <li>Pega el codigo en cualquier parte</li>
                   <li>Guarda y vuelve aqui</li>
                 </ol>
 
                 {error && (
-                  <div style={{
-                    background: `${C.alert}15`, border: `1px solid ${C.alert}30`,
-                    borderRadius: 10, padding: '10px 14px', marginBottom: 16,
-                    fontSize: 13, color: C.alert,
-                  }}>
-                    {error}
-                  </div>
+                  <div className="rounded-lg px-4 py-3 text-sm mb-4" style={{ background: 'var(--red-dim)', border: '1px solid rgba(248,81,73,0.2)', color: 'var(--red)' }}>{error}</div>
                 )}
 
                 <button
                   onClick={handleVerify}
                   disabled={verifying}
-                  style={{
-                    width: '100%', padding: '12px 0', borderRadius: 10, border: 'none',
-                    background: C.teal, color: '#fff', fontSize: 15, fontWeight: 700,
-                    cursor: verifying ? 'not-allowed' : 'pointer', fontFamily: FONT,
-                    opacity: verifying ? 0.7 : 1, display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', gap: 8,
-                  }}
+                  className="w-full py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all"
+                  style={{ background: 'var(--accent)', color: '#080C10', border: 'none', cursor: verifying ? 'not-allowed' : 'pointer', opacity: verifying ? 0.7 : 1 }}
                 >
-                  {verifying ? (
-                    <><Loader2 size={16} className="animate-spin" /> Verificando...</>
-                  ) : (
-                    <>Ya lo anadi, verificar <ArrowRight size={16} /></>
-                  )}
+                  {verifying ? <><Loader2 size={14} className="animate-spin" /> Verificando...</> : <>Ya lo anadi, verificar <ArrowRight size={14} /></>}
                 </button>
               </>
             )}
           </div>
         )}
 
-        {/* ── STEP 3: Success ───────────────────────────────────── */}
+        {/* Step 3 — Success */}
         {step === 3 && (
-          <div style={{
-            background: C.surface, border: `1px solid ${C.ok}33`, borderRadius: 16, padding: 32, textAlign: 'center',
-          }}>
-            <div style={{
-              width: 64, height: 64, borderRadius: 999, background: `${C.ok}15`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 16px',
-            }}>
-              <CheckCircle size={32} color={C.ok} />
+          <div className={card} style={{ background: 'var(--surface)', border: '1px solid var(--accent-border)', textAlign: 'center' }}>
+            <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'var(--accent-dim)' }}>
+              <CheckCircle size={32} style={{ color: 'var(--accent)' }} />
             </div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: C.t1, marginBottom: 8 }}>
-              Canal reclamado
-            </h2>
-            <p style={{ fontSize: 14, color: C.t2, marginBottom: 24 }}>
-              Ya puedes gestionar la publicidad de tu canal desde el dashboard.
-              Puedes eliminar el codigo de la descripcion.
+            <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--text)' }}>Canal reclamado</h2>
+            <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+              Ya puedes gestionar la publicidad de tu canal desde el dashboard. Puedes eliminar el codigo de la descripcion.
             </p>
             <button
               onClick={() => navigate('/creator/channels')}
-              style={{
-                padding: '12px 32px', borderRadius: 10, border: 'none',
-                background: C.teal, color: '#fff', fontSize: 15, fontWeight: 700,
-                cursor: 'pointer', fontFamily: FONT,
-              }}
+              className="px-6 py-3 rounded-lg text-sm font-bold"
+              style={{ background: 'var(--accent)', color: '#080C10', border: 'none', cursor: 'pointer' }}
             >
-              Ir al dashboard →
+              Ir a mi dashboard →
             </button>
           </div>
         )}
