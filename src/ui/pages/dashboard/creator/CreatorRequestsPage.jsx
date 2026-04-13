@@ -542,8 +542,7 @@ export default function CreatorRequestsPage() {
     try {
       const r = await apiService.getCreatorCampaigns()
       if (r?.success && Array.isArray(r.data)) setCampaigns(r.data)
-    } catch (err) {
-      console.error('CreatorRequestsPage load error:', err)
+    } catch {
       setFetchError('No se pudieron cargar los datos. Verifica tu conexion.')
     }
     setLoading(false)
@@ -557,30 +556,33 @@ export default function CreatorRequestsPage() {
   })
   const tabCount = (t) => t === 'Todas' ? campaigns.length : campaigns.filter(c => STATUS_CFG[c.status]?.tab === t).length
 
-  const doConfirm = async (id) => {
+  const [actionError, setActionError] = useState(null)
+
+  const doAction = async (id, apiFn, expectedStatus) => {
     setBusy(true)
+    setActionError(null)
     try {
-      const r = await apiService.confirmCampaign(id)
-      if (r?.success) { await load(); setSelected(prev => prev?._id === id ? { ...prev, status: 'PUBLISHED' } : prev) }
-    } catch {}
+      const r = await apiFn(id)
+      if (r?.success) {
+        await load()
+        // Refresh selected campaign with fresh data from the reloaded list
+        setCampaigns(prev => {
+          const fresh = prev.find(c => c._id === id)
+          if (fresh) setSelected(s => s?._id === id ? fresh : s)
+          return prev
+        })
+      } else {
+        setActionError(r?.message || 'Error al procesar la accion')
+      }
+    } catch {
+      setActionError('Error de conexion. Intenta de nuevo.')
+    }
     setBusy(false)
   }
-  const doComplete = async (id) => {
-    setBusy(true)
-    try {
-      const r = await apiService.completeCampaign(id)
-      if (r?.success) { await load(); setSelected(prev => prev?._id === id ? { ...prev, status: 'COMPLETED' } : prev) }
-    } catch {}
-    setBusy(false)
-  }
-  const doDecline = async (id) => {
-    setBusy(true)
-    try {
-      const r = await apiService.cancelCampaign(id)
-      if (r?.success) { await load(); setSelected(prev => prev?._id === id ? { ...prev, status: 'CANCELLED' } : prev) }
-    } catch {}
-    setBusy(false)
-  }
+
+  const doConfirm = (id) => doAction(id, apiService.confirmCampaign.bind(apiService), 'PUBLISHED')
+  const doComplete = (id) => doAction(id, apiService.completeCampaign.bind(apiService), 'COMPLETED')
+  const doDecline = (id) => doAction(id, apiService.cancelCampaign.bind(apiService), 'CANCELLED')
   const doChat = (updated) => {
     setCampaigns(prev => prev.map(c => c._id === updated._id ? updated : c))
     setSelected(updated)
@@ -605,10 +607,11 @@ export default function CreatorRequestsPage() {
         </p>
       </div>
 
-      {fetchError && <ErrorBanner message={fetchError} onRetry={() => { setFetchError(null); setRetryKey(k => k + 1) }} style={{ marginBottom: '20px' }} />}
+      {fetchError && <ErrorBanner message={fetchError} onRetry={() => { setFetchError(null); setRetryKey(k => k + 1) }} />}
+      {actionError && <ErrorBanner message={actionError} onRetry={() => setActionError(null)} />}
 
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
         {[
           { label: 'Pendientes', val: pending, color: BLUE, icon: '📥', sub: 'Requieren accion' },
           { label: 'En vivo', val: published, color: OK, icon: '📢', sub: 'Publicadas ahora' },
@@ -639,7 +642,7 @@ export default function CreatorRequestsPage() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '2px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '3px', width: 'fit-content' }}>
+      <div style={{ display: 'flex', gap: '2px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '3px', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
         {TABS.map(t => {
           const active = tab === t
           return (
@@ -648,6 +651,7 @@ export default function CreatorRequestsPage() {
               border: 'none', borderRadius: '9px', padding: '8px 14px', fontSize: '13px',
               fontWeight: active ? 600 : 400, cursor: 'pointer', fontFamily: F,
               transition: 'all .18s', display: 'flex', alignItems: 'center', gap: '6px',
+              whiteSpace: 'nowrap', flex: '0 0 auto',
             }}>
               {t}
               <span style={{

@@ -532,7 +532,11 @@ const cancelCampaign = async (req, res, next) => {
     const campaign = await Campaign.findById(req.params.id);
     if (!campaign) return next(httpError(404, 'Campaign no encontrada'));
 
-    if (campaign.advertiser?.toString?.() !== String(userId)) {
+    const isAdvertiser = campaign.advertiser?.toString?.() === String(userId);
+    const channelDoc = await Canal.findById(campaign.channel).select('propietario').lean();
+    const isChannelOwner = channelDoc?.propietario?.toString?.() === String(userId);
+
+    if (!isAdvertiser && !isChannelOwner) {
       return next(httpError(403, 'No autorizado'));
     }
 
