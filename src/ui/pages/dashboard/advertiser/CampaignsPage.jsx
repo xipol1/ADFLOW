@@ -686,6 +686,19 @@ export default function CampaignsPage() {
                   <ChatPanel campaign={sel} myRole="advertiser" />
                 )}
 
+                {/* Analytics link */}
+                {['PUBLISHED', 'COMPLETED'].includes(sel.status) && (
+                  <button onClick={(e) => { e.stopPropagation(); navigate(`/advertiser/campaigns/${sel._id}/analytics`) }} className="adf-btn-secondary" style={{
+                    width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
+                    borderRadius: '12px', padding: '12px 18px', fontSize: '13px', fontWeight: 600,
+                    cursor: 'pointer', fontFamily: FONT_BODY, color: 'var(--text-secondary)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                    marginBottom: '4px',
+                  }}>
+                    <BarChart3 size={16} /> Ver analytics de campana
+                  </button>
+                )}
+
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', paddingTop: '4px' }} onClick={e => e.stopPropagation()}>
                   {sel.status === 'DRAFT' && (

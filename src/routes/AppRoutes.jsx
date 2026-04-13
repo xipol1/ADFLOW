@@ -27,6 +27,7 @@ import FinancesPage     from '../ui/pages/dashboard/advertiser/FinancesPage'
 import SettingsPage     from '../ui/pages/dashboard/advertiser/SettingsPage'
 import ReferralsPage   from '../ui/pages/dashboard/advertiser/ReferralsPage'
 import AdvertiserAnalyticsPage from '../ui/pages/dashboard/advertiser/AdvertiserAnalyticsPage'
+import CampaignAnalyticsPage from '../ui/pages/dashboard/advertiser/CampaignAnalyticsPage'
 
 // Creator dashboard suite
 import CreatorLayout        from '../ui/pages/dashboard/creator/CreatorLayout'
@@ -134,6 +135,7 @@ export default function AppRoutes() {
         <Route path="autobuy"  element={<FullAccessOnly feature="Auto-compra"><AutoBuyPage /></FullAccessOnly>} />
         <Route path="campaigns" element={<FullAccessOnly feature="Campanas"><CampaignsPage /></FullAccessOnly>} />
         <Route path="campaigns/new" element={<FullAccessOnly feature="Campanas"><NewCampaignPage /></FullAccessOnly>} />
+        <Route path="campaigns/:id/analytics" element={<FullAccessOnly feature="Campanas"><CampaignAnalyticsPage /></FullAccessOnly>} />
         <Route path="ads"      element={<FullAccessOnly feature="Anuncios"><AdsPage /></FullAccessOnly>} />
         <Route path="finances" element={<FullAccessOnly feature="Finanzas"><FinancesPage /></FullAccessOnly>} />
         <Route path="analytics" element={<FullAccessOnly feature="Analytics"><AdvertiserAnalyticsPage /></FullAccessOnly>} />
