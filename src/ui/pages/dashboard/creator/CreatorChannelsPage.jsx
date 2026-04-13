@@ -3,14 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import {
   Plus, Edit, Trash2, CheckCircle, Users, TrendingUp, Calendar,
   DollarSign, Clock, ChevronLeft, ChevronRight, X, Save,
-  BarChart3, Eye, Zap, Globe, Instagram, Youtube, Twitter, Link2,
+  BarChart3, Eye, Zap, Globe, Instagram, Youtube, Twitter,
   AlertCircle, Tag,
 } from 'lucide-react'
 import { PLATFORM_COLORS } from './mockDataCreator'
 import apiService from '../../../../../services/api'
 import { FONT_BODY, FONT_DISPLAY, OK as _OK, WARN, ERR, BLUE } from '../../../theme/tokens'
 import ChannelCard from '../../../components/ChannelCard'
-import ChannelHistoryChart from '../../../components/ChannelHistoryChart'
 
 // Map the creator-side channel payload to the canonical shape the
 // scoring ChannelCard expects. Fields that don't exist in the API
@@ -115,7 +114,7 @@ const ScoreBar = ({ score, color = A, label }) => (
 // CHANNEL DETAIL PANEL (Profile + Availability + Insights — Premium)
 // ═══════════════════════════════════════════════════════════════════════════════
 const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
-  const [tab, setTab] = useState('score')
+  const [tab, setTab] = useState('profile')
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState({ msg: '', ok: true })
 
@@ -295,82 +294,13 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
     return Math.round(enabled.reduce((s, v) => s + v.price, 0) / enabled.length)
   }, [dayPricing])
 
-  // ── Scoring engine state ──
-  const [scoreData, setScoreData] = useState(null)
-  const [scoreLoading, setScoreLoading] = useState(false)
-  const [connectForm, setConnectForm] = useState({
-    botToken: channel.credenciales?.botToken || '',
-    accessToken: channel.credenciales?.accessToken || '',
-    chatId: channel.identificadores?.chatId || '',
-    serverId: channel.identificadores?.serverId || '',
-    phoneNumber: channel.identificadores?.phoneNumber || '',
-    phoneNumberId: channel.credenciales?.phoneNumberId || '',
-    apiKey: '',
-    provider: channel.identificadores?.provider || 'mailchimp',
-    subscribers: channel.estadisticas?.seguidores || '',
-  })
-
-  // Load scoring data on mount
-  useEffect(() => {
-    const cid = channel._id || channel.id
-    if (cid) {
-      apiService.getChannelScore(cid).then(res => {
-        if (res?.success) setScoreData(res.data)
-      }).catch(() => {})
-    }
-  }, [channel._id, channel.id])
-
-  const handleRecalculate = async () => {
-    setScoreLoading(true)
-    try {
-      const res = await apiService.recalculateScore(channel._id || channel.id)
-      if (res?.success) {
-        setScoreData(prev => ({ ...prev, ...res.data }))
-        showToast('Score recalculado con datos en tiempo real')
-        onUpdated?.()
-      } else showToast('Error: ' + (res?.message || 'No se pudo calcular'), false)
-    } catch { showToast('Error de conexion', false) }
-    finally { setScoreLoading(false) }
-  }
-
-  const handleConnect = async () => {
-    setScoreLoading(true)
-    try {
-      const plat = (channel.plataforma || '').toLowerCase()
-      let res
-      if (plat === 'telegram') {
-        res = await apiService.connectTelegram({ botToken: connectForm.botToken, chatId: connectForm.chatId })
-      } else if (plat === 'discord') {
-        res = await apiService.connectDiscord({ botToken: connectForm.botToken, serverId: connectForm.serverId })
-      } else if (plat === 'whatsapp') {
-        res = await apiService.connectWhatsAppManual({ accessToken: connectForm.accessToken, phoneNumberId: connectForm.phoneNumberId })
-      } else if (plat === 'newsletter') {
-        res = await apiService.connectNewsletter({ apiKey: connectForm.apiKey, provider: connectForm.provider, subscribers: connectForm.subscribers })
-      } else if (plat === 'linkedin') {
-        const authRes = await apiService.getLinkedinAuthUrl()
-        if (authRes?.success && authRes.data?.url) {
-          window.location.href = authRes.data.url
-          return
-        }
-        res = authRes
-      } else {
-        res = await apiService.connectPlatform(channel._id || channel.id, connectForm)
-      }
-      if (res?.success) {
-        showToast(res.data?.canal ? 'Plataforma conectada — datos en tiempo real' : 'Conexion exitosa')
-        onUpdated?.()
-      } else showToast('Error: ' + (res?.message || 'No se pudo conectar'), false)
-    } catch { showToast('Error de conexion', false) }
-    finally { setScoreLoading(false) }
-  }
+  const navigate = useNavigate()
 
   const TABS = [
-    { key: 'score', label: 'Score', icon: Zap },
     { key: 'profile', label: 'Perfil', icon: Edit },
     { key: 'availability', label: 'Disponibilidad', icon: Calendar },
     { key: 'pricing', label: 'Precios', icon: DollarSign },
     { key: 'insights', label: 'Mejores dias', icon: BarChart3 },
-    { key: 'analytics', label: 'Analitica', icon: TrendingUp },
   ]
 
   const platColor = PLATFORM_COLORS[channel.plataforma?.charAt(0).toUpperCase() + channel.plataforma?.slice(1)] || A
@@ -398,8 +328,9 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
 
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
           {/* Banner */}
-          <div style={{ height: '80px', background: `linear-gradient(135deg, ${platColor}, ${A})`, position: 'relative' }}>
+          <div style={{ height: '100px', background: `linear-gradient(135deg, ${platColor}, ${A})`, position: 'relative' }}>
             {profileForm.banner && <img src={profileForm.banner} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />}
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '60px', background: 'linear-gradient(to top, var(--surface), transparent)', pointerEvents: 'none' }} />
           </div>
           <div style={{ padding: '0 24px 20px', marginTop: '-28px', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '16px', marginBottom: '14px' }}>
@@ -416,12 +347,20 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
               </div>
             </div>
 
-            {/* KPIs */}
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <Kpi label="CAS Score" value={`${channel.CAS || scoreData?.scores?.total || 0}/100`} icon={Zap} color={(channel.CAS || scoreData?.scores?.total || 0) >= 70 ? OK : (channel.CAS || scoreData?.scores?.total || 0) >= 40 ? WR : ER} />
-              <Kpi label="Precio rec." value={`€${scoreData?.recommendedPrice || avgPrice}`} icon={DollarSign} color={A} />
+            {/* KPIs + Analytics link */}
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <Kpi label="CAS Score" value={`${channel.CAS || 0}/100`} icon={Zap} color={(channel.CAS || 0) >= 70 ? OK : (channel.CAS || 0) >= 40 ? WR : ER} />
+              <Kpi label="Precio base" value={`€${channel.precio || avgPrice}`} icon={DollarSign} color={A} />
               <Kpi label="Slots/mes" value={maxPub} icon={Calendar} color={BL} />
               <Kpi label="Dias activos" value={`${enabledDays.size}/7`} icon={Clock} color={OK} />
+              <button onClick={() => navigate(`/creator/analytics?channel=${channel._id || channel.id}`)} style={{
+                display: 'flex', alignItems: 'center', gap: '6px', background: AG(0.08),
+                border: `1px solid ${AG(0.2)}`, borderRadius: '12px', padding: '14px 16px',
+                fontSize: '12px', fontWeight: 600, color: A, cursor: 'pointer', fontFamily: F,
+                flex: 1, minWidth: '160px', justifyContent: 'center',
+              }}>
+                <TrendingUp size={14} /> Ver analytics completo →
+              </button>
             </div>
           </div>
         </div>
@@ -445,204 +384,7 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
         ))}
       </div>
 
-      {/* ══════ TAB: SCORE & CONNECT ══════ */}
-      {tab === 'score' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Score overview */}
-          <Section icon={Zap} title="Channel Score" subtitle="Puntuacion calculada automaticamente segun 5 factores"
-            action={<button onClick={handleRecalculate} disabled={scoreLoading} style={{ background: A, color: '#fff', border: 'none', borderRadius: '10px', padding: '8px 18px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', gap: '6px', opacity: scoreLoading ? 0.6 : 1 }}><Zap size={13} /> {scoreLoading ? 'Calculando...' : 'Recalcular ahora'}</button>}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Big score display — uses v2 CAS if available, falls back to v1 */}
-              {(() => {
-                const cas = channel.CAS || scoreData?.scores?.total || 0
-                const casColor = cas >= 70 ? OK : cas >= 40 ? WR : ER
-                return (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-                    <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: `conic-gradient(${casColor} ${cas * 3.6}deg, var(--bg) 0deg)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                        <span style={{ fontFamily: D, fontSize: '28px', fontWeight: 800, color: 'var(--text)' }}>{cas}</span>
-                        <span style={{ fontSize: '10px', color: 'var(--muted)' }}>de 100</span>
-                      </div>
-                    </div>
-                    <div style={{ flex: 1, minWidth: '200px' }}>
-                      <div style={{ fontFamily: D, fontSize: '16px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>Precio recomendado</div>
-                      <div style={{ fontFamily: D, fontSize: '32px', fontWeight: 800, color: A, letterSpacing: '-0.03em' }}>€{scoreData?.recommendedPrice || channel.precio || 0}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
-                        {channel.nivel ? `Nivel ${channel.nivel} · ` : ''}
-                        Basado en 5 factores propietarios
-                      </div>
-                    </div>
-                  </div>
-                )
-              })()}
-
-              {/* Score breakdown — v2 (CAF/CTF/CER/CVS/CAP) with v1 fallback */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
-                {[
-                  { label: 'CAF', fullLabel: 'Atencion', value: channel.CAF || scoreData?.scores?.attention || 0, weight: '15%', color: 'var(--accent)' },
-                  { label: 'CTF', fullLabel: 'Confianza', value: channel.CTF || scoreData?.scores?.trust || 0, weight: '25%', color: '#10b981' },
-                  { label: 'CER', fullLabel: 'Engagement', value: channel.CER || scoreData?.scores?.intent || 0, weight: '20%', color: '#3b82f6' },
-                  { label: 'CVS', fullLabel: 'Velocidad', value: channel.CVS || scoreData?.scores?.liquidity || 0, weight: '10%', color: '#f59e0b' },
-                  { label: 'CAP', fullLabel: 'Rendimiento', value: channel.CAP || scoreData?.scores?.performance || 0, weight: '30%', color: '#ef4444' },
-                ].map(({ label, fullLabel, value, weight, color }) => (
-                  <div key={label} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '20px', fontWeight: 700, color, fontFamily: D }}>{value}</div>
-                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text)', marginTop: '2px' }}>{fullLabel}</div>
-                    <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'JetBrains Mono, monospace' }}>{label} · {weight}</div>
-                    <div style={{ height: '4px', background: 'var(--border)', borderRadius: '2px', marginTop: '6px', overflow: 'hidden' }}>
-                      <div style={{ width: `${value}%`, height: '100%', background: color, borderRadius: '2px', transition: 'width .4s' }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Metrics */}
-              {scoreData?.metrics && (
-                <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '16px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>Metricas clave</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
-                    {[
-                      { l: 'Views/post', v: (scoreData.metrics.viewsAvg || 0).toLocaleString() },
-                      { l: 'Engagement', v: `${((scoreData.metrics.engagementRate || 0) * 100).toFixed(1)}%` },
-                      { l: 'CTR', v: `${((scoreData.metrics.ctr || 0) * 100).toFixed(2)}%` },
-                      { l: 'Conversion', v: `${((scoreData.metrics.conversionRate || 0) * 100).toFixed(2)}%` },
-                      { l: 'Fill Rate', v: `${((scoreData.metrics.fillRate || 0) * 100).toFixed(0)}%` },
-                      { l: 'Calidad aud.', v: `${((scoreData.metrics.audienceQuality || 0) * 100).toFixed(0)}%` },
-                      { l: 'Repeat rate', v: `${((scoreData.metrics.repeatRate || 0) * 100).toFixed(0)}%` },
-                      { l: 'Campanas', v: scoreData.metrics.totalCampaigns || 0 },
-                    ].map(({ l, v }) => (
-                      <div key={l} style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)', fontFamily: D }}>{v}</div>
-                        <div style={{ fontSize: '10px', color: 'var(--muted)' }}>{l}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Last calculated */}
-              {scoreData?.lastCalculated && (
-                <div style={{ fontSize: '11px', color: 'var(--muted)', textAlign: 'right' }}>
-                  Ultimo calculo: {new Date(scoreData.lastCalculated).toLocaleString('es')}
-                </div>
-              )}
-            </div>
-          </Section>
-
-          {/* Platform connection */}
-          <Section icon={Link2} title="Conectar plataforma" subtitle="Conecta tu API para obtener datos en tiempo real y un score mas preciso">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {/* Status */}
-              <div style={{
-                background: scoreData?.platformData?.lastFetched && !scoreData?.platformData?.raw?.estimated ? `${OK}08` : `${WR}08`,
-                border: `1px solid ${scoreData?.platformData?.lastFetched && !scoreData?.platformData?.raw?.estimated ? `${OK}20` : `${WR}20`}`,
-                borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '10px',
-              }}>
-                {scoreData?.platformData?.lastFetched && !scoreData?.platformData?.raw?.estimated ? (
-                  <><CheckCircle size={16} color={OK} /><div><div style={{ fontSize: '13px', fontWeight: 600, color: OK }}>Plataforma conectada</div><div style={{ fontSize: '11px', color: 'var(--muted)' }}>Datos actualizados: {new Date(scoreData.platformData.lastFetched).toLocaleString('es')}</div></div></>
-                ) : (
-                  <><AlertCircle size={16} color={WR} /><div><div style={{ fontSize: '13px', fontWeight: 600, color: WR }}>Sin conexion directa</div><div style={{ fontSize: '11px', color: 'var(--muted)' }}>Los datos se estiman segun tus seguidores. Conecta tu API para un score mas preciso.</div></div></>
-                )}
-              </div>
-
-              {/* Connection fields based on platform */}
-              {(() => {
-                const plat = (channel.plataforma || '').toLowerCase()
-                const fields = []
-                if (plat === 'telegram') {
-                  fields.push({ key: 'botToken', label: 'Bot Token', ph: '123456:ABC-DEF1234...', help: 'Crea un bot con @BotFather y anadelo como admin al canal' })
-                  fields.push({ key: 'chatId', label: 'Chat ID', ph: '@tucanalID o -100...', help: 'El username o ID numerico de tu canal' })
-                } else if (plat === 'discord') {
-                  fields.push({ key: 'botToken', label: 'Bot Token', ph: 'MTA4NzE...', help: 'Token del bot en Discord Developer Portal' })
-                  fields.push({ key: 'serverId', label: 'Server ID', ph: '1234567890', help: 'Click derecho en el server → Copiar ID (modo desarrollador)' })
-                } else if (plat === 'instagram' || plat === 'facebook') {
-                  fields.push({ key: '_metaOAuth', label: 'Meta OAuth', type: 'oauth', help: 'Conecta via Facebook Login para obtener acceso automatico' })
-                } else if (plat === 'whatsapp') {
-                  fields.push({ key: 'accessToken', label: 'Access Token', ph: 'EAAGm0P...', help: 'Token de WhatsApp Business API' })
-                  fields.push({ key: 'phoneNumberId', label: 'Phone Number ID', ph: '1234567890', help: 'ID del numero en Meta Business Suite' })
-                } else if (plat === 'newsletter') {
-                  fields.push({ key: 'provider', label: 'Proveedor', type: 'select', options: ['mailchimp', 'beehiiv', 'substack'], help: 'Selecciona tu proveedor de newsletter' })
-                  fields.push({ key: 'apiKey', label: 'API Key', ph: 'Tu API key del proveedor', help: 'Mailchimp: abc123-us10 | Beehiiv: Bearer token' })
-                  fields.push({ key: 'subscribers', label: 'Suscriptores', ph: '5000', type: 'number', help: 'Numero total de suscriptores activos' })
-                } else if (plat === 'linkedin') {
-                  fields.push({ key: '_linkedinOAuth', label: 'LinkedIn OAuth', type: 'oauth', help: 'Conecta via LinkedIn para obtener acceso automatico' })
-                } else {
-                  fields.push({ key: 'accessToken', label: 'API Token', ph: 'Tu token de la plataforma', help: 'Introduce las credenciales de tu plataforma' })
-                }
-                const isOAuthOnly = fields.length === 1 && fields[0].type === 'oauth'
-                return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {fields.map(({ key, label, ph, help, type, options }) => (
-                      <div key={key}>
-                        {type === 'oauth' ? (
-                          <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{help}</div>
-                        ) : type === 'select' ? (
-                          <>
-                            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>{label}</label>
-                            <select className="cc-inp" value={connectForm[key] || options?.[0] || ''} onChange={e => setConnectForm(prev => ({ ...prev, [key]: e.target.value }))} style={inp}>
-                              {(options || []).map(o => <option key={o} value={o}>{o.charAt(0).toUpperCase() + o.slice(1)}</option>)}
-                            </select>
-                            <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '3px' }}>{help}</div>
-                          </>
-                        ) : (
-                          <>
-                            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>{label}</label>
-                            <input className="cc-inp" type={key.includes('Token') || key.includes('Key') ? 'password' : type === 'number' ? 'number' : 'text'}
-                              value={connectForm[key] || ''} onChange={e => setConnectForm(prev => ({ ...prev, [key]: e.target.value }))}
-                              placeholder={ph} style={inp} />
-                            <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '3px' }}>{help}</div>
-                          </>
-                        )}
-                      </div>
-                    ))}
-                    <button onClick={handleConnect} disabled={scoreLoading} style={{
-                      background: A, color: '#fff', border: 'none', borderRadius: '10px',
-                      padding: '12px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: F,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                      opacity: scoreLoading ? 0.6 : 1,
-                    }}>
-                      <Link2 size={14} /> {scoreLoading ? 'Conectando...' : isOAuthOnly ? 'Conectar con OAuth' : 'Conectar y obtener datos'}
-                    </button>
-                  </div>
-                )
-              })()}
-
-              {/* Platform data preview */}
-              {scoreData?.platformData?.followers > 0 && (
-                <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '14px 16px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>Datos de la plataforma</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
-                    {[
-                      { l: 'Seguidores', v: (scoreData.platformData.followers || 0).toLocaleString() },
-                      { l: 'Views/post', v: (scoreData.platformData.avgViewsPerPost || 0).toLocaleString() },
-                      { l: 'Reacciones', v: (scoreData.platformData.avgReactionsPerPost || 0).toLocaleString() },
-                      { l: 'Posts total', v: scoreData.platformData.postsTotal || '-' },
-                    ].map(({ l, v }) => (
-                      <div key={l} style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)', fontFamily: D }}>{v}</div>
-                        <div style={{ fontSize: '10px', color: 'var(--muted)' }}>{l}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Scoring formula explanation */}
-              <div style={{ background: `${BL}06`, border: `1px solid ${BL}15`, borderRadius: '12px', padding: '14px 16px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: BL, marginBottom: '8px' }}>Como se calcula el score</div>
-                <div style={{ fontSize: '11px', color: 'var(--muted)', lineHeight: 1.6 }}>
-                  <strong style={{ color: 'var(--text)' }}>Atencion (25%)</strong> — views × engagement × scroll depth<br/>
-                  <strong style={{ color: 'var(--text)' }}>Intencion (15%)</strong> — tipo de contenido (memes=40, niche=85, finanzas=90)<br/>
-                  <strong style={{ color: 'var(--text)' }}>Confianza (20%)</strong> — repeat rate + calidad de audiencia<br/>
-                  <strong style={{ color: 'var(--text)' }}>Rendimiento (25%)</strong> — CTR (60%) + conversion rate (40%)<br/>
-                  <strong style={{ color: 'var(--text)' }}>Liquidez (15%)</strong> — fill rate × tiempo de respuesta
-                </div>
-              </div>
-            </div>
-          </Section>
-        </div>
-      )}
-
+      {/* Score tab content moved to /creator/analytics */}
       {/* ══════ TAB: PROFILE ══════ */}
       {tab === 'profile' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -746,6 +488,34 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
                   <button onClick={addTag} style={{ background: AG(0.1), border: `1px solid ${AG(0.2)}`, borderRadius: '10px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, color: A, cursor: 'pointer', fontFamily: F }}>+</button>
                 </div>
               </div>
+            </div>
+          </Section>
+
+          {/* Danger zone: delete channel */}
+          <Section icon={AlertCircle} title="Zona de peligro" subtitle="Acciones irreversibles">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: ER }}>Eliminar este canal</div>
+                <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>Se eliminara permanentemente el canal y toda su configuracion. Esta accion no se puede deshacer.</div>
+              </div>
+              <button onClick={async () => {
+                if (!window.confirm(`¿Seguro que deseas eliminar "${channel.nombreCanal}"? Esta accion no se puede deshacer.`)) return
+                try {
+                  const res = await apiService.deleteChannel(channel._id || channel.id)
+                  if (res?.success) { showToast('Canal eliminado'); onBack?.(); onUpdated?.() }
+                  else showToast('Error: ' + (res?.message || 'No se pudo eliminar'), false)
+                } catch { showToast('Error de conexion al eliminar', false) }
+              }} style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                background: 'transparent', border: `1.5px solid ${ER}40`, borderRadius: '10px',
+                padding: '10px 18px', fontSize: '13px', fontWeight: 600, color: ER,
+                cursor: 'pointer', fontFamily: F, transition: 'all .15s', flexShrink: 0,
+              }}
+                onMouseEnter={e => { e.currentTarget.style.background = `${ER}08`; e.currentTarget.style.borderColor = ER }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = `${ER}40` }}
+              >
+                <Trash2 size={14} /> Eliminar canal
+              </button>
             </div>
           </Section>
         </div>
@@ -1145,81 +915,6 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
         </div>
       )}
 
-      {/* ══════ TAB: ANALYTICS ══════ */}
-      {tab === 'analytics' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <Section icon={TrendingUp} title="Analitica del canal" subtitle="Historial de campanas, ganancias y rendimiento">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* KPI row */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                {[
-                  { label: 'Campanas totales', value: channel.estadisticas?.campanasTotal || 0, color: A, icon: BarChart3 },
-                  { label: 'Tasa completadas', value: `${channel.estadisticas?.tasaCompletadas || 0}%`, color: OK, icon: CheckCircle },
-                  { label: 'Ingresos totales', value: `€${(channel.estadisticas?.ingresosTotales || channel.totalEarnings || 0).toLocaleString('es')}`, color: '#25d366', icon: DollarSign },
-                ].map(kpi => (
-                  <Kpi key={kpi.label} {...kpi} />
-                ))}
-              </div>
-
-              {/* Channel growth chart */}
-              <div style={{ background: 'var(--bg)', borderRadius: '12px', padding: '16px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', marginBottom: '12px' }}>Evolucion del canal</div>
-                <ChannelHistoryChart channelId={channel._id || channel.id} days={30} height={180} />
-              </div>
-
-              {/* Recent campaign history for this channel */}
-              <div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', marginBottom: '8px' }}>Campanas recientes</div>
-                <div style={{ background: 'var(--bg)', borderRadius: '12px', overflow: 'hidden' }}>
-                  {(channel.campanasRecientes || []).length > 0 ? (
-                    channel.campanasRecientes.map((c, i, arr) => (
-                      <div key={c._id || i} style={{ padding: '12px 16px', borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div>
-                          <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)' }}>{c.advertiser?.nombre || 'Anunciante'}</div>
-                          <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{new Date(c.createdAt).toLocaleDateString('es', { day: 'numeric', month: 'short' })}</div>
-                        </div>
-                        <span style={{ fontSize: '14px', fontWeight: 700, color: c.status === 'COMPLETED' ? OK : A, fontFamily: D }}>€{c.netAmount || c.price || 0}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <div style={{ padding: '28px 16px', textAlign: 'center', fontSize: '13px', color: 'var(--muted)' }}>
-                      No hay campanas registradas para este canal todavia.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </Section>
-
-          {/* Danger zone: delete channel */}
-          <Section icon={AlertCircle} title="Zona de peligro" subtitle="Acciones irreversibles">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-              <div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: ER }}>Eliminar este canal</div>
-                <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>Se eliminara permanentemente el canal y toda su configuracion. Esta accion no se puede deshacer.</div>
-              </div>
-              <button onClick={async () => {
-                if (!window.confirm(`¿Seguro que deseas eliminar "${channel.nombreCanal}"? Esta accion no se puede deshacer.`)) return
-                try {
-                  const res = await apiService.deleteChannel(channel._id || channel.id)
-                  if (res?.success) { showToast('Canal eliminado'); onBack?.(); onUpdated?.() }
-                  else showToast('Error: ' + (res?.message || 'No se pudo eliminar'), false)
-                } catch { showToast('Error de conexion al eliminar', false) }
-              }} style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                background: 'transparent', border: `1.5px solid ${ER}40`, borderRadius: '10px',
-                padding: '10px 18px', fontSize: '13px', fontWeight: 600, color: ER,
-                cursor: 'pointer', fontFamily: F, transition: 'all .15s', flexShrink: 0,
-              }}
-                onMouseEnter={e => { e.currentTarget.style.background = `${ER}08`; e.currentTarget.style.borderColor = ER }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = `${ER}40` }}
-              >
-                <Trash2 size={14} /> Eliminar canal
-              </button>
-            </div>
-          </Section>
-        </div>
-      )}
     </div>
   )
 }
