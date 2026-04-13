@@ -65,26 +65,6 @@
     { "source": "/t/:code", "destination": "/api/index.js" },
     { "source": "/r/:campaignId", "destination": "/api/index.js" },
     { "source": "/health", "destination": "/api/index.js" },
-    { "source": "/explore", "destination": "/" },
-    { "source": "/explore/(.*)", "destination": "/" },
-    { "source": "/channel/(.*)", "destination": "/" },
-    { "source": "/rankings", "destination": "/" },
-    { "source": "/rankings/(.*)", "destination": "/" },
-    { "source": "/claim/(.*)", "destination": "/" },
-    { "source": "/admin/(.*)", "destination": "/" },
-    { "source": "/marketplace", "destination": "/" },
-    { "source": "/marketplace/(.*)", "destination": "/" },
-    { "source": "/auth/(.*)", "destination": "/" },
-    { "source": "/advertiser/(.*)", "destination": "/" },
-    { "source": "/creator/(.*)", "destination": "/" },
-    { "source": "/dashboard", "destination": "/" },
-    { "source": "/niche/(.*)", "destination": "/" },
-    { "source": "/para-anunciantes", "destination": "/" },
-    { "source": "/para-canales", "destination": "/" },
-    { "source": "/privacidad", "destination": "/" },
-    { "source": "/terminos", "destination": "/" },
-    { "source": "/soporte", "destination": "/" },
-    { "source": "/sobre-nosotros", "destination": "/" },
-    { "source": "/verificar-email/(.*)", "destination": "/" }
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
