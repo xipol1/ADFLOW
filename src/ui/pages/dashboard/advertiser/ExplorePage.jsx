@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { Search, X, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react'
 import apiService from '../../../../../services/api'
 import { ChannelCardNew, FilterSidebar, CardSkeleton } from '../../../../components/ui'
@@ -97,6 +98,12 @@ export default function ExplorePage() {
   // ── Render ────────────────────────────────────────────────
   return (
     <div className="min-h-screen" style={{ fontFamily: 'var(--font-sans)', background: 'var(--bg)', color: 'var(--text)' }}>
+      <Helmet>
+        <title>Explorar Canales · Channelad</title>
+        <meta name="description" content="Descubre canales verificados de Telegram, WhatsApp, Discord y Newsletter para publicidad. Filtra por categoria, audiencia y score. Metricas reales y pagos protegidos." />
+        <meta property="og:title" content="Explorar Canales · Channelad" />
+        <meta property="og:description" content="Marketplace de publicidad en comunidades digitales cerradas. Canales verificados con metricas reales." />
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
         {/* Header */}

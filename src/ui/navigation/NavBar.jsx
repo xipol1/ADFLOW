@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
-import { PURPLE, PURPLE_DARK, purpleAlpha, GREEN } from '../theme/tokens'
 import GlobalSearchBar from '../components/GlobalSearchBar'
 
 function MenuIcon({ size = 20 }) {
@@ -10,26 +9,26 @@ function MenuIcon({ size = 20 }) {
 function XIcon({ size = 20 }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
 }
-function ChevronDownIcon({ size = 14 }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6"/></svg>
-}
 
-const EXPLORE_CATEGORIES = [
-  { icon: '\u{1F6D2}', label: 'Ecommerce', param: 'Ecommerce' },
-  { icon: '\u{1F4AA}', label: 'Fitness', param: 'Fitness' },
-  { icon: '\u{1F4C8}', label: 'Marketing', param: 'Marketing' },
-  { icon: '\u{1F3AE}', label: 'Gaming', param: 'Gaming' },
-  { icon: '\u{1F916}', label: 'IA & Tech', param: 'IA & Tech' },
-  { icon: '\u{1F4DA}', label: 'Educacion', param: 'Educacion' },
+const NAV_LINKS = [
+  { to: '/explore', label: 'Explorar' },
+  { to: '/rankings', label: 'Rankings' },
 ]
 
-const EXPLORE_PLATFORMS = [
-  { icon: '\u{1F4AC}', label: 'WhatsApp', color: '#25d366' },
-  { icon: '\u2708\uFE0F', label: 'Telegram', color: '#2aabee' },
-  { icon: '\u{1F3AE}', label: 'Discord', color: '#5865f2' },
-  { icon: '\u{1F4F8}', label: 'Instagram', color: '#e1306c' },
-  { icon: '\u{1F4D8}', label: 'Facebook', color: '#1877f2' },
-  { icon: '\u{1F4E7}', label: 'Newsletter', color: '#f59e0b' },
+const NAV_CATEGORIES = [
+  { icon: '💰', label: 'Finanzas', to: '/explore?categories=finanzas' },
+  { icon: '📈', label: 'Marketing', to: '/explore?categories=marketing' },
+  { icon: '🤖', label: 'Tech', to: '/explore?categories=tecnologia' },
+  { icon: '₿', label: 'Crypto', to: '/explore?categories=cripto' },
+  { icon: '🏥', label: 'Salud', to: '/explore?categories=salud' },
+  { icon: '📚', label: 'Educacion', to: '/explore?categories=educacion' },
+]
+
+const NAV_PLATFORMS = [
+  { icon: '✈️', label: 'Telegram', color: '#2aabee', to: '/explore?platforms=telegram' },
+  { icon: '💬', label: 'WhatsApp', color: '#25d366', to: '/explore?platforms=whatsapp' },
+  { icon: '🎮', label: 'Discord', color: '#5865f2', to: '/explore?platforms=discord' },
+  { icon: '📧', label: 'Newsletter', color: '#f59e0b', to: '/explore?platforms=newsletter' },
 ]
 
 export default function NavBar() {
@@ -55,21 +54,18 @@ export default function NavBar() {
     return () => document.removeEventListener('mousedown', close)
   }, [])
 
-  // Lock body scroll when mobile menu is open
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [mobileOpen])
 
-  // Hide on scroll down, show on scroll up
   useEffect(() => {
-    const threshold = 10
     const onScroll = () => {
       const y = window.scrollY
       if (mobileOpen) { lastScrollY.current = y; return }
-      if (y < 80) { setHeaderVisible(true) }
-      else if (y > lastScrollY.current + threshold) { setHeaderVisible(false); setMegaOpen(false) }
-      else if (y < lastScrollY.current - threshold) { setHeaderVisible(true) }
+      if (y < 80) setHeaderVisible(true)
+      else if (y > lastScrollY.current + 10) { setHeaderVisible(false); setMegaOpen(false) }
+      else if (y < lastScrollY.current - 10) setHeaderVisible(true)
       lastScrollY.current = y
     }
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -85,145 +81,98 @@ export default function NavBar() {
 
   const onLogout = () => { logout(); navigate('/'); setMobileOpen(false) }
   const closeMobile = () => setMobileOpen(false)
-
   const dashboardPath = isCreador ? '/creator' : isAdmin ? '/dashboard' : '/advertiser'
-
-  const navBg = isDark ? 'rgba(5,5,5,0.92)' : 'rgba(255,255,255,0.92)'
-  const navBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
-  const linkColor = isDark ? '#86868b' : '#6e6e73'
-  const linkHover = isDark ? '#f5f5f7' : '#1d1d1f'
-  const logoColor = isDark ? '#f5f5f7' : '#1d1d1f'
-
-  const navLinkStyle = {
-    color: linkColor, textDecoration: 'none',
-    padding: '7px 14px', fontSize: '14px', borderRadius: '8px',
-    transition: 'color .15s, background .15s', fontWeight: 500,
-  }
 
   return (
     <>
-      <header className="nav-header" style={{
-        display: 'flex', alignItems: 'center',
-        padding: '0 clamp(16px, 4vw, 40px)', height: '64px',
-        background: navBg,
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderBottom: `1px solid ${navBorder}`,
-        position: 'sticky', top: 0, zIndex: 100,
-        gap: '8px',
-        transform: headerVisible ? 'translateY(0)' : 'translateY(-100%)',
-        transition: 'transform .35s cubic-bezier(.22,1,.36,1), background .3s, border-color .3s',
-      }}>
-
+      <header
+        className="nav-header"
+        style={{
+          display: 'flex', alignItems: 'center',
+          padding: '0 clamp(16px, 4vw, 40px)', height: '56px',
+          background: 'var(--bg)',
+          borderBottom: '1px solid var(--border)',
+          position: 'sticky', top: 0, zIndex: 100,
+          gap: '8px',
+          transform: headerVisible ? 'translateY(0)' : 'translateY(-100%)',
+          transition: 'transform .3s ease',
+        }}
+      >
         {/* Logo */}
         <Link to="/" style={{
-          fontFamily: "'Sora', sans-serif", fontWeight: 700,
-          fontSize: '20px', letterSpacing: '-0.5px',
-          textDecoration: 'none', color: logoColor,
-          flexShrink: 0, transition: 'opacity .2s',
-          marginRight: '20px',
-        }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-        >
-          Channel<span className="accent-shift-color">ad</span>
+          fontFamily: "var(--font-mono)", fontWeight: 500,
+          fontSize: '16px', letterSpacing: '-0.3px',
+          textDecoration: 'none', color: 'var(--text)',
+          flexShrink: 0, marginRight: '20px',
+        }}>
+          Channel<span style={{ color: 'var(--accent)' }}>ad</span>
         </Link>
 
-        {/* Desktop nav links */}
+        {/* Desktop nav */}
         <div className="nav-desktop-links" style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-          {/* Explorar with mega-menu */}
+          {NAV_LINKS.map(({ to, label }) => (
+            <NavLink
+              key={to} to={to}
+              style={({ isActive }) => ({
+                color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
+                textDecoration: 'none', padding: '6px 12px', fontSize: '13px',
+                fontWeight: 500, borderRadius: '6px', transition: 'color .15s',
+              })}
+            >
+              {label}
+            </NavLink>
+          ))}
+
+          {/* Mega menu trigger */}
           <div ref={megaRef} style={{ position: 'relative' }}>
             <button
               onClick={() => setMegaOpen(!megaOpen)}
               style={{
-                ...navLinkStyle,
-                background: megaOpen ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)') : 'transparent',
-                border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: '5px',
+                color: 'var(--text-secondary)', padding: '6px 12px', fontSize: '13px',
+                fontWeight: 500, borderRadius: '6px', border: 'none', cursor: 'pointer',
+                background: megaOpen ? 'var(--bg3)' : 'transparent',
+                display: 'flex', alignItems: 'center', gap: '4px', transition: 'all .15s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.color = linkHover; e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }}
-              onMouseLeave={e => { if (!megaOpen) { e.currentTarget.style.color = linkColor; e.currentTarget.style.background = 'transparent' } }}
             >
-              Explorar
-              <ChevronDownIcon size={14} />
+              Categorias
+              <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6"/></svg>
             </button>
 
-            {/* Mega menu dropdown */}
             {megaOpen && (
               <div style={{
-                position: 'absolute', top: 'calc(100% + 8px)', left: '-20px',
-                background: isDark ? '#111' : '#fff',
-                border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
-                borderRadius: '14px', padding: '20px',
-                width: '420px',
-                boxShadow: isDark
-                  ? '0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)'
-                  : '0 20px 60px rgba(0,0,0,0.12)',
-                zIndex: 200,
-                display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px',
+                position: 'absolute', top: 'calc(100% + 6px)', left: '-12px',
+                background: 'var(--surface)', border: '1px solid var(--border)',
+                borderRadius: '12px', padding: '16px',
+                width: '380px', boxShadow: 'var(--shadow-xl)', zIndex: 200,
+                display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px',
               }}>
                 <div>
-                  <p style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: PURPLE, marginBottom: '10px' }}>
-                    Categorias
-                  </p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    {EXPLORE_CATEGORIES.map(cat => (
-                      <Link key={cat.label} to={`/marketplace?category=${encodeURIComponent(cat.param)}`}
-                        onClick={() => setMegaOpen(false)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '10px',
-                          padding: '8px 10px', borderRadius: '8px',
-                          fontSize: '13px', color: isDark ? '#ccc' : '#444',
-                          transition: 'background .15s, color .15s', textDecoration: 'none',
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = isDark ? '#fff' : '#000' }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = isDark ? '#ccc' : '#444' }}
-                      >
-                        <span style={{ fontSize: '16px' }}>{cat.icon}</span>
-                        {cat.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: PURPLE, marginBottom: '10px' }}>
-                    Plataformas
-                  </p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    {EXPLORE_PLATFORMS.map(plat => (
-                      <Link key={plat.label} to={`/marketplace?platform=${encodeURIComponent(plat.label)}`}
-                        onClick={() => setMegaOpen(false)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '10px',
-                          padding: '8px 10px', borderRadius: '8px',
-                          fontSize: '13px', color: isDark ? '#ccc' : '#444',
-                          transition: 'background .15s, color .15s', textDecoration: 'none',
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = isDark ? '#fff' : '#000' }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = isDark ? '#ccc' : '#444' }}
-                      >
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: plat.color, flexShrink: 0 }} />
-                        {plat.label}
-                      </Link>
-                    ))}
-                  </div>
-
-                  <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}>
-                    <Link to="/marketplace" onClick={() => setMegaOpen(false)}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: '6px',
-                        fontSize: '13px', fontWeight: 600, color: PURPLE,
-                        padding: '6px 10px', borderRadius: '8px',
-                        transition: 'background .15s', textDecoration: 'none',
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = purpleAlpha(0.08)}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--accent)' }}>Categorias</p>
+                  {NAV_CATEGORIES.map((cat) => (
+                    <Link key={cat.label} to={cat.to} onClick={() => setMegaOpen(false)}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded-md text-[13px] transition-colors hover:bg-[var(--bg3)]"
+                      style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
                     >
-                      Ver todo el marketplace
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
-                      </svg>
+                      <span>{cat.icon}</span> {cat.label}
+                    </Link>
+                  ))}
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--accent)' }}>Plataformas</p>
+                  {NAV_PLATFORMS.map((p) => (
+                    <Link key={p.label} to={p.to} onClick={() => setMegaOpen(false)}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded-md text-[13px] transition-colors hover:bg-[var(--bg3)]"
+                      style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
+                    >
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: p.color }} /> {p.label}
+                    </Link>
+                  ))}
+                  <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+                    <Link to="/explore" onClick={() => setMegaOpen(false)}
+                      className="flex items-center gap-1 px-2 py-1 text-[13px] font-semibold"
+                      style={{ color: 'var(--accent)', textDecoration: 'none' }}
+                    >
+                      Ver todos los canales →
                     </Link>
                   </div>
                 </div>
@@ -231,289 +180,106 @@ export default function NavBar() {
             )}
           </div>
 
-          {/* Blog link — uses <a> for full page load (static HTML, not SPA) */}
-          <a href="/blog" style={{
-            textDecoration: 'none', padding: '7px 16px',
-            fontSize: '13px', fontWeight: 600, borderRadius: '9px',
-            color: '#b45309',
-            background: isDark ? 'rgba(180,83,9,0.1)' : 'rgba(180,83,9,0.06)',
-            border: `1px solid ${isDark ? 'rgba(180,83,9,0.2)' : 'rgba(180,83,9,0.12)'}`,
-            transition: 'all .15s',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.background = isDark ? 'rgba(180,83,9,0.18)' : 'rgba(180,83,9,0.1)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = isDark ? 'rgba(180,83,9,0.1)' : 'rgba(180,83,9,0.06)'; e.currentTarget.style.transform = 'none' }}
-          >Blog</a>
+          <a href="/blog" className="text-[13px] font-medium px-3 py-1.5 rounded-md" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Blog</a>
         </div>
 
-        {/* Global search bar */}
-        <div className="nav-search-bar" style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0 16px', minWidth: 0 }}>
+        {/* Search */}
+        <div className="nav-search-bar" style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0 12px', minWidth: 0 }}>
           <GlobalSearchBar />
         </div>
 
-        {/* Para Marcas / Para Creadores — always visible */}
-        <div className="nav-audience-buttons" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <NavLink to="/para-anunciantes" style={{
-            textDecoration: 'none', padding: '7px 16px',
-            fontSize: '13px', fontWeight: 600, borderRadius: '9px',
-            color: PURPLE,
-            background: isDark ? 'rgba(139,92,246,0.1)' : 'rgba(124,58,237,0.06)',
-            border: `1px solid ${isDark ? 'rgba(139,92,246,0.2)' : 'rgba(124,58,237,0.12)'}`,
-            transition: 'all .15s',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.background = isDark ? 'rgba(139,92,246,0.18)' : 'rgba(124,58,237,0.1)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = isDark ? 'rgba(139,92,246,0.1)' : 'rgba(124,58,237,0.06)'; e.currentTarget.style.transform = 'none' }}
-          >Para Marcas</NavLink>
-          <NavLink to="/para-canales" style={{
-            textDecoration: 'none', padding: '7px 16px',
-            fontSize: '13px', fontWeight: 600, borderRadius: '9px',
-            color: GREEN,
-            background: isDark ? 'rgba(37,211,102,0.1)' : 'rgba(37,211,102,0.06)',
-            border: `1px solid ${isDark ? 'rgba(37,211,102,0.2)' : 'rgba(37,211,102,0.12)'}`,
-            transition: 'all .15s',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.background = isDark ? 'rgba(37,211,102,0.18)' : 'rgba(37,211,102,0.1)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = isDark ? 'rgba(37,211,102,0.1)' : 'rgba(37,211,102,0.06)'; e.currentTarget.style.transform = 'none' }}
-          >Para Creadores</NavLink>
-        </div>
-
-        {/* Desktop right side */}
-        <nav className="nav-desktop-right" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '8px' }}>
+        {/* Right side */}
+        <nav className="nav-desktop-right" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <button onClick={toggleTheme} title={isDark ? 'Modo claro' : 'Modo oscuro'} style={{
-            width: '36px', height: '36px', borderRadius: '10px',
-            background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
-            border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+            width: '32px', height: '32px', borderRadius: '8px',
+            background: 'var(--bg3)', border: '1px solid var(--border)',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '15px', transition: 'background .2s, border-color .2s',
-          }}
-            onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}
-            onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'}
-          >
-            {isDark ? '\u2600\uFE0F' : '\u{1F319}'}
+            fontSize: '14px', transition: 'all .15s',
+          }}>
+            {isDark ? '☀️' : '🌙'}
           </button>
 
           {isAuthenticated ? (
             <>
               <NavLink to={dashboardPath}
-                style={({ isActive }) => ({ ...navLinkStyle, color: isActive ? PURPLE : linkColor })}>
-                Dashboard
-              </NavLink>
-              <span style={{ color: linkColor, padding: '6px 8px', fontSize: '13px', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {user?.nombre || user?.email?.split('@')[0] || user?.email}
-              </span>
-              <button onClick={onLogout} style={{
-                border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)'}`,
-                borderRadius: '8px', padding: '7px 16px',
-                background: 'transparent', cursor: 'pointer',
-                fontSize: '13px', fontWeight: 500, color: linkColor,
-                transition: 'color .15s, border-color .15s, background .15s',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = linkHover }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = linkColor }}
+                className="text-[13px] font-medium px-3 py-1.5 rounded-md"
+                style={({ isActive }) => ({ color: isActive ? 'var(--accent)' : 'var(--text-secondary)', textDecoration: 'none' })}
+              >Dashboard</NavLink>
+              <button onClick={onLogout} className="text-[13px] font-medium px-3 py-1.5 rounded-md"
+                style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}
               >Salir</button>
             </>
           ) : (
             <>
-              <NavLink to="/auth/login" style={navLinkStyle}
-                onMouseEnter={e => e.currentTarget.style.color = linkHover}
-                onMouseLeave={e => e.currentTarget.style.color = linkColor}
-              >Iniciar sesion</NavLink>
-              <NavLink to="/auth/register" className="cta-shift" style={{
-                color: '#fff', textDecoration: 'none', padding: '8px 20px',
-                borderRadius: '10px', fontSize: '14px', fontWeight: 600,
-                transition: 'transform .15s',
-              }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
-                onMouseLeave={e => e.currentTarget.style.transform = 'none'}
-              >Empezar gratis</NavLink>
+              <Link to="/auth/login" className="text-[13px] font-medium px-3 py-1.5 rounded-md"
+                style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
+              >Iniciar sesion</Link>
+              <Link to="/auth/register" className="text-[13px] font-semibold px-4 py-2 rounded-lg"
+                style={{ background: 'var(--accent)', color: '#080C10', textDecoration: 'none', transition: 'all .15s' }}
+              >Registrarse</Link>
             </>
           )}
         </nav>
 
-        {/* Mobile: theme toggle + hamburger */}
-        <div className="nav-mobile-buttons" style={{ display: 'none', alignItems: 'center', gap: '6px' }}>
-          <button onClick={toggleTheme} style={{
-            width: '36px', height: '36px', borderRadius: '10px',
-            background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
-            border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '15px',
-          }}>
-            {isDark ? '\u2600\uFE0F' : '\u{1F319}'}
-          </button>
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Menu"
-            style={{
-              width: '40px', height: '40px', borderRadius: '10px',
-              background: mobileOpen ? (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)') : 'transparent',
-              border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: isDark ? '#f5f5f7' : '#1d1d1f',
-              transition: 'background .15s',
-            }}
-          >
-            {mobileOpen ? <XIcon size={20} /> : <MenuIcon size={20} />}
-          </button>
-        </div>
+        {/* Mobile hamburger */}
+        <button className="nav-mobile-toggle" onClick={() => setMobileOpen(!mobileOpen)}
+          style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text)', padding: '4px' }}
+        >
+          {mobileOpen ? <XIcon /> : <MenuIcon />}
+        </button>
       </header>
 
-      {/* Mobile drawer overlay */}
+      {/* Mobile drawer */}
       {mobileOpen && (
-        <div
-          onClick={closeMobile}
-          style={{
-            position: 'fixed', inset: 0, top: '64px',
-            background: 'rgba(0,0,0,0.4)',
-            zIndex: 99, animation: 'fadeIn .2s ease',
-          }}
-        />
+        <div className="fixed inset-0 z-[99]">
+          <div className="absolute inset-0 bg-black/50" onClick={closeMobile} />
+          <div className="absolute top-0 right-0 w-[280px] h-full overflow-y-auto p-5 flex flex-col gap-1"
+            style={{ background: 'var(--surface)', borderLeft: '1px solid var(--border)' }}
+          >
+            <div className="flex justify-end mb-4">
+              <button onClick={closeMobile} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}><XIcon /></button>
+            </div>
+
+            {NAV_LINKS.map(({ to, label }) => (
+              <Link key={to} to={to} onClick={closeMobile}
+                className="block px-3 py-2.5 rounded-md text-[15px] font-medium"
+                style={{ color: 'var(--text)', textDecoration: 'none' }}
+              >{label}</Link>
+            ))}
+            <a href="/blog" onClick={closeMobile} className="block px-3 py-2.5 rounded-md text-[15px] font-medium" style={{ color: 'var(--text)', textDecoration: 'none' }}>Blog</a>
+
+            <div className="my-3" style={{ borderTop: '1px solid var(--border)' }} />
+
+            <p className="px-3 text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--accent)' }}>Categorias</p>
+            {NAV_CATEGORIES.map((cat) => (
+              <Link key={cat.label} to={cat.to} onClick={closeMobile}
+                className="flex items-center gap-2 px-3 py-2 rounded-md text-sm"
+                style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
+              ><span>{cat.icon}</span> {cat.label}</Link>
+            ))}
+
+            <div className="my-3" style={{ borderTop: '1px solid var(--border)' }} />
+
+            {isAuthenticated ? (
+              <>
+                <Link to={dashboardPath} onClick={closeMobile} className="block px-3 py-2.5 rounded-md text-[15px] font-medium" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Mi Dashboard</Link>
+                <button onClick={onLogout} className="text-left px-3 py-2.5 rounded-md text-[15px] font-medium" style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}>Cerrar sesion</button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth/login" onClick={closeMobile} className="block px-3 py-2.5 rounded-md text-[15px] font-medium" style={{ color: 'var(--text)', textDecoration: 'none' }}>Iniciar sesion</Link>
+                <Link to="/auth/register" onClick={closeMobile} className="block px-3 py-2.5 rounded-lg text-[15px] font-semibold text-center mt-2" style={{ background: 'var(--accent)', color: '#080C10', textDecoration: 'none' }}>Registrarse</Link>
+              </>
+            )}
+          </div>
+        </div>
       )}
 
-      {/* Mobile drawer */}
-      <div
-        className="nav-mobile-drawer"
-        style={{
-          position: 'fixed', top: '64px', right: 0,
-          width: '100%', maxWidth: '320px',
-          height: 'calc(100vh - 64px)',
-          background: isDark ? '#0a0a0a' : '#fff',
-          borderLeft: `1px solid ${navBorder}`,
-          zIndex: 100,
-          transform: mobileOpen ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform .3s cubic-bezier(.22,1,.36,1)',
-          overflowY: 'auto', WebkitOverflowScrolling: 'touch',
-          display: 'flex', flexDirection: 'column',
-          padding: '8px 0',
-        }}
-      >
-        {/* Audience CTAs at top of drawer */}
-        <div style={{ padding: '8px 16px 16px', display: 'flex', gap: '8px' }}>
-          <Link to="/para-anunciantes" onClick={closeMobile}
-            style={{
-              flex: 1, textAlign: 'center', padding: '12px 8px', borderRadius: '12px',
-              fontSize: '13px', fontWeight: 600, textDecoration: 'none',
-              color: PURPLE,
-              background: isDark ? 'rgba(139,92,246,0.1)' : 'rgba(124,58,237,0.06)',
-              border: `1px solid ${isDark ? 'rgba(139,92,246,0.2)' : 'rgba(124,58,237,0.12)'}`,
-            }}>
-            Para Marcas
-          </Link>
-          <Link to="/para-canales" onClick={closeMobile}
-            style={{
-              flex: 1, textAlign: 'center', padding: '12px 8px', borderRadius: '12px',
-              fontSize: '13px', fontWeight: 600, textDecoration: 'none',
-              color: GREEN,
-              background: isDark ? 'rgba(37,211,102,0.1)' : 'rgba(37,211,102,0.06)',
-              border: `1px solid ${isDark ? 'rgba(37,211,102,0.2)' : 'rgba(37,211,102,0.12)'}`,
-            }}>
-            Para Creadores
-          </Link>
-        </div>
-
-        <div style={{ height: '1px', background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', margin: '0 16px 8px' }} />
-
-        {/* Nav links */}
-        <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <p style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: PURPLE, padding: '8px 12px' }}>
-            Explorar
-          </p>
-          {EXPLORE_CATEGORIES.map(cat => (
-            <Link key={cat.label} to={`/marketplace?category=${encodeURIComponent(cat.param)}`}
-              onClick={closeMobile}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '12px',
-                padding: '10px 12px', borderRadius: '10px',
-                fontSize: '14px', color: isDark ? '#ccc' : '#444',
-                textDecoration: 'none', transition: 'background .15s',
-              }}
-            >
-              <span style={{ fontSize: '16px' }}>{cat.icon}</span>
-              {cat.label}
-            </Link>
-          ))}
-
-          <div style={{ height: '1px', background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', margin: '8px 12px' }} />
-
-          <p style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: PURPLE, padding: '8px 12px' }}>
-            Plataformas
-          </p>
-          {EXPLORE_PLATFORMS.map(plat => (
-            <Link key={plat.label} to={`/marketplace?platform=${encodeURIComponent(plat.label)}`}
-              onClick={closeMobile}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '12px',
-                padding: '10px 12px', borderRadius: '10px',
-                fontSize: '14px', color: isDark ? '#ccc' : '#444',
-                textDecoration: 'none',
-              }}
-            >
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: plat.color, flexShrink: 0 }} />
-              {plat.label}
-            </Link>
-          ))}
-        </div>
-
-        {/* Spacer */}
-        <div style={{ flex: 1 }} />
-
-        {/* Auth section at bottom */}
-        <div style={{ padding: '16px', borderTop: `1px solid ${navBorder}` }}>
-          {isAuthenticated ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <span style={{ fontSize: '13px', color: linkColor, padding: '4px 0' }}>
-                {user?.nombre || user?.email?.split('@')[0] || user?.email}
-              </span>
-              <Link to={dashboardPath} onClick={closeMobile}
-                style={{
-                  display: 'block', textAlign: 'center',
-                  padding: '12px', borderRadius: '10px',
-                  background: purpleAlpha(0.1), color: PURPLE,
-                  fontSize: '14px', fontWeight: 600, textDecoration: 'none',
-                }}>
-                Dashboard
-              </Link>
-              <button onClick={onLogout} style={{
-                width: '100%', padding: '12px', borderRadius: '10px',
-                border: `1px solid ${navBorder}`, background: 'transparent',
-                fontSize: '14px', fontWeight: 500, color: linkColor,
-                cursor: 'pointer',
-              }}>
-                Salir
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Link to="/auth/register" onClick={closeMobile}
-                className="cta-shift"
-                style={{
-                  display: 'block', textAlign: 'center',
-                  color: '#fff', padding: '13px', borderRadius: '10px',
-                  fontSize: '14px', fontWeight: 600, textDecoration: 'none',
-                }}>
-                Empezar gratis
-              </Link>
-              <Link to="/auth/login" onClick={closeMobile}
-                style={{
-                  display: 'block', textAlign: 'center',
-                  padding: '12px', borderRadius: '10px',
-                  border: `1px solid ${navBorder}`,
-                  fontSize: '14px', fontWeight: 500, color: linkColor,
-                  textDecoration: 'none',
-                }}>
-                Iniciar sesion
-              </Link>
-            </div>
-          )}
-        </div>
-      </div>
-
+      {/* Mobile styles */}
       <style>{`
-        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
         @media (max-width: 768px) {
-          .nav-desktop-links { display: none !important; }
-          .nav-desktop-right { display: none !important; }
-          .nav-mobile-buttons { display: flex !important; }
-          .nav-audience-buttons { display: none !important; }
+          .nav-desktop-links, .nav-desktop-right, .nav-search-bar, .nav-audience-buttons { display: none !important; }
+          .nav-mobile-toggle { display: flex !important; }
         }
       `}</style>
     </>
