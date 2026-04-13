@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { CheckCircle, Copy, Loader2, ShieldCheck, ArrowRight } from 'lucide-react'
-import { useAuth } from '../../auth/AuthContext'
+import { useAuth } from '../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { C } from '../../theme/tokens'
 
