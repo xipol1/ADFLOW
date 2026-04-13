@@ -247,6 +247,18 @@ class ApiService {
     return this.request(`/channels/username/${encodeURIComponent(username)}`, { auth: false });
   }
 
+  async initClaim(canalId) {
+    return this.request(`/canales/${canalId}/claim/init`, { method: 'POST' });
+  }
+
+  async verifyClaim(canalId) {
+    return this.request(`/canales/${canalId}/claim/verify`, { method: 'POST' });
+  }
+
+  async myClaimedChannels() {
+    return this.request('/canales/claimed/mine');
+  }
+
   async getChannelRankings(categoria = '', limit = 20) {
     const params = new URLSearchParams();
     if (categoria && categoria !== 'all') params.set('categoria', categoria);

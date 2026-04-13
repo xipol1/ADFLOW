@@ -87,6 +87,12 @@ const CanalSchema = new mongoose.Schema(
     idioma: { type: String, default: 'es' },
     verificado: { type: Boolean, default: false, index: true },
 
+    // ── Claim system (unclaimed → claimed by channel admin) ──
+    claimed: { type: Boolean, default: false, index: true },
+    claimedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', default: null },
+    claimedAt: { type: Date, default: null },
+    claimToken: { type: String, default: null },
+
     // ── Bot admin config (auto-onboarding) ──
     botConfig: {
       ultimaSync: Date,

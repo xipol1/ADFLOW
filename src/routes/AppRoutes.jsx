@@ -12,6 +12,7 @@ import ChannelExplorerPage from '../ui/pages/channel/ChannelExplorerPage'
 import NicheIntelligencePage from '../ui/pages/niche/NicheIntelligencePage'
 import RankingsPage from '../ui/pages/rankings/RankingsPage'
 import CandidatesReviewPage from '../ui/pages/admin/CandidatesReviewPage'
+import ClaimChannelPage from '../ui/pages/claim/ClaimChannelPage'
 import { useAuth } from '../auth/AuthContext'
 
 // Advertiser dashboard suite
@@ -75,6 +76,7 @@ export default function AppRoutes() {
         <Route path="niche/:nicho" element={<NicheIntelligencePage />} /> {/* Public niche market intelligence */}
         <Route path="rankings" element={<RankingsPage />} /> {/* Public channel rankings */}
         <Route path="explore" element={<ExplorePage />} /> {/* Public explore directory */}
+        <Route path="claim/:id" element={<ClaimChannelPage />} /> {/* Claim channel ownership */}
         <Route
           path="auth"
           element={isAuthenticated && user?.emailVerificado !== false ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth/login" replace />}

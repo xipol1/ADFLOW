@@ -8,6 +8,10 @@ const router = express.Router();
 
 router.get('/', autenticar, canalController.obtenerMisCanales);
 
+// ── Claim: my claimed channels (before /:id to avoid param matching) ──
+const claimController = require('../controllers/claimController');
+router.get('/claimed/mine', autenticar, claimController.myClaimedChannels);
+
 router.get(
   '/:id',
   [param('id').isMongoId().withMessage('ID inválido')],
@@ -56,5 +60,24 @@ router.put(
   validarCampos,
   channelsController.updateChannelAvailability
 );
+
+// ── Claim: init + verify ──
+router.post(
+  '/:id/claim/init',
+  autenticar,
+  [param('id').isMongoId().withMessage('ID inválido')],
+  validarCampos,
+  claimController.initClaim
+);
+
+router.post(
+  '/:id/claim/verify',
+  autenticar,
+  [param('id').isMongoId().withMessage('ID inválido')],
+  validarCampos,
+  claimController.verifyClaim
+);
+
+router.get('/claimed/mine', autenticar, claimController.myClaimedChannels);
 
 module.exports = router;

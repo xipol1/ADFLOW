@@ -788,6 +788,50 @@ export default function ChannelExplorerPage() {
         </Card>
       </div>
 
+      {/* ── CLAIM BANNER (unclaimed channels) ──────────────────── */}
+      {canal && !canal.claimed && (
+        <div
+          style={{
+            background: `${C.teal}08`,
+            border: `1px solid ${C.teal}25`,
+            borderRadius: 14,
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            marginBottom: 16,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: C.t1, marginBottom: 2 }}>
+              Eres el admin de este canal?
+            </div>
+            <div style={{ fontSize: 12, color: C.t3 }}>
+              Reclamalo para gestionar tu publicidad y acceder al dashboard
+            </div>
+          </div>
+          <button
+            onClick={() => navigate(`/claim/${canal.id}`)}
+            style={{
+              padding: '8px 20px',
+              borderRadius: 8,
+              border: `1px solid ${C.teal}`,
+              background: 'transparent',
+              color: C.teal,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Reclamar este canal
+          </button>
+        </div>
+      )}
+
       {/* ── CTA ─────────────────────────────────────────────────── */}
       <div className="text-center" style={{ marginTop: 32, marginBottom: 16 }}>
         <button
