@@ -2,14 +2,15 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Plus, Edit, Trash2, CheckCircle, Users, TrendingUp, Calendar,
-  DollarSign, Clock, Settings, ChevronLeft, ChevronRight, X, Save,
+  DollarSign, Clock, ChevronLeft, ChevronRight, X, Save,
   BarChart3, Eye, Zap, Globe, Instagram, Youtube, Twitter, Link2,
-  Star, Shield, AlertCircle, ArrowUpRight, Tag,
+  AlertCircle, Tag,
 } from 'lucide-react'
 import { PLATFORM_COLORS } from './mockDataCreator'
 import apiService from '../../../../../services/api'
-import { PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK as _OK, WARN, ERR, BLUE } from '../../../theme/tokens'
+import { FONT_BODY, FONT_DISPLAY, OK as _OK, WARN, ERR, BLUE } from '../../../theme/tokens'
 import ChannelCard from '../../../components/ChannelCard'
+import ChannelHistoryChart from '../../../components/ChannelHistoryChart'
 
 // Map the creator-side channel payload to the canonical shape the
 // scoring ChannelCard expects. Fields that don't exist in the API
@@ -109,73 +110,6 @@ const ScoreBar = ({ score, color = A, label }) => (
   </div>
 )
 
-// ─── Add Channel Modal (kept simple) ────────────────────────────────────────
-const AddModal = ({ onClose, onCreated }) => {
-  const [step, setStep] = useState(1)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-  const [form, setForm] = useState({ name: '', platform: 'Telegram', url: '', audience: '', price: '', category: 'Tecnologia', desc: '' })
-  const update = (k, v) => setForm(p => ({ ...p, [k]: v }))
-
-  const handleSubmit = async () => {
-    if (!form.name.trim()) { setError('El nombre es obligatorio'); return }
-    if (!form.price) { setError('El precio es obligatorio'); return }
-    setSaving(true); setError('')
-    try {
-      const res = await apiService.createChannel({
-        nombreCanal: form.name.trim(), plataforma: form.platform.toLowerCase(),
-        identificadorCanal: form.url.trim(), categoria: form.category,
-        descripcion: form.desc.trim(), precio: Number(form.price),
-        estadisticas: { seguidores: Number(form.audience) || 0 },
-      })
-      if (res?.success) { onCreated?.(); onClose() }
-      else setError(res?.message || 'Error al crear el canal')
-    } catch (e) { setError(e?.message || 'Error de conexion') }
-    finally { setSaving(false) }
-  }
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(4px)' }}>
-      <div style={{ background: 'var(--surface)', borderRadius: '20px', width: '100%', maxWidth: '500px', overflow: 'hidden', boxShadow: '0 24px 60px rgba(0,0,0,0.4)', animation: 'cc-in .2s ease' }}>
-        <style>{`@keyframes cc-in { from { opacity:0; transform:translateY(12px) scale(.97) } to { opacity:1; transform:none } }`}</style>
-        <div style={{ padding: '22px 28px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontFamily: D, fontSize: '17px', fontWeight: 700, color: 'var(--text)' }}>Registrar canal</div>
-            <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>Paso {step} de 2</div>
-          </div>
-          <button onClick={onClose} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 10px', cursor: 'pointer', color: 'var(--muted)', fontFamily: F }}>✕</button>
-        </div>
-        <div style={{ display: 'flex', padding: '14px 28px', gap: '8px' }}>
-          {['Informacion', 'Monetizacion'].map((s, i) => (
-            <div key={i} style={{ flex: 1 }}><div style={{ height: '3px', borderRadius: '2px', background: step > i ? A : 'var(--border)', marginBottom: '4px' }} /><span style={{ fontSize: '10px', color: step > i ? A : 'var(--muted2)' }}>{s}</span></div>
-          ))}
-        </div>
-        <div style={{ padding: '8px 28px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {error && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: ER }}>{error}</div>}
-          {step === 1 && <>
-            <div><label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>Nombre del canal *</label><input value={form.name} onChange={e => update('name', e.target.value)} placeholder="Ej: Tech Insights ES" style={inp} /></div>
-            <div><label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>Plataforma *</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>{PLATFORMS.map(p => <button key={p} onClick={() => update('platform', p)} style={{ background: form.platform === p ? A : 'var(--bg)', border: `1px solid ${form.platform === p ? A : 'var(--border)'}`, borderRadius: '20px', padding: '6px 12px', fontSize: '12px', color: form.platform === p ? '#fff' : 'var(--muted)', cursor: 'pointer', fontFamily: F }}>{p}</button>)}</div>
-            </div>
-            <div><label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>URL / enlace</label><input value={form.url} onChange={e => update('url', e.target.value)} placeholder="https://t.me/tucanal" style={inp} /></div>
-            <div><label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>Audiencia actual</label><input type="number" value={form.audience} onChange={e => update('audience', e.target.value)} placeholder="15000" style={inp} /></div>
-          </>}
-          {step === 2 && <>
-            <div><label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>Precio base por publicacion (€) *</label><input type="number" value={form.price} onChange={e => update('price', e.target.value)} placeholder="250" style={inp} /></div>
-            <div><label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>Categoria</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>{CATEGORIES.map(c => <button key={c} onClick={() => update('category', c)} style={{ background: form.category === c ? A : 'var(--bg)', border: `1px solid ${form.category === c ? A : 'var(--border)'}`, borderRadius: '20px', padding: '6px 12px', fontSize: '12px', color: form.category === c ? '#fff' : 'var(--muted)', cursor: 'pointer', fontFamily: F }}>{c}</button>)}</div>
-            </div>
-            <div><label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>Descripcion</label><textarea value={form.desc} onChange={e => update('desc', e.target.value)} placeholder="Describe tu canal, audiencia y tipo de contenido..." rows={3} style={{ ...inp, resize: 'none' }} /></div>
-          </>}
-        </div>
-        <div style={{ padding: '16px 28px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-          <button onClick={() => step > 1 ? setStep(1) : onClose()} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '10px', padding: '10px 20px', fontSize: '13px', cursor: 'pointer', color: 'var(--text)', fontFamily: F }}>{step > 1 ? '← Volver' : 'Cancelar'}</button>
-          <button onClick={() => step < 2 ? setStep(2) : handleSubmit()} disabled={saving} style={{ background: saving ? AG(0.5) : A, color: '#fff', border: 'none', borderRadius: '10px', padding: '10px 24px', fontSize: '13px', fontWeight: 600, cursor: saving ? 'wait' : 'pointer', fontFamily: F }}>{step === 2 ? (saving ? 'Enviando...' : 'Registrar canal') : 'Siguiente →'}</button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CHANNEL DETAIL PANEL (Profile + Availability + Insights — Premium)
@@ -183,7 +117,7 @@ const AddModal = ({ onClose, onCreated }) => {
 const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
   const [tab, setTab] = useState('score')
   const [saving, setSaving] = useState(false)
-  const [toast, setToast] = useState('')
+  const [toast, setToast] = useState({ msg: '', ok: true })
 
   // ── Profile state ──
   const [profileForm, setProfileForm] = useState({
@@ -266,7 +200,7 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
     return days
   }, [calYear, calMonth, enabledDays, dayPricing, blockedDates, channel.precio])
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
+  const showToast = (msg, ok = true) => { setToast({ msg, ok }); setTimeout(() => setToast({ msg: '', ok: true }), 2500) }
 
   // ── Save profile ──
   const saveProfile = async () => {
@@ -293,8 +227,8 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
         },
       })
       if (res?.success) { showToast('Perfil guardado'); onUpdated?.() }
-      else showToast('Error: ' + (res?.message || 'No se pudo guardar'))
-    } catch { showToast('Error de conexion') }
+      else showToast('Error: ' + (res?.message || 'No se pudo guardar'), false)
+    } catch { showToast('Error de conexion', false) }
     finally { setSaving(false) }
   }
 
@@ -318,8 +252,8 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
         allowPacks,
       })
       if (res?.success) { showToast('Disponibilidad guardada'); onUpdated?.() }
-      else showToast('Error: ' + (res?.message || 'No se pudo guardar'))
-    } catch { showToast('Error de conexion') }
+      else showToast('Error: ' + (res?.message || 'No se pudo guardar'), false)
+    } catch { showToast('Error de conexion', false) }
     finally { setSaving(false) }
   }
 
@@ -329,8 +263,8 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
     try {
       const res = await apiService.updateChannelInsights(channel._id || channel.id, { insightsDias: insights })
       if (res?.success) { showToast('Insights guardados'); onUpdated?.() }
-      else showToast('Error')
-    } catch { showToast('Error de conexion') }
+      else showToast('Error al guardar insights', false)
+    } catch { showToast('Error de conexion', false) }
     finally { setSaving(false) }
   }
 
@@ -354,11 +288,6 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
   }
 
   const removeTag = (tag) => setProfileForm(p => ({ ...p, tags: p.tags.filter(t => t !== tag) }))
-
-  const bestDay = useMemo(() => {
-    const sorted = [...insights].sort((a, b) => b.score - a.score)
-    return sorted[0]?.score > 0 ? sorted[0] : null
-  }, [insights])
 
   const avgPrice = useMemo(() => {
     const enabled = Object.values(dayPricing).filter(v => v.enabled)
@@ -399,8 +328,8 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
         setScoreData(prev => ({ ...prev, ...res.data }))
         showToast('Score recalculado con datos en tiempo real')
         onUpdated?.()
-      } else showToast('Error: ' + (res?.message || 'No se pudo calcular'))
-    } catch { showToast('Error de conexion') }
+      } else showToast('Error: ' + (res?.message || 'No se pudo calcular'), false)
+    } catch { showToast('Error de conexion', false) }
     finally { setScoreLoading(false) }
   }
 
@@ -430,8 +359,8 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
       if (res?.success) {
         showToast(res.data?.canal ? 'Plataforma conectada — datos en tiempo real' : 'Conexion exitosa')
         onUpdated?.()
-      } else showToast('Error: ' + (res?.message || 'No se pudo conectar'))
-    } catch { showToast('Error de conexion') }
+      } else showToast('Error: ' + (res?.message || 'No se pudo conectar'), false)
+    } catch { showToast('Error de conexion', false) }
     finally { setScoreLoading(false) }
   }
 
@@ -455,9 +384,9 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
       `}</style>
 
       {/* ── Toast ── */}
-      {toast && (
-        <div style={{ position: 'fixed', bottom: '28px', right: '28px', background: 'var(--surface)', border: `1px solid ${AG(0.3)}`, borderRadius: '12px', padding: '12px 20px', fontSize: '13px', fontWeight: 600, color: 'var(--text)', boxShadow: `0 8px 30px rgba(0,0,0,0.25)`, zIndex: 2000, animation: 'toast-in .2s ease', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <CheckCircle size={14} color={OK} /> {toast}
+      {toast.msg && (
+        <div style={{ position: 'fixed', bottom: '28px', right: '28px', background: 'var(--surface)', border: `1px solid ${toast.ok ? AG(0.3) : `${ER}30`}`, borderRadius: '12px', padding: '12px 20px', fontSize: '13px', fontWeight: 600, color: 'var(--text)', boxShadow: `0 8px 30px rgba(0,0,0,0.25)`, zIndex: 2000, animation: 'toast-in .2s ease', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {toast.ok ? <CheckCircle size={14} color={OK} /> : <AlertCircle size={14} color={ER} />} {toast.msg}
         </div>
       )}
 
@@ -499,16 +428,17 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
       </div>
 
       {/* ── Tabs ── */}
-      <div style={{ display: 'flex', gap: '4px', marginBottom: '18px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '4px' }}>
+      <div style={{ display: 'flex', gap: '4px', marginBottom: '18px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '4px', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+        <style>{`.cc-tabs::-webkit-scrollbar { display: none; }`}</style>
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '10px 12px', borderRadius: '9px', border: 'none', cursor: 'pointer',
+            flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+            padding: '10px 14px', borderRadius: '9px', border: 'none', cursor: 'pointer',
             background: tab === t.key ? 'var(--surface)' : 'transparent',
             color: tab === t.key ? A : 'var(--muted)',
             fontSize: '13px', fontWeight: tab === t.key ? 700 : 500, fontFamily: F,
             boxShadow: tab === t.key ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-            transition: 'all .15s',
+            transition: 'all .15s', whiteSpace: 'nowrap',
           }}>
             <t.icon size={14} /> {t.label}
           </button>
@@ -547,9 +477,9 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
               })()}
 
               {/* Score breakdown — v2 (CAF/CTF/CER/CVS/CAP) with v1 fallback */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
                 {[
-                  { label: 'CAF', fullLabel: 'Atención', value: channel.CAF || scoreData?.scores?.attention || 0, weight: '15%', color: 'var(--accent)' },
+                  { label: 'CAF', fullLabel: 'Atencion', value: channel.CAF || scoreData?.scores?.attention || 0, weight: '15%', color: 'var(--accent)' },
                   { label: 'CTF', fullLabel: 'Confianza', value: channel.CTF || scoreData?.scores?.trust || 0, weight: '25%', color: '#10b981' },
                   { label: 'CER', fullLabel: 'Engagement', value: channel.CER || scoreData?.scores?.intent || 0, weight: '20%', color: '#3b82f6' },
                   { label: 'CVS', fullLabel: 'Velocidad', value: channel.CVS || scoreData?.scores?.liquidity || 0, weight: '10%', color: '#f59e0b' },
@@ -1231,28 +1161,10 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
                 ))}
               </div>
 
-              {/* Monthly earnings mini chart */}
+              {/* Channel growth chart */}
               <div style={{ background: 'var(--bg)', borderRadius: '12px', padding: '16px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', marginBottom: '12px' }}>Ganancias mensuales</div>
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '80px' }}>
-                  {(() => {
-                    const months = []
-                    const n = new Date()
-                    for (let i = 5; i >= 0; i--) {
-                      const d = new Date(n.getFullYear(), n.getMonth() - i, 1)
-                      months.push({ label: d.toLocaleDateString('es', { month: 'short' }), value: Math.round(Math.random() * (channel.estadisticas?.ingresosTotales || 500) / 6) })
-                    }
-                    const max = Math.max(...months.map(m => m.value), 1)
-                    return months.map((m, j) => (
-                      <div key={j} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', height: '100%' }}>
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', width: '100%' }}>
-                          <div style={{ width: '100%', borderRadius: '4px 4px 0 0', minHeight: '3px', height: `${(m.value / max) * 100}%`, background: j === months.length - 1 ? '#25d366' : `#25d36640`, transition: 'height .3s' }} />
-                        </div>
-                        <span style={{ fontSize: '9px', color: 'var(--muted)' }}>{m.label}</span>
-                      </div>
-                    ))
-                  })()}
-                </div>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', marginBottom: '12px' }}>Evolucion del canal</div>
+                <ChannelHistoryChart channelId={channel._id || channel.id} days={30} height={180} />
               </div>
 
               {/* Recent campaign history for this channel */}
@@ -1291,8 +1203,8 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
                 try {
                   const res = await apiService.deleteChannel(channel._id || channel.id)
                   if (res?.success) { showToast('Canal eliminado'); onBack?.(); onUpdated?.() }
-                  else showToast('Error: ' + (res?.message || 'No se pudo eliminar'))
-                } catch { showToast('Error de conexion al eliminar') }
+                  else showToast('Error: ' + (res?.message || 'No se pudo eliminar'), false)
+                } catch { showToast('Error de conexion al eliminar', false) }
               }} style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 background: 'transparent', border: `1.5px solid ${ER}40`, borderRadius: '10px',
@@ -1378,7 +1290,18 @@ export default function CreatorChannelsPage() {
 
       {/* Channel cards */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--muted)', fontSize: '14px' }}>Cargando canales...</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} className="animate-pulse" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--bg)' }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ height: 14, width: '40%', background: 'var(--bg)', borderRadius: 6, marginBottom: 8 }} />
+                <div style={{ height: 10, width: '60%', background: 'var(--bg)', borderRadius: 4 }} />
+              </div>
+              <div style={{ width: 60, height: 24, background: 'var(--bg)', borderRadius: 999 }} />
+            </div>
+          ))}
+        </div>
       ) : channels.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px' }}>
           <div style={{ fontSize: '40px', marginBottom: '12px' }}>📡</div>
@@ -1389,12 +1312,12 @@ export default function CreatorChannelsPage() {
           </button>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '14px' }}>
           {channels.map((ch) => (
             <ChannelCard
               key={ch._id || ch.id}
               canal={mapCreatorChannel(ch)}
-              variant="compact"
+              variant="standard"
               mode="creator"
               disponible={(ch.disponibilidad?.diasSemana?.length || 0) > 0}
               onSelect={() => setSelectedChannel(ch)}
@@ -1405,18 +1328,21 @@ export default function CreatorChannelsPage() {
           {/* Add card */}
           <button onClick={() => goToRegister()} style={{
             background: 'transparent', border: `2px dashed ${AG(0.3)}`, borderRadius: '16px',
-            padding: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            gap: '10px', color: A, fontFamily: F, fontSize: '14px', fontWeight: 600, transition: 'all .15s',
+            padding: '32px 24px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: '10px', color: A, fontFamily: F, fontSize: '14px', fontWeight: 600, transition: 'all .15s', minHeight: '180px',
           }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = A; e.currentTarget.style.background = AG(0.04) }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = AG(0.3); e.currentTarget.style.background = 'transparent' }}
           >
-            <Plus size={18} /> Añadir nuevo canal
+            <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: AG(0.08), display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
+              <Plus size={22} color={A} />
+            </div>
+            Añadir nuevo canal
+            <span style={{ fontSize: '12px', fontWeight: 400, color: 'var(--muted)' }}>Registra y configura otro canal</span>
           </button>
         </div>
       )}
 
-      {/* AddModal removed — registration is now at /creator/channels/new */}
     </div>
   )
 }
