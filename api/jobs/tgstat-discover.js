@@ -11,10 +11,9 @@ module.exports = async function handler(req, res) {
     const { ensureDb } = require('../../lib/ensureDb');
     const dbOk = await ensureDb();
     if (!dbOk) return res.status(503).json({ success: false, message: 'DB unavailable' });
-    const { batchDiscoverFromTGStat, DEFAULT_CATEGORIES } = require('../../services/tgstatScraperService');
-    const categories = req.body?.categories || DEFAULT_CATEGORIES;
+    const { batchDiscoverChannels } = require('../../services/tgstatScraperService');
     const start = Date.now();
-    const result = await batchDiscoverFromTGStat(categories);
+    const result = await batchDiscoverChannels();
     return res.json({ success: true, ...result, duration_ms: Date.now() - start });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });

@@ -330,10 +330,156 @@ async function syncAllMappedChannels() {
   };
 }
 
+// ─── Discovery: keyword search via contacts.Search ──────────────────────
+
+const DISCOVERY_KEYWORDS = [
+  'finanzas España', 'inversión bolsa', 'criptomonedas español',
+  'marketing digital', 'emprendimiento España', 'tecnología startup',
+  'trading forex', 'inmobiliaria España', 'ecommerce tienda online',
+  'inteligencia artificial español', 'salud bienestar',
+  'nutrición fitness', 'educación online cursos',
+  'noticias España', 'humor memes español',
+  'fútbol liga española', 'viajes España',
+  'gaming videojuegos', 'música española', 'cocina recetas',
+];
+
+/**
+ * Discover channels by keyword search via MTProto contacts.Search.
+ *
+ * @param {string[]} keywords — search terms
+ * @returns {Array<{ username, title, subscribers, description }>}
+ */
+async function discoverByKeywords(keywords = DISCOVERY_KEYWORDS) {
+  const { Api } = loadGramJS();
+  const client = await getClient();
+  const seen = new Map();
+  const errors = [];
+
+  for (const keyword of keywords) {
+    try {
+      const result = await client.invoke(
+        new Api.contacts.Search({ q: keyword, limit: 100 })
+      );
+
+      const chats = result.chats || [];
+      for (const chat of chats) {
+        if (chat.className !== 'Channel') continue;
+        if (chat.megagroup) continue; // skip supergroups
+        if (!chat.username) continue;
+        if ((chat.participantsCount || 0) < 500) continue;
+
+        const uname = chat.username.toLowerCase();
+        if (!seen.has(uname)) {
+          seen.set(uname, {
+            username: uname,
+            title: chat.title || '',
+            subscribers: chat.participantsCount || 0,
+            description: '', // contacts.Search doesn't return about
+          });
+        }
+      }
+    } catch (err) {
+      errors.push(`Keyword "${keyword}": ${err.message}`);
+    }
+
+    await sleep(3000); // 3s between keywords
+  }
+
+  return { results: Array.from(seen.values()), errors };
+}
+
+/**
+ * Discover channels from the social graph of known channels.
+ * Extracts forwards and @mentions from recent posts.
+ *
+ * @param {string[]} channelUsernames — seed channels
+ * @returns {Array<{ username, title, subscribers }>}
+ */
+async function discoverFromSocialGraph(channelUsernames = []) {
+  const { Api } = loadGramJS();
+  const client = await getClient();
+  const seen = new Map();
+  const errors = [];
+
+  for (const username of channelUsernames) {
+    try {
+      const cleanName = username.replace(/^@/, '').trim();
+      if (!cleanName) continue;
+
+      const entity = await client.getEntity(cleanName);
+      if (!entity || !(entity instanceof Api.Channel)) {
+        await sleep(2000);
+        continue;
+      }
+
+      // Get last 50 posts
+      const messages = await client.getMessages(entity, { limit: 50 });
+
+      const discoveredIds = new Set();
+
+      for (const msg of messages) {
+        // Extract forwarded channel IDs
+        if (msg.fwdFrom?.fromId?.channelId) {
+          discoveredIds.add(String(msg.fwdFrom.fromId.channelId));
+        }
+
+        // Extract @mentions from text
+        if (msg.message) {
+          const mentions = msg.message.match(/@([\w]{5,})/g) || [];
+          for (const mention of mentions) {
+            const mUsername = mention.slice(1).toLowerCase();
+            if (!seen.has(mUsername)) {
+              discoveredIds.add(mUsername); // will resolve below
+            }
+          }
+        }
+
+        await sleep(100); // minimal delay between post processing
+      }
+
+      // Resolve discovered IDs/usernames
+      for (const idOrUsername of discoveredIds) {
+        if (seen.has(idOrUsername)) continue;
+        try {
+          const resolved = await client.getEntity(idOrUsername);
+          if (
+            resolved &&
+            resolved.className === 'Channel' &&
+            !resolved.megagroup &&
+            resolved.username &&
+            (resolved.participantsCount || 0) >= 500
+          ) {
+            const uname = resolved.username.toLowerCase();
+            if (!seen.has(uname)) {
+              seen.set(uname, {
+                username: uname,
+                title: resolved.title || '',
+                subscribers: resolved.participantsCount || 0,
+              });
+            }
+          }
+        } catch {
+          // Can't resolve — skip silently
+        }
+        await sleep(1000); // 1s between entity resolutions
+      }
+    } catch (err) {
+      errors.push(`SocialGraph @${username}: ${err.message}`);
+    }
+
+    await sleep(2000); // 2s between seed channels
+  }
+
+  return { results: Array.from(seen.values()), errors };
+}
+
 module.exports = {
   getClient,
   disconnectClient,
   getChannelMetrics,
   syncAllMappedChannels,
+  discoverByKeywords,
+  discoverFromSocialGraph,
   RATE_LIMIT_MS,
+  DISCOVERY_KEYWORDS,
 };
