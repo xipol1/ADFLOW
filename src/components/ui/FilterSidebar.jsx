@@ -29,7 +29,13 @@ function Section({ title, children, defaultOpen = true }) {
 
 function Checkbox({ label, icon, checked, onChange }) {
   return (
-    <label className="flex items-center gap-2.5 py-1.5 px-1 rounded-md cursor-pointer group hover:bg-[var(--bg3)]" style={{ transition: 'background 120ms' }}>
+    <div
+      onClick={onChange}
+      className="flex items-center gap-2.5 py-1.5 px-1 rounded-md cursor-pointer group hover:bg-[var(--bg3)]"
+      style={{ transition: 'background 120ms' }}
+      role="checkbox"
+      aria-checked={checked}
+    >
       <div
         className="w-4 h-4 rounded flex-shrink-0 flex items-center justify-center transition-all"
         style={{
@@ -41,7 +47,7 @@ function Checkbox({ label, icon, checked, onChange }) {
       </div>
       {icon && <span className="text-sm">{icon}</span>}
       <span className="text-[13px]" style={{ color: checked ? 'var(--text)' : 'var(--text-secondary)' }}>{label}</span>
-    </label>
+    </div>
   )
 }
 

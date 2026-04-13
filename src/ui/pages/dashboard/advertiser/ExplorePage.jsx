@@ -72,8 +72,9 @@ export default function ExplorePage() {
     let cancelled = false
     setLoading(true)
     const params = { pagina: page, limite: PAGE_SIZE, ordenPor: sortBy }
-    if (selectedPlatforms.length === 1) params.plataforma = selectedPlatforms[0]
-    if (selectedCategories.length === 1) params.categoria = selectedCategories[0]
+    // Send first selected platform/category to backend for server-side filtering
+    if (selectedPlatforms.length >= 1) params.plataforma = selectedPlatforms[0]
+    if (selectedCategories.length >= 1) params.categoria = selectedCategories[0]
     if (searchQ) params.busqueda = searchQ
     if (minScore > 0) params.minScore = minScore
     if (minSubs > 0) params.minSubs = minSubs
@@ -81,11 +82,14 @@ export default function ExplorePage() {
     apiService.searchChannels(params).then((res) => {
       if (cancelled) return
       let data = Array.isArray(res?.data) ? res.data : []
-      // Client-side multi-filter if more than 1 platform/category selected
+      // Client-side multi-filter for additional platforms/categories
       if (selectedPlatforms.length > 1) data = data.filter((c) => selectedPlatforms.includes((c.plataforma || '').toLowerCase()))
       if (selectedCategories.length > 1) data = data.filter((c) => selectedCategories.includes((c.categoria || '').toLowerCase()))
       setChannels(data)
-      setPagination(res?.pagination || { total: data.length, totalPaginas: 1 })
+      // Update total to reflect filtered count
+      const total = (selectedPlatforms.length > 1 || selectedCategories.length > 1) ? data.length : (res?.pagination?.total || data.length)
+      const totalPaginas = (selectedPlatforms.length > 1 || selectedCategories.length > 1) ? 1 : (res?.pagination?.totalPaginas || 1)
+      setPagination({ total, totalPaginas })
     }).catch(() => { if (!cancelled) setChannels([]) })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
