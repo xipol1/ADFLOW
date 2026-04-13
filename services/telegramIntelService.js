@@ -332,7 +332,9 @@ async function syncAllMappedChannels() {
 
 // ─── Discovery: keyword search via contacts.Search ──────────────────────
 
-const DISCOVERY_KEYWORDS = [
+// 8 keywords optimized for Vercel 60s timeout (8 × 3s = 24s)
+// Rotate through the full set across runs via Date-based offset
+const ALL_KEYWORDS = [
   'finanzas España', 'inversión bolsa', 'criptomonedas español',
   'marketing digital', 'emprendimiento España', 'tecnología startup',
   'trading forex', 'inmobiliaria España', 'ecommerce tienda online',
@@ -342,6 +344,17 @@ const DISCOVERY_KEYWORDS = [
   'fútbol liga española', 'viajes España',
   'gaming videojuegos', 'música española', 'cocina recetas',
 ];
+const KEYWORDS_PER_RUN = 8;
+function getKeywordsForRun() {
+  const dayOfYear = Math.floor(Date.now() / 86400000);
+  const offset = (dayOfYear * KEYWORDS_PER_RUN) % ALL_KEYWORDS.length;
+  const picked = [];
+  for (let i = 0; i < KEYWORDS_PER_RUN; i++) {
+    picked.push(ALL_KEYWORDS[(offset + i) % ALL_KEYWORDS.length]);
+  }
+  return picked;
+}
+const DISCOVERY_KEYWORDS = ALL_KEYWORDS;
 
 /**
  * Discover channels by keyword search via MTProto contacts.Search.
@@ -349,7 +362,7 @@ const DISCOVERY_KEYWORDS = [
  * @param {string[]} keywords — search terms
  * @returns {Array<{ username, title, subscribers, description }>}
  */
-async function discoverByKeywords(keywords = DISCOVERY_KEYWORDS) {
+async function discoverByKeywords(keywords = getKeywordsForRun()) {
   const { Api } = loadGramJS();
   const client = await getClient();
   const seen = new Map();
@@ -401,7 +414,10 @@ async function discoverFromSocialGraph(channelUsernames = []) {
   const seen = new Map();
   const errors = [];
 
-  for (const username of channelUsernames) {
+  // Limit seed channels for Vercel timeout (max 3 per run)
+  const seeds = channelUsernames.slice(0, 3);
+
+  for (const username of seeds) {
     try {
       const cleanName = username.replace(/^@/, '').trim();
       if (!cleanName) continue;
@@ -412,8 +428,8 @@ async function discoverFromSocialGraph(channelUsernames = []) {
         continue;
       }
 
-      // Get last 50 posts
-      const messages = await client.getMessages(entity, { limit: 50 });
+      // Get last 20 posts (limited for Vercel timeout)
+      const messages = await client.getMessages(entity, { limit: 20 });
 
       const discoveredIds = new Set();
 
@@ -437,29 +453,32 @@ async function discoverFromSocialGraph(channelUsernames = []) {
         await sleep(100); // minimal delay between post processing
       }
 
-      // Resolve discovered IDs/usernames
+      // Resolve discovered IDs/usernames (max 5 per seed for timeout safety)
+      let resolveCount = 0;
       for (const idOrUsername of discoveredIds) {
+        if (resolveCount >= 5) break;
         if (seen.has(idOrUsername)) continue;
         try {
-          const resolved = await client.getEntity(idOrUsername);
+          const ent = await client.getEntity(idOrUsername);
           if (
-            resolved &&
-            resolved.className === 'Channel' &&
-            !resolved.megagroup &&
-            resolved.username &&
-            (resolved.participantsCount || 0) >= 500
+            ent &&
+            ent.className === 'Channel' &&
+            !ent.megagroup &&
+            ent.username &&
+            (ent.participantsCount || 0) >= 500
           ) {
-            const uname = resolved.username.toLowerCase();
+            const uname = ent.username.toLowerCase();
             if (!seen.has(uname)) {
               seen.set(uname, {
                 username: uname,
-                title: resolved.title || '',
-                subscribers: resolved.participantsCount || 0,
+                title: ent.title || '',
+                subscribers: ent.participantsCount || 0,
               });
             }
           }
+          resolveCount++;
         } catch {
-          // Can't resolve — skip silently
+          resolveCount++;
         }
         await sleep(1000); // 1s between entity resolutions
       }
