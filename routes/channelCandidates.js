@@ -159,19 +159,79 @@ router.post('/candidates/:id/approve', autenticar, async (req, res) => {
       return res.status(409).json({ success: false, message: 'Canal already exists', canal_id: existing._id });
     }
 
-    // Create Canal document
+    // Calculate scores from raw_metrics
+    const m = candidate.raw_metrics || {};
+    const subs = m.subscribers || 0;
+    const avgViews = m.avg_views || 0;
+    const engRate = m.engagement_rate || (subs > 0 && avgViews > 0 ? avgViews / subs : 0);
+    const postFreq = m.post_frequency || 0;
+    const verified = m.verified || false;
+
+    let scores = { CAF: 50, CTF: 50, CER: 50, CVS: 50, CAP: 50, CAS: 50, nivel: 'BRONZE', CPMDinamico: 0 };
+    try {
+      const { calcularCAS } = require('../services/channelScoringV2');
+      const mockCanal = {
+        plataforma: 'telegram',
+        categoria: m.category || '',
+        estadisticas: { seguidores: subs, promedioVisualizaciones: avgViews },
+        verificacion: { tipoAcceso: verified ? 'tracking_url' : 'declarado' },
+        antifraude: { flags: [] },
+        crawler: { ultimoPostNum: null, urlPublica: `https://t.me/${candidate.username}` },
+      };
+      scores = calcularCAS(mockCanal, [], m.category || 'otros');
+    } catch (err) {
+      console.warn('Score calculation failed, using defaults:', err.message);
+    }
+
+    // Create Canal document with calculated scores
     const canal = await Canal.create({
       propietario: req.usuario?._id || null,
       plataforma: 'telegram',
       identificadorCanal: `@${candidate.username}`,
-      nombreCanal: candidate.raw_metrics?.title || candidate.username,
-      categoria: candidate.raw_metrics?.category || '',
-      descripcion: candidate.raw_metrics?.description || '',
-      estado: 'pendiente_verificacion',
-      estadisticas: {
-        seguidores: candidate.raw_metrics?.subscribers || 0,
-      },
+      nombreCanal: m.title || candidate.username,
+      categoria: m.category || '',
+      descripcion: m.description || '',
+      estado: 'activo',
+      claimed: false,
+      estadisticas: { seguidores: subs, ultimaActualizacion: new Date() },
+      CAF: scores.CAF,
+      CTF: scores.CTF,
+      CER: scores.CER,
+      CVS: scores.CVS,
+      CAP: scores.CAP,
+      CAS: scores.CAS,
+      nivel: scores.nivel,
+      CPMDinamico: scores.CPMDinamico,
+      verificacion: { confianzaScore: scores.confianzaScore || 30, tipoAcceso: 'declarado' },
+      antifraude: { ratioCTF_CAF: scores.ratioCTF_CAF, flags: scores.flags || [] },
+      crawler: { urlPublica: `https://t.me/${candidate.username}`, ultimaActualizacion: new Date() },
     });
+
+    // Create initial score snapshot
+    try {
+      const CanalScoreSnapshot = require('../models/CanalScoreSnapshot');
+      await CanalScoreSnapshot.create({
+        canalId: canal._id,
+        fecha: new Date(),
+        CAF: scores.CAF, CTF: scores.CTF, CER: scores.CER,
+        CVS: scores.CVS, CAP: scores.CAP, CAS: scores.CAS,
+        nivel: scores.nivel, CPMDinamico: scores.CPMDinamico,
+        confianzaScore: scores.confianzaScore || 30,
+        ratioCTF_CAF: scores.ratioCTF_CAF,
+        flags: scores.flags || [],
+        seguidores: subs,
+        nicho: m.category || 'otros',
+        plataforma: 'telegram',
+        version: 2,
+        telegramIntel: {
+          avg_views_last_20_posts: avgViews || null,
+          engagement_rate: engRate || null,
+          post_frequency_per_week: postFreq || null,
+        },
+      });
+    } catch (snapErr) {
+      console.warn('Snapshot creation failed:', snapErr.message);
+    }
 
     // Update candidate
     candidate.status = 'approved';
@@ -179,7 +239,7 @@ router.post('/candidates/:id/approve', autenticar, async (req, res) => {
     candidate.reviewed_at = new Date();
     await candidate.save();
 
-    return res.json({ success: true, data: { candidate, canal } });
+    return res.json({ success: true, data: { candidate, canal, scores: { CAS: scores.CAS, nivel: scores.nivel } } });
   } catch (err) {
     console.error('Approve candidate error:', err?.message);
     return res.status(500).json({ success: false, message: 'Failed to approve candidate' });

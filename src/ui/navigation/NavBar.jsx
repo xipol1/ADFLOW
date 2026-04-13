@@ -188,6 +188,16 @@ export default function NavBar() {
           <GlobalSearchBar />
         </div>
 
+        {/* Audience buttons */}
+        <div className="nav-audience-buttons" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <NavLink to="/para-anunciantes" className="text-[13px] font-semibold px-3 py-1.5 rounded-lg"
+            style={{ color: 'var(--accent)', background: 'var(--accent-dim)', border: '1px solid var(--accent-border)', textDecoration: 'none', transition: 'all .15s', whiteSpace: 'nowrap' }}
+          >Para Marcas</NavLink>
+          <NavLink to="/para-canales" className="text-[13px] font-semibold px-3 py-1.5 rounded-lg"
+            style={{ color: '#25d366', background: 'rgba(37,211,102,0.08)', border: '1px solid rgba(37,211,102,0.18)', textDecoration: 'none', transition: 'all .15s', whiteSpace: 'nowrap' }}
+          >Para Creadores</NavLink>
+        </div>
+
         {/* Right side */}
         <nav className="nav-desktop-right" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <button onClick={toggleTheme} title={isDark ? 'Modo claro' : 'Modo oscuro'} style={{
