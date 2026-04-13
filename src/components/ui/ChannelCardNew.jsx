@@ -1,7 +1,17 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../auth/AuthContext'
 import Badge from './Badge'
 import { scoreLabel } from './ScoreBar'
+
+function maskName(name) {
+  if (!name || name.length <= 2) return '••••••'
+  return name.slice(0, 2) + '•'.repeat(Math.min(name.length - 2, 8))
+}
+function maskUsername(username) {
+  if (!username || username.length <= 2) return '@••••••'
+  return '@' + username.slice(0, 2) + '•'.repeat(Math.min(username.length - 2, 6))
+}
 
 const CATEGORY_COLORS = {
   finanzas: '#F0B429', marketing: '#00D4A8', tecnologia: '#58A6FF',
@@ -38,6 +48,7 @@ function MiniStat({ label, value }) {
 export default function ChannelCardNew({ channel, onClick }) {
   const [hover, setHover] = useState(false)
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
 
   if (!channel) return null
 
@@ -91,12 +102,17 @@ export default function ChannelCardNew({ channel, onClick }) {
           className="w-10 h-10 rounded-lg flex items-center justify-center text-base font-bold flex-shrink-0"
           style={{ background: `${catColor}15`, color: catColor, border: `1px solid ${catColor}25` }}
         >
-          {cName.charAt(0).toUpperCase()}
+          {isAuthenticated ? cName.charAt(0).toUpperCase() : '?'}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="font-semibold text-sm truncate" style={{ color: 'var(--text)' }}>{cName}</div>
+          <div className="font-semibold text-sm truncate" style={{ color: 'var(--text)' }}>
+            {isAuthenticated ? cName : maskName(cName)}
+          </div>
           <div className="text-[11px] truncate" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-            @{(channel.username || channel.identificadorCanal || cName).replace(/^@/, '')}
+            {isAuthenticated
+              ? `@${(channel.username || channel.identificadorCanal || cName).replace(/^@/, '')}`
+              : maskUsername(channel.username || channel.identificadorCanal || cName)
+            }
           </div>
         </div>
       </div>
@@ -115,7 +131,7 @@ export default function ChannelCardNew({ channel, onClick }) {
         <MiniStat label="Suscriptores" value={fmtNum(cSubs)} />
         <MiniStat label="Avg Views" value={cAvgViews != null ? fmtNum(cAvgViews) : '—'} />
         <MiniStat label="Engagement" value={cEngagement != null ? `${Number(cEngagement).toFixed(0)}%` : '—'} />
-        <MiniStat label="€/post" value={cPrice > 0 ? `€${cPrice}` : '—'} />
+        <MiniStat label="€/post" value={isAuthenticated ? (cPrice > 0 ? `€${cPrice}` : '—') : '€••'} />
       </div>
 
       {/* Score */}

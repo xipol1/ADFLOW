@@ -3,8 +3,18 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { TrendingUp, TrendingDown, Minus, ChevronRight } from 'lucide-react'
 import apiService from '../../../../services/api'
+import { useAuth } from '../../../auth/AuthContext'
 import { Badge, TableRowSkeleton } from '../../../components/ui'
 import { scoreLabel } from '../../../components/ui/ScoreBar'
+
+function maskName(name) {
+  if (!name || name.length <= 2) return '••••••'
+  return name.slice(0, 2) + '•'.repeat(Math.min(name.length - 2, 8))
+}
+function maskUsername(u) {
+  if (!u || u.length <= 2) return '@••••••'
+  return '@' + u.replace(/^@/, '').slice(0, 2) + '•'.repeat(6)
+}
 
 const CATEGORIES = [
   { key: 'all', label: 'Todos' },
@@ -56,6 +66,7 @@ const CATEGORY_COLORS = {
 export default function RankingsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const activeCategory = searchParams.get('categoria') || 'all'
   const [rankings, setRankings] = useState([])
   const [deltas, setDeltas] = useState({})
@@ -172,14 +183,16 @@ export default function RankingsPage() {
                         <td className="px-3 py-3">
                           <div className="flex items-center gap-2.5">
                             <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0" style={{ background: `${catColor}12`, color: catColor, border: `1px solid ${catColor}25` }}>
-                              {(ch.nombre || '?').charAt(0).toUpperCase()}
+                              {isAuthenticated ? (ch.nombre || '?').charAt(0).toUpperCase() : '?'}
                             </div>
                             <div className="min-w-0">
                               <div className="text-sm font-medium truncate" style={{ color: 'var(--text)', maxWidth: 180 }}>
-                                {ch.nombre || '—'}
+                                {isAuthenticated ? (ch.nombre || '—') : maskName(ch.nombre)}
                                 {ch.verificado && <span className="ml-1 text-[10px]" style={{ color: 'var(--accent)' }}>✓</span>}
                               </div>
-                              <div className="text-[11px] truncate" style={{ color: 'var(--muted2)', fontFamily: 'var(--font-mono)' }}>{ch.username || ''}</div>
+                              <div className="text-[11px] truncate" style={{ color: 'var(--muted2)', fontFamily: 'var(--font-mono)' }}>
+                                {isAuthenticated ? (ch.username || '') : maskUsername(ch.username)}
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -197,7 +210,10 @@ export default function RankingsPage() {
                           </div>
                         </td>
                         <td className="px-3 py-3 text-right text-sm font-medium" style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>
-                          {ch.precio > 0 || ch.CPMDinamico > 0 ? `€${(ch.precio || ch.CPMDinamico).toFixed(0)}` : '—'}
+                          {isAuthenticated
+                            ? (ch.precio > 0 || ch.CPMDinamico > 0 ? `€${(ch.precio || ch.CPMDinamico).toFixed(0)}` : '—')
+                            : '€••'
+                          }
                         </td>
                         <td className="px-3 py-3 text-center">
                           <ChevronRight size={14} className="transition-colors" style={{ color: 'var(--muted2)' }} />

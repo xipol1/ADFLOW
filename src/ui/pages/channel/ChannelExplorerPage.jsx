@@ -4,7 +4,13 @@ import { Helmet } from 'react-helmet-async'
 import { ArrowLeft, ChevronDown, Clock, ExternalLink } from 'lucide-react'
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, AreaChart, Area } from 'recharts'
 import apiService from '../../../../services/api'
+import { useAuth } from '../../../auth/AuthContext'
 import { StatCard, ScoreBar, scoreLabel, Badge, ProfileSkeleton } from '../../../components/ui'
+
+function maskText(t, show = 2) {
+  if (!t || t.length <= show) return '••••••'
+  return t.slice(0, show) + '•'.repeat(Math.min(t.length - show, 8))
+}
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 const fmtNum = (n) => {
@@ -106,6 +112,7 @@ function EvolutionChart({ snapshots }) {
 export default function ChannelExplorerPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const [state, setState] = useState('loading')
   const [data, setData] = useState(null)
   const [snapshots, setSnapshots] = useState([])
@@ -203,12 +210,12 @@ export default function ChannelExplorerPage() {
               className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-bold flex-shrink-0"
               style={{ background: `${catColor}12`, color: catColor, border: `1px solid ${catColor}25` }}
             >
-              {(nombre || '?').charAt(0).toUpperCase()}
+              {isAuthenticated ? (nombre || '?').charAt(0).toUpperCase() : '?'}
             </div>
 
             <div className="flex-1 min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>
-                @{nombre || '—'}
+                {isAuthenticated ? `@${nombre || '—'}` : `@${maskText(nombre)}`}
               </h1>
               <div className="flex items-center flex-wrap gap-2 mt-2">
                 <Badge label={plataforma || '—'} variant="platform" platform={plataforma} />
@@ -251,7 +258,7 @@ export default function ChannelExplorerPage() {
           <StatCard label="Suscriptores" value={fmtNum(seguidores)} />
           <StatCard label="Avg Views" value={lastSnap?.avg_views != null ? fmtNum(lastSnap.avg_views) : '—'} />
           <StatCard label="Engagement" value={lastSnap?.engagement_rate != null ? `${(lastSnap.engagement_rate * 100).toFixed(1)}` : '—'} suffix="%" />
-          <StatCard label="€/post" value={CPMDinamico > 0 ? `€${Number(CPMDinamico).toFixed(0)}` : '—'} />
+          <StatCard label="€/post" value={isAuthenticated ? (CPMDinamico > 0 ? `€${Number(CPMDinamico).toFixed(0)}` : '—') : '€••'} />
         </div>
 
         {/* ── SECTION 3: SCORE BREAKDOWN ───────────────────────── */}
