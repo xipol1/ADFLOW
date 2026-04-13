@@ -285,8 +285,8 @@ const WithdrawModal = ({ balance, onClose }) => {
               ].map(m => (
                 <button key={m.id} onClick={() => setMethod(m.id)} style={{
                   display: 'flex', alignItems: 'center', gap: '12px',
-                  background: method === m.id ? AG(0.06) : 'var(--bg)',
-                  border: `1.5px solid ${method === m.id ? A : 'var(--border)'}`,
+                  background: method === m.id ? WAG(0.06) : 'var(--bg)',
+                  border: `1.5px solid ${method === m.id ? WA : 'var(--border)'}`,
                   borderRadius: '12px', padding: '14px 16px', cursor: 'pointer', textAlign: 'left',
                   transition: 'all .15s',
                 }}>
@@ -295,7 +295,7 @@ const WithdrawModal = ({ balance, onClose }) => {
                     <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>{m.label}</div>
                     <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{m.desc}</div>
                   </div>
-                  <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${method === m.id ? A : 'var(--muted2)'}`, background: method === m.id ? A : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${method === m.id ? WA : 'var(--muted2)'}`, background: method === m.id ? WA : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {method === m.id && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#fff' }} />}
                   </div>
                 </button>
@@ -322,8 +322,7 @@ const WithdrawModal = ({ balance, onClose }) => {
   )
 }
 
-/* ── Sparkline data ──────────────────────────────────────────────────── */
-const EARN_SPARK = [820, 940, 870, 1100, 1050, 1280, 1190, 1380, 1310, 1520, 1480, 1730]
+/* ── Sparkline fallback (replaced by real data below) ──────────────── */
 
 /* ═══════════════════════════════════════════════════════════════════════
    MAIN
@@ -352,7 +351,6 @@ export default function CreatorEarningsPage() {
         setCampaigns(cmpData)
         setChannels(chData)
       } catch (err) {
-        console.error('CreatorEarningsPage load error:', err)
         if (mounted) setFetchError('No se pudieron cargar los datos. Verifica tu conexion.')
       }
       if (mounted) setLoading(false)
@@ -394,6 +392,29 @@ export default function CreatorEarningsPage() {
     })
     return Object.values(months).map(m => ({ ...m, value: Math.round(m.value) }))
   })()
+
+  // Sparkline from monthly data (use real values or fallback)
+  const earnSparkData = monthlyData.length > 0 ? monthlyData.map(m => m.value) : [0]
+
+  // Month-over-month comparison for KPI sub-text
+  const monthOverMonth = (() => {
+    if (monthlyData.length < 2) return null
+    const curr = monthlyData[monthlyData.length - 1]?.value || 0
+    const prev = monthlyData[monthlyData.length - 2]?.value || 0
+    if (prev === 0) return curr > 0 ? '+100%' : null
+    const pct = Math.round(((curr - prev) / prev) * 100)
+    return `${pct >= 0 ? '+' : ''}${pct}% vs mes anterior`
+  })()
+
+  // Channel earnings from completed campaigns (since API may not include earningsThisMonth)
+  const channelEarningsMap = {}
+  completedCampaigns.forEach(c => {
+    const chId = typeof c.channel === 'object' ? (c.channel?._id || c.channel?.id) : c.channel
+    const chName = typeof c.channel === 'object' ? c.channel?.nombreCanal : null
+    if (!chId) return
+    if (!channelEarningsMap[chId]) channelEarningsMap[chId] = { name: chName || 'Canal', amount: 0 }
+    channelEarningsMap[chId].amount += (c.netAmount || 0)
+  })
 
   // Build earnings list from campaigns
   const earningsList = filteredCampaigns.map(c => ({
@@ -483,13 +504,13 @@ export default function CreatorEarningsPage() {
               <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '6px' }}>Listo para retirar</div>
             </div>
 
-            <KpiCard icon={TrendingUp} label="Ganancias este mes" value={`€${thisMonth.toLocaleString('es')}`} sub="+18% vs mes anterior" sparkData={EARN_SPARK} accent={WA} />
-            <KpiCard icon={DollarSign} label="Ganancias totales" value={`€${totalEarnings.toLocaleString('es')}`} sub="Desde el inicio" accent={OK} sparkData={EARN_SPARK.map(v => v * 0.6)} />
+            <KpiCard icon={TrendingUp} label="Ganancias este mes" value={`€${thisMonth.toLocaleString('es')}`} sub={monthOverMonth} sparkData={earnSparkData} accent={WA} />
+            <KpiCard icon={DollarSign} label="Ganancias totales" value={`€${totalEarnings.toLocaleString('es')}`} sub={`${completedCampaigns.length} campañas completadas`} accent={OK} sparkData={earnSparkData.map(v => v * 0.6)} />
             <KpiCard icon={Clock} label="Pendiente de cobro" value={`€${pendingEarnings.toLocaleString('es')}`} sub={`${paidCampaigns.length} campañas`} subColor={WARN} accent={BLUE} />
           </div>
 
           {/* 2-col layout */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(280px, 1fr)', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
 
             {/* Monthly chart */}
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
@@ -510,12 +531,19 @@ export default function CreatorEarningsPage() {
                 <h2 style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '2px' }}>Por canal</h2>
                 <p style={{ fontSize: '12px', color: 'var(--muted)' }}>Distribución de ingresos</p>
               </div>
-              {(channels.length > 0 ? channels : [{ _id: 'empty', nombreCanal: 'Sin canales', earningsThisMonth: 0 }]).map((ch, i, arr) => {
-                const chName = ch.nombreCanal || ch.name
-                const chEarnings = ch.earningsThisMonth || 0
-                const pct = thisMonth > 0 ? Math.round((chEarnings / thisMonth) * 100) : 0
+              {(() => {
+                const entries = Object.entries(channelEarningsMap)
+                if (entries.length === 0) return (
+                  <div style={{ padding: '28px 24px', textAlign: 'center', color: 'var(--muted)', fontSize: '13px' }}>
+                    No hay datos de ingresos por canal todavia
+                  </div>
+                )
+                return entries.sort((a, b) => b[1].amount - a[1].amount).map(([chId, data], i, arr) => {
+                const chName = data.name
+                const chEarnings = Math.round(data.amount)
+                const pct = totalEarnings > 0 ? Math.round((chEarnings / totalEarnings) * 100) : 0
                 return (
-                  <div key={ch._id || ch.id || i} style={{
+                  <div key={chId} style={{
                     padding: '16px 24px',
                     borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
                     display: 'flex', alignItems: 'center', gap: '14px',
@@ -536,7 +564,8 @@ export default function CreatorEarningsPage() {
                     </div>
                   </div>
                 )
-              })}
+              })
+              })()}
             </div>
           </div>
 
@@ -569,6 +598,13 @@ export default function CreatorEarningsPage() {
                   </tr>
                 </thead>
                 <tbody>
+                  {earningsList.length === 0 && (
+                    <tr>
+                      <td colSpan={5} style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--muted)', fontSize: '13px' }}>
+                        No hay movimientos en el periodo seleccionado
+                      </td>
+                    </tr>
+                  )}
                   {earningsList.map((e, i) => (
                     <tr key={e.id || i} onClick={() => setSelectedTx(e)} style={{ borderBottom: i < earningsList.length - 1 ? '1px solid var(--border)' : 'none', transition: 'background .1s', cursor: 'pointer' }}
                       onMouseEnter={ev => { ev.currentTarget.style.background = 'var(--bg2)' }}
