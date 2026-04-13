@@ -73,8 +73,21 @@ function normalizeValues(values, minY = 0, maxY) {
 // ─────────────────────────────────────────────────────────────────────────────
 // 0. Sparkline — shared smooth SVG sparkline
 // ─────────────────────────────────────────────────────────────────────────────
+// SVG attributes (stroke, stopColor) don't support CSS variables in all browsers.
+// Resolve var(--accent) to a real hex at render time.
+function resolveColor(color) {
+  if (!color || !color.startsWith('var(')) return color || '#00D4A8'
+  if (typeof document === 'undefined') return '#00D4A8'
+  try {
+    const style = getComputedStyle(document.documentElement)
+    const prop = color.match(/var\(([^,)]+)/)?.[1]
+    return (prop && style.getPropertyValue(prop).trim()) || '#00D4A8'
+  } catch { return '#00D4A8' }
+}
+
 export function Sparkline({ data, color = A, w = SPARKLINE.w, h = SPARKLINE.h }) {
   if (!data || data.length < 2) return null
+  const resolved = resolveColor(color)
   const max = Math.max(...data)
   const min = Math.min(...data)
   const rng = max - min || 1
@@ -93,18 +106,18 @@ export function Sparkline({ data, color = A, w = SPARKLINE.w, h = SPARKLINE.h })
   }
 
   const fillD = `${d} L ${pts[pts.length - 1].x},${h} L ${pts[0].x},${h} Z`
-  const gradId = `sg-${color.replace('#', '')}`
+  const gradId = `sg-${resolved.replace(/[^a-zA-Z0-9]/g, '')}-${Math.random().toString(36).slice(2, 6)}`
 
   return (
     <svg width={w} height={h} style={{ overflow: 'visible', flexShrink: 0 }}>
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.22" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
+          <stop offset="0%" stopColor={resolved} stopOpacity="0.22" />
+          <stop offset="100%" stopColor={resolved} stopOpacity="0" />
         </linearGradient>
       </defs>
       <path d={fillD} fill={`url(#${gradId})`} />
-      <path d={d} fill="none" stroke={color} strokeWidth="1.8"
+      <path d={d} fill="none" stroke={resolved} strokeWidth="1.8"
         strokeLinejoin="round" strokeLinecap="round" />
     </svg>
   )
