@@ -40,6 +40,16 @@ import RegisterChannelPage  from '../ui/pages/dashboard/creator/RegisterChannelP
 import CreatorReferralsPage from '../ui/pages/dashboard/creator/CreatorReferralsPage'
 import CreatorAnalyticsPage from '../ui/pages/dashboard/creator/CreatorAnalyticsPage'
 
+// Admin dashboard suite
+import AdminLayout          from '../ui/pages/dashboard/admin/AdminLayout'
+import AdminOverviewPage    from '../ui/pages/dashboard/admin/AdminOverviewPage'
+import AdminUsersPage       from '../ui/pages/dashboard/admin/AdminUsersPage'
+import AdminChannelsPage    from '../ui/pages/dashboard/admin/AdminChannelsPage'
+import AdminCampaignsPage   from '../ui/pages/dashboard/admin/AdminCampaignsPage'
+import AdminDisputesPage    from '../ui/pages/dashboard/admin/AdminDisputesPage'
+import AdminFinancesPage    from '../ui/pages/dashboard/admin/AdminFinancesPage'
+import AdminScoringPage     from '../ui/pages/dashboard/admin/AdminScoringPage'
+
 // Shared pages
 import DisputesPage from '../ui/pages/dashboard/DisputesPage'
 import NotificationsPage from '../ui/pages/dashboard/NotificationsPage'
@@ -164,6 +174,25 @@ export default function AppRoutes() {
         <Route path="disputes" element={<FullAccessOnly feature="Disputas"><DisputesPage /></FullAccessOnly>} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="settings" element={<CreatorSettingsPage />} />
+      </Route>
+
+      {/* ── Admin dashboard — own sidebar layout ── */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index          element={<AdminOverviewPage />} />
+        <Route path="users"      element={<AdminUsersPage />} />
+        <Route path="channels"   element={<AdminChannelsPage />} />
+        <Route path="campaigns"  element={<AdminCampaignsPage />} />
+        <Route path="disputes"   element={<AdminDisputesPage />} />
+        <Route path="finances"   element={<AdminFinancesPage />} />
+        <Route path="scoring"    element={<AdminScoringPage />} />
+        <Route path="settings"   element={<SettingsPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

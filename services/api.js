@@ -286,6 +286,47 @@ class ApiService {
     });
   }
 
+  // ── Admin Dashboard ────────────────────────────────────────────────────
+
+  async getAdminOverview() {
+    return this.request('/admin/dashboard/overview');
+  }
+  async getAdminUsers(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/admin/dashboard/users${qs ? `?${qs}` : ''}`);
+  }
+  async getAdminUser(id) {
+    return this.request(`/admin/dashboard/users/${id}`);
+  }
+  async updateAdminUser(id, data) {
+    return this.request(`/admin/dashboard/users/${id}`, { method: 'PUT', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } });
+  }
+  async getAdminChannels(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/admin/dashboard/channels${qs ? `?${qs}` : ''}`);
+  }
+  async getAdminCampaigns(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/admin/dashboard/campaigns${qs ? `?${qs}` : ''}`);
+  }
+  async updateAdminCampaign(id, data) {
+    return this.request(`/admin/dashboard/campaigns/${id}`, { method: 'PUT', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } });
+  }
+  async getAdminDisputes(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/admin/dashboard/disputes${qs ? `?${qs}` : ''}`);
+  }
+  async resolveAdminDispute(id, data) {
+    return this.request(`/admin/dashboard/disputes/${id}`, { method: 'PUT', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } });
+  }
+  async getAdminFinances(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/admin/dashboard/finances${qs ? `?${qs}` : ''}`);
+  }
+  async getAdminScoring() {
+    return this.request('/admin/dashboard/scoring');
+  }
+
   // ── Niche Intelligence (public, no auth) ──────────────────────────────
   async getNicheLeaderboard(nicho, limit = 10) {
     return this.request(`/niche/${encodeURIComponent(nicho)}/leaderboard?limit=${limit}`, { auth: false });

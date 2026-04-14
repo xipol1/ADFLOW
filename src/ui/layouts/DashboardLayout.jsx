@@ -9,6 +9,7 @@ import {
   LayoutDashboard, Search, Zap, Megaphone, Wallet, BarChart3,
   Settings, LogOut, Menu, Bell, X, ChevronRight, ShieldAlert,
   Users, AlertTriangle, Radio, Inbox, Sun, Moon,
+  Shield, Database, DollarSign, FileText,
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../../services/api'
@@ -84,6 +85,30 @@ const ROLE_CONFIG = {
     ],
     bottomNav: [
       { path: '/settings', icon: Settings, label: 'Configuración', fullOnly: true },
+    ],
+  },
+  admin: {
+    color: '#EF4444',
+    alpha: (o) => `rgba(239,68,68,${o})`,
+    label: 'Admin',
+    basePath: '/admin',
+    nav: [
+      { group: null, items: [
+        { path: '',            icon: LayoutDashboard, label: 'Overview',     end: true },
+      ]},
+      { group: 'Gestión', items: [
+        { path: '/users',      icon: Users,           label: 'Usuarios'              },
+        { path: '/channels',   icon: Radio,           label: 'Canales'               },
+        { path: '/campaigns',  icon: Megaphone,       label: 'Campañas'              },
+        { path: '/disputes',   icon: ShieldAlert,     label: 'Disputas'              },
+      ]},
+      { group: 'Sistema', items: [
+        { path: '/finances',   icon: DollarSign,      label: 'Finanzas'              },
+        { path: '/scoring',    icon: Database,         label: 'Scoring'               },
+      ]},
+    ],
+    bottomNav: [
+      { path: '/settings', icon: Settings, label: 'Configuración' },
     ],
   },
 }
