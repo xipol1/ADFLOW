@@ -5,8 +5,8 @@ import DeliveryBadge from '../../../components/DeliveryBadge'
 import { FONT_BODY, FONT_DISPLAY, OK as _OK, BLUE as _BLUE, WARN, ERR } from '../../../theme/tokens'
 
 /* ── Design tokens ─────────────────────────────────────────────────────────── */
-const V  = 'var(--accent, #00D4A8)'
-const VG = (o) => `var(--accent-dim, rgba(0,212,168,${o}))`
+const V  = 'var(--accent, #8B5CF6)'
+const VG = (o) => `var(--accent-dim, rgba(139,92,246,${o}))`
 const F  = FONT_BODY
 const D  = FONT_DISPLAY
 const OK = _OK
@@ -348,7 +348,7 @@ const DetailModal = ({ campaign: c, onClose, onConfirm, onComplete, onDecline, o
                   {c.targetUrl}
                 </a>
                 {c.trackingUrl && c.trackingUrl !== c.targetUrl && (
-                  <div style={{ marginTop: '8px', padding: '10px 14px', background: 'var(--accent-dim, rgba(0,212,168,0.06))', border: '1px solid var(--accent-border, rgba(0,212,168,0.19))', borderRadius: '10px' }}>
+                  <div style={{ marginTop: '8px', padding: '10px 14px', background: 'var(--accent-dim, rgba(139,92,246,0.06))', border: '1px solid var(--accent-border, rgba(139,92,246,0.19))', borderRadius: '10px' }}>
                     <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 700, marginBottom: '4px' }}>🔗 Link de tracking (usa ESTE en la publicacion):</div>
                     <code style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-mono, monospace)', wordBreak: 'break-all' }}>
                       {c.trackingUrl}

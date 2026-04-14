@@ -7,8 +7,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { GREEN as AG, FONT_BODY, FONT_DISPLAY, SPARKLINE, ERR, OK, WARN, BLUE } from '../../../theme/tokens';
-const A = 'var(--accent, #00D4A8)';
-const purpleAlpha = (o) => `var(--accent-dim, rgba(0,212,168,${o}))`;
+const A = 'var(--accent, #8B5CF6)';
+const purpleAlpha = (o) => `var(--accent-dim, rgba(139,92,246,${o}))`;
 
 // ─── Keyframe injection (runs once) ──────────────────────────────────────────
 const KEYFRAMES = `
@@ -76,13 +76,13 @@ function normalizeValues(values, minY = 0, maxY) {
 // SVG attributes (stroke, stopColor) don't support CSS variables in all browsers.
 // Resolve var(--accent) to a real hex at render time.
 function resolveColor(color) {
-  if (!color || !color.startsWith('var(')) return color || '#00D4A8'
-  if (typeof document === 'undefined') return '#00D4A8'
+  if (!color || !color.startsWith('var(')) return color || '#8B5CF6'
+  if (typeof document === 'undefined') return '#8B5CF6'
   try {
     const style = getComputedStyle(document.documentElement)
     const prop = color.match(/var\(([^,)]+)/)?.[1]
-    return (prop && style.getPropertyValue(prop).trim()) || '#00D4A8'
-  } catch { return '#00D4A8' }
+    return (prop && style.getPropertyValue(prop).trim()) || '#8B5CF6'
+  } catch { return '#8B5CF6' }
 }
 
 export function Sparkline({ data, color = A, w = SPARKLINE.w, h = SPARKLINE.h }) {

@@ -12,8 +12,8 @@ import MetricContext from '../../../components/MetricContext'
 // ─── Design tokens ──────────────────────────────────────────────────────────
 const WA  = GREEN
 const WAG = greenAlpha
-const A   = 'var(--accent, #00D4A8)'
-const AG  = (o) => `var(--accent-dim, rgba(0,212,168,${o}))`
+const A   = 'var(--accent, #8B5CF6)'
+const AG  = (o) => `var(--accent-dim, rgba(139,92,246,${o}))`
 const F   = FONT_BODY
 const D   = FONT_DISPLAY
 const OK  = _OK
@@ -336,7 +336,7 @@ export default function CreatorOverviewPage() {
         <div
           onClick={() => navigate('/creator/analytics')}
           style={{
-            background: 'linear-gradient(135deg, var(--surface) 0%, rgba(0,212,168,0.03) 100%)',
+            background: 'linear-gradient(135deg, var(--surface) 0%, rgba(139,92,246,0.03) 100%)',
             border: '1px solid var(--border)', borderRadius: 16, padding: '18px 22px',
             display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap', cursor: 'pointer',
             transition: 'border-color .2s, box-shadow .2s',

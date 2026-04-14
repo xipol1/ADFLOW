@@ -31,7 +31,7 @@ function fmtNum(n) {
 
 function scoreColor(v) {
   if (v >= 90) return 'var(--gold, #F0B429)'
-  if (v >= 75) return 'var(--accent, #00D4A8)'
+  if (v >= 75) return 'var(--accent, #8B5CF6)'
   if (v >= 60) return 'var(--blue, #58A6FF)'
   if (v >= 40) return '#E3B341'
   return 'var(--red, #F85149)'

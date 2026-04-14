@@ -14,8 +14,8 @@ import {
 } from '../../../theme/tokens'
 
 // Use CSS variables for accent color (works in both light/dark themes)
-const PURPLE = 'var(--accent, #00D4A8)'
-const purpleAlpha = (o) => `var(--accent-dim, rgba(0,212,168,${o}))`
+const PURPLE = 'var(--accent, #8B5CF6)'
+const purpleAlpha = (o) => `var(--accent-dim, rgba(139,92,246,${o}))`
 import DashboardModule from '../../../components/DashboardModule'
 import MetricContext from '../../../components/MetricContext'
 

@@ -4,13 +4,13 @@
 
 /* ─── Design tokens — LIGHT (default) ────────────────────── */
 :root {
-  --accent:      #009B7D;
-  --accent-dark: #008A6E;
-  --accent-light:#00B892;
-  --accent-glow: rgba(0,155,125,0.10);
-  --accent-surface: rgba(0,155,125,0.04);
-  --accent-dim:  rgba(0,155,125,0.06);
-  --accent-border: rgba(0,155,125,0.15);
+  --accent:      #7C3AED;
+  --accent-dark: #6D28D9;
+  --accent-light:#8B5CF6;
+  --accent-glow: rgba(124,58,237,0.10);
+  --accent-surface: rgba(124,58,237,0.04);
+  --accent-dim:  rgba(124,58,237,0.06);
+  --accent-border: rgba(124,58,237,0.15);
   --bg:         #F8FAFB;
   --bg2:        #F1F3F5;
   --bg3:        #E9ECEF;
@@ -43,8 +43,8 @@
   --shadow-md:  0 3px 12px rgba(27,31,35,0.08), 0 1px 3px rgba(27,31,35,0.04);
   --shadow-lg:  0 8px 24px rgba(27,31,35,0.10), 0 2px 6px rgba(27,31,35,0.04);
   --shadow-xl:  0 12px 40px rgba(27,31,35,0.12), 0 4px 12px rgba(27,31,35,0.05);
-  --shadow-card-hover: 0 8px 24px rgba(27,31,35,0.10), 0 0 0 1px rgba(0,155,125,0.08);
-  --shadow-btn-glow:   0 0 0 1px rgba(0,155,125,0.25), 0 3px 10px rgba(0,155,125,0.12);
+  --shadow-card-hover: 0 8px 24px rgba(27,31,35,0.10), 0 0 0 1px rgba(124,58,237,0.08);
+  --shadow-btn-glow:   0 0 0 1px rgba(124,58,237,0.25), 0 3px 10px rgba(124,58,237,0.12);
 
   /* Font stacks */
   --font-mono: 'DM Mono', 'JetBrains Mono', ui-monospace, monospace;
@@ -53,13 +53,13 @@
 
 /* ─── Design tokens — DARK (ChannelAd Data Intelligence) ── */
 [data-theme="dark"] {
-  --accent:      #00D4A8;
-  --accent-dark: #00B892;
-  --accent-light:#33DFBD;
-  --accent-glow: rgba(0,212,168,0.12);
-  --accent-surface: rgba(0,212,168,0.06);
-  --accent-dim:  rgba(0,212,168,0.08);
-  --accent-border: rgba(0,212,168,0.19);
+  --accent:      #A78BFA;
+  --accent-dark: #8B5CF6;
+  --accent-light:#C4B5FD;
+  --accent-glow: rgba(139,92,246,0.12);
+  --accent-surface: rgba(139,92,246,0.06);
+  --accent-dim:  rgba(139,92,246,0.08);
+  --accent-border: rgba(139,92,246,0.19);
   --bg:         #080C10;
   --bg2:        #0D1117;
   --bg3:        #161B22;
@@ -85,8 +85,8 @@
   --shadow-md:  0 4px 16px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.25);
   --shadow-lg:  0 8px 32px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.3);
   --shadow-xl:  0 20px 60px rgba(0,0,0,0.6), 0 8px 16px rgba(0,0,0,0.35);
-  --shadow-card-hover: 0 0 0 1px rgba(0,212,168,0.15), 0 8px 24px rgba(0,0,0,0.4);
-  --shadow-btn-glow:   0 0 0 1px rgba(0,212,168,0.3), 0 4px 16px rgba(0,212,168,0.15);
+  --shadow-card-hover: 0 0 0 1px rgba(139,92,246,0.15), 0 8px 24px rgba(0,0,0,0.4);
+  --shadow-btn-glow:   0 0 0 1px rgba(139,92,246,0.3), 0 4px 16px rgba(139,92,246,0.15);
 
   /* Font stacks */
   --font-mono: 'DM Mono', 'JetBrains Mono', ui-monospace, monospace;
@@ -210,7 +210,7 @@
 
 /* ─── Gradient text with animated shimmer ──────────────── */
 .gradient-text {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light, #33DFBD) 50%, var(--accent) 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light, #8B5CF6) 50%, var(--accent) 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

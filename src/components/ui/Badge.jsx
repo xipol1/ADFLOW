@@ -8,7 +8,7 @@ const VARIANTS = {
     newsletter: { bg: 'rgba(245,158,11,0.10)', color: '#f59e0b', border: 'rgba(245,158,11,0.20)' },
   },
   category: { bg: 'var(--bg3, #161B22)', color: 'var(--text-secondary, #8B949E)', border: 'var(--border)' },
-  verified: { bg: 'var(--accent-dim, rgba(0,212,168,0.08))', color: 'var(--accent, #00D4A8)', border: 'var(--accent-border, rgba(0,212,168,0.19))' },
+  verified: { bg: 'var(--accent-dim, rgba(139,92,246,0.08))', color: 'var(--accent, #8B5CF6)', border: 'var(--accent-border, rgba(139,92,246,0.19))' },
   trending: { bg: 'var(--gold-dim, rgba(240,180,41,0.08))', color: 'var(--gold, #F0B429)', border: 'rgba(240,180,41,0.19)' },
   unclaimed: { bg: 'var(--blue-dim, rgba(88,166,255,0.08))', color: 'var(--blue, #58A6FF)', border: 'rgba(88,166,255,0.19)' },
 }

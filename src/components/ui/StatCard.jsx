@@ -2,7 +2,7 @@ import React from 'react'
 
 export default function StatCard({ label, value, change, changeDirection = 'neutral', suffix = '' }) {
   const changeColor =
-    changeDirection === 'up' ? 'var(--accent, #00D4A8)' :
+    changeDirection === 'up' ? 'var(--accent, #8B5CF6)' :
     changeDirection === 'down' ? 'var(--red, #F85149)' :
     'var(--text-secondary, #8B949E)'
 

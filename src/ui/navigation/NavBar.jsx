@@ -200,7 +200,7 @@ export default function NavBar() {
 
         {/* Right side */}
         <nav className="nav-desktop-right" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <button onClick={toggleTheme} title={isDark ? 'Modo claro' : 'Modo oscuro'} style={{
+          <button onClick={toggleTheme} aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'} title={isDark ? 'Modo claro' : 'Modo oscuro'} style={{
             width: '32px', height: '32px', borderRadius: '8px',
             background: 'var(--bg3)', border: '1px solid var(--border)',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -233,6 +233,7 @@ export default function NavBar() {
 
         {/* Mobile hamburger */}
         <button className="nav-mobile-toggle" onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label={mobileOpen ? 'Cerrar menu' : 'Abrir menu'}
           style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text)', padding: '4px' }}
         >
           {mobileOpen ? <XIcon /> : <MenuIcon />}

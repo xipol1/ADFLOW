@@ -43,8 +43,8 @@ const revealUp = {
 
 /* ── Hero content for each phase ─────────────────────── */
 const HERO_PHASES = {
-  // GREEN = Advertisers/Brands
-  green: {
+  // PURPLE = Brands/Advertisers (default)
+  purple: {
     pill: { icon: Megaphone, text: 'Pre-registro abierto — plazas limitadas' },
     headline: ['Tu marca,', 'donde importa'],
     accent: ['donde importa'],
@@ -60,8 +60,8 @@ const HERO_PHASES = {
     ],
     frictions: ['Pago protegido con escrow', 'Metricas verificables', 'Sin permanencia'],
   },
-  // PURPLE = Creators
-  purple: {
+  // GREEN = Creators
+  green: {
     pill: { icon: Wallet, text: 'Lanzamiento — registrate y verifica tu canal ahora' },
     headline: ['Tu comunidad', 'ya tiene valor'],
     accent: ['ya tiene valor'],
@@ -81,9 +81,9 @@ const HERO_PHASES = {
 
 /* ── Text swap animation ──────────────────────────────── */
 const textSwap = {
-  initial: { opacity: 0, y: 20, filter: 'blur(4px)' },
-  animate: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.8, ease: spring } },
-  exit: { opacity: 0, y: -20, filter: 'blur(4px)', transition: { duration: 0.5, ease: spring } },
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.8, ease: spring } },
+  exit: { opacity: 0, y: -20, transition: { duration: 0.5, ease: spring } },
 }
 
 export default function HeroSection() {

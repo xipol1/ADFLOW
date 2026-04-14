@@ -52,6 +52,7 @@ export default function AnnouncementBar() {
 
         <button
           onClick={() => setVisible(false)}
+          aria-label="Cerrar barra de anuncios"
           style={{
             position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
             background: 'none', border: 'none', cursor: 'pointer',

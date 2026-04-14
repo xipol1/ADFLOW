@@ -59,12 +59,12 @@ export default function LandingFooter() {
         borderBottom: '1px solid var(--border)',
       }}>
         <div style={{ maxWidth: '360px', minWidth: 0 }}>
-          <h4 style={{
+          <h3 style={{
             fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: '16px',
             margin: '0 0 6px', color: 'var(--text)',
           }}>
             Cada semana, lo mejor del marketplace en tu bandeja.
-          </h4>
+          </h3>
           <p style={{ fontSize: '13px', color: 'var(--muted)', margin: 0 }}>
             Canales trending, nuevas categorias y consejos para optimizar tus campanas.
           </p>
@@ -100,6 +100,7 @@ export default function LandingFooter() {
             />
             <button
               type="submit"
+              aria-label="Suscribirse al newsletter"
               style={{
                 padding: '12px 20px', borderRadius: '10px',
                 background: 'var(--accent)', color: '#fff',

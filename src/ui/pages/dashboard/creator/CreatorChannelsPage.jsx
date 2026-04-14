@@ -33,8 +33,8 @@ const mapCreatorChannel = (ch) => ({
 })
 
 // ─── Design tokens (using CSS variables for theme compat) ───────────────────
-const A  = 'var(--accent, #00D4A8)'
-const AG = (o) => `var(--accent-dim, rgba(0,212,168,${o}))`
+const A  = 'var(--accent, #8B5CF6)'
+const AG = (o) => `var(--accent-dim, rgba(139,92,246,${o}))`
 const F  = FONT_BODY
 const D  = FONT_DISPLAY
 const OK = _OK
