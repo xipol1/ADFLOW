@@ -25,7 +25,7 @@ module.exports = {
     host: process.env.HOST || '0.0.0.0'
   },
   frontend: {
-    url: process.env.FRONTEND_URL || ''
+    url: (process.env.FRONTEND_URL || '').trim()
   },
   database: {
     uri: databaseUri

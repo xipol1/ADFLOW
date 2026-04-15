@@ -20,12 +20,11 @@ export default function VerifyEmailPage() {
 
     apiService.verifyEmail(token).then(res => {
       if (res?.success) {
-        setStatus('success')
-        setMessage(res.message || 'Email verificado correctamente.')
-        // Auto-login with fresh tokens if provided
+        // Auto-login with fresh tokens if provided, then redirect immediately
         if (res.token && res.user && setAuthFromVerification) {
           setAuthFromVerification(res.token, res.refreshToken, res.user)
         }
+        navigate('/dashboard', { replace: true })
       } else {
         setStatus('error')
         setMessage(res?.message || 'Token inválido o expirado.')
