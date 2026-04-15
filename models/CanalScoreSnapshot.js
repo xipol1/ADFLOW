@@ -67,6 +67,95 @@ const CanalScoreSnapshotSchema = new mongoose.Schema(
       verified:                 { type: Boolean, default: null },
     },
 
+    // ── LinkedIn intel (optional, written by linkedinSyncService) ──────────
+    // Shape depends on the canal type: creator profiles write {type:'creator',…}
+    // with aggregate engagement from recent posts; organizations write
+    // {type:'organization',…} with follower count + impression/engagement
+    // statistics + page visit statistics from LinkedIn's Community Management API.
+    //
+    // All fields default to null so pre-LinkedIn snapshots and scope-restricted
+    // syncs remain valid. Use `$ne: null` in queries to filter.
+    linkedinIntel: {
+      type:              { type: String, default: null }, // 'creator' | 'organization'
+      personUrn:         { type: String, default: null },
+      orgUrn:            { type: String, default: null },
+
+      // ─── Creator aggregates (from syncCreatorCanal) ───────────────────
+      // Engagement totals from the 10 most recent posts
+      postCount:         { type: Number, default: null },
+      totalLikes:        { type: Number, default: null },
+      totalComments:     { type: Number, default: null },
+      totalShares:       { type: Number, default: null },
+      avgLikesPerPost:   { type: Number, default: null },
+      avgCommentsPerPost:{ type: Number, default: null },
+
+      // Creator follower count (new in 202504 — /rest/memberFollowersCount)
+      memberFollowersCount:        { type: Number, default: null },
+      memberFollowersGrowth7d:     { type: Number, default: null },
+      memberFollowersGrowth30d:    { type: Number, default: null },
+
+      // ─── Organization aggregates (from syncOrgCanal) ──────────────────
+      // Total organic follower count (from /rest/networkSizes — fixed from
+      // the deprecated totalFollowerCount field on organizationalEntityFollowerStatistics)
+      followerCount:     { type: Number, default: null },
+
+      // Lifetime share statistics (/rest/organizationalEntityShareStatistics)
+      impressions:       { type: Number, default: null },
+      clicks:            { type: Number, default: null },
+      likes:             { type: Number, default: null },
+      comments:          { type: Number, default: null },
+      shares:            { type: Number, default: null },
+      uniqueImpressions: { type: Number, default: null },
+      engagementRate:    { type: Number, default: null },
+
+      // ─── NEW: time-bound follower growth (feeds CVS) ──────────────────
+      // Organic follower gain summed over the window (via time-bound
+      // organizationalEntityFollowerStatistics in DAY granularity)
+      followerGrowth7d:  { type: Number, default: null },
+      followerGrowth30d: { type: Number, default: null },
+
+      // ─── NEW: time-bound share statistics (feeds CAF velocity) ────────
+      impressions7d:     { type: Number, default: null },
+      impressions30d:    { type: Number, default: null },
+      clicks7d:          { type: Number, default: null },
+      clicks30d:         { type: Number, default: null },
+      engagement7d:      { type: Number, default: null },
+      engagement30d:     { type: Number, default: null },
+
+      // ─── NEW: organization page visit statistics ─────────────────────
+      // From /rest/organizationPageStatistics — measures traffic to the
+      // company page itself, not to posts. Signal of brand awareness and
+      // antifraud (high follower count + 0 page views = suspicious).
+      pageViews: {
+        allPageViews:          { type: Number, default: null },
+        desktopPageViews:      { type: Number, default: null },
+        mobilePageViews:       { type: Number, default: null },
+        overviewPageViews:     { type: Number, default: null },
+        careersPageViews:      { type: Number, default: null },
+        jobsPageViews:         { type: Number, default: null },
+        lifeAtPageViews:       { type: Number, default: null },
+      },
+      pageViews7d:       { type: Number, default: null },
+      pageViews30d:      { type: Number, default: null },
+      uniquePageViews30d:{ type: Number, default: null },
+
+      // ─── Shared fields ────────────────────────────────────────────────
+      postsPerWeek:      { type: Number, default: null },
+      latestPostDate:    { type: Date,   default: null },
+
+      // Scope-tolerance markers — set to true when the token is missing a
+      // required scope and the corresponding metric could not be fetched.
+      // Allows the scoring engine to downweight the signal and the admin
+      // UI to prompt the user to reconnect.
+      scopeMissing:              { type: Boolean, default: false },
+      scopeMissingDetails: {
+        memberFollowers: { type: Boolean, default: false },
+        orgFollowers:    { type: Boolean, default: false },
+        orgShares:       { type: Boolean, default: false },
+        orgPageStats:    { type: Boolean, default: false },
+      },
+    },
+
     // ── Engine version ─────────────────────────────────────────────────────
     // Records which version of channelScoringV2 generated this snapshot.
     // When the engine evolves, historical queries can filter by version

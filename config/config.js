@@ -88,7 +88,40 @@ module.exports = {
     clientId: process.env.LINKEDIN_CLIENT_ID || '',
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET || '',
     oauthCallbackPath: '/api/oauth/linkedin/callback',
-    scopes: 'openid,profile,email,w_member_social',
+    // LinkedIn REST API version used for the `/rest/*` versioned endpoints.
+    // 202603 supports memberFollowersCount (introduced 202504),
+    // memberCreatorVideoAnalytics (202506), and all organization endpoints.
+    // Legacy `/v2/*` endpoints do not need this header.
+    restApiVersion: '202603',
+    // Scopes requested on every OAuth authorization. LinkedIn is tolerant:
+    // if the app does not have a scope approved in the Developer Portal,
+    // the scope is silently dropped from the granted set — the authorize
+    // URL does NOT fail. Our metrics services are scope-tolerant and log
+    // 403s without crashing.
+    //
+    // Required Developer Portal products for each scope:
+    //   openid, profile, email       → "Sign In with LinkedIn using OpenID Connect"
+    //   w_member_social              → "Share on LinkedIn"
+    //   r_member_social              → "Share on LinkedIn" (read, added 2024)
+    //   r_liteprofile                → "Sign In with LinkedIn" (legacy, still works)
+    //   r_member_profileAnalytics    → "Community Management API" (NEW: needed
+    //                                   for /rest/memberFollowersCount which gives
+    //                                   the creator's total follower count)
+    //   r_organization_social        → "Community Management API"
+    //   w_organization_social        → "Community Management API"
+    //   rw_organization_admin        → "Community Management API" OR "Advertising API"
+    scopes: [
+      'openid',
+      'profile',
+      'email',
+      'w_member_social',
+      'r_member_social',
+      'r_liteprofile',
+      'r_member_profileAnalytics',
+      'r_organization_social',
+      'w_organization_social',
+      'rw_organization_admin',
+    ].join(','),
   },
   encryption: {
     key: process.env.ENCRYPTION_KEY || '',
