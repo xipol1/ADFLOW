@@ -47,19 +47,20 @@ module.exports = {
     currency: process.env.STRIPE_CURRENCY || 'usd'
   },
   email: {
-    service: process.env.EMAIL_PROVIDER || '',
-    host: process.env.EMAIL_HOST || '',
+    // .trim() guards against trailing \n in Vercel env vars (copy-paste artefact)
+    service: (process.env.EMAIL_PROVIDER || '').trim(),
+    host: (process.env.EMAIL_HOST || '').trim(),
     port: toInt(process.env.EMAIL_PORT, 587),
     secure: toBool(process.env.EMAIL_SECURE, false),
     auth: {
-      user: process.env.EMAIL_USER || '',
-      pass: process.env.EMAIL_PASS || ''
+      user: (process.env.EMAIL_USER || '').trim(),
+      pass: (process.env.EMAIL_PASS || '').trim()
     },
     from: {
-      name: process.env.EMAIL_FROM_NAME || 'ChannelAd',
-      address: process.env.EMAIL_FROM_ADDRESS || ''
+      name: (process.env.EMAIL_FROM_NAME || 'ChannelAd').trim(),
+      address: (process.env.EMAIL_FROM_ADDRESS || '').trim()
     },
-    support: process.env.SUPPORT_EMAIL || ''
+    support: (process.env.SUPPORT_EMAIL || '').trim()
   },
   demo: {
     enabled: toBool(process.env.DEMO_MODE, false),
