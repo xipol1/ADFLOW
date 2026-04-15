@@ -324,6 +324,13 @@ const getChannelSnapshots = async (req, res) => {
       subscribers: s.seguidores || 0,
       avg_views: s.telegramIntel?.avg_views_last_20_posts ?? null,
       engagement_rate: s.telegramIntel?.engagement_rate ?? null,
+      // MTProto intel fields — previously missing from the response, which
+      // is why ChannelExplorerPage always showed "—"/"Estable" even when
+      // these fields existed in CanalScoreSnapshot.telegramIntel.*
+      last_post_date: s.telegramIntel?.last_post_date ?? null,
+      post_frequency: s.telegramIntel?.post_frequency_per_week ?? null,
+      views_trend: s.telegramIntel?.views_trend ?? null,
+      verified: s.telegramIntel?.verified ?? false,
       scores: {
         CAF: s.CAF,
         CTF: s.CTF,
