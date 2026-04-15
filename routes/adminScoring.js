@@ -15,6 +15,12 @@ const { runScoringBatch, recalcularCASCanal } = require('../services/scoringOrch
 
 const router = express.Router();
 
+// Vercel Hobby function timeout is 60s. We run an internal pagination loop
+// up to this budget so a single cron invocation processes ALL active canales
+// (not just the first batchSize). If the budget is exhausted mid-loop, we
+// return `nextCursor` so the next day's run picks up where this one stopped.
+const CRON_BUDGET_MS = 50000; // leave 10s headroom before Vercel kills us
+
 function requireCronSecret(req, res, next) {
   const secret = process.env.CRON_SECRET;
   if (!secret) {
@@ -31,6 +37,55 @@ function requireCronSecret(req, res, next) {
 }
 
 /**
+ * Run runScoringBatch repeatedly until either:
+ *   - all active canales are processed (nextCursor === null), OR
+ *   - the time budget is exhausted (bail out gracefully)
+ *
+ * Returns the aggregate totals plus the final cursor (or null).
+ */
+async function runScoringBatchesUntilBudget({ cursor, batchSize, concurrency }) {
+  const startedAt = Date.now();
+  const totals = {
+    canalesProcesados: 0,
+    canalesActualizados: 0,
+    errores: 0,
+    batches: 0,
+  };
+  let currentCursor = cursor;
+
+  while (true) {
+    const elapsed = Date.now() - startedAt;
+    if (elapsed >= CRON_BUDGET_MS) {
+      console.warn(
+        `[scoring-cron] Budget exhausted (${elapsed}ms ≥ ${CRON_BUDGET_MS}ms) — stopping with cursor=${currentCursor}`,
+      );
+      break;
+    }
+
+    const page = await runScoringBatch({
+      cursor: currentCursor,
+      batchSize,
+      concurrency,
+      trigger: 'scheduled',
+    });
+
+    totals.canalesProcesados += page.canalesProcesados || 0;
+    totals.canalesActualizados += page.canalesActualizados || 0;
+    totals.errores += page.errores || 0;
+    totals.batches += 1;
+
+    currentCursor = page.nextCursor;
+    if (!currentCursor) break; // all canales covered
+  }
+
+  return {
+    ...totals,
+    nextCursor: currentCursor,
+    elapsed_ms: Date.now() - startedAt,
+  };
+}
+
+/**
  * POST /api/admin/scoring/run
  *
  * Body / query params:
@@ -38,8 +93,9 @@ function requireCronSecret(req, res, next) {
  *   batchSize    — override default (optional)
  *   concurrency  — override default (optional)
  *
- * Returns JSON with `nextCursor` so the caller (Vercel Cron or a shell
- * script) can keep paginating until null.
+ * Handler loops over runScoringBatch internally until the time budget is
+ * exhausted, so a single invocation covers all active canales rather than
+ * just the first batchSize.
  */
 router.post('/run', requireCronSecret, async (req, res) => {
   try {
@@ -47,12 +103,7 @@ router.post('/run', requireCronSecret, async (req, res) => {
     const batchSize = Number(req.body?.batchSize || req.query.batchSize) || undefined;
     const concurrency = Number(req.body?.concurrency || req.query.concurrency) || undefined;
 
-    const result = await runScoringBatch({
-      cursor,
-      batchSize,
-      concurrency,
-      trigger: 'scheduled',
-    });
+    const result = await runScoringBatchesUntilBudget({ cursor, batchSize, concurrency });
     return res.json({ success: true, data: result });
   } catch (err) {
     console.error('Scoring cron error:', err?.message);
@@ -61,16 +112,14 @@ router.post('/run', requireCronSecret, async (req, res) => {
 });
 
 /**
- * Vercel Cron calls GET (not POST). We accept both so the same endpoint
- * can be targeted from vercel.json and from ops tooling.
+ * Vercel Cron calls GET (not POST). Same internal pagination loop.
  */
 router.get('/run', requireCronSecret, async (req, res) => {
   try {
-    const result = await runScoringBatch({
+    const result = await runScoringBatchesUntilBudget({
       cursor: req.query.cursor || null,
       batchSize: Number(req.query.batchSize) || undefined,
       concurrency: Number(req.query.concurrency) || undefined,
-      trigger: 'scheduled',
     });
     return res.json({ success: true, data: result });
   } catch (err) {
