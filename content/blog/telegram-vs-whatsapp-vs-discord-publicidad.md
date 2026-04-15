@@ -1,9 +1,9 @@
 ---
-title: "Telegram vs WhatsApp vs Discord: donde anunciarse en 2026"
-description: "Comparativa completa entre las tres plataformas de comunidades para publicidad. CPM, engagement, formatos y recomendaciones por tipo de marca."
+title: "Telegram vs WhatsApp vs Discord 2026: dónde anunciarse (comparativa)"
+description: "Comparativa 2026 de las 3 plataformas para publicidad en comunidades: CPM (1,5-12€), engagement (15-40%), formatos y recomendaciones por tipo de marca. Con datos reales."
 slug: "telegram-vs-whatsapp-vs-discord-publicidad"
-date: "2026-04-25"
-dateModified: "2026-04-11"
+date: "2026-04-14"
+dateModified: "2026-04-15"
 category: "Comparativas"
 readTime: "13 min"
 lang: "es"

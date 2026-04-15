@@ -1,9 +1,10 @@
 ---
-title: "Cómo crear un canal de Telegram desde cero y monetizarlo en 2026"
-description: "Tutorial paso a paso para crear un canal de Telegram rentable en España: desde elegir el nicho hasta cobrar tu primer anuncio. Con estrategia de contenido, datos reales de crecimiento y aspectos legales."
+title: "Cómo crear un canal de Telegram y monetizarlo en 2026 (paso a paso)"
+description: "Guía de 22 min para crear un canal de Telegram rentable en España en 2026: nicho, contenido, 1ª anunciante y fórmula de precios con CPMs por nicho. Sin humo."
 slug: "crear-canal-telegram-monetizar"
 date: "2026-04-11"
-dateModified: "2026-04-11"
+dateModified: "2026-04-15"
+howto: "true"
 category: "Guias"
 readTime: "22 min"
 lang: "es"

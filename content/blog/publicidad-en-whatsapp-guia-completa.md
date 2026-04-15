@@ -1,9 +1,9 @@
 ---
-title: "Publicidad en WhatsApp: Guía completa para anunciantes (2026)"
-description: "Guía práctica para hacer publicidad en grupos y canales de WhatsApp. Formatos, precios reales, cómo encontrar comunidades verificadas y errores que debes evitar."
+title: "Publicidad en WhatsApp 2026: guía sincera de precios y formatos"
+description: "Cómo hacer publicidad en grupos y canales de WhatsApp en 2026. Precios reales (30-120€/post), 80% de open rate y cómo encontrar canales verificados. Sin humo."
 slug: "publicidad-en-whatsapp-guia-completa"
 date: "2026-04-14"
-dateModified: "2026-04-11"
+dateModified: "2026-04-15"
 category: "Guias"
 readTime: "14 min"
 lang: "es"

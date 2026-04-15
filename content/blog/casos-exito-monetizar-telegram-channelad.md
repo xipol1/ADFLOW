@@ -1,9 +1,9 @@
 ---
-title: "5 creadores que monetizan sus canales con Channelad: casos reales"
-description: "Datos reales, ingresos reales. 5 creadores de canales de Telegram y Discord que generan ingresos recurrentes con publicidad a traves de Channelad. Nichos, estrategias y cifras exactas."
+title: "5 casos reales: creadores que monetizan Telegram/Discord con Channelad"
+description: "Datos reales, ingresos reales. 5 creadores que generan 200-3.000€/mes con publicidad en Telegram y Discord a través de Channelad. Nichos, estrategias e ingresos exactos."
 slug: "casos-exito-monetizar-telegram-channelad"
-date: "2026-05-02"
-dateModified: "2026-04-11"
+date: "2026-04-15"
+dateModified: "2026-04-15"
 category: "Monetizacion"
 readTime: "12 min"
 lang: "es"

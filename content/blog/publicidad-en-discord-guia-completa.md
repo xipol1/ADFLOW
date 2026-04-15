@@ -1,9 +1,9 @@
 ---
-title: "Publicidad en Discord: Guía completa 2026"
-description: "Todo lo que necesitas saber para hacer publicidad en servidores de Discord en España. Formatos que funcionan, precios reales, errores comunes y por qué Discord es el canal más infravalorado del marketing digital."
+title: "Publicidad en Discord 2026: precios, formatos y el error del 80% de marcas"
+description: "Guía definitiva 2026 para anunciarse en servidores de Discord en España. Formatos que funcionan, CPMs reales (1,5-3€) y por qué Discord tiene 15% engagement vs 1-3% de IG."
 slug: "publicidad-en-discord-guia-completa"
 date: "2026-04-10"
-dateModified: "2026-04-11"
+dateModified: "2026-04-15"
 category: "Guias"
 readTime: "15 min"
 lang: "es"

@@ -1,9 +1,9 @@
 ---
-title: "Qué es el escrow en publicidad digital y por qué lo necesitas"
-description: "Todo sobre el pago custodiado en publicidad: cómo funciona, por qué protege tu inversión y qué plataformas lo ofrecen. Con ejemplos reales de campañas."
+title: "Escrow en publicidad digital 2026: qué es y por qué protege tu inversión"
+description: "Todo sobre el pago custodiado en publicidad 2026: cómo funciona, qué plataformas lo ofrecen y por qué es imprescindible para anunciarse en Telegram, WhatsApp y Discord."
 slug: "escrow-publicidad-digital"
-date: "2026-04-16"
-dateModified: "2026-04-11"
+date: "2026-04-03"
+dateModified: "2026-04-15"
 category: "Guias"
 readTime: "12 min"
 lang: "es"

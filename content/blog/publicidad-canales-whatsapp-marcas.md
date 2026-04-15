@@ -1,9 +1,9 @@
 ---
-title: "Publicidad en canales de WhatsApp: guia completa para marcas (2026)"
-description: "Como anunciarse en canales de WhatsApp. Formatos, precios reales, como encontrar canales verificados y errores que debes evitar como marca en 2026."
+title: "Publicidad en canales de WhatsApp para marcas 2026: guía y precios"
+description: "Cómo anunciarse en canales de WhatsApp en 2026: formatos, precios reales (30-120€/post), cómo encontrar canales verificados y los errores que cometen las marcas al empezar."
 slug: "publicidad-canales-whatsapp-marcas"
-date: "2026-04-16"
-dateModified: "2026-04-11"
+date: "2026-04-02"
+dateModified: "2026-04-15"
 category: "Guias"
 readTime: "12 min"
 lang: "es"

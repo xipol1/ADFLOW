@@ -1,11 +1,18 @@
 User-agent: *
 Allow: /
 Allow: /blog/
+Allow: /blog/feed.xml
 Disallow: /api/
 Disallow: /uploads/
 Disallow: /auth/
 Disallow: /dashboard/
 Disallow: /advertiser/
 Disallow: /creator/
+
+# Bloquear parámetros de tracking para evitar duplicados
+Disallow: /*?utm_*
+Disallow: /*?ref=*
+Disallow: /*?fbclid=*
+Disallow: /*?gclid=*
 
 Sitemap: https://channelad.io/sitemap.xml

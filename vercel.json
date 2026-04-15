@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "cleanUrls": false,
+  "cleanUrls": true,
   "trailingSlash": false,
   "installCommand": "npm install --include=dev",
   "buildCommand": "npm run build",
@@ -9,7 +9,7 @@
     "api/index.js": {
       "maxDuration": 60,
       "includeFiles": "routes/**,controllers/**,models/**,middleware/**,lib/**,services/**,config/**,docs/swagger/**,templates/**,integraciones/**,jobs/**",
-      "excludeFiles": "node_modules/sharp/**,node_modules/puppeteer/**,node_modules/puppeteer-core/**,node_modules/whatsapp-web.js/**,node_modules/telegram/**"
+      "excludeFiles": "node_modules/sharp/**,node_modules/puppeteer/**,node_modules/puppeteer-core/**,node_modules/whatsapp-web.js/**"
     }
   },
   "crons": [
@@ -58,6 +58,10 @@
     { "source": "/r/:campaignId", "destination": "/api/index.js" },
     { "source": "/go/:path*", "destination": "/api/index.js" },
     { "source": "/health", "destination": "/api/index.js" },
+    { "source": "/blog", "destination": "/blog/index.html" },
+    { "source": "/blog/feed.xml", "destination": "/blog/feed.xml" },
+    { "source": "/blog/calculadora-precios-publicidad", "destination": "/index.html" },
+    { "source": "/blog/:slug", "destination": "/blog/:slug.html" },
     { "source": "/:path*", "destination": "/index.html" }
   ]
 }

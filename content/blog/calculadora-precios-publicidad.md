@@ -1,10 +1,10 @@
 ---
-title: "Calculadora de precios de publicidad en Telegram, WhatsApp y Discord (2026)"
-description: "Calcula cuánto cobrar por publicidad en tu canal de Telegram, WhatsApp o Discord. Calculadora interactiva con CPMs reales del mercado español y estimador de ingresos."
+title: "Calculadora precios publicidad Telegram/WhatsApp/Discord 2026"
+description: "Calculadora interactiva 2026: sabe en 30 segundos cuánto cobrar por publicidad en tu canal. CPMs reales del mercado español. Funciona para Telegram, WhatsApp y Discord."
 slug: "calculadora-precios-publicidad"
 spaOnly: "true"
 date: "2026-04-11"
-dateModified: "2026-04-11"
+dateModified: "2026-04-15"
 category: "Guias"
 readTime: "8 min"
 lang: "es"

@@ -1,9 +1,9 @@
 ---
-title: "Los mejores canales de WhatsApp en espanol (2026): guia por categorias"
-description: "Seleccion curada de los canales de WhatsApp mas activos y recomendados en espanol en 2026. Por categoria: finanzas, tecnologia, marketing, noticias, emprendimiento y fitness."
+title: "Los mejores canales de WhatsApp en español 2026 (por categoría)"
+description: "Selección curada 2026 de los canales de WhatsApp más activos en español. Finanzas, tecnología, marketing, noticias, emprendimiento y fitness. Con métricas y reviews."
 slug: "mejores-canales-whatsapp-espanol"
-date: "2026-04-18"
-dateModified: "2026-04-11"
+date: "2026-04-04"
+dateModified: "2026-04-15"
 category: "Guias"
 readTime: "10 min"
 lang: "es"

@@ -1,9 +1,9 @@
 ---
-title: "Publicidad en Discord para marcas: guia completa (2026)"
-description: "Como anunciarse en servidores de Discord. Formatos, precios, como encontrar servidores verificados y por que el engagement en Discord supera a cualquier red social."
+title: "Publicidad en Discord para marcas 2026: formatos, precios y engagement"
+description: "Cómo anunciarse en servidores de Discord en 2026: formatos (posts, roles, eventos), precios reales (15-500€) y por qué el engagement en Discord supera al de cualquier red social."
 slug: "publicidad-discord-marcas"
-date: "2026-04-23"
-dateModified: "2026-04-11"
+date: "2026-04-13"
+dateModified: "2026-04-15"
 category: "Guias"
 readTime: "11 min"
 lang: "es"

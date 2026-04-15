@@ -5,7 +5,7 @@
     <link>https://channelad.io/blog</link>
     <description>Guias, estrategias y comparativas sobre publicidad en comunidades de WhatsApp, Telegram y Discord. Por Rafa Ferrer, CEO de Channelad.</description>
     <language>es</language>
-    <lastBuildDate>Mon, 13 Apr 2026 10:35:25 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 15 Apr 2026 11:17:21 GMT</lastBuildDate>
     <managingEditor>rafa@channelad.io (Rafa Ferrer)</managingEditor>
     <webMaster>rafa@channelad.io (Rafa Ferrer)</webMaster>
     <atom:link href="https://channelad.io/blog/feed.xml" rel="self" type="application/rss+xml"/>
@@ -15,67 +15,184 @@
       <link>https://channelad.io/blog</link>
     </image>
     <item>
-      <title><![CDATA[Calculadora de precios de publicidad en Telegram, WhatsApp y Discord (2026)]]></title>
+      <title><![CDATA[5 casos reales: creadores que monetizan Telegram/Discord con Channelad]]></title>
+      <link>https://channelad.io/blog/casos-exito-monetizar-telegram-channelad</link>
+      <guid isPermaLink="true">https://channelad.io/blog/casos-exito-monetizar-telegram-channelad</guid>
+      <pubDate>Wed, 15 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Datos reales, ingresos reales. 5 creadores que generan 200-3.000€/mes con publicidad en Telegram y Discord a través de Channelad. Nichos, estrategias e ingresos exactos.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Monetizacion</category>
+    </item>
+    <item>
+      <title><![CDATA[Publicidad en comunidades online 2026: guía completa para anunciantes]]></title>
+      <link>https://channelad.io/blog/publicidad-comunidades-online-guia-anunciantes</link>
+      <guid isPermaLink="true">https://channelad.io/blog/publicidad-comunidades-online-guia-anunciantes</guid>
+      <pubDate>Wed, 15 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Cómo anunciarse en comunidades de Telegram, WhatsApp y Discord en España en 2026. Estrategia, presupuesto (desde 200€), métricas y cómo medir el ROI. Con tabla comparativa.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Guias</category>
+    </item>
+    <item>
+      <title><![CDATA[Publicidad en WhatsApp 2026: guía sincera de precios y formatos]]></title>
+      <link>https://channelad.io/blog/publicidad-en-whatsapp-guia-completa</link>
+      <guid isPermaLink="true">https://channelad.io/blog/publicidad-en-whatsapp-guia-completa</guid>
+      <pubDate>Tue, 14 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Cómo hacer publicidad en grupos y canales de WhatsApp en 2026. Precios reales (30-120€/post), 80% de open rate y cómo encontrar canales verificados. Sin humo.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Guias</category>
+    </item>
+    <item>
+      <title><![CDATA[Telegram vs WhatsApp vs Discord 2026: dónde anunciarse (comparativa)]]></title>
+      <link>https://channelad.io/blog/telegram-vs-whatsapp-vs-discord-publicidad</link>
+      <guid isPermaLink="true">https://channelad.io/blog/telegram-vs-whatsapp-vs-discord-publicidad</guid>
+      <pubDate>Tue, 14 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Comparativa 2026 de las 3 plataformas para publicidad en comunidades: CPM (1,5-12€), engagement (15-40%), formatos y recomendaciones por tipo de marca. Con datos reales.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Comparativas</category>
+    </item>
+    <item>
+      <title><![CDATA[Publicidad en Discord para marcas 2026: formatos, precios y engagement]]></title>
+      <link>https://channelad.io/blog/publicidad-discord-marcas</link>
+      <guid isPermaLink="true">https://channelad.io/blog/publicidad-discord-marcas</guid>
+      <pubDate>Mon, 13 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Cómo anunciarse en servidores de Discord en 2026: formatos (posts, roles, eventos), precios reales (15-500€) y por qué el engagement en Discord supera al de cualquier red social.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Guias</category>
+    </item>
+    <item>
+      <title><![CDATA[Cómo anunciarse en Telegram 2026: guía de precios y formatos para marcas]]></title>
+      <link>https://channelad.io/blog/como-anunciarse-en-telegram</link>
+      <guid isPermaLink="true">https://channelad.io/blog/como-anunciarse-en-telegram</guid>
+      <pubDate>Sun, 12 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Todo para hacer publicidad en canales y grupos de Telegram en 2026. Formatos, precios (CPM 2-12€ por nicho), cómo encontrar canales verificados y errores a evitar.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Guias</category>
+    </item>
+    <item>
+      <title><![CDATA[Calculadora precios publicidad Telegram/WhatsApp/Discord 2026]]></title>
       <link>https://channelad.io/blog/calculadora-precios-publicidad</link>
       <guid isPermaLink="true">https://channelad.io/blog/calculadora-precios-publicidad</guid>
       <pubDate>Sat, 11 Apr 2026 10:00:00 GMT</pubDate>
-      <description><![CDATA[Calcula cuánto cobrar por publicidad en tu canal de Telegram, WhatsApp o Discord. Calculadora interactiva con CPMs reales del mercado español y estimador de ingresos.]]></description>
+      <description><![CDATA[Calculadora interactiva 2026: sabe en 30 segundos cuánto cobrar por publicidad en tu canal. CPMs reales del mercado español. Funciona para Telegram, WhatsApp y Discord.]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>
       <category>Guias</category>
     </item>
     <item>
-      <title><![CDATA[Cómo monetizar un canal de WhatsApp en 2026: guía completa para creadores]]></title>
+      <title><![CDATA[Monetizar canal de WhatsApp 2026: 6 métodos reales (y cuánto pagan)]]></title>
       <link>https://channelad.io/blog/como-monetizar-canal-whatsapp</link>
       <guid isPermaLink="true">https://channelad.io/blog/como-monetizar-canal-whatsapp</guid>
       <pubDate>Sat, 11 Apr 2026 10:00:00 GMT</pubDate>
-      <description><![CDATA[Guía paso a paso para ganar dinero con tu canal de WhatsApp en España. Las 6 formas de monetizar, cuánto se puede ganar, diferencias con Telegram y cómo empezar hoy.]]></description>
+      <description><![CDATA[Guía paso a paso para ganar dinero con tu canal de WhatsApp en España en 2026. Las 6 formas reales (ads, suscripciones, afiliados), cifras por nicho y cómo empezar hoy.]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>
       <category>Monetizacion</category>
     </item>
     <item>
-      <title><![CDATA[Cómo crear un canal de Telegram desde cero y monetizarlo en 2026]]></title>
+      <title><![CDATA[Cómo crear un canal de Telegram y monetizarlo en 2026 (paso a paso)]]></title>
       <link>https://channelad.io/blog/crear-canal-telegram-monetizar</link>
       <guid isPermaLink="true">https://channelad.io/blog/crear-canal-telegram-monetizar</guid>
       <pubDate>Sat, 11 Apr 2026 10:00:00 GMT</pubDate>
-      <description><![CDATA[Tutorial paso a paso para crear un canal de Telegram rentable en España: desde elegir el nicho hasta cobrar tu primer anuncio. Con estrategia de contenido, datos reales de crecimiento y aspectos legales.]]></description>
+      <description><![CDATA[Guía de 22 min para crear un canal de Telegram rentable en España en 2026: nicho, contenido, 1ª anunciante y fórmula de precios con CPMs por nicho. Sin humo.]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>
       <category>Guias</category>
     </item>
     <item>
-      <title><![CDATA[Publicidad en Discord: Guía completa 2026]]></title>
+      <title><![CDATA[Media kit canal Telegram 2026: 7 elementos + plantilla gratuita]]></title>
+      <link>https://channelad.io/blog/media-kit-canal-telegram</link>
+      <guid isPermaLink="true">https://channelad.io/blog/media-kit-canal-telegram</guid>
+      <pubDate>Sat, 11 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Crea el media kit que convierte tu canal de Telegram en un negocio. Los 7 elementos clave, cómo conseguir estadísticas fiables con TGStat y plantilla descargable gratis.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Guias</category>
+    </item>
+    <item>
+      <title><![CDATA[Publicidad en Discord 2026: precios, formatos y el error del 80% de marcas]]></title>
       <link>https://channelad.io/blog/publicidad-en-discord-guia-completa</link>
       <guid isPermaLink="true">https://channelad.io/blog/publicidad-en-discord-guia-completa</guid>
       <pubDate>Fri, 10 Apr 2026 10:00:00 GMT</pubDate>
-      <description><![CDATA[Todo lo que necesitas saber para hacer publicidad en servidores de Discord en España. Formatos que funcionan, precios reales, errores comunes y por qué Discord es el canal más infravalorado del marketing digital.]]></description>
+      <description><![CDATA[Guía definitiva 2026 para anunciarse en servidores de Discord en España. Formatos que funcionan, CPMs reales (1,5-3€) y por qué Discord tiene 15% engagement vs 1-3% de IG.]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>
       <category>Guias</category>
     </item>
     <item>
-      <title><![CDATA[Cuánto cobrar por publicidad en Telegram: calculadora y precios reales 2026]]></title>
+      <title><![CDATA[Precio publicidad Telegram 2026: fórmula + tabla CPM por nicho]]></title>
       <link>https://channelad.io/blog/cuanto-cobrar-publicidad-telegram</link>
       <guid isPermaLink="true">https://channelad.io/blog/cuanto-cobrar-publicidad-telegram</guid>
       <pubDate>Thu, 09 Apr 2026 10:00:00 GMT</pubDate>
-      <description><![CDATA[Fórmula exacta, tabla de CPMs por nicho y calculadora interactiva para poner el precio correcto a la publicidad en tu canal de Telegram. Datos actualizados del mercado español e hispanohablante en 2026.]]></description>
+      <description><![CDATA[La fórmula exacta para poner precio a un post patrocinado en tu canal de Telegram en 2026. Tabla de CPMs por nicho (finanzas, cripto, tech, gaming). Datos reales de España.]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>
       <category>Monetizacion</category>
     </item>
     <item>
-      <title><![CDATA[Cuánto paga Telegram por canal en 2026: la respuesta real]]></title>
+      <title><![CDATA[Cómo monetizar un servidor de Discord 2026: 5 métodos probados]]></title>
+      <link>https://channelad.io/blog/como-monetizar-servidor-discord</link>
+      <guid isPermaLink="true">https://channelad.io/blog/como-monetizar-servidor-discord</guid>
+      <pubDate>Wed, 08 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Las 5 formas reales de ganar dinero con tu servidor de Discord en 2026: publicidad, roles premium, merchandising, cursos y servicios. Con ingresos reales por tamaño.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Monetizacion</category>
+    </item>
+    <item>
+      <title><![CDATA[¿Cuánto paga Telegram por canal en 2026? Cifras reales (30-1.500€)]]></title>
       <link>https://channelad.io/blog/cuanto-paga-telegram-por-canal</link>
       <guid isPermaLink="true">https://channelad.io/blog/cuanto-paga-telegram-por-canal</guid>
       <pubDate>Tue, 07 Apr 2026 10:00:00 GMT</pubDate>
-      <description><![CDATA[Telegram no paga directamente, pero tu canal SÍ puede generar ingresos reales. Descubre cuánto ganan los canales de Telegram en España con publicidad y cómo empezar.]]></description>
+      <description><![CDATA[Telegram no paga lo que crees. Un canal español gana 30-1.500€/mes reales. Descubre las 2 fuentes (Ad Revenue Sharing + publicidad directa) y cómo empezar con 1.000 subs.]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>
       <category>Monetizacion</category>
     </item>
     <item>
-      <title><![CDATA[Cómo monetizar un canal de Telegram en España en 2026 [Guía completa]]]></title>
+      <title><![CDATA[Monetizar canal Telegram España 2026: 6 métodos y cifras reales]]></title>
       <link>https://channelad.io/blog/monetizar-canal-telegram-espana</link>
       <guid isPermaLink="true">https://channelad.io/blog/monetizar-canal-telegram-espana</guid>
       <pubDate>Tue, 07 Apr 2026 10:00:00 GMT</pubDate>
-      <description><![CDATA[Descubre cuánto se puede ganar con un canal de Telegram en España, qué plataformas usar, cómo poner precios y las 6 formas reales de monetización. Guía actualizada con datos del mercado español.]]></description>
+      <description><![CDATA[Las 6 formas reales de ganar dinero con un canal de Telegram en España en 2026. CPMs por nicho (finanzas 5-10€, cripto 6-12€) y ejemplos que facturan 500-3.000€/mes.]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>
       <category>Monetizacion</category>
+    </item>
+    <item>
+      <title><![CDATA[5 Telega.in Alternatives for Telegram Advertising in 2026 (Reviewed)]]></title>
+      <link>https://channelad.io/blog/telega-in-alternatives</link>
+      <guid isPermaLink="true">https://channelad.io/blog/telega-in-alternatives</guid>
+      <pubDate>Mon, 06 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Compare the 5 best Telega.in alternatives in 2026. Platforms with escrow payments, verified metrics and community-first approach. For buyers and sellers of Telegram ads.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Comparativas</category>
+    </item>
+    <item>
+      <title><![CDATA[Comunidades vs redes sociales 2026: comparativa CPM, CTR y ROI]]></title>
+      <link>https://channelad.io/blog/publicidad-comunidades-vs-redes-sociales</link>
+      <guid isPermaLink="true">https://channelad.io/blog/publicidad-comunidades-vs-redes-sociales</guid>
+      <pubDate>Sun, 05 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Publicidad en Telegram/WhatsApp/Discord vs Instagram y TikTok Ads en 2026. CPM real, engagement (15-40% vs 1-3%) y qué rinde más según tu objetivo. Datos de campañas reales.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Comparativas</category>
+    </item>
+    <item>
+      <title><![CDATA[Los mejores canales de WhatsApp en español 2026 (por categoría)]]></title>
+      <link>https://channelad.io/blog/mejores-canales-whatsapp-espanol</link>
+      <guid isPermaLink="true">https://channelad.io/blog/mejores-canales-whatsapp-espanol</guid>
+      <pubDate>Sat, 04 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Selección curada 2026 de los canales de WhatsApp más activos en español. Finanzas, tecnología, marketing, noticias, emprendimiento y fitness. Con métricas y reviews.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Guias</category>
+    </item>
+    <item>
+      <title><![CDATA[Escrow en publicidad digital 2026: qué es y por qué protege tu inversión]]></title>
+      <link>https://channelad.io/blog/escrow-publicidad-digital</link>
+      <guid isPermaLink="true">https://channelad.io/blog/escrow-publicidad-digital</guid>
+      <pubDate>Fri, 03 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Todo sobre el pago custodiado en publicidad 2026: cómo funciona, qué plataformas lo ofrecen y por qué es imprescindible para anunciarse en Telegram, WhatsApp y Discord.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Guias</category>
+    </item>
+    <item>
+      <title><![CDATA[Publicidad en canales de WhatsApp para marcas 2026: guía y precios]]></title>
+      <link>https://channelad.io/blog/publicidad-canales-whatsapp-marcas</link>
+      <guid isPermaLink="true">https://channelad.io/blog/publicidad-canales-whatsapp-marcas</guid>
+      <pubDate>Thu, 02 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Cómo anunciarse en canales de WhatsApp en 2026: formatos, precios reales (30-120€/post), cómo encontrar canales verificados y los errores que cometen las marcas al empezar.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Guias</category>
     </item>
   </channel>
 </rss>

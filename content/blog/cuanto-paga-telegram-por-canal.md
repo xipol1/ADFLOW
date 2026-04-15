@@ -1,9 +1,9 @@
 ---
-title: "Cuánto paga Telegram por canal en 2026: la respuesta real"
-description: "Telegram no paga directamente, pero tu canal SÍ puede generar ingresos reales. Descubre cuánto ganan los canales de Telegram en España con publicidad y cómo empezar."
+title: "¿Cuánto paga Telegram por canal en 2026? Cifras reales (30-1.500€)"
+description: "Telegram no paga lo que crees. Un canal español gana 30-1.500€/mes reales. Descubre las 2 fuentes (Ad Revenue Sharing + publicidad directa) y cómo empezar con 1.000 subs."
 slug: "cuanto-paga-telegram-por-canal"
 date: "2026-04-07"
-dateModified: "2026-04-11"
+dateModified: "2026-04-15"
 category: "Monetizacion"
 readTime: "10 min"
 lang: "es"

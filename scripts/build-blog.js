@@ -42,6 +42,25 @@ function parseFrontmatter(content) {
 
 // ─── Load FAQ data from blogPosts.js ───
 const BLOG_POSTS_PATH = path.join(ROOT, 'src', 'ui', 'pages', 'blog', 'blogPosts.js');
+
+// ─── Load platform map (slug → platform) from blogPosts.js ───
+// We keep platform in a single source of truth (the React registry) and inject
+// it into markdown posts so related-post scoring works correctly.
+function loadPlatformMap() {
+  const map = {};
+  try {
+    const src = fs.readFileSync(BLOG_POSTS_PATH, 'utf-8');
+    const re = /slug:\s*['"]([^'"]+)['"][\s\S]*?platform:\s*['"]([^'"]+)['"]/g;
+    let m;
+    while ((m = re.exec(src)) !== null) {
+      map[m[1]] = m[2];
+    }
+  } catch (e) {
+    console.warn('⚠️  Could not load platform map:', e.message);
+  }
+  return map;
+}
+
 function loadFaqMap() {
   const faqMap = {};
   try {
@@ -160,12 +179,31 @@ function buildPrevNextHtml(posts, currentIdx) {
   return html;
 }
 
-// ─── Generate related posts HTML ───
+// ─── Generate related posts HTML (topic-scored, not sequential) ───
 function buildRelatedHtml(posts, currentSlug) {
+  const current = posts.find(p => p.slug === currentSlug);
   const others = posts.filter(p => p.slug !== currentSlug);
-  if (others.length === 0) return '';
+  if (others.length === 0 || !current) return '';
 
-  const related = others.slice(0, 3); // Max 3 related posts
+  const asArr = kw => Array.isArray(kw) ? kw : (kw || '').split(',').map(s => s.trim()).filter(Boolean);
+  const curKws = asArr(current.keywords).map(k => k.toLowerCase());
+
+  // Score each candidate by topical relevance
+  const scored = others.map(p => {
+    let score = 0;
+    if (p.platform && p.platform === current.platform) score += 4;
+    if (p.category && p.category === current.category) score += 2;
+    const pKws = asArr(p.keywords).map(k => k.toLowerCase());
+    for (const k of curKws) {
+      if (!k) continue;
+      if (pKws.some(pk => pk.includes(k) || k.includes(pk))) score += 1;
+    }
+    // Tie-break by recency (newer first)
+    return { post: p, score, date: p.date || '' };
+  });
+  scored.sort((a, b) => (b.score - a.score) || (b.date.localeCompare(a.date)));
+  const related = scored.slice(0, 3).map(s => s.post);
+
   const cards = related.map(p => `
       <a href="/blog/${p.slug}" class="related-card">
         <span class="rc-cat">${p.category || 'Guias'}</span>
@@ -178,6 +216,47 @@ function buildRelatedHtml(posts, currentSlug) {
     <div class="related-grid">${cards}
     </div>
   </section>`;
+}
+
+// ─── Generate HowTo schema for guide-type posts ───
+// Triggered by frontmatter `howto: "true"` on the post. Extracts steps by parsing
+// the markdown body for H2 headings after the first "paso", or by numbered H2s.
+function buildHowToSchema(meta) {
+  if (meta.howto !== 'true') return '';
+  const body = meta._body || '';
+  // Find all H2 headings
+  const h2s = [];
+  const h2Re = /^##\s+(.+)$/gm;
+  let m;
+  while ((m = h2Re.exec(body)) !== null) {
+    let heading = m[1].trim();
+    // Skip non-step headings (ToC, intros, conclusions, tables, FAQs, etc.)
+    if (/^(introducción|introduccion|qué es|que es|conclusión|conclusion|faq|preguntas|resumen|tabla|bonus|índice|indice|tldr|tl;dr|antes de empezar|para quien)/i.test(heading)) continue;
+    // Get the text after the heading up to the next H2 (max 300 chars)
+    const start = m.index + m[0].length;
+    const nextH2 = body.indexOf('\n## ', start);
+    const endIdx = nextH2 === -1 ? Math.min(start + 600, body.length) : nextH2;
+    const stepBody = body.slice(start, endIdx).trim().replace(/\n+/g, ' ').replace(/[*#_`]/g, '').slice(0, 300);
+    h2s.push({ name: heading, text: stepBody });
+  }
+  if (h2s.length < 3) return ''; // Not enough steps to be a real HowTo
+
+  const steps = h2s.slice(0, 8).map((step, i) => ({
+    '@type': 'HowToStep',
+    position: i + 1,
+    name: step.name,
+    text: step.text,
+  }));
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: meta.title,
+    description: meta.description || '',
+    totalTime: meta.readTime ? `PT${parseInt(meta.readTime)}M` : undefined,
+    step: steps,
+  };
+  return `<script type="application/ld+json">\n  ${JSON.stringify(schema, null, 2).replace(/\n/g, '\n  ')}\n  </script>`;
 }
 
 // ─── Main build ───
@@ -227,6 +306,13 @@ function build() {
   const faqMap = loadFaqMap();
   console.log(`  📋 FAQ data loaded for ${Object.keys(faqMap).length} post(s)\n`);
 
+  // ─── Load platform map and inject into postsData ───
+  const platformMap = loadPlatformMap();
+  for (const p of postsData) {
+    if (!p.platform && platformMap[p.slug]) p.platform = platformMap[p.slug];
+  }
+  console.log(`  🏷️  Platform map loaded for ${Object.keys(platformMap).length} post(s)\n`);
+
   // ─── Pass 2: Generate HTML for each post ───
   const posts = []; // metadata only (no body)
 
@@ -241,6 +327,7 @@ function build() {
     const dateISO = meta.date || '';
     const dateModifiedISO = meta.dateModified || meta.date || '';
     const faqSchema = buildFaqSchema(meta.slug, faqMap);
+    const howtoSchema = buildHowToSchema(meta);
     const canonicalSlug = meta.canonical || meta.slug;
     const canonicalUrl = `${DOMAIN}/blog/${canonicalSlug}`;
 
@@ -265,7 +352,8 @@ function build() {
       .replace(/{{tags_html}}/g, tagsHtml)
       .replace(/{{prev_next_html}}/g, prevNextHtml)
       .replace(/{{related_html}}/g, relatedHtml)
-      .replace(/{{faq_schema}}/g, faqSchema);
+      .replace(/{{faq_schema}}/g, faqSchema)
+      .replace(/{{howto_schema}}/g, howtoSchema);
 
     // Skip static HTML for posts that need SPA (interactive components)
     if (meta.spaOnly === 'true') {
