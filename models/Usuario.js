@@ -18,6 +18,27 @@ const UsuarioSchema = new mongoose.Schema(
     nombre: { type: String, default: '' },
     apellido: { type: String, default: '' },
     rol: { type: String, enum: ['creator', 'advertiser', 'admin'], default: 'advertiser' },
+
+    // Profile sub-type — used to tailor the onboarding and dashboard:
+    //   - individual: a single creator managing their own channel(s)
+    //   - agencia:   an agency / community manager handling channels of
+    //                multiple clients. Unlocks multi-client features,
+    //                multi-user access, and consolidated billing.
+    tipoPerfil: {
+      type: String,
+      enum: ['individual', 'agencia', null],
+      default: null,
+      index: true,
+    },
+    // Agency-specific fields (populated only when tipoPerfil === 'agencia')
+    agencia: {
+      nombre: { type: String, default: '' },
+      sitioWeb: { type: String, default: '' },
+      cifNif: { type: String, default: '' },
+      numClientesEstimados: { type: Number, default: 0 },
+      numCanalesGestionados: { type: Number, default: 0 },
+    },
+
     emailVerificado: { type: Boolean, default: false },
     activo: { type: Boolean, default: true },
     sesiones: { type: [SesionSchema], default: [] },

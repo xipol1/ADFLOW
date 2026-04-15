@@ -23,6 +23,8 @@ export default function AuthPage({ defaultTab = 'login' }) {
   const [password, setPassword] = useState('')
   const [name, setName]         = useState('')
   const [role, setRole]         = useState(botTokenParam ? 'creator' : 'advertiser')
+  // Creator sub-type: 'individual' (single creator) or 'agencia' (multi-client)
+  const [tipoPerfil, setTipoPerfil] = useState('individual')
   const [referral, setReferral] = useState(refCode)
   const [remember, setRemember] = useState(false)
   const [showPass, setShowPass] = useState(false)
@@ -119,6 +121,8 @@ export default function AuthPage({ defaultTab = 'login' }) {
     if (!/\d/.test(password)) { setError('La contraseña debe incluir al menos un número'); return }
     setLoading(true)
     const regData = { email, password, nombre: name, role }
+    // Attach profile sub-type only when creator (advertisers don't have this split)
+    if (role === 'creator') regData.tipoPerfil = tipoPerfil
     if (botToken) regData.botToken = botToken
     const codeToApply = (referral.trim() || refCode).toUpperCase()
     if (codeToApply) regData.referralCode = codeToApply
@@ -468,6 +472,38 @@ export default function AuthPage({ defaultTab = 'login' }) {
                     </button>
                   ))}
                 </div>
+              </div>
+              )}
+
+              {/* Creator sub-type: individual vs agencia */}
+              {!founderData?.valid && role === 'creator' && (
+              <div>
+                <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '8px' }}>
+                  ¿Cómo gestionas tus canales? <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  {[
+                    ['individual', '👤', 'Soy creador', 'Gestiono mis propios canales'],
+                    ['agencia', '🏢', 'Soy agencia / CM', 'Gestiono canales de clientes'],
+                  ].map(([val, icon, title, sub]) => (
+                    <button key={val} type="button" onClick={() => setTipoPerfil(val)} style={{
+                      background: tipoPerfil === val ? AG(0.12) : 'var(--bg)',
+                      border: `1px solid ${tipoPerfil === val ? A : 'var(--border-med)'}`,
+                      borderRadius: '10px', padding: '12px',
+                      cursor: 'pointer', textAlign: 'left', transition: 'all .15s',
+                      boxShadow: tipoPerfil === val ? `0 0 0 1px ${A}` : 'none',
+                    }}>
+                      <div style={{ fontSize: '18px', marginBottom: '4px' }}>{icon}</div>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: tipoPerfil === val ? A : 'var(--text)', fontFamily: F }}>{title}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{sub}</div>
+                    </button>
+                  ))}
+                </div>
+                {tipoPerfil === 'agencia' && (
+                  <p style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '8px', lineHeight: 1.5 }}>
+                    ✨ Acceso al dashboard multi-cliente, vinculación de varios canales por QR, audit log unificado.
+                  </p>
+                )}
               </div>
               )}
 

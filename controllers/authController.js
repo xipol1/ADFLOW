@@ -180,6 +180,14 @@ const registro = async (req, res) => {
     const nombre = String(req.body?.nombre || req.body?.name || '').trim()
     const rol    = ['creator', 'advertiser'].includes(req.body?.role) ? req.body.role : 'advertiser'
 
+    // tipoPerfil only applies to creators. Accepts 'individual' or 'agencia'.
+    // Defaults to 'individual' for creators; stays null for advertisers.
+    let tipoPerfil = null;
+    if (rol === 'creator') {
+      const requested = String(req.body?.tipoPerfil || '').toLowerCase();
+      tipoPerfil = ['individual', 'agencia'].includes(requested) ? requested : 'individual';
+    }
+
     // Generate email verification token
     const crypto = require('crypto');
     const verificationToken = crypto.randomBytes(32).toString('hex');
@@ -189,6 +197,7 @@ const registro = async (req, res) => {
       password: hashedPassword,
       nombre,
       rol,
+      tipoPerfil,
       emailVerificado: false,
       emailVerificationToken: verificationToken,
       emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
