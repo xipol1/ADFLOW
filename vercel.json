@@ -62,6 +62,6 @@
     { "source": "/blog/feed.xml", "destination": "/blog/feed.xml" },
     { "source": "/blog/calculadora-precios-publicidad", "destination": "/index.html" },
     { "source": "/blog/:slug", "destination": "/blog/:slug.html" },
-    { "source": "/:path*", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

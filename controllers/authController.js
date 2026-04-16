@@ -540,9 +540,10 @@ const reenviarVerificacion = async (req, res) => {
     if (!database.estaConectado()) await database.conectar();
     const { email } = req.body;
     if (!email) return res.status(400).json({ success: false, message: 'Email requerido' });
+    // Always return the same message to prevent email enumeration
+    const genericMsg = 'Si el email existe y no esta verificado, se envio el enlace de verificacion';
     const user = await Usuario.findOne({ email: email.toLowerCase() });
-    if (!user) return res.json({ success: true, message: 'Si el email existe, se envio el enlace' });
-    if (user.emailVerificado) return res.json({ success: true, message: 'Email ya verificado' });
+    if (!user || user.emailVerificado) return res.json({ success: true, message: genericMsg });
     const crypto = require('crypto');
     const token = crypto.randomBytes(32).toString('hex');
     user.emailVerificationToken = token;
@@ -552,7 +553,7 @@ const reenviarVerificacion = async (req, res) => {
       const emailService = require('../services/emailService');
       await emailService.enviarEmailVerificacion(user.email, user.nombre || '', token);
     } catch {}
-    return res.json({ success: true, message: 'Email de verificacion enviado' });
+    return res.json({ success: true, message: genericMsg });
   } catch (e) {
     return res.status(500).json({ success: false, message: 'Error del servidor' });
   }
@@ -579,16 +580,15 @@ const solicitarRestablecimiento = async (req, res) => {
     user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     await user.save();
 
-    // Send reset email (non-blocking)
-    setImmediate(async () => {
-      try {
-        const emailService = require('../services/emailService');
-        await emailService.enviarEmailRecuperacion(user.email, user.nombre || '', resetToken);
-        logDev('PASSWORD RESET: email sent', { email: user.email });
-      } catch (emailErr) {
-        console.error('PASSWORD RESET: failed to send email:', emailErr?.message || emailErr);
-      }
-    });
+    // Send reset email synchronously — setImmediate callbacks get killed
+    // in Vercel serverless after the HTTP response is sent.
+    try {
+      const emailService = require('../services/emailService');
+      await emailService.enviarEmailRecuperacion(user.email, user.nombre || '', resetToken);
+      logDev('PASSWORD RESET: email sent', { email: user.email });
+    } catch (emailErr) {
+      console.error('PASSWORD RESET: failed to send email:', emailErr?.message || emailErr);
+    }
 
     return res.json({ success: true, message: 'Si el email existe, recibiras instrucciones para restablecer tu contrasena' });
   } catch (error) {
