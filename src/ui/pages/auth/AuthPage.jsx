@@ -3,9 +3,7 @@ import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-do
 import { useAuth } from '../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { PURPLE as A, PURPLE_DARK as AD, purpleAlpha as AG, FONT_BODY, FONT_DISPLAY } from '../../theme/tokens'
-
-let GoogleLogin = null
-try { GoogleLogin = require('@react-oauth/google').GoogleLogin } catch {}
+import { GoogleLogin } from '@react-oauth/google'
 
 export default function AuthPage({ defaultTab = 'login' }) {
   const navigate = useNavigate()
