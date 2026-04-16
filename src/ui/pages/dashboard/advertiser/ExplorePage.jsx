@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { Search, X, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, X, SlidersHorizontal, ChevronLeft, ChevronRight, Zap } from 'lucide-react'
 import apiService from '../../../../../services/api'
 import { ChannelCardNew, FilterSidebar, CardSkeleton } from '../../../../components/ui'
 
@@ -29,6 +29,75 @@ const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = se
 
 export default function ExplorePage() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const fromAutobuy = searchParams.get('from') === 'autobuy'
+
+  // ── User lists for "add to list" on cards ──
+  const [userLists, setUserLists] = useState([])
+  const [listToast, setListToast] = useState('')
+
+  useEffect(() => {
+    apiService.getMyLists().then((res) => {
+      if (res?.success) {
+        const items = Array.isArray(res.data) ? res.data : res.data?.items || []
+        setUserLists(items)
+      }
+    }).catch(() => {})
+  }, [])
+
+  // Map: channelId -> [listId, listId, ...]
+  const channelListMap = useMemo(() => {
+    const map = {}
+    for (const list of userLists) {
+      const lid = list._id || list.id
+      for (const ch of (list.channels || [])) {
+        const cid = typeof ch === 'string' ? ch : (ch._id || ch.id || ch)
+        if (!map[cid]) map[cid] = []
+        if (!map[cid].includes(lid)) map[cid].push(lid)
+      }
+    }
+    return map
+  }, [userLists])
+
+  const showToast = (msg) => { setListToast(msg); setTimeout(() => setListToast(''), 3000) }
+
+  const handleAddToList = useCallback(async (listId, channelId) => {
+    try {
+      const res = await apiService.addChannelToList(listId, channelId)
+      if (res?.success) {
+        setUserLists((prev) => prev.map((l) => {
+          if ((l._id || l.id) === listId) return res.data || { ...l, channels: [...(l.channels || []), channelId] }
+          return l
+        }))
+        const listName = userLists.find(l => (l._id || l.id) === listId)?.name || 'lista'
+        showToast(`Canal guardado en "${listName}"`)
+      } else {
+        showToast(res?.message || 'No se pudo guardar')
+      }
+    } catch { showToast('Error de conexion') }
+  }, [userLists])
+
+  const handleCreateListAndAdd = useCallback(async (name, channelId) => {
+    try {
+      const res = await apiService.createList({ name })
+      if (res?.success && res.data) {
+        const newList = res.data
+        const lid = newList._id || newList.id
+        setUserLists((prev) => [...prev, newList])
+        // Now add channel to the new list
+        const addRes = await apiService.addChannelToList(lid, channelId)
+        if (addRes?.success) {
+          setUserLists((prev) => prev.map((l) => {
+            if ((l._id || l.id) === lid) return addRes.data || { ...l, channels: [channelId] }
+            return l
+          }))
+        }
+        showToast(`Lista "${name}" creada y canal guardado`)
+      } else {
+        showToast(res?.message || 'No se pudo crear la lista')
+      }
+    } catch { showToast('Error de conexion') }
+  }, [])
 
   // State from URL
   const sortBy = searchParams.get('sort') || 'score'
@@ -109,6 +178,26 @@ export default function ExplorePage() {
         <meta property="og:description" content="Marketplace de publicidad en comunidades digitales cerradas. Canales verificados con metricas reales." />
       </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+        {/* Autobuy context banner */}
+        {fromAutobuy && (
+          <div className="mb-4 flex items-center gap-3 rounded-xl px-5 py-3.5" style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)' }}>
+            <Zap size={18} style={{ color: 'var(--accent, #8B5CF6)', flexShrink: 0 }} />
+            <div className="flex-1">
+              <div className="text-sm font-semibold" style={{ color: 'var(--accent, #8B5CF6)' }}>Seleccionando canales para Auto-Buy</div>
+              <div className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                Guarda canales en una lista con el boton <strong>+</strong> de cada tarjeta. Luego selecciona esa lista en el modo "Mis favoritos" de Auto-Buy.
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/advertiser/autobuy')}
+              className="text-xs font-semibold px-4 py-2 rounded-lg flex-shrink-0"
+              style={{ background: 'var(--accent, #8B5CF6)', color: '#fff', border: 'none', cursor: 'pointer' }}
+            >
+              Volver a Auto-Buy
+            </button>
+          </div>
+        )}
 
         {/* Header */}
         <div className="mb-6">
@@ -203,7 +292,13 @@ export default function ExplorePage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                   {channels.map((ch, i) => (
                     <div key={ch.id || ch._id || i} style={{ animationDelay: `${i * 50}ms` }} className="animate-fadeIn">
-                      <ChannelCardNew channel={ch} />
+                      <ChannelCardNew
+                        channel={ch}
+                        lists={userLists}
+                        onAddToList={handleAddToList}
+                        onCreateList={handleCreateListAndAdd}
+                        channelListMap={channelListMap}
+                      />
                     </div>
                   ))}
                 </div>
@@ -237,6 +332,20 @@ export default function ExplorePage() {
           </main>
         </div>
       </div>
+
+      {/* Toast */}
+      {listToast && (
+        <div style={{
+          position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+          background: 'var(--surface, #0D1117)', border: '1px solid var(--border, #21262D)',
+          borderRadius: '12px', padding: '10px 20px', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+          fontSize: '13px', fontWeight: 600, color: 'var(--text)', zIndex: 100,
+          display: 'flex', alignItems: 'center', gap: '8px',
+        }}>
+          <span style={{ color: 'var(--accent, #8B5CF6)', fontSize: '15px' }}>{'\u2713'}</span>
+          {listToast}
+        </div>
+      )}
     </div>
   )
 }

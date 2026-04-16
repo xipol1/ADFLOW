@@ -1,9 +1,158 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import Badge from './Badge'
 import { scoreLabel } from './ScoreBar'
 import { CASBadge, CPMBadge, ConfianzaBadge } from '../../ui/components/scoring'
+
+// ── Add-to-list dropdown ─────────────────────────────────────────────────────
+function AddToListDropdown({ channelId, lists, onAdd, onCreate, channelListMap }) {
+  const [open, setOpen] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [adding, setAdding] = useState(null)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    if (open) document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const inLists = (channelListMap || {})[channelId] || []
+  const isInAny = inLists.length > 0
+
+  const handleAdd = async (listId) => {
+    setAdding(listId)
+    await onAdd(listId, channelId)
+    setAdding(null)
+  }
+
+  const handleCreate = async () => {
+    if (!newName.trim()) return
+    setAdding('new')
+    await onCreate(newName.trim(), channelId)
+    setNewName('')
+    setCreating(false)
+    setAdding(null)
+  }
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen(!open) }}
+        title={isInAny ? `En ${inLists.length} lista${inLists.length > 1 ? 's' : ''}` : 'Guardar en lista'}
+        style={{
+          background: isInAny ? 'var(--accent, #8B5CF6)' : 'var(--bg, #080C10)',
+          color: isInAny ? '#fff' : 'var(--text-secondary, #8B949E)',
+          border: `1px solid ${isInAny ? 'var(--accent, #8B5CF6)' : 'var(--border, #21262D)'}`,
+          borderRadius: '8px', width: '32px', height: '32px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 150ms ease', flexShrink: 0,
+          fontSize: '15px',
+        }}
+      >
+        {isInAny ? '\u2713' : '+'}
+      </button>
+
+      {open && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: 'absolute', top: '100%', right: 0, marginTop: '6px', zIndex: 50,
+            background: 'var(--surface, #0D1117)', border: '1px solid var(--border, #21262D)',
+            borderRadius: '12px', boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
+            width: '220px', overflow: 'hidden',
+          }}
+        >
+          <div style={{ padding: '10px 12px 6px', fontSize: '11px', fontWeight: 700, color: 'var(--muted2, #484F58)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Guardar en lista
+          </div>
+
+          <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
+            {lists.length === 0 && !creating && (
+              <div style={{ padding: '12px', textAlign: 'center', fontSize: '12px', color: 'var(--text-secondary, #8B949E)' }}>
+                No tienes listas aun
+              </div>
+            )}
+            {lists.map((list) => {
+              const alreadyIn = inLists.includes(list._id || list.id)
+              const lid = list._id || list.id
+              return (
+                <button
+                  key={lid}
+                  disabled={alreadyIn || adding === lid}
+                  onClick={() => !alreadyIn && handleAdd(lid)}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    width: '100%', padding: '8px 12px', border: 'none',
+                    background: alreadyIn ? 'rgba(139,92,246,0.08)' : 'transparent',
+                    color: 'var(--text, #E6EDF3)', cursor: alreadyIn ? 'default' : 'pointer',
+                    fontSize: '13px', textAlign: 'left', fontFamily: 'inherit',
+                    transition: 'background 100ms',
+                  }}
+                  onMouseEnter={(e) => { if (!alreadyIn) e.currentTarget.style.background = 'var(--bg, #080C10)' }}
+                  onMouseLeave={(e) => { if (!alreadyIn) e.currentTarget.style.background = 'transparent' }}
+                >
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {list.name}
+                    <span style={{ fontSize: '11px', color: 'var(--muted2)', marginLeft: '6px' }}>
+                      {(list.channels?.length || 0)}
+                    </span>
+                  </span>
+                  {alreadyIn && <span style={{ fontSize: '12px', color: 'var(--accent, #8B5CF6)', flexShrink: 0 }}>{'\u2713'}</span>}
+                  {adding === lid && <span style={{ fontSize: '11px', color: 'var(--muted2)', flexShrink: 0 }}>...</span>}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Create new list */}
+          <div style={{ borderTop: '1px solid var(--border, #21262D)', padding: '8px' }}>
+            {creating ? (
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <input
+                  autoFocus
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+                  placeholder="Nombre de lista"
+                  style={{
+                    flex: 1, background: 'var(--bg, #080C10)', border: '1px solid var(--border, #21262D)',
+                    borderRadius: '6px', padding: '5px 8px', fontSize: '12px',
+                    color: 'var(--text)', outline: 'none', fontFamily: 'inherit',
+                  }}
+                />
+                <button
+                  onClick={handleCreate}
+                  disabled={!newName.trim() || adding === 'new'}
+                  style={{
+                    background: 'var(--accent, #8B5CF6)', color: '#fff', border: 'none',
+                    borderRadius: '6px', padding: '5px 10px', fontSize: '12px', fontWeight: 600,
+                    cursor: newName.trim() ? 'pointer' : 'default', opacity: newName.trim() ? 1 : 0.4,
+                  }}
+                >
+                  {adding === 'new' ? '...' : 'OK'}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setCreating(true)}
+                style={{
+                  width: '100%', background: 'transparent', border: 'none',
+                  color: 'var(--accent, #8B5CF6)', fontSize: '12px', fontWeight: 600,
+                  cursor: 'pointer', padding: '4px 4px', textAlign: 'left', fontFamily: 'inherit',
+                }}
+              >
+                + Nueva lista
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 function maskName(name) {
   if (!name || name.length <= 2) return '••••••'
@@ -46,7 +195,7 @@ function MiniStat({ label, value }) {
   )
 }
 
-export default function ChannelCardNew({ channel, onClick }) {
+export default function ChannelCardNew({ channel, onClick, lists, onAddToList, onCreateList, channelListMap }) {
   const [hover, setHover] = useState(false)
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
@@ -117,6 +266,15 @@ export default function ChannelCardNew({ channel, onClick }) {
             }
           </div>
         </div>
+        {isAuthenticated && lists && onAddToList && (
+          <AddToListDropdown
+            channelId={cId}
+            lists={lists}
+            onAdd={onAddToList}
+            onCreate={onCreateList}
+            channelListMap={channelListMap}
+          />
+        )}
       </div>
 
       {/* Badges */}

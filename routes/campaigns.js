@@ -18,6 +18,21 @@ router.get(
   campaignController.getCampaignById
 );
 
+// Auto-buy: batch-create campaigns across channels
+router.post(
+  '/launch-auto',
+  autenticar,
+  requiereEmailVerificado,
+  [
+    body('budget').isFloat({ min: 50 }).withMessage('Presupuesto mínimo: €50'),
+    body('content').isString().notEmpty().trim().isLength({ max: 5000 }).withMessage('Contenido requerido (max 5000 caracteres)'),
+    body('targetUrl').isString().notEmpty().trim().isURL().withMessage('URL de destino inválida'),
+    body('mode').optional().isIn(['auto', 'fav', 'manual']).withMessage('Modo inválido'),
+  ],
+  validarCampos,
+  campaignController.launchAutoCampaign
+);
+
 router.post(
   '/',
   autenticar,

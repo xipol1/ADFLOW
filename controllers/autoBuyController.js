@@ -144,16 +144,34 @@ const triggerRule = async (req, res, next) => {
       return next(httpError(400, 'No hay canales configurados en esta regla'));
     }
 
-    const remainingBudget = rule.totalBudget - rule.totalSpent;
+    const { resolveCommissionRate } = require('../config/commissions');
+    const commissionRate = resolveCommissionRate({ campaignType: 'autoCampaign' });
+
+    let remainingBudget = rule.totalBudget - rule.totalSpent;
+    let dailySpent = 0;
+
+    // Calculate how much was already spent today for dailyBudget enforcement
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todaysCampaigns = await Campaign.find({
+      advertiser: userId,
+      createdAt: { $gte: todayStart },
+    }).select('price').lean();
+    dailySpent = todaysCampaigns.reduce((sum, c) => sum + (c.price || 0), 0);
+
     const created = [];
 
     for (const channelId of targetChannelIds) {
-      const canal = await Canal.findById(channelId).select('precioBase propietario').lean();
+      const canal = await Canal.findById(channelId).select('precioBase CPMDinamico precio propietario').lean();
       if (!canal) continue;
 
-      const price = canal.precioBase || rule.maxPricePerPost;
+      // Skip own channels
+      if (canal.propietario?.toString() === String(userId)) continue;
+
+      const price = canal.CPMDinamico || canal.precioBase || canal.precio || rule.maxPricePerPost;
       if (price > rule.maxPricePerPost) continue;
       if (price > remainingBudget) continue;
+      if (dailySpent + price > rule.dailyBudget) continue;
 
       // Don't create duplicate active campaigns for same channel
       const existing = await Campaign.findOne({
@@ -163,12 +181,16 @@ const triggerRule = async (req, res, next) => {
       });
       if (existing) continue;
 
+      const netAmount = +(price * (1 - commissionRate)).toFixed(2);
+
       const campaign = await Campaign.create({
         advertiser: userId,
         channel: channelId,
         content: rule.content,
         targetUrl: rule.targetUrl,
         price,
+        commissionRate,
+        netAmount,
         status: 'DRAFT',
         createdAt: new Date()
       });
@@ -183,6 +205,8 @@ const triggerRule = async (req, res, next) => {
 
       rule.totalSpent += price;
       rule.campaignsCreated += 1;
+      remainingBudget -= price;
+      dailySpent += price;
       created.push({ campaignId: campaign._id, channel: channelId, price });
     }
 

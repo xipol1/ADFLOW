@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Zap, Bot, Heart, MousePointer, CheckCircle, AlertCircle, ChevronDown, X, Users, Globe, Star, Package } from 'lucide-react'
+import { Zap, Bot, Heart, MousePointer, CheckCircle, AlertCircle, ChevronDown, X, Users, Globe, Star, Package, TrendingUp } from 'lucide-react'
 import apiService from '../../../../../services/api'
 import {
   PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, TRANSITION, PLATFORM_BRAND,
@@ -60,10 +60,34 @@ export default function AutoBuyPage() {
   const [launchResult, setLaunchResult] = useState(null)
   const [error, setError] = useState('')
 
-  // Favorites lists from localStorage
+  // Favorites lists — fetched from API, fallback to localStorage
   const [favLists, setFavLists] = useState(() => JSON.parse(localStorage.getItem('channelad-fav-lists') || '[]'))
-  const [selectedListId, setSelectedListId] = useState('all')
+  const [selectedListId, setSelectedListId] = useState('')
   const [favChannelDetails, setFavChannelDetails] = useState([])
+
+  useEffect(() => {
+    let cancelled = false
+    const fetchLists = async () => {
+      try {
+        const res = await apiService.getMyLists()
+        if (cancelled) return
+        if (res?.success) {
+          const items = Array.isArray(res.data) ? res.data : res.data?.items || []
+          if (items.length > 0) {
+            setFavLists(items.map(l => ({
+              id: l._id || l.id,
+              name: l.name || l.nombre || 'Lista',
+              icon: l.icon || '',
+              channels: l.channels || [],
+            })))
+            setSelectedListId(prev => prev || items[0]._id || items[0].id || '')
+          }
+        }
+      } catch { /* keep localStorage fallback */ }
+    }
+    fetchLists()
+    return () => { cancelled = true }
+  }, [])
 
   // Manual mode
   const [showRecommended, setShowRecommended] = useState(false)
@@ -81,7 +105,9 @@ export default function AutoBuyPage() {
     const fetchRecommended = async () => {
       setLoadingRec(true)
       try {
-        const res = await apiService.searchChannels({ limit: 8, status: 'activo' })
+        const params = { limit: 20, status: 'activo' }
+        if (category) params.category = category
+        const res = await apiService.searchChannels(params)
         if (cancelled) return
         if (res?.success) {
           const items = Array.isArray(res.data) ? res.data : res.data?.items || []
@@ -89,7 +115,8 @@ export default function AutoBuyPage() {
             id: ch._id || ch.id,
             name: ch.nombreCanal || ch.nombre || ch.name || 'Canal',
             platform: ch.plataforma || ch.platform || 'Telegram',
-            audience: (ch.estadisticas?.seguidores || ch.audience || 0).toLocaleString('es'),
+            audience: ch.estadisticas?.seguidores || ch.audience || 0,
+            audienceLabel: (ch.estadisticas?.seguidores || ch.audience || 0).toLocaleString('es'),
             price: ch.precio || ch.price || 0,
             category: ch.categoria || ch.category || '',
           })))
@@ -99,17 +126,12 @@ export default function AutoBuyPage() {
     }
     fetchRecommended()
     return () => { cancelled = true }
-  }, [])
+  }, [category])
 
   const urgency = getLaunchUrgency()
+  const draftRestored = React.useRef(false)
 
-  // Persist form draft
-  useEffect(() => {
-    const draft = { budget, category, mode, adText, url }
-    localStorage.setItem('channelad-autobuy-draft', JSON.stringify(draft))
-  }, [budget, category, mode, adText, url])
-
-  // Restore draft on mount
+  // Restore draft on mount (MUST run before save effect)
   useEffect(() => {
     const saved = localStorage.getItem('channelad-autobuy-draft')
     if (saved) {
@@ -122,7 +144,32 @@ export default function AutoBuyPage() {
         if (d.url) setUrl(d.url)
       } catch {}
     }
+    draftRestored.current = true
   }, [])
+
+  // Persist form draft (skip initial render to avoid overwriting restored draft)
+  useEffect(() => {
+    if (!draftRestored.current) return
+    const draft = { budget, category, mode, adText, url }
+    localStorage.setItem('channelad-autobuy-draft', JSON.stringify(draft))
+  }, [budget, category, mode, adText, url])
+
+  // Simulate budget distribution across available channels (mirrors backend logic)
+  const previewAllocation = useMemo(() => {
+    if (recommendedChannels.length === 0) return { channels: [], totalSpent: 0, remaining: budget }
+    const sorted = [...recommendedChannels]
+      .filter(ch => ch.price > 0)
+      .sort((a, b) => (b.audience || 0) - (a.audience || 0))
+    let remaining = budget
+    const selected = []
+    for (const ch of sorted) {
+      if (ch.price > remaining) continue
+      selected.push({ ...ch, allocated: true })
+      remaining -= ch.price
+      if (remaining <= 0) break
+    }
+    return { channels: selected, totalSpent: budget - remaining, remaining }
+  }, [budget, recommendedChannels])
 
   const est = calcEstimates(budget)
   const commissionRate = getAutoBuyCommissionRate(mode === 'auto' ? 'autobuy_optimized' : 'autobuy_basic')
@@ -130,25 +177,56 @@ export default function AutoBuyPage() {
   const netBudget = budget - commissionAmount
 
   const handleLaunch = async () => {
+    // Step 1 validation: ensure channels exist for fav/manual modes
+    if (mode === 'fav') {
+      const list = favLists.find(l => l.id === selectedListId)
+      if (!list?.channels?.length) {
+        setError('Selecciona una lista con canales antes de lanzar.')
+        return
+      }
+    }
+    if (mode === 'manual' && manualChannels.length === 0) {
+      setError('Selecciona al menos un canal en modo manual.')
+      return
+    }
+
     setLaunching(true)
     setError('')
     try {
-      const res = await apiService.launchAutoCampaign({
+      const payload = {
         budget,
         category,
         mode,
         content: adText.trim(),
         targetUrl: url.trim(),
-      })
+      }
+      // Include channel data based on mode
+      if (mode === 'manual' && manualChannels.length > 0) {
+        payload.channels = manualChannels.map(ch => ch.id)
+      }
+      if (mode === 'fav' && selectedListId) {
+        payload.listId = selectedListId
+      }
+
+      const res = await apiService.launchAutoCampaign(payload)
       if (res?.success && res.data) {
         setLaunchResult(res.data)
         // Auto-pay each campaign in the batch
         const campaigns = res.data.campaigns || []
+        const payErrors = []
         for (const c of campaigns) {
           const cId = c._id || c.id
-          if (cId) await apiService.payCampaign(cId).catch(() => {})
+          if (cId) {
+            const payRes = await apiService.payCampaign(cId)
+            if (payRes && !payRes.success) {
+              payErrors.push(c.channel?.nombreCanal || `Canal ${cId}`)
+            }
+          }
         }
         setLaunched(true)
+        if (payErrors.length > 0) {
+          setError(`Campañas creadas, pero el pago falló para: ${payErrors.join(', ')}. Puedes reintentar desde "Mis campañas".`)
+        }
       } else {
         setError(res?.message || 'No se pudo lanzar la campaña. Inténtalo de nuevo.')
       }
@@ -278,7 +356,7 @@ export default function AutoBuyPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '12px' }}>
                 <div style={{ position: 'relative', flex: 1 }}>
                   <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', fontSize: '16px' }}>€</span>
-                  <input type="number" value={budget} onChange={e => setBudget(Math.max(50, Number(e.target.value)))}
+                  <input type="number" value={budget} min={50} max={5000} onChange={e => setBudget(Math.min(5000, Math.max(50, Number(e.target.value))))}
                     style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg)', border: `1px solid ${purpleAlpha(0.3)}`, borderRadius: '10px', padding: '11px 14px 11px 30px', fontSize: '18px', fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY, outline: 'none' }} />
                 </div>
                 <div style={{ background: purpleAlpha(0.08), border: `1px solid ${purpleAlpha(0.2)}`, borderRadius: '12px', padding: '12px 16px', minWidth: '200px' }}>
@@ -287,12 +365,102 @@ export default function AutoBuyPage() {
                   <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>CPC estimado: €{est.cpc} · ~{est.impr.toLocaleString('es')} impresiones</div>
                 </div>
               </div>
-              <input type="range" min={50} max={2000} step={50} value={budget} onChange={e => setBudget(Number(e.target.value))}
+              <input type="range" min={50} max={5000} step={50} value={Math.min(budget, 5000)} onChange={e => setBudget(Number(e.target.value))}
                 style={{ width: '100%', accentColor: PURPLE }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--muted2)', marginTop: '4px' }}>
-                <span>€50</span><span>€2.000</span>
+                <span>€50</span><span>€5.000</span>
               </div>
             </div>
+
+            {/* Channel preview based on budget */}
+            {mode === 'auto' && (
+              <div style={{ background: 'var(--bg)', borderRadius: '14px', border: '1px solid var(--border)', padding: '18px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: purpleAlpha(0.12), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <TrendingUp size={14} color={PURPLE} />
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: FONT_DISPLAY, fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>
+                        Canales recomendados
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--muted)' }}>
+                        Asignacion estimada para tu presupuesto
+                      </div>
+                    </div>
+                  </div>
+                  {previewAllocation.channels.length > 0 && (
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: PURPLE, background: purpleAlpha(0.08), borderRadius: '8px', padding: '4px 10px' }}>
+                      {previewAllocation.channels.length} canal{previewAllocation.channels.length !== 1 ? 'es' : ''}
+                    </span>
+                  )}
+                </div>
+
+                {loadingRec ? (
+                  <div style={{ textAlign: 'center', padding: '16px', color: 'var(--muted)', fontSize: '13px' }}>
+                    Buscando los mejores canales...
+                  </div>
+                ) : previewAllocation.channels.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '16px', color: 'var(--muted)', fontSize: '13px' }}>
+                    {recommendedChannels.length === 0
+                      ? 'No hay canales disponibles en esta categoria'
+                      : 'Presupuesto insuficiente para los canales disponibles. Aumenta el presupuesto.'}
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {previewAllocation.channels.map((ch, i) => {
+                        const brand = PLATFORM_BRAND[ch.platform.toLowerCase()] || {}
+                        return (
+                          <div key={ch.id} style={{
+                            display: 'flex', alignItems: 'center', gap: '10px',
+                            padding: '10px 12px', background: 'var(--surface)',
+                            borderRadius: '10px', border: '1px solid var(--border)',
+                            transition: 'all .15s',
+                          }}>
+                            <div style={{
+                              width: '34px', height: '34px', borderRadius: '9px', flexShrink: 0,
+                              background: brand.bg || purpleAlpha(0.1),
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: '12px', fontWeight: 700,
+                              color: brand.color || PURPLE,
+                            }}>
+                              {ch.name.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {ch.name}
+                              </div>
+                              <div style={{ fontSize: '11px', color: 'var(--muted)', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                <span style={{ color: brand.color || 'var(--muted)', fontWeight: 600 }}>{brand.label || ch.platform}</span>
+                                <span>{'\u00B7'}</span>
+                                <span>{ch.audienceLabel} subs</span>
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                              <div style={{ fontFamily: FONT_DISPLAY, fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>{'\u20AC'}{ch.price}</div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {/* Allocation summary */}
+                    <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                        Presupuesto asignado: <strong style={{ color: 'var(--text)' }}>{'\u20AC'}{previewAllocation.totalSpent}</strong>
+                        {previewAllocation.remaining > 0 && (
+                          <span> · {'\u20AC'}{previewAllocation.remaining} sin asignar</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '11px', color: OK, fontWeight: 600 }}>
+                        Alcance est. ~{previewAllocation.channels.reduce((s, c) => s + (c.audience || 0), 0).toLocaleString('es')}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
             {/* Category */}
             <div>
@@ -410,8 +578,8 @@ export default function AutoBuyPage() {
             <div>
               <label style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '8px' }}>URL de destino</label>
               <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://tu-web.com/landing"
-                style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg)', border: `1px solid ${url && !url.startsWith('http') ? '#ef4444' : 'var(--border-med)'}`, borderRadius: '10px', padding: '11px 14px', fontSize: '14px', color: 'var(--text)', fontFamily: FONT_BODY, outline: 'none' }} />
-              {url && !url.startsWith('http') && <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>La URL debe comenzar con https://</div>}
+                style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg)', border: `1px solid ${url && !url.startsWith('https://') ? '#ef4444' : 'var(--border-med)'}`, borderRadius: '10px', padding: '11px 14px', fontSize: '14px', color: 'var(--text)', fontFamily: FONT_BODY, outline: 'none' }} />
+              {url && !url.startsWith('https://') && <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>La URL debe comenzar con https://</div>}
             </div>
 
             {/* Preview */}
@@ -439,12 +607,20 @@ export default function AutoBuyPage() {
               ← Anterior
             </button>
             {step === 1
-              ? <button onClick={() => setStep(2)} style={{ background: PURPLE, color: '#fff', border: 'none', borderRadius: '10px', padding: '11px 24px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: FONT_BODY }}>Siguiente →</button>
-              : <button onClick={handleLaunch} disabled={!adText || !url.startsWith('http') || launching} style={{
-                  background: adText && url.startsWith('http') && !launching ? PURPLE : 'var(--muted2)', color: '#fff', border: 'none', borderRadius: '10px',
+              ? <button onClick={() => {
+                  if (mode === 'fav') {
+                    const list = favLists.find(l => l.id === selectedListId)
+                    if (!list?.channels?.length) { setError('Selecciona una lista con canales antes de continuar.'); return }
+                  }
+                  if (mode === 'manual' && manualChannels.length === 0) { setError('Selecciona al menos un canal en modo manual.'); return }
+                  setError('')
+                  setStep(2)
+                }} style={{ background: PURPLE, color: '#fff', border: 'none', borderRadius: '10px', padding: '11px 24px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: FONT_BODY }}>Siguiente →</button>
+              : <button onClick={handleLaunch} disabled={!adText || !url.startsWith('https://') || launching} style={{
+                  background: adText && url.startsWith('https://') && !launching ? PURPLE : 'var(--muted2)', color: '#fff', border: 'none', borderRadius: '10px',
                   padding: '11px 24px', fontSize: '13px', fontWeight: 600,
-                  cursor: adText && url.startsWith('http') && !launching ? 'pointer' : 'not-allowed',
-                  fontFamily: FONT_BODY, boxShadow: adText && url.startsWith('http') && !launching ? `0 4px 14px ${purpleAlpha(0.35)}` : 'none',
+                  cursor: adText && url.startsWith('https://') && !launching ? 'pointer' : 'not-allowed',
+                  fontFamily: FONT_BODY, boxShadow: adText && url.startsWith('https://') && !launching ? `0 4px 14px ${purpleAlpha(0.35)}` : 'none',
                   display: 'flex', alignItems: 'center', gap: '6px',
                 }}>
                   {launching ? 'Lanzando...' : <><Zap size={14} /> Lanzar campaña</>}

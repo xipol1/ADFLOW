@@ -283,6 +283,8 @@ const payCampaign = async (req, res, next) => {
     campaign.status = 'PAID';
     await campaign.save();
 
+    // Fetch fresh balance after atomic deduction
+    const freshAdvertiser = await Usuario.findById(userId).select('campaignCreditsBalance').lean();
     return res.json({
       success: true,
       data: {
@@ -290,7 +292,7 @@ const payCampaign = async (req, res, next) => {
         transaccion,
         creditsUsed,
         amountCharged,
-        remainingCredits: advertiser?.campaignCreditsBalance || 0,
+        remainingCredits: freshAdvertiser?.campaignCreditsBalance || 0,
       },
     });
   } catch (error) {
@@ -733,6 +735,149 @@ const sendCampaignMessage = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+// POST /api/campaigns/launch-auto — Auto-buy: select channels + create campaigns in batch
+const launchAutoCampaign = async (req, res, next) => {
+  try {
+    const ok = await ensureDb();
+    if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
+
+    const userId = req.usuario?.id;
+    if (!userId) return next(httpError(401, 'No autorizado'));
+
+    const { budget, category, mode, content, targetUrl, channels: manualChannelIds, listId } = req.body || {};
+
+    if (!content?.trim()) return next(httpError(400, 'El contenido del anuncio es requerido'));
+    if (!targetUrl?.trim()) return next(httpError(400, 'La URL de destino es requerida'));
+    try { new URL(targetUrl.trim()); } catch { return next(httpError(400, 'URL de destino inválida')); }
+    if (!budget || budget < 50) return next(httpError(400, 'Presupuesto mínimo: €50'));
+
+    const { resolveCommissionRate } = require('../config/commissions');
+    const commissionRate = resolveCommissionRate({ campaignType: 'autoCampaign' });
+
+    // Resolve target channels based on mode
+    let targetChannels = [];
+
+    if (mode === 'manual' && Array.isArray(manualChannelIds) && manualChannelIds.length > 0) {
+      targetChannels = await Canal.find({
+        _id: { $in: manualChannelIds },
+        estado: 'activo',
+      }).select('_id nombreCanal plataforma categoria CPMDinamico precio propietario').lean();
+    } else if (mode === 'fav' && listId) {
+      const UserList = require('../models/UserList');
+      const list = await UserList.findOne({ _id: listId, usuario: userId }).lean();
+      if (list?.channels?.length) {
+        targetChannels = await Canal.find({
+          _id: { $in: list.channels },
+          estado: 'activo',
+        }).select('_id nombreCanal plataforma categoria CPMDinamico precio propietario').lean();
+      }
+    } else {
+      // Auto mode: find best channels in category
+      const query = { estado: 'activo' };
+      if (category) query.categoria = category;
+      targetChannels = await Canal.find(query)
+        .select('_id nombreCanal plataforma categoria CPMDinamico precio propietario')
+        .sort({ 'estadisticas.seguidores': -1 })
+        .limit(20)
+        .lean();
+    }
+
+    // Filter out own channels
+    targetChannels = targetChannels.filter(
+      ch => ch.propietario?.toString() !== String(userId)
+    );
+
+    if (targetChannels.length === 0) {
+      return next(httpError(400, 'No se encontraron canales disponibles para tu configuración'));
+    }
+
+    // Distribute budget across channels, respecting per-channel price
+    let remaining = budget;
+    const selected = [];
+
+    for (const ch of targetChannels) {
+      const price = ch.CPMDinamico || ch.precio || 0;
+      if (price <= 0) continue;
+      if (price > remaining) continue;
+      selected.push({ channel: ch, price });
+      remaining -= price;
+      if (remaining <= 0) break;
+    }
+
+    if (selected.length === 0) {
+      return next(httpError(400, 'El presupuesto no es suficiente para ningún canal disponible'));
+    }
+
+    // Create campaigns in batch
+    const campaigns = [];
+    for (const { channel, price } of selected) {
+      const netAmount = +(price * (1 - commissionRate)).toFixed(2);
+
+      const campaign = await Campaign.create({
+        advertiser: userId,
+        channel: channel._id,
+        content: content.trim(),
+        targetUrl: targetUrl.trim(),
+        price,
+        commissionRate,
+        netAmount,
+        status: 'DRAFT',
+        createdAt: new Date(),
+      });
+
+      await Transaccion.create({
+        campaign: campaign._id,
+        advertiser: userId,
+        amount: price,
+        tipo: 'pago',
+        status: 'pending',
+      });
+
+      campaigns.push({
+        _id: campaign._id,
+        id: campaign._id,
+        channel: {
+          _id: channel._id,
+          nombreCanal: channel.nombreCanal,
+          plataforma: channel.plataforma,
+          categoria: channel.categoria,
+        },
+        price,
+        netAmount,
+        status: 'DRAFT',
+      });
+
+      // Notify channel owner
+      if (channel.propietario) {
+        notifySafe({
+          usuarioId: channel.propietario,
+          tipo: 'campana.nueva',
+          titulo: 'Nueva solicitud de campaña',
+          mensaje: `Un anunciante quiere publicar en tu canal por €${price}`,
+          datos: { campaignId: campaign._id },
+          canales: ['database', 'realtime'],
+          prioridad: 'normal',
+        });
+      }
+    }
+
+    const totalSpent = selected.reduce((sum, s) => sum + s.price, 0);
+
+    return res.status(201).json({
+      success: true,
+      data: {
+        campaigns,
+        channelCount: campaigns.length,
+        totalBudget: totalSpent,
+        commissionRate,
+        remainingBudget: budget - totalSpent,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createCampaign,
   getCampaigns,
@@ -743,5 +888,6 @@ module.exports = {
   completeCampaign,
   cancelCampaign,
   getCampaignMessages,
-  sendCampaignMessage
+  sendCampaignMessage,
+  launchAutoCampaign,
 };
