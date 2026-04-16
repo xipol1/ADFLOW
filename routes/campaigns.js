@@ -24,9 +24,8 @@ router.post(
   requiereEmailVerificado,
   [
     body('channel').isMongoId().withMessage('channel inválido'),
-    body('content').isString().notEmpty().trim(),
-    body('targetUrl').isString().notEmpty().trim(),
-    body('price').isFloat({ min: 0 }).toFloat()
+    body('content').isString().notEmpty().trim().isLength({ max: 5000 }).withMessage('Contenido demasiado largo (max 5000 caracteres)'),
+    body('targetUrl').isString().notEmpty().trim().isURL().withMessage('URL de destino inválida'),
   ],
   validarCampos,
   campaignController.createCampaign
@@ -91,7 +90,7 @@ router.post(
   autenticar,
   [
     param('id').isMongoId().withMessage('ID inválido'),
-    body('text').isString().notEmpty().trim().withMessage('text requerido')
+    body('text').isString().notEmpty().trim().isLength({ max: 2000 }).withMessage('Mensaje demasiado largo (max 2000 caracteres)')
   ],
   validarCampos,
   campaignController.sendCampaignMessage

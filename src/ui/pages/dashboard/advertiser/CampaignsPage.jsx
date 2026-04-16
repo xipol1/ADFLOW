@@ -141,6 +141,7 @@ const ChatPanel = ({ campaign, myRole = 'advertiser' }) => {
   const [sending, setSending] = useState(false)
   const [expanded, setExpanded] = useState(true)
   const [messages, setMessages] = useState([])
+  const [chatError, setChatError] = useState('')
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -168,14 +169,26 @@ const ChatPanel = ({ campaign, myRole = 'advertiser' }) => {
 
   const send = async () => {
     if (!draft.trim() || sending) return
+    if (draft.trim().length > 2000) {
+      setChatError('El mensaje no puede superar los 2000 caracteres')
+      return
+    }
+    setChatError('')
     setSending(true)
     try {
       const res = await apiService.sendCampaignChat(campaign._id, draft.trim())
       if (res?.success) {
         setMessages(prev => [...prev, res.data])
         setDraft('')
+        setChatError('')
+      } else if (res?.blocked) {
+        setChatError(res.message || 'Mensaje bloqueado por el sistema de moderacion')
+      } else {
+        setChatError(res?.message || 'Error al enviar el mensaje')
       }
-    } catch { /* silent */ }
+    } catch {
+      setChatError('Error de conexion')
+    }
     setSending(false)
     inputRef.current?.focus()
   }
@@ -301,29 +314,50 @@ const ChatPanel = ({ campaign, myRole = 'advertiser' }) => {
             })}
           </div>
 
+          {/* Moderation error */}
+          {chatError && (
+            <div style={{
+              padding: '8px 16px', background: 'rgba(248,81,73,0.08)', borderTop: '1px solid rgba(248,81,73,0.2)',
+              display: 'flex', alignItems: 'center', gap: '8px',
+            }}>
+              <AlertCircle size={14} color="var(--red, #f85149)" />
+              <span style={{ fontSize: '12px', color: 'var(--red, #f85149)', lineHeight: 1.4 }}>{chatError}</span>
+              <button onClick={() => setChatError('')} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '16px', padding: '0 4px' }}>×</button>
+            </div>
+          )}
+
           {/* Input bar */}
           <div style={{
-            padding: '12px 16px', borderTop: '1px solid var(--border)',
+            padding: '12px 16px', borderTop: chatError ? 'none' : '1px solid var(--border)',
             display: 'flex', gap: '10px', alignItems: 'flex-end',
             background: 'var(--surface)',
           }}>
-            <textarea
-              ref={inputRef}
-              value={draft}
-              onChange={e => setDraft(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
-              placeholder={`Mensaje para ${otherLabel.toLowerCase()}...`}
-              rows={1}
-              style={{
-                flex: 1, background: 'var(--bg)', border: '1px solid var(--border)',
-                borderRadius: '12px', padding: '10px 14px', fontSize: '13px',
-                color: 'var(--text)', fontFamily: FONT_BODY, outline: 'none',
-                resize: 'none', lineHeight: 1.5, minHeight: '40px', maxHeight: '100px',
-                transition: 'border-color .15s',
-              }}
-              onFocus={e => e.target.style.borderColor = purpleAlpha(0.4)}
-              onBlur={e => e.target.style.borderColor = 'var(--border)'}
-            />
+            <div style={{ flex: 1, position: 'relative' }}>
+              <textarea
+                ref={inputRef}
+                value={draft}
+                onChange={e => { setDraft(e.target.value); if (chatError) setChatError('') }}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
+                placeholder={`Mensaje para ${otherLabel.toLowerCase()}...`}
+                rows={1}
+                maxLength={2000}
+                style={{
+                  width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
+                  borderRadius: '12px', padding: '10px 14px', fontSize: '13px',
+                  color: 'var(--text)', fontFamily: FONT_BODY, outline: 'none',
+                  resize: 'none', lineHeight: 1.5, minHeight: '40px', maxHeight: '100px',
+                  transition: 'border-color .15s', boxSizing: 'border-box',
+                }}
+                onFocus={e => e.target.style.borderColor = purpleAlpha(0.4)}
+                onBlur={e => e.target.style.borderColor = 'var(--border)'}
+              />
+              {draft.length > 1500 && (
+                <span style={{
+                  position: 'absolute', right: '10px', bottom: '4px',
+                  fontSize: '10px', color: draft.length > 1900 ? 'var(--red, #f85149)' : 'var(--muted2)',
+                }}>{draft.length}/2000</span>
+              )}
+            </div>
             <button
               onClick={send}
               disabled={!draft.trim() || sending}
@@ -417,6 +451,20 @@ export default function CampaignsPage() {
       if (res?.success) await load()
     } catch { /* silent */ }
     setActionLoading('')
+  }
+
+  const doPayWithConfirm = (campaign) => {
+    if (!window.confirm(
+      `¿Confirmas el pago de €${campaign.price} para activar el escrow?\n\nEl importe se retendrá hasta que la campaña se complete.`
+    )) return
+    doAction(campaign._id, apiService.payCampaign)
+  }
+
+  const doCompleteWithConfirm = (campaign) => {
+    if (!window.confirm(
+      `¿Confirmas que la campaña está completada?\n\nSe liberará el pago de €${(campaign.netAmount || 0).toFixed(2)} al creador. Esta acción no se puede deshacer.`
+    )) return
+    doAction(campaign._id, apiService.completeCampaign)
   }
 
   const handleChatUpdate = (updated) => {
@@ -703,7 +751,7 @@ export default function CampaignsPage() {
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', paddingTop: '4px' }} onClick={e => e.stopPropagation()}>
                   {sel.status === 'DRAFT' && (
                     <>
-                      <button onClick={() => doAction(sel._id, apiService.payCampaign)} disabled={actionLoading === sel._id} className="adf-btn-primary" style={{
+                      <button onClick={() => doPayWithConfirm(sel)} disabled={actionLoading === sel._id} className="adf-btn-primary" style={{
                         flex: 1, background: BLUE, color: '#fff', border: 'none', borderRadius: '12px',
                         padding: '13px 20px', fontSize: '14px', fontWeight: 600,
                         cursor: actionLoading === sel._id ? 'not-allowed' : 'pointer', fontFamily: FONT_BODY,
@@ -739,7 +787,7 @@ export default function CampaignsPage() {
                   {sel.status === 'PUBLISHED' && (
                     <>
                       {sel.delivery && <DeliveryBadge delivery={sel.delivery} />}
-                      <button onClick={() => doAction(sel._id, apiService.completeCampaign)} disabled={actionLoading === sel._id} className="adf-btn-primary" style={{
+                      <button onClick={() => doCompleteWithConfirm(sel)} disabled={actionLoading === sel._id} className="adf-btn-primary" style={{
                         flex: 1, background: OK, color: '#fff', border: 'none', borderRadius: '12px',
                         padding: '13px 20px', fontSize: '14px', fontWeight: 600,
                         cursor: actionLoading === sel._id ? 'not-allowed' : 'pointer', fontFamily: FONT_BODY,

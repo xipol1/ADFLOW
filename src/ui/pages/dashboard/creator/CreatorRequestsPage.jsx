@@ -118,6 +118,7 @@ const ChatPanel = ({ campaign, onSent }) => {
   const [sending, setSending] = useState(false)
   const [showTpl, setShowTpl] = useState(false)
   const [msgs, setMsgs] = useState([])
+  const [chatError, setChatError] = useState('')
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -142,14 +143,26 @@ const ChatPanel = ({ campaign, onSent }) => {
 
   const send = async () => {
     if (!draft.trim() || sending) return
+    if (draft.trim().length > 2000) {
+      setChatError('El mensaje no puede superar los 2000 caracteres')
+      return
+    }
+    setChatError('')
     setSending(true)
     try {
       const r = await apiService.sendCampaignChat(campaign._id, draft.trim())
       if (r?.success) {
         setMsgs(prev => [...prev, r.data])
         setDraft('')
+        setChatError('')
+      } else if (r?.blocked) {
+        setChatError(r.message || 'Mensaje bloqueado por el sistema de moderacion')
+      } else {
+        setChatError(r?.message || 'Error al enviar el mensaje')
       }
-    } catch {}
+    } catch {
+      setChatError('Error de conexion')
+    }
     setSending(false)
     inputRef.current?.focus()
   }
@@ -230,8 +243,20 @@ const ChatPanel = ({ campaign, onSent }) => {
         </div>
       )}
 
+      {/* Moderation error */}
+      {chatError && (
+        <div style={{
+          padding: '8px 16px', background: `${RED}08`, borderTop: `1px solid ${RED}20`,
+          display: 'flex', alignItems: 'center', gap: '8px',
+        }}>
+          <span style={{ fontSize: '14px' }}>⚠️</span>
+          <span style={{ fontSize: '12px', color: RED, lineHeight: 1.4, flex: 1 }}>{chatError}</span>
+          <button onClick={() => setChatError('')} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '16px', padding: '0 4px' }}>×</button>
+        </div>
+      )}
+
       {/* Input */}
-      <div style={{ padding: '12px 16px', borderTop: showTpl ? 'none' : '1px solid var(--border)', display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
+      <div style={{ padding: '12px 16px', borderTop: (showTpl || chatError) ? 'none' : '1px solid var(--border)', display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
         {/* Templates toggle */}
         <button onClick={() => setShowTpl(p => !p)} title="Respuestas rapidas" style={{
           width: '40px', height: '40px', borderRadius: '12px',
@@ -239,13 +264,18 @@ const ChatPanel = ({ campaign, onSent }) => {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', flexShrink: 0, transition: 'all .15s', fontSize: '16px',
         }}>⚡</button>
-        <textarea ref={inputRef} value={draft} onChange={e => setDraft(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
-          placeholder="Mensaje al anunciante..." rows={1}
-          style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', color: 'var(--text)', fontFamily: F, outline: 'none', resize: 'none', lineHeight: 1.5, minHeight: '40px', maxHeight: '100px', transition: 'border-color .15s' }}
-          onFocus={e => e.target.style.borderColor = VG(0.4)}
-          onBlur={e => e.target.style.borderColor = 'var(--border)'}
-        />
+        <div style={{ flex: 1, position: 'relative' }}>
+          <textarea ref={inputRef} value={draft} onChange={e => { setDraft(e.target.value); if (chatError) setChatError('') }}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
+            placeholder="Mensaje al anunciante..." rows={1} maxLength={2000}
+            style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px 14px', fontSize: '13px', color: 'var(--text)', fontFamily: F, outline: 'none', resize: 'none', lineHeight: 1.5, minHeight: '40px', maxHeight: '100px', transition: 'border-color .15s', boxSizing: 'border-box' }}
+            onFocus={e => e.target.style.borderColor = VG(0.4)}
+            onBlur={e => e.target.style.borderColor = 'var(--border)'}
+          />
+          {draft.length > 1500 && (
+            <span style={{ position: 'absolute', right: '10px', bottom: '4px', fontSize: '10px', color: draft.length > 1900 ? RED : 'var(--muted2)' }}>{draft.length}/2000</span>
+          )}
+        </div>
         <button onClick={send} disabled={!draft.trim() || sending} className="cr-btn" style={{
           width: '40px', height: '40px', borderRadius: '12px',
           background: draft.trim() ? V : 'var(--bg)', border: draft.trim() ? 'none' : '1px solid var(--border)',

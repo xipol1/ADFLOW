@@ -40,16 +40,50 @@ const createCampaign = async (req, res, next) => {
     const channelId = String(req.body?.channel || '').trim();
     const content = String(req.body?.content || '').trim();
     const targetUrl = String(req.body?.targetUrl || '').trim();
-    const price = Number(req.body?.price);
 
-    if (!channelId || !content || !targetUrl || !Number.isFinite(price)) {
+    if (!channelId || !content || !targetUrl) {
       return next(httpError(400, 'Datos inválidos'));
     }
 
-    const canal = await Canal.findById(channelId).select('_id').lean();
+    // Content length limit: 5000 chars
+    if (content.length > 5000) {
+      return next(httpError(400, 'El contenido no puede superar los 5000 caracteres'));
+    }
+
+    // URL validation
+    try { new URL(targetUrl); } catch {
+      return next(httpError(400, 'URL de destino inválida'));
+    }
+
+    const canal = await Canal.findById(channelId).select('_id CPMDinamico precio propietario disponibilidad').lean();
     if (!canal) return next(httpError(404, 'Canal no encontrado'));
 
-    const deadline = req.body?.deadline ? new Date(req.body.deadline) : null;
+    // Prevent advertising on own channel
+    if (canal.propietario?.toString() === String(userId)) {
+      return next(httpError(400, 'No puedes crear una campaña en tu propio canal'));
+    }
+
+    // Server-side price: resolve from per-day pricing or base CPM
+    const publishDateStr = (req.body?.publishDate || req.body?.deadline || '').trim();
+    let price = canal.CPMDinamico || canal.precio || 0;
+
+    if (publishDateStr) {
+      const pubDate = new Date(publishDateStr + 'T12:00:00');
+      if (!isNaN(pubDate.getTime())) {
+        const dow = pubDate.getDay(); // 0=Sun..6=Sat
+        const dispo = canal.disponibilidad || {};
+        const dayPricing = (dispo.preciosPorDia || []).find(p => p.day === dow);
+        if (dayPricing && dayPricing.enabled && dayPricing.price > 0) {
+          price = dayPricing.price;
+        }
+      }
+    }
+
+    if (!Number.isFinite(price) || price < 1) {
+      return next(httpError(400, 'Este canal no tiene un precio configurado. Contacta al creador.'));
+    }
+
+    const deadline = publishDateStr ? new Date(publishDateStr + 'T12:00:00') : (req.body?.deadline ? new Date(req.body.deadline) : null);
     const trackingLinkFormat = ['short', 'domain', 'custom'].includes(req.body?.trackingLinkFormat) ? req.body.trackingLinkFormat : 'domain';
     const trackingLinkSlug = (req.body?.trackingLinkSlug || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').slice(0, 40);
 
@@ -81,7 +115,7 @@ const createCampaign = async (req, res, next) => {
         usuarioId: channelDoc.propietario,
         tipo: 'campana.nueva',
         titulo: 'Nueva solicitud de campaña',
-        mensaje: `Un anunciante quiere publicar en tu canal por $${price}`,
+        mensaje: `Un anunciante quiere publicar en tu canal por €${price}`,
         datos: { campaignId: campaign._id },
         canales: ['database', 'realtime'],
         prioridad: 'normal'
@@ -458,7 +492,7 @@ const completeCampaign = async (req, res, next) => {
         usuarioId: channelOwner.propietario,
         tipo: 'campana.completada',
         titulo: 'Campaña completada',
-        mensaje: `Campaña completada. Has ganado $${campaign.netAmount || campaign.price}.`,
+        mensaje: `Campaña completada. Has ganado €${campaign.netAmount || campaign.price}.`,
         datos: { campaignId: campaign._id, earnings: campaign.netAmount },
         canales: ['database', 'realtime'],
         prioridad: 'alta'
@@ -588,6 +622,13 @@ const cancelCampaign = async (req, res, next) => {
 // ── Campaign chat ────────────────────────────────────────────────────────────
 
 const CampaignMessage = require('../models/CampaignMessage');
+const { moderateMessage } = require('../lib/messageModeration');
+
+// Rate-limit: per-user message timestamps (in-memory, resets on deploy)
+const _msgTimestamps = new Map();
+const MSG_RATE_LIMIT_MS = 3000;    // 1 message per 3 seconds
+const MSG_MAX_PER_HOUR = 60;       // max 60 messages per campaign per hour
+const MSG_MAX_LENGTH = 2000;       // max 2000 chars per message
 
 const getCampaignMessages = async (req, res, next) => {
   try {
@@ -623,6 +664,35 @@ const sendCampaignMessage = async (req, res, next) => {
     const type = req.body?.type || 'message';
     if (!text) return next(httpError(400, 'Texto requerido'));
 
+    // ── Length limit ──
+    if (text.length > MSG_MAX_LENGTH) {
+      return next(httpError(400, `El mensaje no puede superar los ${MSG_MAX_LENGTH} caracteres`));
+    }
+
+    // ── Rate limiting ──
+    const rateKey = `${userId}:${req.params.id}`;
+    const now = Date.now();
+    const timestamps = _msgTimestamps.get(rateKey) || [];
+    // Remove entries older than 1 hour
+    const recent = timestamps.filter(t => now - t < 3600000);
+
+    if (recent.length > 0 && now - recent[recent.length - 1] < MSG_RATE_LIMIT_MS) {
+      return next(httpError(429, 'Espera unos segundos antes de enviar otro mensaje'));
+    }
+    if (recent.length >= MSG_MAX_PER_HOUR) {
+      return next(httpError(429, 'Has alcanzado el limite de mensajes por hora'));
+    }
+
+    // ── Content moderation ──
+    const modResult = moderateMessage(text);
+    if (modResult.blocked) {
+      return res.status(422).json({
+        success: false,
+        blocked: true,
+        message: modResult.reason,
+      });
+    }
+
     const campaign = await Campaign.findById(req.params.id).lean();
     if (!campaign) return next(httpError(404, 'Campaign no encontrada'));
 
@@ -639,6 +709,10 @@ const sendCampaignMessage = async (req, res, next) => {
       text,
       type
     });
+
+    // Record timestamp for rate limiting
+    recent.push(now);
+    _msgTimestamps.set(rateKey, recent);
 
     // Notify the other party
     const channelDoc = await Canal.findById(campaign.channel).select('propietario').lean();

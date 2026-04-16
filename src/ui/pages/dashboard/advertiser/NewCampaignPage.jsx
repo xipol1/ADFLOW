@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { ArrowLeft, Send, Calendar, Link2, FileText, DollarSign, CheckCircle, Loader2, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Send, Calendar, Link2, FileText, DollarSign, CheckCircle, Loader2, AlertCircle, ChevronLeft, ChevronRight, Clock, Zap } from 'lucide-react'
 import apiService from '../../../../../services/api'
 import { Badge } from '../../../../components/ui'
 
@@ -66,36 +66,43 @@ export default function NewCampaignPage() {
   // Form fields
   const [content, setContent] = useState('')
   const [targetUrl, setTargetUrl] = useState('')
-  const [deadline, setDeadline] = useState('')
+  const [selectedDate, setSelectedDate] = useState(null) // { date: 'YYYY-MM-DD', price, status }
   const [linkFormat, setLinkFormat] = useState('domain')
   const [linkSlug, setLinkSlug] = useState('')
+
+  // Calendar state
+  const [calMonth, setCalMonth] = useState(new Date().getMonth())
+  const [calYear, setCalYear] = useState(new Date().getFullYear())
+  const [calData, setCalData] = useState(null)
+  const [calLoading, setCalLoading] = useState(false)
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(null)
+  const [loadingChannel, setLoadingChannel] = useState(Boolean(channelId))
 
-  // Load channel if ID provided
+  // Load channel if ID provided — use intelligence endpoint for exact lookup
   useEffect(() => {
     if (!channelId) return
-    apiService.searchChannels({ limite: 1, busqueda: channelId }).then((res) => {
-      if (res?.success && res.data?.[0]) {
-        setChannel(res.data[0])
-        setStep(2)
-      }
-    }).catch(() => {})
-
-    // Also try intelligence endpoint for more details
+    setLoadingChannel(true)
     apiService.getChannelIntelligence(channelId).then((res) => {
       if (res?.success && res.data?.canal) {
         const c = res.data.canal
         const s = res.data.scores || {}
         setChannel({
-          id: c.id, nombre: c.nombre, plataforma: c.plataforma,
+          id: channelId, _id: channelId, nombre: c.nombre, plataforma: c.plataforma,
           categoria: c.nicho, audiencia: c.seguidores,
           CAS: s.CAS, nivel: s.nivel, CPMDinamico: s.CPMDinamico, precio: s.CPMDinamico,
         })
+        setStep(2)
+      } else {
+        setError('Canal no encontrado')
+        setStep(1)
       }
-    }).catch(() => {})
+    }).catch(() => {
+      setError('Error al cargar el canal')
+      setStep(1)
+    }).finally(() => setLoadingChannel(false))
   }, [channelId])
 
   // Search channels for step 1
@@ -107,21 +114,36 @@ export default function NewCampaignPage() {
     }).catch(() => {}).finally(() => setLoadingChannels(false))
   }, [step, searchQ])
 
+  // Load calendar when channel is selected or month changes
+  useEffect(() => {
+    const chId = channel?.id || channel?._id
+    if (!chId || step !== 2) return
+    setCalLoading(true)
+    apiService.getChannelAvailability(chId, calYear, calMonth).then((res) => {
+      if (res?.success) setCalData(res.data)
+    }).catch(() => {}).finally(() => setCalLoading(false))
+  }, [channel, step, calYear, calMonth])
+
+  const calPrice = selectedDate?.price ?? calData?.basePrice ?? channel?.CPMDinamico ?? channel?.precio ?? 0
+
   const handleSubmit = async () => {
     setError('')
-    if (!channel?.id) { setError('Selecciona un canal'); return }
+    if (!channel?.id && !channel?._id) { setError('Selecciona un canal'); return }
     if (!content.trim()) { setError('Escribe el contenido del anuncio'); return }
+    if (content.trim().length > 5000) { setError('El contenido no puede superar los 5000 caracteres'); return }
     if (!targetUrl.trim()) { setError('Anade la URL de destino'); return }
+    try { new URL(targetUrl.trim()) } catch { setError('La URL de destino no es valida'); return }
+    if (linkFormat === 'custom' && !linkSlug.trim()) { setError('Escribe un slug para el link personalizado'); return }
+    if (!selectedDate) { setError('Selecciona una fecha de publicacion en el calendario'); return }
 
     setSubmitting(true)
     try {
-      const price = channel.CPMDinamico || channel.precio || 0
       const res = await apiService.createCampaign({
-        channel: channel.id,
+        channel: channel.id || channel._id,
         content: content.trim(),
         targetUrl: targetUrl.trim(),
-        price,
-        deadline: deadline || undefined,
+        deadline: selectedDate.date,
+        publishDate: selectedDate.date,
         trackingLinkFormat: linkFormat,
         trackingLinkSlug: linkFormat === 'custom' ? linkSlug : undefined,
       })
@@ -158,8 +180,16 @@ export default function NewCampaignPage() {
 
       <StepBar current={step} />
 
+      {/* ── Loading channel from URL ── */}
+      {loadingChannel && (
+        <div className="text-center py-12">
+          <Loader2 size={28} className="animate-spin mx-auto mb-3" style={{ color: 'var(--accent)' }} />
+          <p className="text-sm" style={{ color: 'var(--muted2)' }}>Cargando canal...</p>
+        </div>
+      )}
+
       {/* ── STEP 1: Select Channel ──────────────────────────── */}
-      {step === 1 && (
+      {step === 1 && !loadingChannel && (
         <div>
           <div className="flex items-center gap-2 rounded-lg px-3 py-2.5 mb-4" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
             <span style={{ color: 'var(--muted2)' }}>🔍</span>
@@ -237,8 +267,9 @@ export default function NewCampaignPage() {
               value={content} onChange={(e) => setContent(e.target.value)}
               placeholder="Escribe el texto que se publicara en el canal..."
               rows={5} className={input} style={{ ...inputStyle, resize: 'vertical' }}
+              maxLength={5000}
             />
-            <div className="text-right mt-1 text-[11px]" style={{ color: 'var(--muted2)' }}>{content.length} caracteres</div>
+            <div className="text-right mt-1 text-[11px]" style={{ color: content.length > 4500 ? 'var(--red, #f85149)' : 'var(--muted2)' }}>{content.length}/5000 caracteres</div>
           </div>
 
           {/* Target URL */}
@@ -293,28 +324,167 @@ export default function NewCampaignPage() {
             )}
           </div>
 
-          {/* Deadline */}
+          {/* ── Publication Calendar ──────────────────────────── */}
           <div>
             <label className="text-xs font-semibold uppercase tracking-wider block mb-2" style={{ color: 'var(--text-secondary)' }}>
-              <Calendar size={12} className="inline mr-1" /> Fecha limite (opcional)
+              <Calendar size={12} className="inline mr-1" /> Fecha de publicacion
             </label>
-            <input
-              type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)}
-              className={input} style={inputStyle}
-              min={new Date().toISOString().split('T')[0]}
-            />
+            <div className="rounded-xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+              {/* Month nav */}
+              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+                <button
+                  onClick={() => {
+                    if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) }
+                    else setCalMonth(m => m - 1)
+                  }}
+                  style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                ><ChevronLeft size={16} /></button>
+                <span className="text-sm font-semibold" style={{ color: 'var(--text)', textTransform: 'capitalize' }}>
+                  {new Date(calYear, calMonth).toLocaleDateString('es', { month: 'long', year: 'numeric' })}
+                </span>
+                <button
+                  onClick={() => {
+                    if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) }
+                    else setCalMonth(m => m + 1)
+                  }}
+                  style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                ><ChevronRight size={16} /></button>
+              </div>
+
+              {/* Day headers */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0 }}>
+                {['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'].map(d => (
+                  <div key={d} className="text-center py-2" style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted2)', borderBottom: '1px solid var(--border)' }}>{d}</div>
+                ))}
+              </div>
+
+              {/* Calendar grid */}
+              {calLoading ? (
+                <div className="text-center py-10">
+                  <Loader2 size={20} className="animate-spin mx-auto mb-2" style={{ color: 'var(--accent)' }} />
+                  <span className="text-xs" style={{ color: 'var(--muted2)' }}>Cargando disponibilidad...</span>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0 }}>
+                  {(() => {
+                    const days = calData?.days || []
+                    // Offset for first day: JS getDay() 0=Sun, calendar starts Mon
+                    const firstDow = new Date(calYear, calMonth, 1).getDay()
+                    const offset = firstDow === 0 ? 6 : firstDow - 1
+                    const cells = []
+
+                    // Empty offset cells
+                    for (let i = 0; i < offset; i++) {
+                      cells.push(<div key={`e${i}`} style={{ minHeight: 56 }} />)
+                    }
+
+                    days.forEach((day) => {
+                      const isAvailable = day.status === 'available'
+                      const isSelected = selectedDate?.date === day.date
+                      const isPast = day.status === 'past'
+                      const isBlocked = day.status === 'blocked' || day.status === 'full'
+                      const isDisabled = day.status === 'disabled' || day.status === 'too_soon'
+
+                      const canClick = isAvailable
+                      const bgColor = isSelected
+                        ? 'var(--accent)'
+                        : isAvailable ? 'transparent' : 'transparent'
+                      const textColor = isSelected
+                        ? '#080C10'
+                        : isAvailable ? 'var(--text)' : 'var(--muted2)'
+                      const priceColor = isSelected
+                        ? 'rgba(8,12,16,0.7)'
+                        : isAvailable ? 'var(--accent)' : 'var(--muted2)'
+
+                      cells.push(
+                        <div
+                          key={day.date}
+                          onClick={() => canClick && setSelectedDate(day)}
+                          style={{
+                            minHeight: 56,
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                            gap: 1,
+                            cursor: canClick ? 'pointer' : 'default',
+                            background: bgColor,
+                            borderRadius: isSelected ? 0 : 0,
+                            position: 'relative',
+                            opacity: isPast || isDisabled ? 0.35 : isBlocked ? 0.5 : 1,
+                            transition: 'all .12s ease',
+                            borderBottom: '1px solid var(--border)',
+                            borderRight: '1px solid var(--border)',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (canClick && !isSelected) e.currentTarget.style.background = 'var(--accent-dim, rgba(139,92,246,0.06))'
+                          }}
+                          onMouseLeave={(e) => {
+                            if (canClick && !isSelected) e.currentTarget.style.background = 'transparent'
+                          }}
+                        >
+                          <span style={{ fontSize: 13, fontWeight: isSelected ? 700 : 500, color: textColor }}>{day.d}</span>
+                          {isAvailable && day.price > 0 && (
+                            <span style={{ fontSize: 10, fontWeight: 700, color: priceColor, fontFamily: 'var(--font-mono)' }}>€{day.price}</span>
+                          )}
+                          {isBlocked && (
+                            <span style={{ fontSize: 9, color: 'var(--red, #f85149)' }}>
+                              {day.status === 'full' ? 'Lleno' : 'No disp.'}
+                            </span>
+                          )}
+                          {day.status === 'too_soon' && (
+                            <span style={{ fontSize: 9, color: 'var(--muted2)' }}>Min. {calData?.antelacionMinima}d</span>
+                          )}
+                        </div>
+                      )
+                    })
+                    return cells
+                  })()}
+                </div>
+              )}
+
+              {/* Calendar footer: slots + schedule info */}
+              {calData && (
+                <div className="flex items-center justify-between px-4 py-3 flex-wrap gap-2" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg)' }}>
+                  <div className="flex items-center gap-4">
+                    <span className="flex items-center gap-1 text-[11px]" style={{ color: 'var(--muted)' }}>
+                      <Clock size={11} /> {calData.horarioPreferido?.desde} – {calData.horarioPreferido?.hasta}
+                    </span>
+                    <span className="text-[11px]" style={{ color: calData.slotsRemaining <= 2 ? 'var(--red, #f85149)' : 'var(--muted)' }}>
+                      {calData.slotsRemaining} slot{calData.slotsRemaining !== 1 ? 's' : ''} disponible{calData.slotsRemaining !== 1 ? 's' : ''} este mes
+                    </span>
+                  </div>
+                  {calData.aceptaUrgentes && calData.precioUrgente > 0 && (
+                    <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md" style={{ background: 'rgba(227,179,65,0.1)', color: '#E3B341', fontWeight: 600 }}>
+                      <Zap size={10} /> Urgente: €{calData.precioUrgente}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Price summary */}
-          <div className="rounded-lg p-4" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          {/* ── Price summary (dynamic from selected date) ──── */}
+          <div className="rounded-lg p-4" style={{
+            background: selectedDate ? 'var(--accent-dim, rgba(139,92,246,0.06))' : 'var(--surface)',
+            border: `1px solid ${selectedDate ? 'var(--accent-border, rgba(139,92,246,0.19))' : 'var(--border)'}`,
+            transition: 'all .2s ease',
+          }}>
             <div className="flex items-center justify-between">
-              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Precio estimado</span>
-              <span className="text-xl font-bold" style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>
-                €{((channel.CPMDinamico || channel.precio || 0)).toFixed(0)}
+              <div>
+                <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  {selectedDate ? 'Precio de publicacion' : 'Selecciona una fecha'}
+                </span>
+                {selectedDate && (
+                  <div className="text-[11px] mt-0.5" style={{ color: 'var(--muted2)' }}>
+                    {new Date(selectedDate.date + 'T12:00:00').toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    {calData?.horarioPreferido && ` · ${calData.horarioPreferido.desde}–${calData.horarioPreferido.hasta}`}
+                  </div>
+                )}
+              </div>
+              <span className="text-xl font-bold" style={{ color: selectedDate ? 'var(--text)' : 'var(--muted2)', fontFamily: 'var(--font-mono)' }}>
+                {selectedDate ? `€${calPrice}` : '€—'}
               </span>
             </div>
-            <div className="text-[11px] mt-1" style={{ color: 'var(--muted2)' }}>
-              Basado en CPM dinamico del canal · Pago protegido por escrow
+            <div className="text-[11px] mt-1.5" style={{ color: 'var(--muted2)' }}>
+              {selectedDate ? 'Pago protegido por escrow · Se libera al completar la campana' : 'El precio varia segun el dia seleccionado'}
             </div>
           </div>
 
