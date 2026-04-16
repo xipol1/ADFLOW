@@ -62,11 +62,16 @@ import PrivacyPage from '../ui/pages/legal/PrivacyPage'
 import TermsPage from '../ui/pages/legal/TermsPage'
 import AboutPage from '../ui/pages/legal/AboutPage'
 import SupportPage from '../ui/pages/legal/SupportPage'
+import DataProcessingPage from '../ui/pages/legal/DataProcessingPage'
 import ForgotPasswordPage from '../ui/pages/auth/ForgotPasswordPage'
 import ForChannelsPage from '../ui/pages/landing/ForChannelsPage'
 import ForBrandsPage from '../ui/pages/landing/ForBrandsPage'
 import BlogIndex from '../ui/pages/blog/BlogIndex'
 import BlogPost from '../ui/pages/blog/BlogPost'
+
+// WhatsApp linking
+import LinkWhatsAppPage from '../ui/pages/dashboard/creator/LinkWhatsAppPage'
+import WhatsAppAuditLogPage from '../ui/pages/dashboard/creator/WhatsAppAuditLogPage'
 
 // Guard for full-access-only pages — shows Coming Soon for limited users
 function FullAccessOnly({ children, feature }) {
@@ -107,6 +112,7 @@ export default function AppRoutes() {
         <Route path="terminos" element={<TermsPage />} />
         <Route path="sobre-nosotros" element={<AboutPage />} />
         <Route path="soporte" element={<SupportPage />} />
+        <Route path="politica-acceso-whatsapp" element={<DataProcessingPage />} />
         <Route path="para-canales" element={<ForChannelsPage />} />
         <Route path="para-anunciantes" element={<ForBrandsPage />} />
         <Route path="blog" element={<BlogIndex />} />
@@ -167,6 +173,8 @@ export default function AppRoutes() {
         <Route index         element={<CreatorOverviewPage />} />
         <Route path="channels" element={<CreatorChannelsPage />} />
         <Route path="channels/new" element={<RegisterChannelPage />} />
+        <Route path="channels/link-whatsapp" element={<LinkWhatsAppPage />} />
+        <Route path="whatsapp-audit" element={<WhatsAppAuditLogPage />} />
         <Route path="requests" element={<FullAccessOnly feature="Solicitudes"><CreatorRequestsPage /></FullAccessOnly>} />
         <Route path="earnings" element={<FullAccessOnly feature="Ganancias"><CreatorEarningsPage /></FullAccessOnly>} />
         <Route path="analytics" element={<FullAccessOnly feature="Analytics"><CreatorAnalyticsPage /></FullAccessOnly>} />

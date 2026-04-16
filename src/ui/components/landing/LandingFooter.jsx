@@ -28,6 +28,7 @@ const COLUMNS = [
       { label: 'Privacidad', to: '/privacidad' },
       { label: 'Terminos', to: '/terminos' },
       { label: 'Cookies', to: '/privacidad' },
+      { label: 'Acceso WhatsApp', to: '/politica-acceso-whatsapp' },
       { label: 'Soporte', to: '/soporte' },
     ],
   },

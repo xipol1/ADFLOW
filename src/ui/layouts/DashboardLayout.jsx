@@ -73,6 +73,10 @@ const ROLE_CONFIG = {
         { path: '',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
         { path: '/channels', icon: Radio,           label: 'Mis Canales'             },
       ]},
+      { group: 'WhatsApp', items: [
+        { path: '/channels/link-whatsapp', icon: Radio,       label: 'Vincular canal'     },
+        { path: '/whatsapp-audit',         icon: ShieldAlert, label: 'Registro de accesos'},
+      ]},
       { group: 'Análisis', items: [
         { path: '/analytics',icon: BarChart3,       label: 'Analytics',    fullOnly: true },
         { path: '/earnings', icon: Wallet,          label: 'Ganancias',    fullOnly: true },

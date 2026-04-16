@@ -332,7 +332,7 @@ async function syncAllMappedChannels() {
 
 // ─── Discovery: keyword search via contacts.Search ──────────────────────
 
-// Full keyword set for massive discovery (80+ terms)
+// Full keyword set for massive discovery (115+ terms)
 const ALL_KEYWORDS = [
   // Finanzas/Inversión
   'bolsa española', 'invertir en bolsa', 'trading español',
@@ -369,6 +369,37 @@ const ALL_KEYWORDS = [
   'autónomos España', 'fiscalidad España', 'derecho laboral',
   'seguros comparar', 'noticias economía', 'política España',
   'actualidad España',
+  // ── Expansion 2026-04-15 ─────────────────────────────────────
+  // Mascotas/familia
+  'mascotas perros España', 'gatos consejos', 'veterinaria consejos',
+  'embarazo España', 'crianza bebé', 'maternidad blog',
+  'niños actividades', 'educación infantil',
+  // Hogar/DIY
+  'bricolaje español', 'decoración hogar', 'jardinería consejos',
+  'hogar minimalista', 'organización hogar', 'manualidades español',
+  // Deportes específicos
+  'fútbol La Liga', 'Real Madrid noticias', 'FC Barcelona',
+  'baloncesto ACB', 'MotoGP España', 'Fórmula 1 español',
+  'tenis español', 'pádel España', 'ciclismo español',
+  // Moda/belleza
+  'moda mujer España', 'moda hombre', 'belleza maquillaje',
+  'cosmética natural', 'skincare español', 'peluquería consejos',
+  // Gastronomía
+  'recetas caseras España', 'repostería casera', 'vinos España',
+  'tapas pinchos', 'dieta mediterránea', 'cocina saludable',
+  // Motor
+  'coches motor España', 'motos España', 'coches eléctricos',
+  'autocaravanas camping', 'motor noticias',
+  // Cultura/Arte
+  'cine español', 'literatura libros español', 'arte pintura',
+  'música flamenco', 'fotografía profesional', 'teatro España',
+  // Profesional/B2B
+  'oposiciones policía', 'oposiciones educación', 'oposiciones justicia',
+  'energía solar', 'agricultura ecológica', 'logística transporte',
+  'industria 4.0', 'exportación España', 'recursos humanos',
+  // Viajes nicho
+  'mochilero viajes', 'viajes Asia', 'viajes Europa',
+  'rutas senderismo', 'turismo rural España',
 ];
 
 // Seed channels for social graph discovery (large Spanish channels)
@@ -390,6 +421,60 @@ function getKeywordsForRun() {
   return picked;
 }
 const DISCOVERY_KEYWORDS = ALL_KEYWORDS;
+
+/**
+ * Pick the next keyword slice for a given source, advancing a persistent
+ * cursor in MongoDB so consecutive runs query different slices.
+ *
+ * Wrap-around is natural: when offset + sliceSize exceeds the pool length,
+ * the slice wraps to the beginning. Over ceil(poolSize / sliceSize) runs
+ * the full ALL_KEYWORDS space is covered, then the cycle repeats.
+ *
+ * If the DB is unreachable (or the ScrapingRotation collection is missing),
+ * falls back to a time-based rotation using dayOfYear so discovery is never
+ * blocked by the persistence layer.
+ *
+ * @param {'mtproto_keywords'|'lyzem_keywords'} source
+ * @param {number} sliceSize — number of keywords to pick this run
+ * @returns {Promise<string[]>}
+ */
+async function getRotatingKeywords(source, sliceSize) {
+  try {
+    const ScrapingRotation = require('../models/ScrapingRotation');
+    let state = await ScrapingRotation.findOne({ source });
+    if (!state) {
+      state = new ScrapingRotation({
+        source,
+        offset: 0,
+        totalKeywords: ALL_KEYWORDS.length,
+      });
+    }
+
+    const startOffset = state.offset % ALL_KEYWORDS.length;
+    const picked = [];
+    for (let i = 0; i < sliceSize; i++) {
+      picked.push(ALL_KEYWORDS[(startOffset + i) % ALL_KEYWORDS.length]);
+    }
+
+    state.offset = (startOffset + sliceSize) % ALL_KEYWORDS.length;
+    state.totalKeywords = ALL_KEYWORDS.length;
+    state.lastRunAt = new Date();
+    state.lastSlice = picked;
+    await state.save();
+
+    return picked;
+  } catch (err) {
+    // Fallback to deterministic time-based rotation if DB is unavailable
+    console.warn(`[rotation] ${source} fallback to time-based: ${err.message}`);
+    const dayOfYear = Math.floor(Date.now() / 86400000);
+    const offset = (dayOfYear * sliceSize) % ALL_KEYWORDS.length;
+    const picked = [];
+    for (let i = 0; i < sliceSize; i++) {
+      picked.push(ALL_KEYWORDS[(offset + i) % ALL_KEYWORDS.length]);
+    }
+    return picked;
+  }
+}
 
 /**
  * Discover channels by keyword search via MTProto contacts.Search.
@@ -441,16 +526,23 @@ async function discoverByKeywords(keywords = getKeywordsForRun()) {
  * Extracts forwards and @mentions from recent posts.
  *
  * @param {string[]} channelUsernames — seed channels
+ * @param {object} [options]
+ * @param {number} [options.maxSeeds=3] — max seeds to process (Vercel default 3, CLI jobs can raise)
+ * @param {number} [options.maxResolvePerSeed=5] — max entities to resolve per seed
+ * @param {number} [options.messagesPerSeed=20] — recent posts to scan per seed
  * @returns {Array<{ username, title, subscribers }>}
  */
-async function discoverFromSocialGraph(channelUsernames = []) {
+async function discoverFromSocialGraph(channelUsernames = [], options = {}) {
   const { Api } = loadGramJS();
   const client = await getClient();
   const seen = new Map();
   const errors = [];
 
-  // Limit seed channels for Vercel timeout (max 3 per run)
-  const seeds = channelUsernames.slice(0, 3);
+  const maxSeeds = options.maxSeeds ?? 3;
+  const maxResolvePerSeed = options.maxResolvePerSeed ?? 5;
+  const messagesPerSeed = options.messagesPerSeed ?? 20;
+
+  const seeds = channelUsernames.slice(0, maxSeeds);
 
   for (const username of seeds) {
     try {
@@ -463,8 +555,8 @@ async function discoverFromSocialGraph(channelUsernames = []) {
         continue;
       }
 
-      // Get last 20 posts (limited for Vercel timeout)
-      const messages = await client.getMessages(entity, { limit: 20 });
+      // Get last N posts
+      const messages = await client.getMessages(entity, { limit: messagesPerSeed });
 
       const discoveredIds = new Set();
 
@@ -488,10 +580,10 @@ async function discoverFromSocialGraph(channelUsernames = []) {
         await sleep(100); // minimal delay between post processing
       }
 
-      // Resolve discovered IDs/usernames (max 5 per seed for timeout safety)
+      // Resolve discovered IDs/usernames (configurable per seed)
       let resolveCount = 0;
       for (const idOrUsername of discoveredIds) {
-        if (resolveCount >= 5) break;
+        if (resolveCount >= maxResolvePerSeed) break;
         if (seen.has(idOrUsername)) continue;
         try {
           const ent = await client.getEntity(idOrUsername);
@@ -534,6 +626,7 @@ module.exports = {
   syncAllMappedChannels,
   discoverByKeywords,
   discoverFromSocialGraph,
+  getRotatingKeywords,
   sleep,
   loadGramJS,
   RATE_LIMIT_MS,

@@ -176,7 +176,7 @@ function parseListadoHtml(html) {
     let description = cardText
       .replace(title, '') // remove first occurrence
       .replace(title, '') // remove second occurrence (logo alt)
-      .replace(/🔓[^🔓]*?(?:Open Rate|CTR|Precio)/g, '')
+      .replace(/🔓[^🔓]*?(?:Open Rate|CTR|Precio)/gu, '')
       .replace(/\d[\d.,]*\s*(?:mil|m|k)\s*(?:lectores|readers|suscriptores)/gi, '')
       .replace(/y\s+\d+\s+más\.\.\./gi, '');
     for (const cat of categories) {

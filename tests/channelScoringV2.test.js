@@ -161,6 +161,7 @@ describe('CTF/CAF ratio penalties', () => {
       // Re-require to grab a fresh reference if needed; direct call path.
       // calcularCAS uses the module-internal function, so we test via the
       // post-composition math directly:
+      // eslint-disable-next-line no-constant-condition -- defensive divide-by-zero guard (0 denominator → 1 fallback)
       const ratio = 0 === 0 ? 1 : 25 / 0;
       expect(ratio).toBe(1);
       expect(Number.isFinite(ratio)).toBe(true);

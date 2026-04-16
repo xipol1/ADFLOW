@@ -18,6 +18,16 @@ const KEYWORD_DELAY_MS = 2000;
 const METRICS_DELAY_MS = 1500;
 const FLOOD_EXTRA_WAIT_MS = 5000;
 
+// Keyword rotation slice sizes. Each run queries a DIFFERENT slice of
+// ALL_KEYWORDS, persisted via ScrapingRotation. Over ceil(N/slice) runs
+// the full keyword space is covered, then the cycle repeats.
+//
+// MTProto is 60 because contacts.Search is prefix-based and yields
+// diminishing returns past ~60 keywords per run. Lyzem is 30 because
+// each query ships a full HTML fetch + 400ms validation per channel.
+const MTPROTO_KEYWORDS_PER_RUN = parseInt(process.env.MTPROTO_KEYWORDS_PER_RUN, 10) || 60;
+const LYZEM_KEYWORDS_PER_RUN = parseInt(process.env.LYZEM_KEYWORDS_PER_RUN, 10) || 30;
+
 /**
  * Start the massive seed job in background.
  * Returns immediately with jobId for status polling.
@@ -42,12 +52,14 @@ async function runMassiveSeed(jobId) {
   const JobLog = require('../models/JobLog');
   const ChannelCandidate = require('../models/ChannelCandidate');
   const Canal = require('../models/Canal');
+  const SeenChannel = require('../models/SeenChannel');
   const {
     getClient,
     disconnectClient,
     discoverByKeywords,
     discoverFromSocialGraph,
     getChannelMetrics,
+    getRotatingKeywords,
     sleep,
     ALL_KEYWORDS,
     SEED_CHANNELS,
@@ -58,7 +70,7 @@ async function runMassiveSeed(jobId) {
     jobId,
     type: 'massive-seed',
     status: 'running',
-    progress: { phase: 'keyword-discovery', current: 0, total: ALL_KEYWORDS.length },
+    progress: { phase: 'keyword-discovery', current: 0, total: MTPROTO_KEYWORDS_PER_RUN },
   });
 
   const errors = [];
@@ -66,18 +78,28 @@ async function runMassiveSeed(jobId) {
   let saved = 0;
   let filteredOut = 0;
   let duplicates = 0;
+  let skippedBySeenCache = 0;
 
   try {
     await getClient(); // ensure connection
 
-    // ── Phase 1: Keyword discovery ────────────────────────────────────
+    // ── Phase 1: Keyword discovery (rotating slice of ALL_KEYWORDS) ──
+    // The slice advances between runs via ScrapingRotation, so consecutive
+    // runs explore DIFFERENT keywords and don't rediscover the same channels.
+    const mtprotoKeywords = await getRotatingKeywords(
+      'mtproto_keywords',
+      MTPROTO_KEYWORDS_PER_RUN,
+    );
+
     log.progress.phase = 'keyword-discovery';
-    log.progress.total = ALL_KEYWORDS.length;
+    log.progress.total = mtprotoKeywords.length;
     await log.save();
 
-    console.log(`[MassiveSeed] Phase 1: ${ALL_KEYWORDS.length} keywords`);
+    console.log(
+      `[MassiveSeed] Phase 1: ${mtprotoKeywords.length}/${ALL_KEYWORDS.length} keywords (rotating slice) | sample: ${mtprotoKeywords.slice(0, 3).join(', ')}...`,
+    );
 
-    const kwResult = await discoverByKeywords(ALL_KEYWORDS);
+    const kwResult = await discoverByKeywords(mtprotoKeywords);
     for (const ch of kwResult.results) {
       if (ch.username && !allUsernames.has(ch.username)) {
         allUsernames.set(ch.username, { ...ch, _source: 'keyword' });
@@ -85,24 +107,103 @@ async function runMassiveSeed(jobId) {
     }
     errors.push(...kwResult.errors.map((e) => `[KW] ${e}`));
 
-    log.progress.current = ALL_KEYWORDS.length;
+    log.progress.current = mtprotoKeywords.length;
     log.progress.discovered = allUsernames.size;
     await log.save();
 
     console.log(`[MassiveSeed] Phase 1 done: ${allUsernames.size} unique channels`);
 
+    // ── Phase 1.5: Lyzem.com search (complementary HTML index) ────────
+    // Lyzem indexes public Telegram channels and returns matches that
+    // MTProto contacts.Search (prefix-based) tends to miss. Yield per
+    // query is modest (~8-15) but dedupes naturally against Phase 1.
+    try {
+      const { scrapeByKeywords } = require('../services/lyzemScraperService');
+      // Rotating slice — own cursor, independent from MTProto's
+      const lyzemKeywords = await getRotatingKeywords(
+        'lyzem_keywords',
+        LYZEM_KEYWORDS_PER_RUN,
+      );
+
+      log.progress.phase = 'lyzem-search';
+      log.progress.total = lyzemKeywords.length;
+      log.progress.current = 0;
+      await log.save();
+
+      console.log(
+        `[MassiveSeed] Phase 1.5: ${lyzemKeywords.length}/${ALL_KEYWORDS.length} keywords (rotating slice, t.me validation enabled) | sample: ${lyzemKeywords.slice(0, 3).join(', ')}...`,
+      );
+
+      const lyzemResult = await scrapeByKeywords(lyzemKeywords, { validate: true });
+      let newFromLyzem = 0;
+      for (const ch of lyzemResult.results) {
+        if (ch.username && !allUsernames.has(ch.username)) {
+          allUsernames.set(ch.username, { ...ch, _source: 'lyzem' });
+          newFromLyzem++;
+        }
+      }
+      errors.push(...lyzemResult.errors.map((e) => `[Lyzem] ${e}`));
+
+      log.progress.current = lyzemKeywords.length;
+      log.progress.discovered = allUsernames.size;
+      await log.save();
+
+      const rawCount = lyzemResult.scrapeRaw || 0;
+      const validated = lyzemResult.results.length;
+      const rejected = rawCount - validated;
+      const rejectSummary = lyzemResult.rejectCounts
+        ? Object.entries(lyzemResult.rejectCounts)
+            .map(([k, v]) => `${k}=${v}`)
+            .join(' ')
+        : '';
+      console.log(
+        `[MassiveSeed] Phase 1.5 done: raw=${rawCount} validated=${validated} rejected=${rejected} [${rejectSummary}] — +${newFromLyzem} new unique (${allUsernames.size} total)`,
+      );
+    } catch (err) {
+      errors.push(`[Lyzem phase] ${err.message}`);
+      console.warn(`[MassiveSeed] Lyzem phase failed: ${err.message}`);
+    }
+
     // ── Phase 2: Social graph ─────────────────────────────────────────
+    // Dynamic seeds: hardcoded SEED_CHANNELS + active canales already in DB.
+    // The pool is deduped and shuffled so each run explores a different subset.
+    const activeCanales = await Canal.find({
+      plataforma: 'telegram',
+      estado: { $in: ['activo', 'verificado'] },
+    })
+      .select('identificadorCanal')
+      .lean();
+
+    const dynamicSeeds = activeCanales
+      .map((c) => (c.identificadorCanal || '').replace(/^@/, '').trim().toLowerCase())
+      .filter(Boolean);
+
+    const seedPool = Array.from(new Set([...SEED_CHANNELS, ...dynamicSeeds]));
+    // Fisher-Yates shuffle so runs explore different slices of the graph
+    for (let i = seedPool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [seedPool[i], seedPool[j]] = [seedPool[j], seedPool[i]];
+    }
+
+    // Cap at 40 seeds per run to keep runtime bounded (~30 min upper bound)
+    const seedsForRun = seedPool.slice(0, 40);
+
     log.progress.phase = 'social-graph';
-    log.progress.total = SEED_CHANNELS.length;
+    log.progress.total = seedsForRun.length;
     log.progress.current = 0;
     await log.save();
 
-    console.log(`[MassiveSeed] Phase 2: ${SEED_CHANNELS.length} seed channels`);
+    console.log(
+      `[MassiveSeed] Phase 2: ${seedsForRun.length} seeds (${SEED_CHANNELS.length} static + ${dynamicSeeds.length} dynamic, capped at 40)`,
+    );
 
-    // Process seeds in batches of 5 to avoid running too long
-    for (let i = 0; i < SEED_CHANNELS.length; i += 5) {
-      const batch = SEED_CHANNELS.slice(i, i + 5);
-      const sgResult = await discoverFromSocialGraph(batch);
+    // Process seeds in batches of 5 — discoverFromSocialGraph now honors maxSeeds
+    for (let i = 0; i < seedsForRun.length; i += 5) {
+      const batch = seedsForRun.slice(i, i + 5);
+      const sgResult = await discoverFromSocialGraph(batch, {
+        maxSeeds: batch.length, // process the full batch, not just 3
+        maxResolvePerSeed: 8, // slightly higher than Vercel default (5)
+      });
       for (const ch of sgResult.results) {
         if (ch.username && !allUsernames.has(ch.username)) {
           allUsernames.set(ch.username, { ...ch, _source: 'social_graph' });
@@ -110,14 +211,53 @@ async function runMassiveSeed(jobId) {
       }
       errors.push(...sgResult.errors.map((e) => `[SG] ${e}`));
 
-      log.progress.current = Math.min(i + 5, SEED_CHANNELS.length);
+      log.progress.current = Math.min(i + 5, seedsForRun.length);
       log.progress.discovered = allUsernames.size;
       await log.save();
     }
 
     console.log(`[MassiveSeed] Phase 2 done: ${allUsernames.size} total unique`);
 
+    // ── Snapshot allUsernames to disk before Phase 3 ─────────────────
+    // Phase 3 is network-intensive and prone to crashes. Persisting the
+    // discovery set means a recovery script can resume enrichment without
+    // re-running phases 1/1.5/2. See scripts/resume-phase3.js.
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const snapshotDir = path.join(__dirname, '..', 'logs');
+      if (!fs.existsSync(snapshotDir)) fs.mkdirSync(snapshotDir, { recursive: true });
+      const snapshotPath = path.join(snapshotDir, 'last-discovery-snapshot.json');
+      const snapshot = {
+        jobId,
+        createdAt: new Date().toISOString(),
+        totalChannels: allUsernames.size,
+        channels: Array.from(allUsernames.entries()).map(([username, data]) => ({
+          username,
+          ...data,
+        })),
+      };
+      fs.writeFileSync(snapshotPath, JSON.stringify(snapshot, null, 2));
+      console.log(`[MassiveSeed] Snapshot saved: ${snapshotPath} (${allUsernames.size} channels)`);
+    } catch (err) {
+      console.warn(`[MassiveSeed] Snapshot save failed: ${err.message}`);
+    }
+
     // ── Phase 3: Enrich with full metrics + save ──────────────────────
+    // Bulk-load the SeenChannel cache ONCE so we check membership in O(1)
+    // instead of N per-username queries. These are channels we processed
+    // in previous runs that didn't result in a save (filtered, errored,
+    // etc.) and whose retry window hasn't expired yet.
+    const seenDocs = await SeenChannel.find({
+      retryAfter: { $gt: new Date() },
+    })
+      .select('username reason')
+      .lean();
+    const seenMap = new Map(seenDocs.map((d) => [d.username.toLowerCase(), d.reason]));
+    console.log(
+      `[MassiveSeed] Phase 3: SeenChannel cache loaded (${seenMap.size} usernames under retry lock)`,
+    );
+
     const usernamesToEnrich = Array.from(allUsernames.keys());
     log.progress.phase = 'enriching-metrics';
     log.progress.current = 0;
@@ -126,11 +266,39 @@ async function runMassiveSeed(jobId) {
 
     console.log(`[MassiveSeed] Phase 3: enriching ${usernamesToEnrich.length} channels`);
 
+    // Helper to write to SeenChannel cache (fire-and-forget, ignore dup errors)
+    const markAsSeen = async (username, reason, extra = {}) => {
+      try {
+        await SeenChannel.findOneAndUpdate(
+          { username },
+          {
+            $set: {
+              reason,
+              source: extra.source || 'keyword',
+              seenAt: new Date(),
+              lastKnownSubs: extra.subs ?? null,
+              lastError: (extra.error || '').slice(0, 500),
+              retryAfter: SeenChannel.computeRetryAfter(reason),
+            },
+          },
+          { upsert: true, new: true },
+        );
+      } catch (err) {
+        // Ignore — cache write failure shouldn't break the run
+      }
+    };
+
     for (let i = 0; i < usernamesToEnrich.length; i++) {
       const username = usernamesToEnrich[i];
       const sourceData = allUsernames.get(username);
 
       try {
+        // Fast path: SeenChannel cache hit (skip without any DB query)
+        if (seenMap.has(username)) {
+          skippedBySeenCache++;
+          continue;
+        }
+
         // Check if already exists in Canal or ChannelCandidates
         const [existingCanal, existingCandidate] = await Promise.all([
           Canal.findOne({
@@ -147,9 +315,11 @@ async function runMassiveSeed(jobId) {
 
         // Get full metrics
         let metrics = null;
+        let metricsErr = null;
         try {
           metrics = await getChannelMetrics(username);
         } catch (err) {
+          metricsErr = err;
           // Handle FloodWaitError
           if (err.message && err.message.includes('FLOOD_WAIT')) {
             const waitMatch = err.message.match(/(\d+)/);
@@ -159,8 +329,10 @@ async function runMassiveSeed(jobId) {
             // Retry once
             try {
               metrics = await getChannelMetrics(username);
-            } catch {
+              metricsErr = null;
+            } catch (retryErr) {
               errors.push(`@${username}: FloodWait retry failed`);
+              metricsErr = retryErr;
             }
           } else {
             errors.push(`@${username}: ${err.message}`);
@@ -168,6 +340,16 @@ async function runMassiveSeed(jobId) {
         }
 
         if (!metrics) {
+          // Classify the error so SeenChannel picks the right retry horizon
+          const msg = metricsErr?.message || '';
+          let reason = 'error-transient';
+          if (/USERNAME_INVALID|No user has/i.test(msg)) reason = 'username-invalid';
+          else if (/FLOOD_WAIT|seconds is required/i.test(msg)) reason = 'floodwait';
+          else if (/PRIVATE|RESTRICTED/i.test(msg)) reason = 'unscrapable';
+          await markAsSeen(username, reason, {
+            source: sourceData._source,
+            error: msg,
+          });
           await sleep(METRICS_DELAY_MS);
           continue;
         }
@@ -176,14 +358,24 @@ async function runMassiveSeed(jobId) {
         const subs = metrics.participants_count || 0;
         if (subs < MIN_SUBSCRIBERS) {
           filteredOut++;
+          await markAsSeen(username, 'filtered-low-subs', {
+            source: sourceData._source,
+            subs,
+          });
           await sleep(METRICS_DELAY_MS);
           continue;
         }
 
         // Save to ChannelCandidates
+        const sourceMap = {
+          social_graph: 'social_graph',
+          lyzem: 'lyzem',
+          keyword: 'tgstat',
+        };
+        const candidateSource = sourceMap[sourceData._source] || 'tgstat';
         await ChannelCandidate.create({
           username,
-          source: sourceData._source === 'social_graph' ? 'social_graph' : 'tgstat',
+          source: candidateSource,
           status: 'pending_review',
           scraped_at: new Date(),
           raw_metrics: {
@@ -223,6 +415,7 @@ async function runMassiveSeed(jobId) {
       saved,
       duplicates,
       filtered_out: filteredOut,
+      skipped_by_seen_cache: skippedBySeenCache,
       errors: errors.slice(0, 100), // cap errors in response
       error_count: errors.length,
       duration_ms: Date.now() - log.startedAt.getTime(),
@@ -236,7 +429,9 @@ async function runMassiveSeed(jobId) {
     log.progress.saved = saved;
     await log.save();
 
-    console.log(`[MassiveSeed] Completed: ${saved} saved, ${duplicates} dupes, ${filteredOut} filtered, ${errors.length} errors`);
+    console.log(
+      `[MassiveSeed] Completed: ${saved} saved, ${duplicates} dupes, ${filteredOut} filtered, ${skippedBySeenCache} skipped-by-cache, ${errors.length} errors`,
+    );
   } catch (err) {
     console.error(`[MassiveSeed] Fatal: ${err.message}`);
     log.status = 'failed';

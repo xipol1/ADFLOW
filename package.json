@@ -24,6 +24,7 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "axios": "^1.5.0",
     "bcryptjs": "^2.4.3",
     "chart.js": "^4.5.1",
