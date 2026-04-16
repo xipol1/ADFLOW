@@ -1,9 +1,12 @@
 import React, { useEffect } from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
+import { GoogleOAuthProvider } from '@react-oauth/google'
 import AppRoutes from './routes/AppRoutes'
 import { AuthProvider } from './auth/AuthContext'
 import { NotificationsProvider } from './legacy/hooks/useNotifications'
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
 
 export default function App() {
   useEffect(() => {
@@ -12,7 +15,7 @@ export default function App() {
     }
   }, []);
 
-  return (
+  const content = (
     <HelmetProvider>
       <BrowserRouter>
         <AuthProvider>
@@ -23,4 +26,8 @@ export default function App() {
       </BrowserRouter>
     </HelmetProvider>
   )
+
+  // Wrap with GoogleOAuthProvider only if client ID is configured
+  if (!GOOGLE_CLIENT_ID) return content
+  return <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>{content}</GoogleOAuthProvider>
 }

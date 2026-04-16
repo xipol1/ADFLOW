@@ -212,6 +212,14 @@ class ApiService {
     });
   }
 
+  async googleLogin(credential) {
+    return this.request('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ credential }),
+      auth: false,
+    });
+  }
+
   // ==========================================
   // MÉTODOS DE CANALES
   // ==========================================

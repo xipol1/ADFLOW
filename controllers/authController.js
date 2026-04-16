@@ -647,6 +647,98 @@ const obtenerEstadisticas = async (req, res) => {
   return res.json({ success: true, data: {} });
 };
 
+const googleLogin = async (req, res) => {
+  try {
+    const { credential } = req.body || {};
+    if (!credential) {
+      return res.status(400).json({ success: false, message: 'Credential requerida' });
+    }
+
+    const clientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
+    if (!clientId) {
+      return res.status(503).json({ success: false, message: 'Google login no configurado' });
+    }
+
+    if (!database.estaConectado()) await database.conectar();
+
+    // Verify Google ID token
+    const { OAuth2Client } = require('google-auth-library');
+    const client = new OAuth2Client(clientId);
+    let ticket;
+    try {
+      ticket = await client.verifyIdToken({ idToken: credential, audience: clientId });
+    } catch (err) {
+      logDev('GOOGLE LOGIN: token verification failed', err?.message);
+      return res.status(401).json({ success: false, message: 'Token de Google invalido' });
+    }
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email: rawEmail, given_name, family_name, email_verified } = payload;
+    const email = (rawEmail || '').trim().toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'No se pudo obtener el email de Google' });
+    }
+
+    // Find existing user by googleId or email
+    let user = await Usuario.findOne({ $or: [{ googleId }, { email }] });
+
+    if (user) {
+      // Account lockout check
+      if (user.lockedUntil && user.lockedUntil > new Date()) {
+        const minutesLeft = Math.ceil((user.lockedUntil - Date.now()) / 60000);
+        return res.status(423).json({
+          success: false,
+          message: `Cuenta bloqueada temporalmente. Intenta de nuevo en ${minutesLeft} minuto(s).`,
+        });
+      }
+      // Link Google account if not already linked
+      if (!user.googleId) {
+        user.googleId = googleId;
+        if (!user.emailVerificado && email_verified) user.emailVerificado = true;
+        await user.save();
+        logDev('GOOGLE LOGIN: linked Google account to existing user', { email });
+      }
+    } else {
+      // Create new user
+      user = await Usuario.create({
+        email,
+        password: require('crypto').randomBytes(32).toString('hex'), // random password, user can set later
+        nombre: given_name || '',
+        apellido: family_name || '',
+        rol: 'advertiser',
+        googleId,
+        emailVerificado: email_verified !== false,
+        activo: true,
+      });
+      logDev('GOOGLE LOGIN: new user created', { email, googleId });
+
+      // Send welcome email (non-blocking failure)
+      try {
+        const emailService = require('../services/emailService');
+        await emailService.enviarBienvenida(user);
+      } catch {}
+    }
+
+    if (!user.activo) {
+      return res.status(403).json({ success: false, message: 'Cuenta desactivada' });
+    }
+
+    const tokens = await AuthService.generarTokens(user);
+    logDev('GOOGLE LOGIN: tokens generated', { userId: user._id.toString() });
+
+    return res.json({
+      success: true,
+      user: buildUserResponse(user),
+      token: tokens.tokenAcceso,
+      refreshToken: tokens.tokenRefresco,
+    });
+  } catch (error) {
+    console.error('GOOGLE LOGIN ERROR:', error?.message || error);
+    return res.status(500).json({ success: false, message: 'Error interno del servidor' });
+  }
+};
+
 module.exports = {
   login,
   registro,
@@ -664,4 +756,5 @@ module.exports = {
   obtenerEstadisticas,
   createBotToken,
   validateBotToken,
+  googleLogin,
 };

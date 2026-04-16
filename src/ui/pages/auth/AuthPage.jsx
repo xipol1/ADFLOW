@@ -4,11 +4,14 @@ import { useAuth } from '../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { PURPLE as A, PURPLE_DARK as AD, purpleAlpha as AG, FONT_BODY, FONT_DISPLAY } from '../../theme/tokens'
 
+let GoogleLogin = null
+try { GoogleLogin = require('@react-oauth/google').GoogleLogin } catch {}
+
 export default function AuthPage({ defaultTab = 'login' }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
-  const { login, register } = useAuth()
+  const { login, loginWithGoogle, register } = useAuth()
 
   const refCode = searchParams.get('ref') || ''
   const botTokenParam = searchParams.get('bot_token') || ''
@@ -64,6 +67,24 @@ export default function AuthPage({ defaultTab = 'login' }) {
     setPassword('')
     setName('')
   }
+
+  const onGoogleSuccess = async (credentialResponse) => {
+    setError('')
+    setLoading(true)
+    const res = await loginWithGoogle(credentialResponse.credential)
+    if (res?.success) {
+      navigate('/dashboard', { replace: true })
+    } else {
+      setError(res?.message || 'Error al iniciar sesion con Google')
+    }
+    setLoading(false)
+  }
+
+  const onGoogleError = () => {
+    setError('No se pudo conectar con Google. Intenta de nuevo.')
+  }
+
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
 
   const onLogin = async (e) => {
     e.preventDefault()
@@ -276,6 +297,29 @@ export default function AuthPage({ defaultTab = 'login' }) {
           {/* LOGIN FORM */}
           {tab === 'login' && !needs2FA && (
             <form onSubmit={onLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+              {/* Google Sign-In */}
+              {GoogleLogin && googleClientId && (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <GoogleLogin
+                      onSuccess={onGoogleSuccess}
+                      onError={onGoogleError}
+                      size="large"
+                      width="100%"
+                      text="continue_with"
+                      shape="pill"
+                      locale="es"
+                    />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '4px 0' }}>
+                    <div style={{ flex: 1, height: '1px', background: 'var(--border, #e5e7eb)' }} />
+                    <span style={{ fontSize: '12px', color: 'var(--muted, #999)', fontWeight: 500 }}>o</span>
+                    <div style={{ flex: 1, height: '1px', background: 'var(--border, #e5e7eb)' }} />
+                  </div>
+                </>
+              )}
+
               <div>
                 <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
                   Correo electrónico <span style={{ color: '#ef4444' }}>*</span>
@@ -373,6 +417,28 @@ export default function AuthPage({ defaultTab = 'login' }) {
           {/* REGISTER FORM */}
           {tab === 'register' && !registerSuccess && (
             <form onSubmit={onRegister} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+              {/* Google Sign-Up */}
+              {GoogleLogin && googleClientId && !founderData?.valid && (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <GoogleLogin
+                      onSuccess={onGoogleSuccess}
+                      onError={onGoogleError}
+                      size="large"
+                      width="100%"
+                      text="signup_with"
+                      shape="pill"
+                      locale="es"
+                    />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '4px 0' }}>
+                    <div style={{ flex: 1, height: '1px', background: 'var(--border, #e5e7eb)' }} />
+                    <span style={{ fontSize: '12px', color: 'var(--muted, #999)', fontWeight: 500 }}>o</span>
+                    <div style={{ flex: 1, height: '1px', background: 'var(--border, #e5e7eb)' }} />
+                  </div>
+                </>
+              )}
 
               {/* Founder badge */}
               {founderData?.valid && (

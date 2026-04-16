@@ -102,6 +102,28 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const loginWithGoogle = async (credential) => {
+    setError('')
+    setLoading(true)
+    try {
+      const res = await apiService.googleLogin(credential)
+      if (res && res.success && res.token && res.user) {
+        localStorage.setItem('token', res.token)
+        localStorage.setItem('refreshToken', res.refreshToken || '')
+        localStorage.setItem('user', JSON.stringify(res.user))
+        setToken(res.token)
+        setRefreshToken(res.refreshToken || '')
+        setUser(res.user)
+      }
+      return res
+    } catch (e) {
+      setError(e?.message || 'Error al iniciar sesion con Google')
+      return { success: false, message: e?.message || 'Error al iniciar sesion con Google' }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Called after email verification — updates session with fresh tokens
   const setAuthFromVerification = (newToken, newRefreshToken, newUser) => {
     if (newToken && newUser) {
@@ -144,6 +166,7 @@ export function AuthProvider({ children }) {
       error,
       isAuthenticated,
       login,
+      loginWithGoogle,
       register,
       logout,
       setAuthFromVerification,

@@ -24,6 +24,7 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
+    "@react-oauth/google": "^0.13.5",
     "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "axios": "^1.5.0",
     "bcryptjs": "^2.4.3",
@@ -40,6 +41,7 @@
     "express-validator": "^7.0.1",
     "framer-motion": "^11.0.0",
     "geoip-lite": "^2.0.1",
+    "google-auth-library": "^10.6.2",
     "helmet": "^7.0.0",
     "hpp": "^0.2.3",
     "joi": "^17.9.2",

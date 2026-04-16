@@ -75,6 +75,9 @@ const UsuarioSchema = new mongoose.Schema(
     // (via admin panel, seed script, or manual DB update).
     betaAccess: { type: Boolean, default: false, index: true },
 
+    // Google OAuth
+    googleId: { type: String, default: null, sparse: true, index: true },
+
     // Bot verification & Founder program
     botVerified: { type: Boolean, default: false },
     founderTier: { type: Boolean, default: false },

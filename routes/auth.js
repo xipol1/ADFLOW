@@ -458,6 +458,21 @@ try {
   console.warn('2FA routes not loaded:', e.message);
 }
 
+// ── Google OAuth ──
+
+const limitarGoogle = limitarIntentos({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { success: false, message: 'Demasiados intentos. Intenta de nuevo en 15 minutos.' }
+});
+
+router.post('/google',
+  limitarGoogle,
+  body('credential').notEmpty().withMessage('Credential requerida'),
+  validarCampos,
+  authController.googleLogin
+);
+
 // ── Bot token endpoints (called by Telegram bot) ──
 
 /**
