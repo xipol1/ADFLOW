@@ -183,6 +183,13 @@ const triggerRule = async (req, res, next) => {
 
       const netAmount = +(price * (1 - commissionRate)).toFixed(2);
 
+      const updated = await AutoBuyRule.findOneAndUpdate(
+        { _id: rule._id, totalSpent: { $lte: rule.totalBudget - price } },
+        { $inc: { totalSpent: price, campaignsCreated: 1 } },
+        { new: true }
+      );
+      if (!updated) continue;
+
       const campaign = await Campaign.create({
         advertiser: userId,
         channel: channelId,
@@ -203,8 +210,6 @@ const triggerRule = async (req, res, next) => {
         status: 'pending'
       });
 
-      rule.totalSpent += price;
-      rule.campaignsCreated += 1;
       remainingBudget -= price;
       dailySpent += price;
       created.push({ campaignId: campaign._id, channel: channelId, price });

@@ -808,9 +808,25 @@ const launchAutoCampaign = async (req, res, next) => {
       return next(httpError(400, 'El presupuesto no es suficiente para ningún canal disponible'));
     }
 
+    const selectedChannelIds = selected.map(s => s.channel._id);
+    const existingActiveCampaigns = await Campaign.find({
+      advertiser: userId,
+      channel: { $in: selectedChannelIds },
+      status: { $in: ['DRAFT', 'PAID', 'PUBLISHED'] },
+    }).select('channel').lean();
+    const activeChannelSet = new Set(
+      existingActiveCampaigns.map(c => c.channel.toString())
+    );
+    const dedupedSelected = selected.filter(
+      s => !activeChannelSet.has(s.channel._id.toString())
+    );
+    if (dedupedSelected.length === 0) {
+      return next(httpError(400, 'Ya tienes campañas activas en todos los canales seleccionados'));
+    }
+
     // Create campaigns in batch
     const campaigns = [];
-    for (const { channel, price } of selected) {
+    for (const { channel, price } of dedupedSelected) {
       const netAmount = +(price * (1 - commissionRate)).toFixed(2);
 
       const campaign = await Campaign.create({
@@ -861,7 +877,7 @@ const launchAutoCampaign = async (req, res, next) => {
       }
     }
 
-    const totalSpent = selected.reduce((sum, s) => sum + s.price, 0);
+    const totalSpent = dedupedSelected.reduce((sum, s) => sum + s.price, 0);
 
     return res.status(201).json({
       success: true,
