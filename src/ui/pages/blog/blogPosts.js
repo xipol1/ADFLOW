@@ -2,9 +2,69 @@ import { lazy } from 'react'
 
 // Blog post registry — add new posts here and they auto-appear on /blog and sitemap.
 // Content is rendered by each post's component (lazy-loaded).
-// Updated: 2026-04-11 — 19 posts total (tildes + FAQs + dateModified sync)
+// Updated: 2026-04-18 — 22 posts total (tildes + FAQs + dateModified sync)
 
 export const BLOG_POSTS = [
+  {
+    slug: 'negociar-publicidad-telegram',
+    component: lazy(() => import('./posts/NegociarPublicidadTelegram')),
+    title: 'Negociar publicidad en Telegram 2026: scripts, precios y 6 objeciones',
+    description: 'Scripts reales para negociar publicidad en tu canal de Telegram. Como responder a las 6 objeciones mas comunes, condiciones que siempre incluir y cuando decir no. Con ejemplos textuales.',
+    category: 'Monetizacion',
+    platform: 'telegram',
+    date: '2026-04-18',
+    dateModified: '2026-04-18',
+    readTime: '14 min',
+    lang: 'es',
+    keywords: ['negociar publicidad telegram', 'como negociar canal telegram', 'scripts negociacion patrocinios', 'objeciones publicidad telegram', 'cerrar deals telegram canal'],
+    faq: [
+      { question: '\u00bfQui\u00e9n debe dar el primer precio en una negociaci\u00f3n de publicidad?', answer: 'El anunciante. Si t\u00fa das el primer precio, fijas el techo de la negociaci\u00f3n. Pide primero que te cuenten producto, volumen, fechas y objetivos antes de enviar una propuesta personalizada. As\u00ed descubres su presupuesto real.' },
+      { question: '\u00bfC\u00f3mo respondo a "el canal X cobra la mitad"?', answer: 'Pide comparar datos equivalentes: suscriptores activos (no totales), tasa de apertura y engagement. La mayor\u00eda de veces el otro canal tiene m\u00e9tricas peores y el anunciante lo descubre al contrastar. Si los datos justifican un precio menor, tienes dos opciones: bajar o no hacer la campa\u00f1a. Nunca bajes sin motivo.' },
+      { question: '\u00bfC\u00f3mo gestiono el pago si el anunciante quiere 60-90 d\u00edas?', answer: 'Propone escrow: el anunciante deposita en una plataforma custodia y se libera al publicar. As\u00ed no asume riesgo pero t\u00fa cobras el mismo d\u00eda. Las marcas serias aceptan. Las que no, probablemente no te iban a pagar.' },
+      { question: '\u00bfCu\u00e1nto cobro por exclusividad de categor\u00eda?', answer: 'La exclusividad tiene coste: 1 mes de exclusividad en la categor\u00eda = +30% sobre el precio de la campa\u00f1a. 3 meses = +60%. Nunca regales la exclusividad gratis, supone perder deals paralelos reales.' },
+      { question: '\u00bfCu\u00e1ndo debo rechazar una campa\u00f1a aunque paguen?', answer: 'En tres casos: (1) producto que da\u00f1a tu credibilidad, (2) presupuesto por debajo de tu tarifa m\u00ednima (decir s\u00ed te encasilla), (3) condiciones abusivas como exclusividad gratuita de 6 meses o pago a 90 d\u00edas sin escrow.' },
+    ],
+  },
+  {
+    slug: 'cuanto-cobrar-publicidad-whatsapp',
+    component: lazy(() => import('./posts/CuantoCobrarPublicidadWhatsApp')),
+    title: 'Cu\u00e1nto cobrar publicidad WhatsApp 2026: f\u00f3rmula + tabla CPM por nicho',
+    description: 'La f\u00f3rmula exacta para poner precio a un post patrocinado en tu canal de WhatsApp en 2026. Tabla de CPMs por nicho (4-18 EUR) y 3 ejemplos con n\u00fameros reales.',
+    category: 'Monetizacion',
+    platform: 'whatsapp',
+    date: '2026-04-17',
+    dateModified: '2026-04-17',
+    readTime: '13 min',
+    lang: 'es',
+    keywords: ['cu\u00e1nto cobrar publicidad whatsapp', 'precio publicidad whatsapp canales', 'CPM whatsapp espa\u00f1a', 'tarifas publicidad canal whatsapp', 'calculadora precios whatsapp'],
+    faq: [
+      { question: '\u00bfC\u00f3mo se calcula el precio de un post en WhatsApp?', answer: 'F\u00f3rmula: Precio = (Suscriptores activos \u00d7 CPM del nicho) / 1.000. El CPM en WhatsApp oscila entre 2 y 18 EUR seg\u00fan nicho. Multiplica por 2 si es post fijado 24h, por 1,5 si es menci\u00f3n org\u00e1nica o video, por 1,8 si es nota de voz.' },
+      { question: '\u00bfPor qu\u00e9 WhatsApp cobra m\u00e1s que Telegram en algunos nichos?', answer: 'Tres razones: tasa de apertura superior (75-90% vs 40-60% en Telegram), menos competencia entre canales, y mercado inmaduro con menos oferta que demanda. Los CPMs de WhatsApp son 20-30% superiores a los equivalentes en Telegram en 2026.' },
+      { question: '\u00bfCu\u00e1les son los nichos con mejor CPM en WhatsApp?', answer: 'Cripto/trading (8-18 EUR), finanzas (7-15 EUR), ecommerce (6-14 EUR con picos del 2x en Black Friday) y marketing/negocios (5-12 EUR). Los nichos m\u00e1s bajos son gaming (2-4 EUR) y noticias generalistas (2,5-5 EUR).' },
+      { question: '\u00bfCu\u00e1ndo debo subir los precios de mis posts?', answer: 'Cinco indicadores claros: (1) has crecido 20%+ trimestral, (2) rechazas m\u00e1s propuestas de las que aceptas, (3) tienes anunciantes recurrentes al tercer post, (4) tu tasa de apertura subi\u00f3, (5) se acerca Black Friday o periodos calientes (sube 30-50%).' },
+      { question: '\u00bfDebo cobrar CPM o CPA en WhatsApp?', answer: 'Para la mayor\u00eda de canales, CPM es m\u00e1s predecible y rentable. El CPA (coste por acci\u00f3n) solo conviene si tu audiencia tiene tasas de conversi\u00f3n muy altas y el producto paga comisiones altas. Empieza por CPM y cambia solo con datos s\u00f3lidos.' },
+    ],
+  },
+  {
+    slug: 'monetizar-canal-difusion-instagram',
+    component: lazy(() => import('./posts/MonetizarInstagramBroadcast')),
+    title: 'Monetizar canal de difusi\u00f3n de Instagram 2026: 5 m\u00e9todos (Broadcast Channels)',
+    description: 'C\u00f3mo monetizar un canal de difusi\u00f3n de Instagram en 2026. CPMs reales (6-15 EUR), tasa de apertura 60-75%, 5 m\u00e9todos probados y c\u00f3mo conectar con marcas. Sin humo.',
+    category: 'Monetizacion',
+    platform: 'telegram',
+    date: '2026-04-16',
+    dateModified: '2026-04-16',
+    readTime: '15 min',
+    lang: 'es',
+    keywords: ['monetizar canal difusion instagram', 'instagram broadcast channels monetizar', 'ganar dinero canal instagram', 'publicidad broadcast instagram', 'canales difusion instagram espa\u00f1a'],
+    faq: [
+      { question: '\u00bfQu\u00e9 es un canal de difusi\u00f3n de Instagram?', answer: 'Un canal unidireccional donde el creador publica mensajes, im\u00e1genes, videos, encuestas o notas de voz y todos los miembros los reciben directamente en sus mensajes privados. Sin algoritmo: el 100% de los miembros ven el contenido.' },
+      { question: '\u00bfCu\u00e1ntos miembros necesito para monetizar un canal de difusi\u00f3n de Instagram?', answer: 'Para publicidad directa, m\u00ednimo recomendado 1.000-2.000 miembros activos con tasa de apertura superior al 40%. Para marcas recurrentes, a\u00f1ade 3 meses de publicaciones consistentes y un media kit documentado.' },
+      { question: '\u00bfCu\u00e1nto pagan los anunciantes en Broadcast Channels de Instagram?', answer: 'El CPM en canales de difusi\u00f3n de Instagram oscila entre 6 y 15 EUR en 2026, con mercado en ascenso. Un canal de 5.000 miembros activos en nicho medio-alto puede generar entre 150 y 500 EUR mensuales combinando publicidad directa y afiliaci\u00f3n.' },
+      { question: '\u00bfEs mejor monetizar en Instagram Broadcast o en Telegram?', answer: 'Depende. Instagram Broadcast tiene acceso al ecosistema Meta (90% de los presupuestos de marcas de gran consumo) y mayor tasa de apertura. Telegram tiene un mercado m\u00e1s maduro para nichos t\u00e9cnicos (finanzas, cripto, B2B). Si ya tienes audiencia en Instagram, empieza ah\u00ed. Lo \u00f3ptimo es combinar ambos.' },
+      { question: '\u00bfCu\u00e1les son los errores m\u00e1s comunes al monetizar un canal de difusi\u00f3n?', answer: 'Cuatro errores que frenan la monetizaci\u00f3n: (1) usar el canal como RSS del feed, (2) no construir la membres\u00eda activamente, (3) saturar con publicidad sin construir relaci\u00f3n primero (el ratio sano es 1 patrocinado cada 7-10 posts), (4) comparar por volumen en vez de por cualificaci\u00f3n de audiencia.' },
+    ],
+  },
   {
     slug: 'calculadora-precios-publicidad',
     component: lazy(() => import('./posts/CalculadoraPrecios')),
