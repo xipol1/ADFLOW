@@ -63,7 +63,7 @@ const PERIODS = [
 ]
 
 // ─── Evolution Chart ────────────────────────────────────────────────────────
-function EvolutionChart({ snapshots }) {
+function EvolutionChart({ snapshots, plataforma }) {
   if (!snapshots || snapshots.length < 2) {
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-2" style={{ color: 'var(--text-secondary)' }}>
@@ -74,10 +74,16 @@ function EvolutionChart({ snapshots }) {
     )
   }
 
+  const isTelegram = plataforma === 'telegram'
+  const secondaryKey = isTelegram ? 'views' : 'cas'
+  const secondaryLabel = isTelegram ? 'Avg Views' : 'CAS Score'
+  const secondaryColor = isTelegram ? 'var(--blue)' : '#8b5cf6'
+
   const data = snapshots.map((s) => ({
     date: fmtDate(s.date || s.fecha),
     subs: s.subscribers ?? s.seguidores ?? 0,
     views: s.avg_views ?? 0,
+    cas: s.CAS ?? 0,
   }))
 
   return (
@@ -88,21 +94,21 @@ function EvolutionChart({ snapshots }) {
             <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.15} />
             <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
           </linearGradient>
-          <linearGradient id="gradViews" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--blue)" stopOpacity={0.15} />
-            <stop offset="100%" stopColor="var(--blue)" stopOpacity={0} />
+          <linearGradient id="gradSecondary" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={secondaryColor} stopOpacity={0.15} />
+            <stop offset="100%" stopColor={secondaryColor} stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
         <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'var(--muted2)' }} tickLine={false} axisLine={false} />
         <YAxis yAxisId="left" tick={{ fontSize: 10, fill: 'var(--muted2)' }} tickLine={false} axisLine={false} tickFormatter={fmtNum} />
-        <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: 'var(--muted2)' }} tickLine={false} axisLine={false} tickFormatter={fmtNum} />
+        <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: 'var(--muted2)' }} tickLine={false} axisLine={false} tickFormatter={fmtNum} domain={!isTelegram ? [0, 100] : undefined} />
         <Tooltip
           contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12, fontFamily: 'var(--font-mono)' }}
           labelStyle={{ color: 'var(--text-secondary)' }}
         />
         <Area yAxisId="left" type="monotone" dataKey="subs" name="Suscriptores" stroke="var(--accent)" fill="url(#gradSubs)" strokeWidth={2} />
-        <Area yAxisId="right" type="monotone" dataKey="views" name="Avg Views" stroke="var(--blue)" fill="url(#gradViews)" strokeWidth={2} strokeDasharray="5 5" />
+        <Area yAxisId="right" type="monotone" dataKey={secondaryKey} name={secondaryLabel} stroke={secondaryColor} fill="url(#gradSecondary)" strokeWidth={2} strokeDasharray="5 5" />
       </AreaChart>
     </ResponsiveContainer>
   )
@@ -256,7 +262,7 @@ export default function ChannelExplorerPage() {
         {/* ── SECTION 2: STATS ─────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
           <StatCard label="Suscriptores" value={fmtNum(seguidores)} />
-          <StatCard label="Avg Views" value={lastSnap?.avg_views != null ? fmtNum(lastSnap.avg_views) : '—'} />
+          <StatCard label={plataforma === 'telegram' ? 'Avg Views' : 'CAS Score'} value={plataforma === 'telegram' ? (lastSnap?.avg_views != null ? fmtNum(lastSnap.avg_views) : '—') : (lastSnap?.CAS != null ? Math.round(lastSnap.CAS) : '—')} />
           <StatCard label="Engagement" value={lastSnap?.engagement_rate != null ? `${(lastSnap.engagement_rate * 100).toFixed(1)}` : '—'} suffix="%" />
           <StatCard label="€/post" value={isAuthenticated ? (CPMDinamico > 0 ? `€${Number(CPMDinamico).toFixed(0)}` : '—') : '€••'} />
         </div>
@@ -307,7 +313,7 @@ export default function ChannelExplorerPage() {
               ))}
             </div>
           </div>
-          <EvolutionChart snapshots={snapshots} />
+          <EvolutionChart snapshots={snapshots} plataforma={plataforma} />
         </div>
 
         {/* ── SECTION 5: INFO GRID ─────────────────────────────── */}

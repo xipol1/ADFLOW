@@ -25,6 +25,7 @@ const PERIODS = [
 const LINES = {
   subscribers: { color: C.teal, label: 'Suscriptores', dashed: false },
   avg_views: { color: '#f59e0b', label: 'Avg Views', dashed: true },
+  CAS: { color: '#8b5cf6', label: 'CAS Score', dashed: true },
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -166,11 +167,15 @@ function LineToggle({ lineKey, visible, onToggle }) {
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════
 
-export default function ChannelHistoryChart({ channelId, days: initialDays = 30, height = 240 }) {
+export default function ChannelHistoryChart({ channelId, plataforma, days: initialDays = 30, height = 240 }) {
+  // For non-Telegram platforms, show CAS score instead of avg_views
+  const isTelegram = plataforma === 'telegram'
+  const secondaryKey = isTelegram ? 'avg_views' : 'CAS'
+
   const [days, setDays] = useState(initialDays)
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
-  const [visible, setVisible] = useState({ subscribers: true, avg_views: true })
+  const [visible, setVisible] = useState({ subscribers: true, [secondaryKey]: true })
 
   const toggleLine = useCallback((key) => {
     setVisible((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -197,6 +202,7 @@ export default function ChannelHistoryChart({ channelId, days: initialDays = 30,
               date: s.date || s.fecha,
               subscribers: s.subscribers ?? s.seguidores ?? 0,
               avg_views: s.avg_views ?? null,
+              CAS: s.CAS ?? null,
             })),
           )
         } else {
@@ -260,7 +266,7 @@ export default function ChannelHistoryChart({ channelId, days: initialDays = 30,
       {/* Line toggles */}
       <div style={{ display: 'flex', gap: 6 }}>
         <LineToggle lineKey="subscribers" visible={visible.subscribers} onToggle={toggleLine} />
-        <LineToggle lineKey="avg_views" visible={visible.avg_views} onToggle={toggleLine} />
+        <LineToggle lineKey={secondaryKey} visible={visible[secondaryKey]} onToggle={toggleLine} />
       </div>
     </div>
   )
@@ -294,7 +300,7 @@ export default function ChannelHistoryChart({ channelId, days: initialDays = 30,
                 tickFormatter={fmtNum}
               />
             )}
-            {visible.avg_views && (
+            {visible[secondaryKey] && (
               <YAxis
                 yAxisId="right"
                 orientation="right"
@@ -302,6 +308,7 @@ export default function ChannelHistoryChart({ channelId, days: initialDays = 30,
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={fmtNum}
+                domain={secondaryKey === 'CAS' ? [0, 100] : ['auto', 'auto']}
               />
             )}
             <Tooltip content={<ChartTooltip />} />
@@ -317,17 +324,17 @@ export default function ChannelHistoryChart({ channelId, days: initialDays = 30,
                 activeDot={{ r: 4, fill: LINES.subscribers.color }}
               />
             )}
-            {visible.avg_views && (
+            {visible[secondaryKey] && (
               <Line
                 yAxisId="right"
                 type="monotone"
-                dataKey="avg_views"
-                name="Avg Views"
-                stroke={LINES.avg_views.color}
+                dataKey={secondaryKey}
+                name={LINES[secondaryKey].label}
+                stroke={LINES[secondaryKey].color}
                 strokeWidth={2}
                 strokeDasharray="5 5"
                 dot={false}
-                activeDot={{ r: 4, fill: LINES.avg_views.color }}
+                activeDot={{ r: 4, fill: LINES[secondaryKey].color }}
               />
             )}
           </LineChart>

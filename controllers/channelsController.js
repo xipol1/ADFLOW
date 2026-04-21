@@ -316,21 +316,24 @@ const getChannelSnapshots = async (req, res) => {
       fecha: { $gte: since },
     })
       .sort({ fecha: 1 })
-      .select('fecha seguidores CAF CTF CER CVS CAP CAS nivel telegramIntel')
+      .select('fecha seguidores plataforma CAF CTF CER CVS CAP CAS nivel telegramIntel linkedinIntel')
       .lean();
 
     const data = snapshots.map((s) => ({
       date: s.fecha,
       subscribers: s.seguidores || 0,
+      plataforma: s.plataforma || '',
+      // Telegram-specific intel
       avg_views: s.telegramIntel?.avg_views_last_20_posts ?? null,
       engagement_rate: s.telegramIntel?.engagement_rate ?? null,
-      // MTProto intel fields — previously missing from the response, which
-      // is why ChannelExplorerPage always showed "—"/"Estable" even when
-      // these fields existed in CanalScoreSnapshot.telegramIntel.*
       last_post_date: s.telegramIntel?.last_post_date ?? null,
       post_frequency: s.telegramIntel?.post_frequency_per_week ?? null,
       views_trend: s.telegramIntel?.views_trend ?? null,
       verified: s.telegramIntel?.verified ?? false,
+      // LinkedIn-specific intel
+      linkedin_followers: s.linkedinIntel?.followerCount ?? s.linkedinIntel?.memberFollowersCount ?? null,
+      linkedin_growth_7d: s.linkedinIntel?.followerGrowth7d ?? s.linkedinIntel?.memberFollowersGrowth7d ?? null,
+      linkedin_impressions_7d: s.linkedinIntel?.impressions7d ?? null,
       scores: {
         CAF: s.CAF,
         CTF: s.CTF,

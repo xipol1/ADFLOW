@@ -46,6 +46,18 @@ const ChannelCandidateSchema = new mongoose.Schema(
         'lyzem',
         'social_graph',
         'manual',
+        'xtea',
+        'tdirectory',
+        'telegram_crypto_groups',
+        // Discord sources
+        'disboard',
+        'igrupos_discord',
+        // WhatsApp sources
+        'wachannelsfinder',
+        'cheetah_groups',
+        'igrupos_whatsapp',
+        // Multi-platform
+        'igrupos',
         // Newsletter sources
         'substack_public_api',
         'substack_directory',
