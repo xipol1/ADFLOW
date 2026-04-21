@@ -73,6 +73,16 @@ import BlogPost from '../ui/pages/blog/BlogPost'
 import LinkWhatsAppPage from '../ui/pages/dashboard/creator/LinkWhatsAppPage'
 import WhatsAppAuditLogPage from '../ui/pages/dashboard/creator/WhatsAppAuditLogPage'
 
+// Rescued pages (404, password reset, channel detail, onboarding flow)
+import NotFoundPage from '../ui/pages/NotFoundPage'
+import ResetPasswordPage from '../ui/pages/auth/ResetPasswordPage'
+import ChannelDetailPage from '../ui/pages/marketplace/ChannelDetailPage'
+import OnboardingLayout from '../ui/pages/onboarding/OnboardingLayout'
+import RegisterStep from '../ui/pages/onboarding/RegisterStep'
+import VerifyStep from '../ui/pages/onboarding/VerifyStep'
+import ChannelStep from '../ui/pages/onboarding/ChannelStep'
+import SuccessStep from '../ui/pages/onboarding/SuccessStep'
+
 // Guard for full-access-only pages — shows Coming Soon for limited users
 function FullAccessOnly({ children, feature }) {
   const { isFullAccess } = useAuth()
@@ -89,6 +99,7 @@ export default function AppRoutes() {
       <Route path="/" element={<AppLayout />}>
         <Route index element={<LandingPage />} />
         <Route path="marketplace" element={<MarketplacePage />} /> {/* Public browsing allowed */}
+        <Route path="marketplace/:channelId" element={<ChannelDetailPage />} /> {/* Marketplace channel detail (purchase-oriented view) */}
         <Route path="channel/:id" element={<ChannelExplorerPage />} /> {/* Public channel intelligence (by ID or username) */}
         <Route path="niche/:nicho" element={<NicheIntelligencePage />} /> {/* Public niche market intelligence */}
         <Route path="rankings" element={<RankingsPage />} /> {/* Public channel rankings */}
@@ -107,6 +118,7 @@ export default function AppRoutes() {
           element={isAuthenticated && user?.emailVerificado !== false ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
         />
         <Route path="auth/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="auth/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="verificar-email/:token" element={<VerifyEmailPage />} />
         <Route path="privacidad" element={<PrivacyPage />} />
         <Route path="terminos" element={<TermsPage />} />
@@ -203,7 +215,16 @@ export default function AppRoutes() {
         <Route path="settings"   element={<SettingsPage />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* ── Onboarding flow (self-contained layout) ────── */}
+      <Route path="/onboarding" element={<OnboardingLayout />}>
+        <Route index element={<Navigate to="register" replace />} />
+        <Route path="register" element={<RegisterStep />} />
+        <Route path="verify" element={<VerifyStep />} />
+        <Route path="channel" element={<ChannelStep />} />
+        <Route path="success" element={<SuccessStep />} />
+      </Route>
+
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
 }
