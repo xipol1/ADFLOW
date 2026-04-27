@@ -21,6 +21,15 @@
  */
 
 require('dotenv').config();
+
+// Mirror the workaround server.js uses: some local resolvers (notably the
+// Movistar router) refuse to resolve MongoDB Atlas SRV records. Force a
+// public DNS server outside production so the script works from a dev
+// machine. In production we trust the platform's resolver.
+if (process.env.NODE_ENV !== 'production') {
+  require('dns').setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+}
+
 const mongoose = require('mongoose');
 
 async function main() {
