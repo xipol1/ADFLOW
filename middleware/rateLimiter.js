@@ -31,6 +31,15 @@ const limitarIntentos = (options = {}) => {
     message: options.message || { success: false, message: 'Demasiadas solicitudes' },
   };
 
+  // Pass through optional fields the caller may need (keyGenerator, skip,
+  // requestPropertyName, statusCode, …). Forwarding only the documented
+  // express-rate-limit options keeps rateLimit happy while still allowing
+  // route-specific keying like (userId, resourceId) for chat / per-resource
+  // limits that can't be safely keyed on req.ip alone.
+  for (const k of ['keyGenerator', 'skip', 'requestPropertyName', 'statusCode', 'handler']) {
+    if (options[k] !== undefined) config[k] = options[k];
+  }
+
   if (storeFactory) {
     config.store = storeFactory(windowMs);
   }

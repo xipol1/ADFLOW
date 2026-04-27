@@ -100,9 +100,29 @@ router.get(
   campaignController.getCampaignMessages
 );
 
+// Per-(user, campaign) rate limits. Backed by the mongo-store helper so the
+// counters survive Vercel cold starts and are shared across instances —
+// the previous in-memory Map reset on every deploy and didn't span workers.
+const { limitarIntentos } = require('../middleware/rateLimiter');
+const _msgKey = (req) => `chat:${req.usuario?.id || req.ip}:${req.params.id}`;
+const limitarChatBurst = limitarIntentos({
+  windowMs: 3 * 1000,
+  max: 1,
+  keyGenerator: _msgKey,
+  message: { success: false, message: 'Espera unos segundos antes de enviar otro mensaje' },
+});
+const limitarChatHora = limitarIntentos({
+  windowMs: 60 * 60 * 1000,
+  max: 60,
+  keyGenerator: _msgKey,
+  message: { success: false, message: 'Has alcanzado el limite de mensajes por hora' },
+});
+
 router.post(
   '/:id/messages',
   autenticar,
+  limitarChatBurst,
+  limitarChatHora,
   [
     param('id').isMongoId().withMessage('ID inválido'),
     body('text').isString().notEmpty().trim().isLength({ max: 2000 }).withMessage('Mensaje demasiado largo (max 2000 caracteres)')

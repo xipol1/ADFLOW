@@ -648,10 +648,10 @@ const cancelCampaign = async (req, res, next) => {
 const CampaignMessage = require('../models/CampaignMessage');
 const { moderateMessage } = require('../lib/messageModeration');
 
-// Rate-limit: per-user message timestamps (in-memory, resets on deploy)
-const _msgTimestamps = new Map();
-const MSG_RATE_LIMIT_MS = 3000;    // 1 message per 3 seconds
-const MSG_MAX_PER_HOUR = 60;       // max 60 messages per campaign per hour
+// Per-(user, campaign) rate limiting now lives in routes/campaigns.js as
+// mongo-backed express-rate-limit middlewares so the counters survive
+// serverless cold starts. This controller only enforces length and
+// content moderation.
 const MSG_MAX_LENGTH = 2000;       // max 2000 chars per message
 
 const getCampaignMessages = async (req, res, next) => {
@@ -693,20 +693,6 @@ const sendCampaignMessage = async (req, res, next) => {
       return next(httpError(400, `El mensaje no puede superar los ${MSG_MAX_LENGTH} caracteres`));
     }
 
-    // ── Rate limiting ──
-    const rateKey = `${userId}:${req.params.id}`;
-    const now = Date.now();
-    const timestamps = _msgTimestamps.get(rateKey) || [];
-    // Remove entries older than 1 hour
-    const recent = timestamps.filter(t => now - t < 3600000);
-
-    if (recent.length > 0 && now - recent[recent.length - 1] < MSG_RATE_LIMIT_MS) {
-      return next(httpError(429, 'Espera unos segundos antes de enviar otro mensaje'));
-    }
-    if (recent.length >= MSG_MAX_PER_HOUR) {
-      return next(httpError(429, 'Has alcanzado el limite de mensajes por hora'));
-    }
-
     // ── Content moderation ──
     const modResult = moderateMessage(text);
     if (modResult.blocked) {
@@ -733,10 +719,6 @@ const sendCampaignMessage = async (req, res, next) => {
       text,
       type
     });
-
-    // Record timestamp for rate limiting
-    recent.push(now);
-    _msgTimestamps.set(rateKey, recent);
 
     // Notify the other party
     const channelDoc = await Canal.findById(campaign.channel).select('propietario').lean();
