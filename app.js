@@ -251,6 +251,18 @@ app.get('/r/:campaignId', async (req, res) => {
 // TRACKING REDIRECTS: /t/:code (short), /r/:slug (custom), /go/* (domain)
 // All formats redirect through the same TrackingLink lookup
 // ═══════════════════════════════════════════════════════════════════════════════
+// Rate limit tracking redirects to prevent automated click flooding on verification links.
+// Legit users never click the same link >30 times/min.
+const { limitarIntentos: _trackingLimit } = require('./middleware/rateLimiter');
+const trackingRateLimiter = _trackingLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { success: false, message: 'Demasiadas solicitudes a este enlace' },
+});
+
+// Botnet / crawler filter — these must never count toward verification uniqueClicks.
+const BOT_UA_REGEX = /bot\b|crawl|spider|preview|linkcheck|fetch|curl|wget|headless|phantomjs|puppeteer|scrapy|axios|http-client|monitoring|uptimerobot|facebookexternalhit|whatsapp|telegrambot|slackbot|discordbot|embed/i;
+
 // Normalize all tracking link formats to code lookup
 const trackingRedirectHandler = async (req, res) => {
   const { code } = req.params;
@@ -284,7 +296,17 @@ const trackingRedirectHandler = async (req, res) => {
     // ── Record click (fire-and-forget) ──
     setImmediate(async () => {
       try {
-        const isNew = !link._seenIps.includes(ip);
+        // Composite fingerprint prevents "same browser, same device, different IP" abuse
+        // (mobile tethering, VPN hop, etc.). IP-only dedup was trivially bypassed.
+        const crypto = require('crypto');
+        const fingerprint = crypto
+          .createHash('sha1')
+          .update(`${ip}::${ua}::${device}::${os}::${browser}`)
+          .digest('hex')
+          .slice(0, 20);
+
+        const isBot = !ua || BOT_UA_REGEX.test(ua);
+        const isNew = !isBot && !link._seenIps.includes(fingerprint);
 
         // Add click record (keep last 500)
         if (link.clicks.length >= 500) link.clicks.shift();
@@ -297,7 +319,7 @@ const trackingRedirectHandler = async (req, res) => {
         link.stats.totalClicks += 1;
         if (isNew) {
           link.stats.uniqueClicks += 1;
-          link._seenIps.push(ip);
+          link._seenIps.push(fingerprint);
           // Cap _seenIps to 10000
           if (link._seenIps.length > 10000) link._seenIps = link._seenIps.slice(-8000);
         }
@@ -351,9 +373,9 @@ const trackingRedirectHandler = async (req, res) => {
 };
 
 // Mount all 3 tracking link formats
-app.get('/t/:code', trackingRedirectHandler);
-app.get('/r/:code', trackingRedirectHandler);
-app.get('/go/*', (req, res) => { req.params.code = 'go/' + req.params[0]; return trackingRedirectHandler(req, res); });
+app.get('/t/:code', trackingRateLimiter, trackingRedirectHandler);
+app.get('/r/:code', trackingRateLimiter, trackingRedirectHandler);
+app.get('/go/*', trackingRateLimiter, (req, res) => { req.params.code = 'go/' + req.params[0]; return trackingRedirectHandler(req, res); });
 
 const safeMount = (mountPath, modulePath) => {
   const preloaded = _routes[modulePath];
