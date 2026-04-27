@@ -115,10 +115,15 @@ app.use(express.urlencoded({ extended: true, limit: MAX_REQUEST_SIZE }));
 try { app.use(require('express-mongo-sanitize')()); } catch (e) { console.warn('express-mongo-sanitize not loaded:', e.message); }
 try { app.use(require('hpp')()); } catch (e) { console.warn('hpp not loaded:', e.message); }
 
-// Block access to sensitive files that could reveal tech stack or secrets
+// Block access to sensitive files that could reveal tech stack or secrets.
+// The regex is anchored at a path-segment boundary (start of path or right
+// after a slash) and at the end of a segment, so a legit route segment that
+// happens to contain a dotted substring (e.g. /api/canales/.envio-noticias,
+// /api/files/abc.git-summary) does NOT trip the filter. Only literal
+// references to one of the listed sensitive segments are rejected.
+const SENSITIVE_SEGMENT_RE = /(?:^|\/)(?:package\.json|package-lock\.json|\.env(?:\..+)?|\.git|node_modules|tsconfig\.json|vite\.config\.(?:js|ts|cjs|mjs)|\.claude)(?:\/|$)/i;
 app.use((req, res, next) => {
-  const blocked = /\/(package\.json|package-lock\.json|\.env|\.git|node_modules|tsconfig|vite\.config|\.claude)/i;
-  if (blocked.test(req.path)) {
+  if (SENSITIVE_SEGMENT_RE.test(req.path)) {
     return res.status(404).json({ success: false, message: 'Recurso no encontrado' });
   }
   next();
