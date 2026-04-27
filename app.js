@@ -312,7 +312,29 @@ const trackingRedirectHandler = async (req, res) => {
           .slice(0, 20);
 
         const isBot = !ua || BOT_UA_REGEX.test(ua);
-        const isNew = !isBot && !link._seenIps.includes(fingerprint);
+
+        // Atomic dedup against the dedicated TrackingFingerprint collection
+        // (AUDIT.md A-10 — replaces the capped link._seenIps array). The
+        // findOneAndUpdate upsert is race-safe because of the unique
+        // (trackingLinkId, fingerprint) compound index. A null result means
+        // the row was inserted just now → first time we see this fingerprint.
+        let isNew = false;
+        if (!isBot) {
+          try {
+            const TrackingFingerprint = require('./models/TrackingFingerprint');
+            const prev = await TrackingFingerprint.findOneAndUpdate(
+              { trackingLinkId: link._id, fingerprint },
+              { $setOnInsert: { firstSeenAt: new Date() } },
+              { upsert: true, new: false, setDefaultsOnInsert: true }
+            );
+            isNew = !prev;
+          } catch (dedupErr) {
+            // Fallback to the legacy in-doc array if the new collection isn't
+            // reachable for any reason. Worst case: a duplicate uniqueClick
+            // increment, which is still better than dropping the click.
+            isNew = !link._seenIps.includes(fingerprint);
+          }
+        }
 
         // Add click record (keep last 500)
         if (link.clicks.length >= 500) link.clicks.shift();
@@ -325,9 +347,6 @@ const trackingRedirectHandler = async (req, res) => {
         link.stats.totalClicks += 1;
         if (isNew) {
           link.stats.uniqueClicks += 1;
-          link._seenIps.push(fingerprint);
-          // Cap _seenIps to 10000
-          if (link._seenIps.length > 10000) link._seenIps = link._seenIps.slice(-8000);
         }
         link.stats.lastClickAt = new Date();
         link.stats.devices[device] = (link.stats.devices[device] || 0) + 1;
