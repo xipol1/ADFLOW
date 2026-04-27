@@ -66,9 +66,18 @@ async function startServer() {
       const jwt = require('jsonwebtoken');
       const notificationService = require('./services/notificationService');
 
+      // Reuse the same allowlist as the HTTP CORS middleware (defined in
+      // app.js as app.isAllowedOrigin). Previous code passed the literal
+      // string '*.vercel.app' in the array, which Socket.io treats as an
+      // exact match — so no preview deploy ever connected.
       const io = new Server(server, {
         cors: {
-          origin: ENV !== 'production' ? '*' : (process.env.FRONTEND_URL || '').split(',').concat(['*.vercel.app']),
+          origin: (origin, cb) => {
+            const allow = typeof app.isAllowedOrigin === 'function'
+              ? app.isAllowedOrigin(origin)
+              : true;
+            return cb(allow ? null : new Error('Origin no permitido por CORS'), allow);
+          },
           methods: ['GET', 'POST']
         },
         transports: ['websocket', 'polling']

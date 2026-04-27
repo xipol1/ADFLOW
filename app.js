@@ -54,19 +54,39 @@ const ENV = process.env.NODE_ENV || 'development';
 const MAX_REQUEST_SIZE = process.env.MAX_REQUEST_SIZE || '10mb';
 const FRONTEND_URL = process.env.FRONTEND_URL || '';
 
+// Build the CORS allowlist once at boot. Origins come from FRONTEND_URL plus
+// CORS_ORIGIN (comma-separated). Vercel preview deployments end in .vercel.app
+// and are matched by suffix; in development every origin is allowed so vite
+// dev (5173) and any LAN test device work without extra config.
+const _CORS_ALLOWLIST = new Set(
+  [FRONTEND_URL, ...String(process.env.CORS_ORIGIN || '').split(',')]
+    .map(s => s.trim())
+    .filter(Boolean)
+);
+const _isAllowedOrigin = (origin) => {
+  if (!origin) return true;                         // server-to-server / curl
+  if (ENV !== 'production') return true;            // dev: anything goes
+  if (_CORS_ALLOWLIST.has(origin)) return true;
+  // Vercel preview/production hostnames. We only trust the .vercel.app suffix
+  // here — anything else must be in the explicit allowlist.
+  try {
+    const host = new URL(origin).hostname;
+    if (host.endsWith('.vercel.app')) return true;
+  } catch { /* malformed origin → reject */ }
+  return false;
+};
+
 app.use(helmet({ crossOriginEmbedderPolicy: false }));
 app.set('trust proxy', 1);
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin) return cb(null, true);
-    if (ENV !== 'production') return cb(null, true);
-    // Allow Vercel preview and production deployments
-    if (origin.endsWith('.vercel.app')) return cb(null, true);
-    if (FRONTEND_URL && origin === FRONTEND_URL) return cb(null, true);
+    if (_isAllowedOrigin(origin)) return cb(null, true);
     return cb(new Error('Origin no permitido por CORS'));
   },
   credentials: false
 }));
+// Re-export so server.js (Socket.io) can reuse the same allowlist.
+app.isAllowedOrigin = _isAllowedOrigin;
 app.use(compression());
 app.use(morgan(ENV === 'development' ? 'dev' : 'combined'));
 
