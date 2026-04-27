@@ -18,15 +18,17 @@ const getStripe = () => {
 
 /**
  * Create a Stripe Express connected account for a creator.
- * Returns the account object.
+ * Returns the account object. Idempotency keyed on userId so repeated
+ * requests during onboarding don't spawn duplicate accounts.
  */
 const createExpressAccount = async (user) => {
   const stripe = getStripe();
+  const userId = String(user._id || user.id);
   const account = await stripe.accounts.create({
     type: 'express',
     email: user.email,
     metadata: {
-      userId: String(user._id || user.id),
+      userId,
       platform: 'channelad'
     },
     capabilities: {
@@ -39,6 +41,8 @@ const createExpressAccount = async (user) => {
         schedule: { interval: 'daily' }
       }
     }
+  }, {
+    idempotencyKey: `connect-account:${userId}`,
   });
   return account;
 };
@@ -94,10 +98,22 @@ const createDashboardLink = async (accountId) => {
  * @param {number} amount - Amount in EUR (not cents)
  * @param {string} destinationAccountId - Creator's Stripe account ID
  * @param {object} metadata - Campaign/transaction metadata
+ * @param {object} [options] - Stripe RequestOptions (e.g. idempotencyKey).
+ *   Callers SHOULD pass a stable key like `transfer:${campaignId}` so a
+ *   network retry doesn't pay the creator twice.
  * @returns {object} Stripe Transfer object
  */
-const transferToCreator = async (amount, destinationAccountId, metadata = {}) => {
+const transferToCreator = async (amount, destinationAccountId, metadata = {}, options = {}) => {
   const stripe = getStripe();
+  const requestOptions = {
+    ...options,
+    // Default idempotency if the caller didn't provide one. Falls back to a
+    // UUID rather than something derivable so we don't accidentally collide
+    // with a future transfer for the same campaign that intentionally needs
+    // a fresh charge.
+    idempotencyKey: options.idempotencyKey
+      || (metadata.campaignId ? `transfer:${metadata.campaignId}` : `transfer:${require('crypto').randomUUID()}`),
+  };
   const transfer = await stripe.transfers.create({
     amount: Math.round(amount * 100), // Convert to cents
     currency: (process.env.STRIPE_CURRENCY || 'eur').toLowerCase(),
@@ -108,7 +124,7 @@ const transferToCreator = async (amount, destinationAccountId, metadata = {}) =>
       type: 'creator_payout'
     },
     description: `ChannelAd Creator Payout — Campaign ${metadata.campaignId || 'N/A'}`
-  });
+  }, requestOptions);
   return transfer;
 };
 

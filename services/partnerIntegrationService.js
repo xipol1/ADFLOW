@@ -179,7 +179,12 @@ const getStripe = () => {
 
 const createEscrowPaymentIntent = async (amount, currency, metadata) => {
   const stripe = getStripe();
-  // Manual capture = escrow: funds authorized but not captured until confirmation
+  // Manual capture = escrow: funds authorized but not captured until confirmation.
+  // Idempotency keyed on campaignId so a network retry returns the existing PI
+  // instead of creating a duplicate authorization on the buyer's card.
+  const idempotencyKey = metadata?.campaignId
+    ? `pi-partner:${metadata.campaignId}`
+    : `pi-partner:${crypto.randomUUID()}`;
   const pi = await stripe.paymentIntents.create({
     amount: Math.round(amount * 100), // Stripe uses cents
     currency: (currency || 'eur').toLowerCase(),
@@ -190,7 +195,7 @@ const createEscrowPaymentIntent = async (amount, currency, metadata) => {
       type: 'partner_campaign_escrow'
     },
     description: `ChannelAd Partner Campaign Escrow — ${metadata.campaignId || 'new'}`
-  });
+  }, { idempotencyKey });
   return pi;
 };
 
@@ -198,7 +203,9 @@ const captureEscrowPayment = async (paymentIntentId) => {
   const stripe = getStripe();
   const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
   if (pi.status === 'requires_capture') {
-    return await stripe.paymentIntents.capture(paymentIntentId);
+    return await stripe.paymentIntents.capture(paymentIntentId, {
+      idempotencyKey: `capture:${paymentIntentId}`,
+    });
   }
   if (pi.status === 'succeeded') return pi; // already captured
   throw createApiError(409, 'CAPTURE_FAILED', `PaymentIntent status: ${pi.status}, cannot capture`);
@@ -209,11 +216,15 @@ const cancelEscrowPayment = async (paymentIntentId) => {
   try {
     const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
     if (['requires_capture', 'requires_payment_method', 'requires_confirmation'].includes(pi.status)) {
-      return await stripe.paymentIntents.cancel(paymentIntentId);
+      return await stripe.paymentIntents.cancel(paymentIntentId, {
+        idempotencyKey: `cancel:${paymentIntentId}`,
+      });
     }
     // If already succeeded, issue refund
     if (pi.status === 'succeeded') {
-      return await stripe.refunds.create({ payment_intent: paymentIntentId });
+      return await stripe.refunds.create({ payment_intent: paymentIntentId }, {
+        idempotencyKey: `refund:${paymentIntentId}`,
+      });
     }
   } catch (err) {
     console.error('[partner] Stripe cancel/refund error:', err.message);

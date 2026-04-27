@@ -468,7 +468,9 @@ const completeCampaign = async (req, res, next) => {
       try {
         const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
         const piId = campaign.stripePaymentIntentId || tx?.stripePaymentIntentId
-        await stripe.paymentIntents.capture(piId)
+        await stripe.paymentIntents.capture(piId, {
+          idempotencyKey: `capture:${piId}`,
+        })
       } catch (stripeErr) {
         console.error('Stripe capture error:', stripeErr.message)
       }
@@ -486,6 +488,8 @@ const completeCampaign = async (req, res, next) => {
             await stripeConnect.transferToCreator(netAmount, creator.stripeConnectAccountId, {
               campaignId: String(campaign._id),
               creatorId: String(creator._id),
+            }, {
+              idempotencyKey: `transfer:${campaign._id}`,
             });
           }
         } catch (transferErr) {
@@ -622,9 +626,13 @@ const cancelCampaign = async (req, res, next) => {
         const piId = campaign.stripePaymentIntentId || tx?.stripePaymentIntentId
         const pi = await stripe.paymentIntents.retrieve(piId)
         if (pi.status === 'requires_capture') {
-          await stripe.paymentIntents.cancel(piId)
+          await stripe.paymentIntents.cancel(piId, {
+            idempotencyKey: `cancel:${piId}`,
+          })
         } else if (pi.status === 'succeeded') {
-          await stripe.refunds.create({ payment_intent: piId })
+          await stripe.refunds.create({ payment_intent: piId }, {
+            idempotencyKey: `refund:${piId}`,
+          })
         }
       } catch (stripeErr) {
         console.error('Stripe cancel/refund error:', stripeErr.message)

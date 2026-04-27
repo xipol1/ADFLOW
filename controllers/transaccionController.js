@@ -143,6 +143,12 @@ const crearCheckoutSession = async (req, res, next) => {
     const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
     const currency = (process.env.STRIPE_CURRENCY || 'eur').toLowerCase();
 
+    // Idempotency: a fresh UUID per request handler invocation. If the
+    // upstream HTTP call retries (network blip), Stripe returns the same
+    // session instead of creating a new one. Two distinct user clicks
+    // produce two UUIDs and two sessions, which is the desired behaviour.
+    const sessionIdemKey = `recharge:${userId}:${require('crypto').randomUUID()}`;
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [{
@@ -157,6 +163,8 @@ const crearCheckoutSession = async (req, res, next) => {
       success_url: `${FRONTEND_URL}/advertiser/finances?recharge=success&amount=${amount}`,
       cancel_url: `${FRONTEND_URL}/advertiser/finances?recharge=cancelled`,
       metadata: { userId: String(userId), type: 'recharge', amount: String(amount) },
+    }, {
+      idempotencyKey: sessionIdemKey,
     });
 
     return res.json({ success: true, url: session.url, sessionId: session.id });
@@ -195,10 +203,14 @@ const crearPaymentIntent = async (req, res, next) => {
 
     const currency = (process.env.STRIPE_CURRENCY || 'eur').toLowerCase();
 
+    // Idempotency keyed on the transaccion id: retries return the same PI
+    // instead of charging the user twice for the same logical purchase.
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(tx.amount * 100),
       currency,
       metadata: { transaccionId: String(tx._id), userId: String(userId), campaignId: String(tx.campaign) },
+    }, {
+      idempotencyKey: `pi:${tx._id}`,
     });
 
     tx.stripePaymentIntentId = paymentIntent.id;
