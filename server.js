@@ -36,8 +36,8 @@ async function startServer() {
     process.on('uncaughtException', logFatal);
     process.on('unhandledRejection', logFatal);
 
-    if (!process.env.JWT_SECRET) console.warn('Falta JWT_SECRET');
-    if (!process.env.MONGODB_URI) console.warn('MONGODB_URI no definida');
+    const { validateEnv } = require('./config/validateEnv');
+    validateEnv({ strict: ENV === 'production' });
     if (process.env.DATABASE_URL && !process.env.MONGODB_URI) console.warn('DATABASE_URL definida pero falta MONGODB_URI');
     if (!process.env.STRIPE_SECRET_KEY) console.warn('Falta STRIPE_SECRET_KEY');
 
