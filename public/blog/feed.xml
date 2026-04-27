@@ -5,7 +5,7 @@
     <link>https://channelad.io/blog</link>
     <description>Guias, estrategias y comparativas sobre publicidad en comunidades de WhatsApp, Telegram y Discord. Por Rafa Ferrer, CEO de Channelad.</description>
     <language>es</language>
-    <lastBuildDate>Wed, 15 Apr 2026 12:28:07 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 27 Apr 2026 09:39:30 GMT</lastBuildDate>
     <managingEditor>rafa@channelad.io (Rafa Ferrer)</managingEditor>
     <webMaster>rafa@channelad.io (Rafa Ferrer)</webMaster>
     <atom:link href="https://channelad.io/blog/feed.xml" rel="self" type="application/rss+xml"/>
@@ -14,6 +14,33 @@
       <title>Channelad Blog</title>
       <link>https://channelad.io/blog</link>
     </image>
+    <item>
+      <title><![CDATA[Negociar publicidad en Telegram 2026: scripts, precios y 6 objeciones]]></title>
+      <link>https://channelad.io/blog/negociar-publicidad-telegram</link>
+      <guid isPermaLink="true">https://channelad.io/blog/negociar-publicidad-telegram</guid>
+      <pubDate>Sat, 18 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Scripts reales para negociar publicidad en tu canal de Telegram. Cómo responder a las 6 objeciones más comunes, condiciones que siempre incluir y cuándo decir no. Con ejemplos textuales.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Monetizacion</category>
+    </item>
+    <item>
+      <title><![CDATA[Cuánto cobrar publicidad WhatsApp 2026: fórmula + tabla CPM por nicho]]></title>
+      <link>https://channelad.io/blog/cuanto-cobrar-publicidad-whatsapp</link>
+      <guid isPermaLink="true">https://channelad.io/blog/cuanto-cobrar-publicidad-whatsapp</guid>
+      <pubDate>Fri, 17 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[La fórmula exacta para poner precio a un post patrocinado en tu canal de WhatsApp en 2026. Tabla de CPMs por nicho (4-18 EUR) y 3 ejemplos con números reales.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Monetizacion</category>
+    </item>
+    <item>
+      <title><![CDATA[Monetizar canal de difusión de Instagram 2026: 5 métodos (Broadcast Channels)]]></title>
+      <link>https://channelad.io/blog/monetizar-canal-difusion-instagram</link>
+      <guid isPermaLink="true">https://channelad.io/blog/monetizar-canal-difusion-instagram</guid>
+      <pubDate>Thu, 16 Apr 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Cómo monetizar un canal de difusión de Instagram en 2026. CPMs reales (6-15 EUR), tasa de apertura 60-75%, 5 métodos probados y cómo conectar con marcas. Sin humo.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Monetizacion</category>
+    </item>
     <item>
       <title><![CDATA[5 casos reales: creadores que monetizan Telegram/Discord con Channelad]]></title>
       <link>https://channelad.io/blog/casos-exito-monetizar-telegram-channelad</link>
