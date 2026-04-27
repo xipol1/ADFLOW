@@ -1,7 +1,41 @@
 # ChannelAd — Auditoría técnica (Fase 1)
 
-> Fecha: 2026-04-27 · Rama: `main` (la rama indicada `claude/focused-shtern` no existe localmente; la auditoría aplica a `main`).
-> Alcance: solo lectura. No se han modificado archivos.
+> Fecha original: 2026-04-27 · Rama: `main`.
+> Alcance: solo lectura en Fase 1. Las Fases 2 y 3 aplicaron las acciones que se listan abajo.
+
+## Estado de remediación (2026-04-27)
+
+Todos los críticos y la mayoría de los altos están cerrados. La tabla cruza cada hallazgo con el commit que lo resuelve.
+
+| ID | Severidad | Estado | Commit |
+|----|-----------|--------|--------|
+| C-1 | Crítico  | ✅ Resuelto | `6944e9f` fix(stripe): reject webhook events when STRIPE_WEBHOOK_SECRET is missing |
+| C-2 | Crítico  | ✅ Resuelto | `d227efd` fix(security): verify WhatsApp webhook HMAC against the raw request body |
+| C-3 | Crítico  | ✅ Documentado | `30279a5` docs: add SECURITY.md with rotation procedures per secret · acción manual: rotar secretos |
+| C-4 | Crítico  | ✅ Resuelto | `a238298` fix(commissions): drop hardcoded 10% fallback in completeCampaign |
+| A-1 | Alto     | ✅ Resuelto | `f0b9597` fix(stripe): add idempotencyKey to every Stripe API mutation |
+| A-2 | Alto     | ✅ Resuelto | `539e8e7` fix(cors): replace permissive CORS with shared allowlist |
+| A-3 | Alto     | ✅ Resuelto | `e2feb5e` refactor(commissions): centralize referral tiers and rate |
+| A-4 | Alto     | ✅ Resuelto | `e138713` fix(admin): correct dead enum/field in dashboard revenue aggregations |
+| A-5 | Alto     | ✅ Resuelto | `a238298` (mismo commit que C-4) |
+| A-6 | Alto     | ✅ Resuelto | `d900558` fix(chat): replace in-memory chat rate limit with mongo-backed limiter |
+| A-7 | Alto     | ✅ Resuelto | `22b16eb` chore(deps): drop unused/deprecated dependencies |
+| A-8 | Alto     | ✅ Resuelto | `5ac01be` fix(security): anchor sensitive-path filter at segment boundaries |
+| A-9 | Alto     | ✅ Resuelto | `daa984d` feat(payouts): persist creator payout attempts + `db3e5c1` admin endpoints |
+| A-10 | Alto    | ✅ Resuelto | `d7fcc0e` fix(tracking): move click dedup from capped array to TrackingFingerprint · requiere ejecutar `node scripts/migrate-tracking-fingerprints.js --execute --prune` en prod tras el deploy |
+| A-11 | Alto    | ✅ Resuelto | `9cb5f0b` refactor(logging): use winston for auth error paths |
+| M-1..M-14 | Medio | Pendiente | sin cambios; ver Sección 5 más abajo |
+| B-1..B-12 | Bajo | Pendiente | sin cambios; ver Sección 5 más abajo |
+
+Acciones manuales sin commit posible:
+
+- **Rotar secretos** del `.env` local siguiendo [SECURITY.md](SECURITY.md) (C-3).
+- **Ejecutar migración** `node scripts/migrate-tracking-fingerprints.js --execute --prune` después del deploy de A-10 para mover los `_seenIps` históricos a la nueva colección y limpiar los arrays.
+- **Verificar en Vercel** que `STRIPE_WEBHOOK_SECRET` y `META_APP_SECRET` están definidos antes del primer evento real tras el deploy.
+
+---
+
+## Cuerpo original de la auditoría
 
 ---
 
