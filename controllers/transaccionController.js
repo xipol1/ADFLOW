@@ -212,28 +212,29 @@ const crearPaymentIntent = async (req, res, next) => {
 };
 
 // ─── POST /api/transacciones/webhook ────────────────────────────────────────
-// Stripe webhook handler
+// Stripe webhook handler — signature verification is MANDATORY.
+// The route is mounted with express.raw() so req.body is the original Buffer
+// that Stripe needs for HMAC verification (mounted in routes/transacciones.js).
 const webhookPago = async (req, res) => {
   const stripe = getStripe();
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-  let event;
+  if (!stripe || !webhookSecret) {
+    console.error('[stripe-webhook] STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET not configured');
+    return res.status(503).json({ error: 'Webhook not configured' });
+  }
 
-  if (stripe && webhookSecret) {
-    const sig = req.headers['stripe-signature'];
-    try {
-      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-    } catch (err) {
-      console.error('Stripe webhook signature verification failed:', err.message);
-      return res.status(400).json({ error: 'Webhook signature verification failed' });
-    }
-  } else {
-    // No Stripe configured — parse as regular JSON
-    try {
-      event = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    } catch {
-      return res.status(400).json({ error: 'Invalid payload' });
-    }
+  const sig = req.headers['stripe-signature'];
+  if (!sig) {
+    return res.status(400).json({ error: 'Missing stripe-signature header' });
+  }
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+  } catch (err) {
+    console.error('[stripe-webhook] Signature verification failed:', err.message);
+    return res.status(400).json({ error: 'Invalid signature' });
   }
 
   try {
