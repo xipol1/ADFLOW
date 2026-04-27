@@ -4,6 +4,7 @@ const Usuario = require('../models/Usuario');
 const AuthService = require('../services/authService');
 const config = require('../config/config');
 const database = require('../config/database');
+const logger = require('../lib/logger');
 
 const env = process.env.NODE_ENV || 'development';
 const isDev = env !== 'production';
@@ -12,6 +13,13 @@ const logDev = (...args) => {
 };
 
 const errorPayload = (error) => (isDev ? { error: error?.message } : {});
+
+// Compact, structured error log helper. Avoids dumping the entire Error
+// object (which can include req/res internals or token strings appended
+// to the stack) and keeps the production JSON output greppable.
+const logErr = (event, error, meta = {}) => {
+  logger.error(event, { ...meta, msg: error?.message || String(error) });
+};
 
 const normalizeEmail = (value) => {
   if (!value) return '';
@@ -133,7 +141,7 @@ const login = async (req, res) => {
       refreshToken: tokens.tokenRefresco
     });
   } catch (error) {
-    console.error('LOGIN ERROR:', error?.message || error);
+    logErr('auth.login.failed', error, { email });
     return res.status(500).json({
       success: false,
       message: 'Error interno del servidor',
@@ -267,7 +275,7 @@ const registro = async (req, res) => {
         } catch {}
         logDev('REGISTER: referrer updated', { referrerId: referrer._id.toString(), count: newCount, tier: newTier });
       } catch (refErr) {
-        console.error('REGISTER: failed to update referrer:', refErr?.message);
+        logErr('auth.register.referrer_update_failed', refErr, { referrerId: referrer?._id?.toString() });
       }
     }
 
@@ -284,11 +292,11 @@ const registro = async (req, res) => {
         await emailService.enviarBienvenida(user);
         logDev('REGISTER: welcome email sent', { email: user.email });
       } catch (welErr) {
-        console.error('REGISTER: failed to send welcome email:', welErr?.message);
+        logErr('auth.register.welcome_email_failed', welErr, { userId: user._id.toString() });
       }
     } catch (emailErr) {
       // Don't fail registration if email fails — user can resend later
-      console.error('REGISTER: failed to send verification email:', emailErr?.message || emailErr);
+      logErr('auth.register.verification_email_failed', emailErr, { userId: user._id.toString() });
     }
 
     const tokens = await AuthService.generarTokens(user);
@@ -310,7 +318,7 @@ const registro = async (req, res) => {
           : 'Cuenta creada. Revisa tu email para verificar tu cuenta.',
     });
   } catch (error) {
-    console.error('REGISTER ERROR:', error);
+    logErr('auth.register.failed', error, { email });
     return res.status(500).json({
       success: false,
       message: 'Error interno del servidor',
@@ -360,7 +368,7 @@ const createBotToken = async (req, res) => {
     logDev('BOT TOKEN: created', { telegramUserId, email, channelUsername });
     return res.status(201).json({ success: true });
   } catch (error) {
-    console.error('BOT TOKEN CREATE ERROR:', error?.message);
+    logErr('auth.bot_token.create_failed', error);
     return res.status(500).json({ success: false, message: 'Error interno' });
   }
 };
@@ -394,7 +402,7 @@ const validateBotToken = async (req, res) => {
       niche: tokenDoc.niche,
     });
   } catch (error) {
-    console.error('BOT TOKEN VALIDATE ERROR:', error?.message);
+    logErr('auth.bot_token.validate_failed', error);
     return res.status(500).json({ success: false, valid: false });
   }
 };
@@ -428,7 +436,7 @@ const verificarToken = async (req, res) => {
       user: buildUserResponse(user)
     })
   } catch (error) {
-    console.error('VERIFY TOKEN ERROR:', error?.message)
+    logErr('auth.verify_token.failed', error)
     return res.status(500).json({ success: false, message: 'Error interno' })
   }
 }
@@ -585,12 +593,12 @@ const solicitarRestablecimiento = async (req, res) => {
       await emailService.enviarEmailRecuperacion(user.email, user.nombre || '', resetToken);
       logDev('PASSWORD RESET: email sent', { email: user.email });
     } catch (emailErr) {
-      console.error('PASSWORD RESET: failed to send email:', emailErr?.message || emailErr);
+      logErr('auth.password_reset.email_failed', emailErr, { email });
     }
 
     return res.json({ success: true, message: 'Si el email existe, recibiras instrucciones para restablecer tu contrasena' });
   } catch (error) {
-    console.error('PASSWORD RESET REQUEST ERROR:', error?.message || error);
+    logErr('auth.password_reset.request_failed', error);
     return res.status(500).json({ success: false, message: 'Error interno del servidor' });
   }
 };
@@ -626,7 +634,7 @@ const restablecerPassword = async (req, res) => {
 
     return res.json({ success: true, message: 'Contrasena restablecida correctamente. Inicia sesion con tu nueva contrasena.' });
   } catch (error) {
-    console.error('PASSWORD RESET ERROR:', error?.message || error);
+    logErr('auth.password_reset.failed', error);
     return res.status(500).json({ success: false, message: 'Error interno del servidor' });
   }
 };
@@ -732,7 +740,7 @@ const googleLogin = async (req, res) => {
       refreshToken: tokens.tokenRefresco,
     });
   } catch (error) {
-    console.error('GOOGLE LOGIN ERROR:', error?.message || error);
+    logErr('auth.google_login.failed', error);
     return res.status(500).json({ success: false, message: 'Error interno del servidor' });
   }
 };

@@ -31,7 +31,11 @@ const autenticar = (req, res, next) => {
     req.usuario = decoded;
     next();
   } catch (error) {
-    console.error('AUTH ERROR:', error);
+    // Use structured logging so JWT failure messages don't leak via the
+    // raw stack into shared log streams. Only message + JWT error name.
+    try {
+      require('../lib/logger').warn('auth.jwt.invalid', { name: error?.name, msg: error?.message });
+    } catch { /* logger not available */ }
     return res.status(401).json({ success: false, message: 'Token inválido' });
   }
 };
