@@ -1,26 +1,48 @@
+# Files excluded from the Vercel deploy bundle.
+# Anything matched here is dropped from the deployment artefact (smaller cold
+# start, less risk of secrets leaking through static serving).
+
 node_modules
 .git
-.trae
-.figma
+.github
+.vercel
+.claude
+
+# Environment files (Vercel reads env from project settings, never from disk)
+.env
+.env.*
+!.env.example
+
+# Logs
 *.log
 _server_fatal.log
 
-# Large local-only files
+# Local archives / planning artefacts (already gitignored, but defence in depth)
 *.zip
 *.xlsx
 *.xls
+*.docx
+*.pdf
 Adflow 1.0/
 adflow-unified/
 Adflow-1.0-clone/
+Adflow Gestion/
 plataforma-*/
-settings.local.json
-.env.vercel.local
 
-# Dev-only files not needed in Vercel bundle
+# Tests and docs are not needed at runtime
 tests/
 docs/
-wireframes.md
-channelmarket.html
-sistema_comisiones.js
-todo.md
+AUDIT.md
+
+# Local user uploads (production should use object storage)
 uploads/
+
+# Editor / OS noise
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Local-only state
+settings.local.json
