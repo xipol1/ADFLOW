@@ -245,7 +245,7 @@ const doc = new Document({
           spacing: { after: 0 },
           border: { bottom: { style: BorderStyle.SINGLE, size: 2, color: ACCENT, space: 4 } },
           children: [
-            new TextRun({ text: 'ChannelAd Technical Briefing v3.0', size: 16, font: 'Arial', color: ACCENT, bold: true }),
+            new TextRun({ text: 'Channelad Technical Briefing v3.0', size: 16, font: 'Arial', color: ACCENT, bold: true }),
             new TextRun({ text: '\t', size: 16 }),
             new TextRun({ text: 'channelad.io', size: 16, font: 'Arial', color: GRAY }),
           ],
@@ -276,7 +276,7 @@ const doc = new Document({
       new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { after: 80 },
-        children: [new TextRun({ text: 'ChannelAd', size: 56, bold: true, font: 'Arial', color: ACCENT })]
+        children: [new TextRun({ text: 'Channelad', size: 56, bold: true, font: 'Arial', color: ACCENT })]
       }),
       new Paragraph({
         alignment: AlignmentType.CENTER,
@@ -332,6 +332,7 @@ const doc = new Document({
       // ESTADO A 16 ABRIL 2026
       // ═══════════════════════════════════════════════════════
       heading1('Estado a 16 abril 2026 \u2014 Hitos clave'),
+      para('Lo que estos hitos desbloquean: registro y verificaci\u00F3n de canal sin fricci\u00F3n, integraci\u00F3n B2B con partners (Getalink) lista para producci\u00F3n, descubrimiento aut\u00F3nomo de inventario y un producto pulido para los 3 roles del marketplace. La lista detalla c\u00F3mo se llega ah\u00ED.'),
 
       heading3('Completados desde v2.0 (10 abr)'),
       bulletItem('Google Sign-In (OAuth 2.0): login/registro one-click, skip email verification'),
@@ -365,7 +366,7 @@ const doc = new Document({
       // ═══════════════════════════════════════════════════════
       // 1. QU\u00C9 ES CHANNELAD
       // ═══════════════════════════════════════════════════════
-      heading1('1. Qu\u00E9 es ChannelAd'),
+      heading1('1. Qu\u00E9 es Channelad'),
       para('Marketplace de publicidad en comunidades digitales cerradas (Telegram, Discord, WhatsApp, Instagram Broadcasts, Newsletters, LinkedIn). Conecta anunciantes con creadores de canales eliminando la fricci\u00F3n actual: DMs manuales, pagos sin garant\u00EDa, tracking inexistente.'),
       richPara([
         { text: 'Posicionamiento estrat\u00E9gico: ', bold: true },
@@ -591,9 +592,10 @@ const doc = new Document({
       // ═══════════════════════════════════════════════════════
       // 4. VOLUMEN DE C\u00D3DIGO
       // ═══════════════════════════════════════════════════════
-      heading1('4. Volumen de c\u00F3digo y complejidad'),
+      heading1('4. Alcance del producto auditado'),
+      para('Inventario de lo que est\u00E1 construido y desplegado a 16 abr 2026 \u2014 base sobre la que se conectan partners e integran nuevas verticales sin reescribir el core.'),
 
-      heading2('4.1 M\u00E9tricas de m\u00F3dulos \u2014 Estado real (16 abr 2026)'),
+      heading2('4.1 M\u00F3dulos en producci\u00F3n'),
       new Table({
         width: { size: TABLE_WIDTH, type: WidthType.DXA },
         columnWidths: [3200, 1600, 4560],
@@ -749,7 +751,7 @@ const doc = new Document({
         ]
       }),
 
-      heading2('Partner API \u2014 17 endpoints operativos'),
+      heading2('Partner API \u2014 Cobertura completa del ciclo de campa\u00F1a para integraciones B2B'),
       new Table({
         width: { size: TABLE_WIDTH, type: WidthType.DXA },
         columnWidths: [900, 4400, 4060],
@@ -866,57 +868,57 @@ const doc = new Document({
 
       // Backend core
       heading3('Backend core'),
-      bulletItem('Backend REST API completo \u2014 32 archivos de rutas, 25 controladores, 42 servicios', 'roadmap-done'),
-      bulletItem('Autenticaci\u00F3n JWT (access 15m + refresh 7d) + verificaci\u00F3n email + Google OAuth 2.0', 'roadmap-done'),
-      bulletItem('32 modelos Mongoose \u2014 incluyendo BaileysSession, ChannelCandidate, ScrapingRotation, etc.', 'roadmap-done'),
-      bulletItem('Sistema de pagos Stripe \u2014 checkout, escrow PaymentIntents, captura diferida, cr\u00E9ditos de campa\u00F1a', 'roadmap-done'),
-      bulletItem('Ciclo de campa\u00F1a completo: DRAFT \u2192 PAID \u2192 PUBLISHED \u2192 COMPLETED (+ EXPIRED, DISPUTED, CANCELLED)', 'roadmap-done'),
-      bulletItem('Cron diario: scoring 03:00 UTC + snapshot capture 03:30 UTC', 'roadmap-done'),
+      bulletItem('Backend cubre el ciclo completo de marketplace y monetizaci\u00F3n (32 rutas, 25 controladores, 42 servicios)', 'roadmap-done'),
+      bulletItem('Login one-click con Google \u2014 fricci\u00F3n de registro reducida al m\u00EDnimo (JWT access 15m + refresh 7d)', 'roadmap-done'),
+      bulletItem('Modelo de datos para 32 entidades \u2014 usuarios, canales, campa\u00F1as, sesiones, audit log y candidatos descubiertos', 'roadmap-done'),
+      bulletItem('Pagos protegidos con escrow real (Stripe PaymentIntents) \u2014 cr\u00E9ditos de campa\u00F1a auto-aplicados', 'roadmap-done'),
+      bulletItem('Estado de campa\u00F1a end-to-end: DRAFT \u2192 PAID \u2192 PUBLISHED \u2192 COMPLETED (+ EXPIRED, DISPUTED, CANCELLED)', 'roadmap-done'),
+      bulletItem('Scoring y snapshots diarios sin intervenci\u00F3n manual (cron 03:00 + 03:30 UTC)', 'roadmap-done'),
 
       // Scoring & Intelligence
       heading3('Scoring & Intelligence'),
-      bulletItem('Scoring Engine v2.0 \u2014 funci\u00F3n pura, CAS, CAF, CTF, CER, CVS, CAP, CPMDinamico', 'roadmap-done'),
-      bulletItem('CanalScoreSnapshot \u2014 90 d\u00EDas historial, sin TTL, version:2', 'roadmap-done'),
-      bulletItem('CampaignMetricsV2 \u2014 snapshots 1h/6h/24h/72h/7d con detecci\u00F3n de fraude', 'roadmap-done'),
-      bulletItem('Public Intelligence API \u2014 /api/channels/:id/intelligence, privacy guard, Edge cache', 'roadmap-done'),
-      bulletItem('Rankings por categor\u00EDa + delta badges + Niche Intelligence (trends 30d/90d)', 'roadmap-done'),
+      bulletItem('Cada canal tiene un score auditable y comparable (CAS) construido sobre 7 factores: atenci\u00F3n, intenci\u00F3n, confianza, performance, liquidez, alcance y CPM din\u00E1mico', 'roadmap-done'),
+      bulletItem('Hist\u00F3rico de 90 d\u00EDas por canal alimenta benchmarks y proyecciones (CanalScoreSnapshot sin TTL, moat temporal)', 'roadmap-done'),
+      bulletItem('Detecci\u00F3n autom\u00E1tica de fraude en cada campa\u00F1a con snapshots temporales a 1h/6h/24h/72h/7d (CampaignMetricsV2)', 'roadmap-done'),
+      bulletItem('P\u00E1gina p\u00FAblica por canal sirve m\u00E9tricas auditables \u2014 Edge cached, privacy guard, rate-limited', 'roadmap-done'),
+      bulletItem('Rankings por categor\u00EDa con delta badges + Niche Intelligence con trends 30d/90d', 'roadmap-done'),
 
       // Discovery
       heading3('Channel Discovery'),
-      bulletItem('7 scrapers con rotaci\u00F3n de 115+ keywords en 7 verticales', 'roadmap-done'),
-      bulletItem('Massive seed job: 3 fases (keywords + social graph + m\u00E9tricas)', 'roadmap-done'),
-      bulletItem('Channel claim v\u00EDa token en descripci\u00F3n de Telegram (MTProto)', 'roadmap-done'),
-      bulletItem('SeenChannel dedup con TTL diferenciado por raz\u00F3n de filtrado', 'roadmap-done'),
+      bulletItem('Inventario que crece sin intervenci\u00F3n manual \u2014 7 fuentes de discovery con 115+ keywords en 7 verticales', 'roadmap-done'),
+      bulletItem('Onboarding de canal masivo en 3 fases (keywords \u2192 social graph \u2192 m\u00E9tricas) sin cuello de botella humano', 'roadmap-done'),
+      bulletItem('Creadores reclaman su canal en segundos con un token en la descripci\u00F3n (MTProto)', 'roadmap-done'),
+      bulletItem('Dedup inteligente con TTL diferenciado evita re-scraping innecesario', 'roadmap-done'),
 
       // Integrations
       heading3('Integraciones'),
-      bulletItem('Partner API completa \u2014 17 endpoints, auth SHA-256, rate limit por partner (Getalink)', 'roadmap-done'),
-      bulletItem('Staging para Getalink \u2014 channelad-staging.vercel.app, BD separada', 'roadmap-done'),
-      bulletItem('Google Sign-In (OAuth 2.0) \u2014 one-click login/register, skip email verification', 'roadmap-done'),
-      bulletItem('WhatsApp Baileys \u2014 QR link, newsletters, audit log (requiere VPS)', 'roadmap-done'),
-      bulletItem('LinkedIn monetization pipeline \u2014 OAuth + m\u00E9tricas + newsletter discovery (486 seeds)', 'roadmap-done'),
-      bulletItem('WhatsApp OCR verification \u2014 Tesseract.js con swap path Cloud Vision', 'roadmap-done'),
+      bulletItem('Getalink puede lanzar campa\u00F1as sin tocar c\u00F3digo \u2014 Partner API con auth SHA-256 y rate limit por partner', 'roadmap-done'),
+      bulletItem('Staging dedicado para integraci\u00F3n Getalink \u2014 channelad-staging.vercel.app con BD aislada', 'roadmap-done'),
+      bulletItem('Google Sign-In one-click \u2014 quita el paso m\u00E1s costoso del registro', 'roadmap-done'),
+      bulletItem('WhatsApp Baileys vinculado por QR \u2014 newsletters descubiertas autom\u00E1ticamente (requiere VPS)', 'roadmap-done'),
+      bulletItem('Pipeline LinkedIn de monetizaci\u00F3n \u2014 OAuth + m\u00E9tricas + 486 seeds de newsletter listas', 'roadmap-done'),
+      bulletItem('Verificaci\u00F3n WhatsApp por OCR (Tesseract.js, swap path Cloud Vision listo)', 'roadmap-done'),
 
       // UI & UX
       heading3('UI & UX'),
-      bulletItem('Light mode + design system: CSS variables, tokens sem\u00E1nticos, DM Sans + JetBrains Mono', 'roadmap-done'),
-      bulletItem('79 p\u00E1ginas React + 39 componentes (10 scoring, 11 landing, 16 base, 2 shared)', 'roadmap-done'),
-      bulletItem('Admin dashboard completo: 7 p\u00E1ginas (overview, users, channels, campaigns, disputes, finances, scoring)', 'roadmap-done'),
-      bulletItem('Creator dashboard redise\u00F1o Semrush: analytics, earnings, channels, requests con chat moderado', 'roadmap-done'),
-      bulletItem('Flujo creaci\u00F3n campa\u00F1a: wizard 3 pasos + calendario interactivo + 3 formatos tracking link', 'roadmap-done'),
-      bulletItem('Campaign Analytics: timeline clics, breakdown dispositivo/geo/referrer', 'roadmap-done'),
-      bulletItem('Canal Explorer con CAS gauge, breakdown, benchmarks, historial 90d', 'roadmap-done'),
-      bulletItem('Creator sub-types: individual vs agencia (modelo + UI)', 'roadmap-done'),
-      bulletItem('Anonimizaci\u00F3n de canal para usuarios no autenticados', 'roadmap-done'),
+      bulletItem('Light mode + design system maduro \u2014 CSS variables, tokens sem\u00E1nticos, DM Sans + JetBrains Mono', 'roadmap-done'),
+      bulletItem('Producto pulido para los 3 roles \u2014 landing, marketplace, dashboards admin/creator/advertiser y blog (79 p\u00E1ginas, 39 componentes)', 'roadmap-done'),
+      bulletItem('Panel admin operativo \u2014 7 p\u00E1ginas para gestionar usuarios, canales, campa\u00F1as, disputas, finanzas y scoring', 'roadmap-done'),
+      bulletItem('Dashboard creator nivel Semrush \u2014 analytics, earnings, canales y solicitudes con chat moderado', 'roadmap-done'),
+      bulletItem('Anunciante crea campa\u00F1a en 3 pasos con calendario interactivo y 3 formatos de tracking link', 'roadmap-done'),
+      bulletItem('Analytics de campa\u00F1a accionable \u2014 timeline de clics + breakdown por dispositivo/geo/referrer', 'roadmap-done'),
+      bulletItem('P\u00E1gina p\u00FAblica de canal (Channel Explorer) con CAS gauge, benchmarks e historial 90d', 'roadmap-done'),
+      bulletItem('Creator sub-types diferenciados \u2014 individual vs agencia (modelo + UI)', 'roadmap-done'),
+      bulletItem('Anonimizaci\u00F3n autom\u00E1tica de canales para usuarios no autenticados (protege inventario)', 'roadmap-done'),
 
       // Otros
       heading3('Marketing & Compliance'),
-      bulletItem('Blog SEO: 19 HTMLs indexables + calculadora + FAQPage + HowTo schema + sitemap 29 URLs', 'roadmap-done'),
-      bulletItem('Sistema de referidos + \u20AC10 cr\u00E9ditos por invitaci\u00F3n + beta access flag', 'roadmap-done'),
-      bulletItem('Email automation: bienvenida con referral, recordatorio 48h, match campa\u00F1a', 'roadmap-done'),
-      bulletItem('Pol\u00EDtica de Privacidad + Data Processing Page (RGPD arts. 13/14)', 'roadmap-done'),
-      bulletItem('CI/CD GitHub Actions + Jest tests \u2014 0 regresiones', 'roadmap-done'),
-      bulletItem('Chat moderation: filtro email/tel/URL/crypto/tarjetas + rate limit', 'roadmap-done'),
+      bulletItem('Blog SEO ya posicionando \u2014 19 p\u00E1ginas indexables generan tr\u00E1fico org\u00E1nico antes de la primera campa\u00F1a (calculadora, FAQPage, HowTo schema, sitemap 29 URLs)', 'roadmap-done'),
+      bulletItem('Adquisici\u00F3n viral encendida \u2014 \u20AC10 de cr\u00E9dito por referido + beta access flag por usuario', 'roadmap-done'),
+      bulletItem('Email lifecycle automatizado \u2014 bienvenida, recordatorio 48h, match de campa\u00F1a', 'roadmap-done'),
+      bulletItem('RGPD listo \u2014 Pol\u00EDtica de Privacidad + Data Processing Page (arts. 13/14)', 'roadmap-done'),
+      bulletItem('Cero regresiones desde v2.0 \u2014 CI/CD GitHub Actions con tests Jest en cada push', 'roadmap-done'),
+      bulletItem('Chat moderado por defecto \u2014 filtro de email/tel\u00E9fono/URL/crypto/tarjetas + rate limit', 'roadmap-done'),
 
       heading2('7.2 Pr\u00F3ximas iteraciones \u2014 Pendiente'),
       richBullet([{ text: '\uD83D\uDD34 ', color: RED_TXT }, { text: 'Generar y entregar API keys SHA-256 a Getalink', bold: true }, ' (desbloqueado desde el staging live)'], 'roadmap-pending'),
@@ -1040,7 +1042,7 @@ const doc = new Document({
         alignment: AlignmentType.CENTER,
         spacing: { before: 200 },
         children: [
-          new TextRun({ text: 'ChannelAd \u2014 channelad.io \u2014 Documento confidencial \u2014 Uso interno \u2014 Auditado 16 abr 2026', size: 18, font: 'Arial', color: GRAY, italics: true })
+          new TextRun({ text: 'Channelad \u2014 channelad.io \u2014 Documento confidencial \u2014 Uso interno \u2014 Auditado 16 abr 2026', size: 18, font: 'Arial', color: GRAY, italics: true })
         ]
       }),
 
@@ -1049,7 +1051,7 @@ const doc = new Document({
 });
 
 // Write to file
-const OUTPUT = 'C:/Users/win/Desktop/Adflow Gestion/ChannelAd_TechnicalBriefing_Devs_v3.docx';
+const OUTPUT = 'C:/Users/win/Desktop/Adflow Gestion/Channelad_TechnicalBriefing_v3.docx';
 Packer.toBuffer(doc).then(buffer => {
   fs.writeFileSync(OUTPUT, buffer);
   console.log(`Written to ${OUTPUT} (${(buffer.length / 1024).toFixed(0)} KB)`);
