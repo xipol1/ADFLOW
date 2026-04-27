@@ -229,14 +229,17 @@ class OnboardingController {
 
   async instagramGetAuthUrl(req, res) {
     try {
-      const { canalId } = req.query;
+      const { canalId, source } = req.query;
       const appId = process.env.INSTAGRAM_APP_ID;
       const redirectUri = `${process.env.BACKEND_URL}/api/onboarding/instagram/callback`;
 
       if (!appId) return res.status(500).json({ success: false, error: 'INSTAGRAM_APP_ID no configurado' });
 
+      // source: 'onboarding' → callback redirige al wizard. Cualquier otro valor
+      // (incluido omitido) mantiene el flujo legacy hacia /creator/channels.
       const state = Buffer.from(JSON.stringify({
         canalId: canalId || '',
+        source: source === 'onboarding' ? 'onboarding' : 'creator',
         nonce: crypto.randomBytes(16).toString('hex'),
         ts: Date.now(),
       })).toString('base64');
@@ -264,19 +267,32 @@ class OnboardingController {
   }
 
   async instagramCallback(req, res) {
+    // Parse state early so we know where to redirect on error. Falls back to the
+    // legacy /creator/channels path if state is missing or malformed.
+    let source = 'creator';
+    let canalId = '';
+    try {
+      if (req.query?.state) {
+        const parsed = JSON.parse(Buffer.from(req.query.state, 'base64').toString());
+        if (parsed?.source === 'onboarding') source = 'onboarding';
+        canalId = parsed?.canalId || '';
+      }
+    } catch (_) { /* use defaults */ }
+
+    const frontend = process.env.FRONTEND_URL || '';
+    const successPath = source === 'onboarding' ? '/onboarding/success' : '/creator/channels';
+    const errorPath   = source === 'onboarding' ? '/onboarding/verify'  : '/creator/channels';
+
     try {
       const { code, state, error } = req.query;
 
       if (error) {
-        return res.redirect(`${process.env.FRONTEND_URL}/creator/channels?error=instagram_denied`);
+        return res.redirect(`${frontend}${errorPath}?error=instagram_denied`);
       }
 
       if (!code || !state) {
         return res.status(400).json({ success: false, error: 'Parámetros de callback inválidos' });
       }
-
-      const stateData = JSON.parse(Buffer.from(state, 'base64').toString());
-      const { canalId } = stateData;
 
       const appId = process.env.INSTAGRAM_APP_ID;
       const appSecret = process.env.INSTAGRAM_APP_SECRET;
@@ -306,10 +322,14 @@ class OnboardingController {
         await Canal.findByIdAndUpdate(canalId, { $set: updateData });
       }
 
-      res.redirect(`${process.env.FRONTEND_URL}/creator/channels?success=instagram_connected&tier=oro&seguidores=${profile.followers_count}`);
+      const seguidores = profile.followers_count || 0;
+      const params = source === 'onboarding'
+        ? `platform=instagram&tier=oro&seguidores=${seguidores}`
+        : `success=instagram_connected&tier=oro&seguidores=${seguidores}`;
+      res.redirect(`${frontend}${successPath}?${params}`);
     } catch (err) {
       console.error('Error en Instagram callback:', err.message);
-      res.redirect(`${process.env.FRONTEND_URL}/creator/channels?error=instagram_failed`);
+      res.redirect(`${frontend}${errorPath}?error=instagram_failed`);
     }
   }
 
