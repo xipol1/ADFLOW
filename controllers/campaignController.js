@@ -473,26 +473,73 @@ const completeCampaign = async (req, res, next) => {
       }
     }
 
-    // Auto-transfer to creator via Stripe Connect (non-blocking)
+    // Auto-transfer to creator via Stripe Connect.
+    // The transfer attempt is persisted as a PayoutAttempt row BEFORE the
+    // network call so a failure never disappears into a serverless log
+    // (AUDIT.md A-9). Admin can list / retry pending attempts via
+    // /api/admin/payouts. The actual Stripe call still runs in
+    // setImmediate so the HTTP response isn't blocked on it.
     const channelOwner = await Canal.findOne({ _id: campaign.channel }).select('propietario').lean();
     if (channelOwner?.propietario) {
-      setImmediate(async () => {
-        try {
-          const creator = await Usuario.findById(channelOwner.propietario);
-          if (creator?.stripeConnectAccountId) {
+      const creator = await Usuario.findById(channelOwner.propietario).select('stripeConnectAccountId').lean();
+      if (creator?.stripeConnectAccountId) {
+        const PayoutAttempt = require('../models/PayoutAttempt');
+        const netAmount = resolveNetAmount(campaign);
+        const idempotencyKey = `transfer:${campaign._id}`;
+        // Upsert so completing the same campaign twice doesn't create
+        // duplicate attempt rows; the unique index on `campaign` would
+        // otherwise reject the second insert.
+        const attempt = await PayoutAttempt.findOneAndUpdate(
+          { campaign: campaign._id },
+          {
+            $setOnInsert: {
+              campaign: campaign._id,
+              creator: creator._id,
+              stripeAccountId: creator.stripeConnectAccountId,
+              amount: netAmount,
+              currency: (process.env.STRIPE_CURRENCY || 'eur').toLowerCase(),
+              stripeIdempotencyKey: idempotencyKey,
+            },
+            $set: { status: 'pending' },
+          },
+          { upsert: true, new: true }
+        );
+
+        setImmediate(async () => {
+          try {
+            attempt.status = 'processing';
+            attempt.attempts += 1;
+            attempt.lastAttemptedAt = new Date();
+            await attempt.save();
+
             const stripeConnect = require('../services/stripeConnectService');
-            const netAmount = resolveNetAmount(campaign);
-            await stripeConnect.transferToCreator(netAmount, creator.stripeConnectAccountId, {
-              campaignId: String(campaign._id),
-              creatorId: String(creator._id),
-            }, {
-              idempotencyKey: `transfer:${campaign._id}`,
-            });
+            const transfer = await stripeConnect.transferToCreator(
+              attempt.amount,
+              attempt.stripeAccountId,
+              { campaignId: String(campaign._id), creatorId: String(creator._id) },
+              { idempotencyKey }
+            );
+
+            attempt.status = 'succeeded';
+            attempt.succeededAt = new Date();
+            attempt.stripeTransferId = transfer?.id || null;
+            attempt.lastError = null;
+            await attempt.save();
+          } catch (transferErr) {
+            attempt.status = 'failed';
+            attempt.lastError = transferErr?.message || String(transferErr);
+            await attempt.save().catch(() => { /* persist best-effort */ });
+            try {
+              require('../lib/logger').error('payout.transfer_failed', {
+                campaignId: String(campaign._id),
+                creatorId: String(creator._id),
+                attempts: attempt.attempts,
+                msg: attempt.lastError,
+              });
+            } catch { /* logger optional */ }
           }
-        } catch (transferErr) {
-          console.error('Auto-transfer to creator failed:', transferErr?.message);
-        }
-      });
+        });
+      }
     }
 
     // Notify both parties
