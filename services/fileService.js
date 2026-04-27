@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const crypto = require('crypto');
 const sharp = require('sharp');
+const mongoose = require('mongoose');
 const config = require('../config/config');
 const Archivo = require('../models/Archivo');
 
