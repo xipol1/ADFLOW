@@ -4,7 +4,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import AppRoutes from './routes/AppRoutes'
 import { AuthProvider } from './auth/AuthContext'
-import { NotificationsProvider } from './legacy/hooks/useNotifications'
+import { NotificationsProvider } from './hooks/useNotifications'
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
 

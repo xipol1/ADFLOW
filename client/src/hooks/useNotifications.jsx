@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react'
-import apiService, { CONFIGURED_API_ORIGIN } from '../../services/api'
+import apiService, { CONFIGURED_API_ORIGIN } from '../services/api'
 
 const NotificationsContext = createContext(null)
 
