@@ -41,7 +41,7 @@ function parseFrontmatter(content) {
 }
 
 // ─── Load FAQ data from blogPosts.js ───
-const BLOG_POSTS_PATH = path.join(ROOT, 'src', 'ui', 'pages', 'blog', 'blogPosts.js');
+const BLOG_POSTS_PATH = path.join(ROOT, 'client', 'src', 'ui', 'pages', 'blog', 'blogPosts.js');
 
 // ─── Load platform map (slug → platform) from blogPosts.js ───
 // We keep platform in a single source of truth (the React registry) and inject

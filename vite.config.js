@@ -9,23 +9,25 @@ export default defineConfig(({ mode }) => {
     throw new Error('NEXT_PUBLIC_API_URL debe apuntar a un backend desplegado (no localhost)')
   }
 
+  // Frontend lives under /client (index.html + src + styles).
+  // Build output stays at the project root in /dist so Vercel keeps using
+  // outputDirectory: "dist" without changes.
+  const clientRoot = path.resolve(__dirname, 'client')
+
   return {
     plugins: [react()],
-    root: path.resolve(__dirname),
+    root: clientRoot,
     base: '/',
     define: {
       'process.env.NEXT_PUBLIC_API_URL': JSON.stringify(env.NEXT_PUBLIC_API_URL ?? ''),
     },
     optimizeDeps: {
-      entries: [path.resolve(__dirname, 'index.html')],
+      entries: [path.resolve(clientRoot, 'index.html')],
     },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './'),
-        '@components': path.resolve(__dirname, './components'),
-        '@layouts': path.resolve(__dirname, './layouts'),
-        '@styles': path.resolve(__dirname, './styles'),
-        '@utils': path.resolve(__dirname, './utils'),
+        '@': path.resolve(clientRoot, 'src'),
+        '@styles': path.resolve(clientRoot, 'styles'),
       },
       dedupe: ['react', 'react-dom'],
     },
@@ -45,7 +47,7 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
       sourcemap: mode !== 'production',
       rollupOptions: {
-        input: path.resolve(__dirname, 'index.html'),
+        input: path.resolve(clientRoot, 'index.html'),
         output: {
           // Anonymize chunk names to avoid exposing library names in production
           chunkFileNames: 'assets/c-[hash].js',
@@ -59,7 +61,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     css: {
-      postcss: './postcss.config.js',
+      postcss: path.resolve(__dirname, 'postcss.config.js'),
     },
   }
 })
