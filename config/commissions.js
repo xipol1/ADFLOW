@@ -54,8 +54,42 @@ function resolveCommissionRate(ctx = {}) {
  */
 const DEFAULT_COMMISSION_RATE = COMMISSION_TIERS.standard;
 
+/**
+ * Referral programme — single source of truth.
+ *
+ * - REFERRAL_RATE: cut of every referred advertiser's campaign price that
+ *   is credited back to the referrer.
+ * - REFERRAL_TIERS: thresholds (monthly/lifetime GMV in € or referred-user
+ *   count) that promote a user from normal → power → partner.
+ *
+ * Anywhere that previously hardcoded 0.05 / 5000 / 20000 / 5 / 20 must
+ * import from here. See AUDIT.md A-3.
+ */
+const REFERRAL_RATE = 0.05;
+
+const REFERRAL_TIERS = {
+  power:   { gmv: 5000,  count: 5  },
+  partner: { gmv: 20000, count: 20 },
+};
+
+/**
+ * Compute the tier a user qualifies for given their lifetime stats.
+ * @param {{ referralGMVGenerated?: number, referralCount?: number }} user
+ * @returns {'normal' | 'power' | 'partner'}
+ */
+function getReferralTier(user = {}) {
+  const gmv = Number(user.referralGMVGenerated) || 0;
+  const count = Number(user.referralCount) || 0;
+  if (gmv >= REFERRAL_TIERS.partner.gmv || count >= REFERRAL_TIERS.partner.count) return 'partner';
+  if (gmv >= REFERRAL_TIERS.power.gmv   || count >= REFERRAL_TIERS.power.count)   return 'power';
+  return 'normal';
+}
+
 module.exports = {
   COMMISSION_TIERS,
   DEFAULT_COMMISSION_RATE,
   resolveCommissionRate,
+  REFERRAL_RATE,
+  REFERRAL_TIERS,
+  getReferralTier,
 };

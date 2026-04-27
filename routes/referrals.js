@@ -3,13 +3,7 @@ const router = express.Router()
 const { autenticar, requiereEmailVerificado } = require('../middleware/auth')
 const Usuario = require('../models/Usuario')
 const Transaccion = require('../models/Transaccion')
-
-// Helper: calculate tier
-function getReferralTier(user) {
-  if (user.referralGMVGenerated >= 20000 || user.referralCount >= 20) return 'partner'
-  if (user.referralGMVGenerated >= 5000 || user.referralCount >= 5) return 'power'
-  return 'normal'
-}
+const { getReferralTier, REFERRAL_TIERS } = require('../config/commissions')
 
 // Helper: conversion rate
 function getConversionRate(tier) {
@@ -123,8 +117,12 @@ router.get('/stats', autenticar, async (req, res) => {
         tierProgress: {
           current: user.referralTier,
           nextTier: user.referralTier === 'normal' ? 'power' : user.referralTier === 'power' ? 'partner' : null,
-          referralsNeeded: user.referralTier === 'normal' ? Math.max(0, 5 - user.referralCount) : user.referralTier === 'power' ? Math.max(0, 20 - user.referralCount) : 0,
-          gmvNeeded: user.referralTier === 'normal' ? Math.max(0, 5000 - user.referralGMVGenerated) : user.referralTier === 'power' ? Math.max(0, 20000 - user.referralGMVGenerated) : 0,
+          referralsNeeded:
+            user.referralTier === 'normal' ? Math.max(0, REFERRAL_TIERS.power.count   - user.referralCount) :
+            user.referralTier === 'power'  ? Math.max(0, REFERRAL_TIERS.partner.count - user.referralCount) : 0,
+          gmvNeeded:
+            user.referralTier === 'normal' ? Math.max(0, REFERRAL_TIERS.power.gmv     - user.referralGMVGenerated) :
+            user.referralTier === 'power'  ? Math.max(0, REFERRAL_TIERS.partner.gmv   - user.referralGMVGenerated) : 0,
         },
       },
     })

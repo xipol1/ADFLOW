@@ -4,14 +4,11 @@ const Transaccion = require('../models/Transaccion');
 const Usuario = require('../models/Usuario');
 const { ensureDb } = require('../lib/ensureDb');
 const notificationService = require('../services/notificationService');
-const { DEFAULT_COMMISSION_RATE } = require('../config/commissions');
-
-// Helper: calculate referral tier
-function getReferralTier(user) {
-  if (user.referralGMVGenerated >= 20000 || user.referralCount >= 20) return 'partner'
-  if (user.referralGMVGenerated >= 5000 || user.referralCount >= 5) return 'power'
-  return 'normal'
-}
+const {
+  DEFAULT_COMMISSION_RATE,
+  REFERRAL_RATE,
+  getReferralTier,
+} = require('../config/commissions');
 
 // Resolve the campaign's net payout amount. Trusts campaign.netAmount when
 // the pre-save hook populated it; otherwise recomputes from price and the
@@ -527,13 +524,14 @@ const completeCampaign = async (req, res, next) => {
       if (advertiser?.referredBy) {
         const referrer = await Usuario.findById(advertiser.referredBy)
         if (referrer) {
-          const creditAmount = (campaign.price || 0) * 0.05
+          const creditAmount = (campaign.price || 0) * REFERRAL_RATE
           if (creditAmount > 0) {
             referrer.referralCreditsBalance += creditAmount
             referrer.referralGMVGenerated += (campaign.price || 0)
             referrer.referralTier = getReferralTier(referrer)
             await referrer.save()
 
+            const ratePct = (REFERRAL_RATE * 100).toFixed(0)
             await Transaccion.create({
               campaign: campaign._id,
               advertiser: advertiser._id,
@@ -542,7 +540,7 @@ const completeCampaign = async (req, res, next) => {
               tipo: 'referral',
               status: 'paid',
               paidAt: new Date(),
-              description: `Credito referido: ${creditAmount.toFixed(2)}€ (5% de €${campaign.price})`,
+              description: `Credito referido: ${creditAmount.toFixed(2)}€ (${ratePct}% de €${campaign.price})`,
               referralCreditGenerated: creditAmount,
               referralUserId: referrer._id,
             })

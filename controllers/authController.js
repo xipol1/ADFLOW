@@ -252,14 +252,12 @@ const registro = async (req, res) => {
     // Update referrer counts after user is created (synchronous for serverless).
     if (referralApplied && referrer) {
       try {
+        const { getReferralTier } = require('../config/commissions');
         const updated = await Usuario.findByIdAndUpdate(referrer._id, {
           $inc: { referralCount: 1 },
         }, { new: true });
         const newCount = updated.referralCount || 0;
-        const gmv = updated.referralGMVGenerated || 0;
-        let newTier = 'normal';
-        if (gmv >= 20000 || newCount >= 20) newTier = 'partner';
-        else if (gmv >= 5000 || newCount >= 5) newTier = 'power';
+        const newTier = getReferralTier(updated);
         if (updated.referralTier !== newTier) {
           await Usuario.findByIdAndUpdate(referrer._id, { referralTier: newTier });
         }
