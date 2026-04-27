@@ -43,9 +43,13 @@ const CampaignSchema = new mongoose.Schema(
   { timestamps: false }
 );
 
+// Always recompute netAmount on insert and whenever price or commissionRate
+// changes. Belt-and-braces: legacy docs that bypassed this hook fall back to
+// the controller-level resolveNetAmount helper.
 CampaignSchema.pre('save', function (next) {
-  if (this.isModified('price') || this.isModified('commissionRate')) {
-    this.netAmount = +(this.price * (1 - this.commissionRate)).toFixed(2);
+  if (this.isNew || this.isModified('price') || this.isModified('commissionRate')) {
+    const rate = Number.isFinite(this.commissionRate) ? this.commissionRate : 0.20;
+    this.netAmount = +(this.price * (1 - rate)).toFixed(2);
   }
   next();
 });

@@ -4,12 +4,27 @@ const Transaccion = require('../models/Transaccion');
 const Usuario = require('../models/Usuario');
 const { ensureDb } = require('../lib/ensureDb');
 const notificationService = require('../services/notificationService');
+const { DEFAULT_COMMISSION_RATE } = require('../config/commissions');
 
 // Helper: calculate referral tier
 function getReferralTier(user) {
   if (user.referralGMVGenerated >= 20000 || user.referralCount >= 20) return 'partner'
   if (user.referralGMVGenerated >= 5000 || user.referralCount >= 5) return 'power'
   return 'normal'
+}
+
+// Resolve the campaign's net payout amount. Trusts campaign.netAmount when
+// the pre-save hook populated it; otherwise recomputes from price and the
+// campaign's own commissionRate (NEVER assume a hardcoded percentage —
+// commissions live in config/commissions.js, see AUDIT.md C-4).
+function resolveNetAmount(campaign) {
+  if (Number.isFinite(campaign.netAmount) && campaign.netAmount > 0) {
+    return campaign.netAmount;
+  }
+  const rate = Number.isFinite(campaign.commissionRate)
+    ? campaign.commissionRate
+    : DEFAULT_COMMISSION_RATE;
+  return +(campaign.price * (1 - rate)).toFixed(2);
 }
 
 const notifySafe = async (data) => {
@@ -467,7 +482,7 @@ const completeCampaign = async (req, res, next) => {
           const creator = await Usuario.findById(channelOwner.propietario);
           if (creator?.stripeConnectAccountId) {
             const stripeConnect = require('../services/stripeConnectService');
-            const netAmount = campaign.netAmount || campaign.price * 0.9;
+            const netAmount = resolveNetAmount(campaign);
             await stripeConnect.transferToCreator(netAmount, creator.stripeConnectAccountId, {
               campaignId: String(campaign._id),
               creatorId: String(creator._id),
@@ -490,12 +505,13 @@ const completeCampaign = async (req, res, next) => {
       prioridad: 'alta'
     });
     if (channelOwner?.propietario) {
+      const earnings = resolveNetAmount(campaign);
       notifySafe({
         usuarioId: channelOwner.propietario,
         tipo: 'campana.completada',
         titulo: 'Campaña completada',
-        mensaje: `Campaña completada. Has ganado €${campaign.netAmount || campaign.price}.`,
-        datos: { campaignId: campaign._id, earnings: campaign.netAmount },
+        mensaje: `Campaña completada. Has ganado €${earnings}.`,
+        datos: { campaignId: campaign._id, earnings },
         canales: ['database', 'realtime'],
         prioridad: 'alta'
       });
