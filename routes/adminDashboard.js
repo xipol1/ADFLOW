@@ -69,8 +69,8 @@ router.get('/overview', async (req, res) => {
       Dispute.countDocuments({ status: { $in: ['open', 'pending', 'OPEN', 'PENDING'] } }).catch(() => 0),
       ChannelCandidate.countDocuments({ status: 'pending' }).catch(() => 0),
       Transaccion.aggregate([
-        { $match: { tipo: { $in: ['comision', 'commission'] } } },
-        { $group: { _id: null, total: { $sum: '$monto' } } },
+        { $match: { tipo: 'comision' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
       ]).catch(() => []),
       Usuario.find().sort({ createdAt: -1 }).limit(5).select('nombre email rol createdAt').lean(),
       Campaign.find().sort({ createdAt: -1 }).limit(5).populate('channel', 'nombreCanal plataforma').select('status price createdAt channel').lean(),
@@ -281,16 +281,16 @@ router.get('/finances', async (req, res) => {
     const [revenueTimeline, totalVolume, commissions, campaignsByStatus] = await Promise.all([
       Transaccion.aggregate([
         { $match: { createdAt: { $gte: since } } },
-        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, volume: { $sum: '$monto' }, count: { $sum: 1 } } },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, volume: { $sum: '$amount' }, count: { $sum: 1 } } },
         { $sort: { _id: 1 } },
       ]).catch(() => []),
       Transaccion.aggregate([
         { $match: { createdAt: { $gte: since } } },
-        { $group: { _id: null, total: { $sum: '$monto' } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
       ]).catch(() => []),
       Transaccion.aggregate([
-        { $match: { tipo: { $in: ['comision', 'commission'] }, createdAt: { $gte: since } } },
-        { $group: { _id: null, total: { $sum: '$monto' } } },
+        { $match: { tipo: 'comision', createdAt: { $gte: since } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
       ]).catch(() => []),
       Campaign.aggregate([
         { $group: { _id: '$status', count: { $sum: 1 }, revenue: { $sum: '$price' } } },
