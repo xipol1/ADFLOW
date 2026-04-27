@@ -1,6 +1,7 @@
 # Channelad — Guia Tecnica para Desarrolladores
 
-> Documento preparado para el equipo de soporte tecnico. Ultima actualizacion: Abril 2026.
+> Documento preparado para el equipo de soporte tecnico. Ultima actualizacion: 27 abril 2026.
+> Cross-refs: [README.md](../README.md) (setup), [docs/architecture.md](architecture.md) (10-min mental model), [docs/glossary.md](glossary.md) (Spanish/English domain terms), [AUDIT.md](../AUDIT.md) (technical debt status), [SECURITY.md](../SECURITY.md) (secret rotation).
 
 ## 1. Vision general
 
@@ -8,7 +9,7 @@
 
 **URL produccion:** https://channelad.io
 **Repositorio:** https://github.com/xipol1/ADFLOW
-**Deploy:** Vercel (auto-deploy desde branch `main`)
+**Deploy:** Vercel (auto-deploy desde branch `main`, una unica funcion serverless `api/index.js`)
 
 ---
 
@@ -16,7 +17,7 @@
 
 | Capa | Tecnologia | Version |
 |------|-----------|---------|
-| Runtime | Node.js | >= 16 |
+| Runtime | Node.js (pinned via .nvmrc) | >= 20 |
 | Backend | Express | 4.18 |
 | Base de datos | MongoDB Atlas | Mongoose 7.5 |
 | Auth | JWT (access 15m + refresh 7d) + bcryptjs | - |
@@ -24,85 +25,114 @@
 | Pagos | Stripe (Checkout, PaymentIntents, Connect Express) | 13.5 |
 | Tiempo real | Socket.io | 4.7 |
 | Frontend | React 18 + React Router 6 + Vite 4 | - |
-| Email | Nodemailer (Gmail, SMTP, Ethereal) | 6.9 |
-| Seguridad | Helmet, CORS, HPP, xss-clean, express-mongo-sanitize, rate-limit-mongo | - |
-| Deploy | Vercel Serverless | - |
+| Email | Nodemailer (SMTP / Gmail / SendGrid / Mailgun / Ethereal) | 6.9 |
+| Seguridad | Helmet, CORS allowlist, HPP, express-mongo-sanitize, rate-limit-mongo, express-rate-limit | - |
+| Logs | Winston (JSON en prod, colorized en dev) + Morgan | 3.10 / 1.10 |
+| Deploy | Vercel Serverless | maxDuration 60s |
 
 ---
 
 ## 3. Estructura del proyecto
 
 ```
-ADFLOW/
-├── api/index.js              # Entry point Vercel serverless
-├── app.js                    # Express app (middleware, routes, error handling)
-├── server.js                 # HTTP server + Socket.io + cron + graceful shutdown
+channelad/
+├── api/index.js              # Entry point Vercel serverless (re-exports app.js)
+├── app.js                    # Express app: middleware, route mounts, blog/SPA catch-all
+├── server.js                 # Local HTTP + Socket.io + cron + graceful shutdown
 ├── config/
-│   ├── config.js             # Todas las env vars centralizadas
+│   ├── config.js             # Env vars centralizadas (jwt, stripe, email, meta, linkedin)
+│   ├── commissions.js        # Tiers de comision + referral rate (single source of truth)
 │   ├── database.js           # MongoDB connection + reconnection
-│   └── swagger.js            # API docs config
-├── controllers/
-│   ├── authController.js     # Login, registro, password reset, email verification
+│   ├── redis.js              # Redis client (rate-limit fallback, OTP TTL)
+│   ├── nicheBenchmarks.js    # Benchmarks CPM/engagement por nicho
+│   ├── swagger.js            # API docs config
+│   └── validateEnv.js        # Boot-time env validation (strict en produccion)
+├── controllers/              # 24 archivos
+│   ├── authController.js     # Login, registro, password reset, email verification, Google OAuth
 │   ├── twoFactorController.js # 2FA setup, verify, validate, disable
-│   ├── campaignController.js # CRUD campanas + escrow + delivery trigger
+│   ├── campaignController.js # CRUD campanas + escrow + Stripe transfer + PayoutAttempt
 │   ├── canalController.js    # CRUD canales del creator
 │   ├── channelsController.js # Listado publico de canales (marketplace)
-│   ├── oauthController.js    # Meta OAuth + LinkedIn OAuth
+│   ├── oauthController.js    # Meta OAuth + LinkedIn OAuth + connect/disconnect
 │   ├── platformConnectController.js # Telegram, Discord, WhatsApp, Newsletter connect
-│   ├── payoutController.js   # Stripe Connect onboarding + withdrawals
+│   ├── payoutController.js   # Stripe Connect onboarding + withdrawals manuales
 │   ├── disputeController.js  # Disputas con timeline + resolucion + reembolso
-│   ├── anuncioController.js  # Workflow de anuncios
-│   ├── autoBuyController.js  # Campanas automaticas
-│   └── trackingController.js # Tracking links + channel verification
-├── models/
+│   ├── claimController.js    # Reclamacion de canal pre-existente
+│   ├── onboardingController.js # Wizard 7-pantallas para creators (post-rebrand)
+│   ├── baileysController.js  # WhatsApp via baileys (VPS only)
+│   └── … (CRUD anuncios, autobuy, tracking, files, lists, notifications, push, scoring)
+├── models/                   # 34 schemas Mongoose
 │   ├── Usuario.js            # Users (auth, referral, 2FA, Stripe Connect, lockout)
 │   ├── Canal.js              # Channels (credentials encrypted, OAuth data, availability)
 │   ├── Campaign.js           # Campaigns (status pipeline, delivery tracking, escrow)
-│   ├── Transaccion.js        # Transactions (escrow, paid, refunded, referral)
-│   ├── Dispute.js            # Disputes (timeline, resolution types, refund)
-│   └── ... (20 models total)
-├── services/
+│   ├── Transaccion.js        # Transactions (escrow, paid, refunded, referral, comision)
+│   ├── PayoutAttempt.js      # Stripe Connect transfer tracking + retry queue
+│   ├── TrackingLink.js       # Click tracking + verification links
+│   ├── TrackingFingerprint.js # Per-link click dedup (out-of-document)
+│   ├── Dispute.js            # Disputas (timeline, 4 resolution types, refund)
+│   └── … (CampaignMetrics{V2}, Canal*, AutoBuyRule, Partner, BotToken, etc.)
+├── services/                 # 38 services
 │   ├── authService.js        # JWT generation, refresh rotation, session management
-│   ├── emailService.js       # Template rendering + transactional emails
-│   ├── metaOAuthService.js   # Meta Graph API OAuth flow
-│   ├── linkedinOAuthService.js # LinkedIn OAuth flow
-│   ├── stripeConnectService.js # Stripe Express accounts + transfers
+│   ├── emailService.js       # Nodemailer template rendering + transactional emails
+│   ├── stripeConnectService.js # Stripe Express accounts + idempotent transfers
+│   ├── partnerIntegrationService.js # Partner API: campaign CRUD, escrow, audit
 │   ├── adDeliveryService.js  # Publish ads to platforms with 3x retry
 │   ├── invoiceService.js     # HTML invoice generation
-│   ├── errorLogger.js        # Error persistence to MongoDB (30d TTL)
+│   ├── errorLogger.js        # Error persistence to MongoDB (TTL)
 │   ├── notificationService.js # DB + Socket.io + email + push notifications
-│   ├── SocialSyncService.js  # Sync metrics from all platforms
-│   └── tokenRefreshService.js # Auto-refresh Meta + LinkedIn tokens
-├── integraciones/
-│   ├── telegram.js           # TelegramAPI class (bot API)
-│   ├── discord.js            # DiscordAPI class (bot API)
-│   ├── whatsapp.js           # WhatsAppAPI class (Business API)
-│   ├── instagram.js          # InstagramAPI class (Graph API)
-│   ├── facebook.js           # FacebookAPI class (Graph API)
-│   ├── linkedin.js           # LinkedInAPI class (REST API)
-│   └── newsletter.js         # NewsletterAPI (Mailchimp, Beehiiv, Substack)
+│   ├── scoringOrchestrator.js # CAS scoring orchestration
+│   ├── channelScoringV2.js   # Score calculation (CAF + CTF + CER + fillRate)
+│   ├── tokenRefreshService.js # Auto-refresh Meta + LinkedIn tokens (cron)
+│   ├── campaignSnapshotService.js # Final-snapshot capture on campaign complete
+│   ├── nicheIntelligenceService.js # Niche-level analytics
+│   ├── telemetrScraperService.js, tgstatScraperService.js, lyzemScraperService.js,
+│   ├── multiplatformIntelService.js, telegramIntelService.js,
+│   └── scrapers/, baileys/, newsletter/ subfolders
+├── integraciones/            # SDK wrappers (7 files)
+│   ├── telegram.js, discord.js, whatsapp.js, instagram.js,
+│   ├── facebook.js, linkedin.js, newsletter.js
 ├── lib/
-│   ├── platformConnectors.js # Master dispatcher: fetch, verify, publish per platform
-│   ├── encryption.js         # AES-256 encrypt/decrypt for credentials
+│   ├── logger.js             # Winston (JSON in prod, pretty in dev)
+│   ├── platformConnectors.js # Master dispatcher per platform
+│   ├── encryption.js         # AES-256 encrypt/decrypt for stored credentials
 │   ├── ensureDb.js           # MongoDB connection guard
-│   └── campaignCron.js       # Periodic: expire, auto-complete, retry deliveries
+│   ├── campaignCron.js       # Periodic: expire, auto-complete, retry deliveries
+│   ├── scoringEngine.js      # Pure functions: CAS / CAF / CTF / CER / pricing
+│   ├── messageModeration.js  # Chat content moderation
+│   └── partnerApiHttp.js     # Partner API HTTP helpers
 ├── middleware/
 │   ├── auth.js               # JWT verify, role check, email verification gate
 │   ├── rateLimiter.js        # MongoDB-backed distributed rate limiting
-│   └── validarCampos.js      # express-validator error formatter
-├── routes/                   # 20+ route files (see API Reference below)
+│   ├── validarCampos.js      # express-validator error formatter
+│   ├── partnerAuth.js        # Bearer auth para Partner API
+│   ├── partnerIdempotency.js # Cache de respuestas POST por Idempotency-Key
+│   ├── partnerRequestContext.js # Request id + structured logging
+│   └── requestMetrics.js     # Counters para /health endpoint
+├── routes/                   # 34 route files (see API Reference below)
+├── jobs/                     # Cron job entry points (telegram-intel, multiplatform, massive-seed)
+├── workers/                  # Long-running processes (whatsappWorker.js — VPS only)
 ├── templates/emails/         # HTML email templates with base layout
-├── src/                      # Frontend React app
-│   ├── auth/AuthContext.jsx   # Auth state, auto token refresh
-│   ├── routes/AppRoutes.jsx   # All routes + FullAccessOnly gate + ComingSoon
-│   └── ui/
-│       ├── components/        # TwoFactorCard, DeliveryBadge, ComingSoon, etc.
-│       ├── pages/auth/        # Login, Register, ForgotPassword, VerifyEmail
-│       ├── pages/dashboard/   # Advertiser + Creator dashboards
-│       └── theme/tokens.js    # Design system (colors, fonts, spacing)
+├── client/                   # Frontend (Vite root)
+│   ├── index.html            # Vite entry HTML
+│   ├── styles/globals.css    # Global styles + design tokens
+│   └── src/
+│       ├── App.jsx, main.jsx
+│       ├── auth/AuthContext.jsx   # Auth state, auto token refresh
+│       ├── routes/AppRoutes.jsx   # All routes + FullAccessOnly gate + ComingSoon
+│       ├── hooks/                 # useNotifications, usePushNotifications
+│       ├── services/api.js        # Axios client + auto refresh on 401
+│       └── ui/
+│           ├── components/        # TwoFactorCard, DeliveryBadge, ComingSoon, …
+│           ├── pages/             # Auth, dashboard, marketplace, onboarding, blog
+│           ├── layouts/, navigation/, routing/
+│           └── theme/tokens.js    # Design system (colors, fonts, spacing)
+├── content/blog/             # Markdown sources for the static blog
+├── docs/                     # README links here for deeper context
 └── public/
-    ├── manifest.json          # PWA manifest
-    └── sw.js                  # Service worker (cache, push, offline)
+    ├── manifest.json          # PWA manifest (logo SVG)
+    ├── sw.js                  # Service worker (cache, push, offline)
+    ├── logo.svg               # Single SVG icon used by manifest + favicon
+    └── blog/*.html            # Generated blog (build-blog.js → public/blog/)
 ```
 
 ---
@@ -139,15 +169,31 @@ ADFLOW/
 
 ### Middleware de seguridad (app.js)
 ```
-helmet → cors → compression → morgan → stripe webhook (raw body)
-→ express.json → express.urlencoded → mongoSanitize → xss-clean → hpp
-→ blocked paths filter → routes → error logger → error handler
+helmet → cors (allowlist) → compression → morgan → requestMetrics
+→ stripe partner webhook (raw body) → express.json → express.urlencoded
+→ mongoSanitize → hpp → sensitive-paths filter (anchored regex)
+→ /uploads + /public static → /api/health → /api/docs (admin gated)
+→ tracking redirects (rate-limited) → mounted route modules
+→ blog static serve → SPA catch-all → 404 → error logger → error handler
 ```
 
+`xss-clean` fue eliminado en abril 2026 (deprecado desde 2018; React + helmet CSP cubren XSS mejor).
+
+### CORS
+- Allowlist construida en boot desde `FRONTEND_URL` + `CORS_ORIGIN.split(',')`.
+- En produccion, ademas se aceptan hostnames `*.vercel.app` (suffix sobre `URL().hostname`, no string-include).
+- En desarrollo, todo origen permitido para que `vite :5173` y dispositivos LAN funcionen sin config.
+- Socket.io reusa la misma allowlist via `app.isAllowedOrigin`.
+
 ### Rate limiting
-- `rate-limit-mongo` con MongoDB store (distribuido para serverless)
-- Login: 10 req/15min, Registro: 5 req/1h, API general: 300 req/15min
-- Fallback a memoria si MongoDB no disponible
+- `rate-limit-mongo` con MongoDB store (distribuido para serverless — counters sobreviven cold starts).
+- Login: 10 req/15min, Registro: 5 req/1h, API general: 300 req/15min.
+- Tracking redirects: 30 req/min por IP (anti click-flood).
+- Chat de campanas: 1 msg cada 3s + max 60/h, keyed `(userId, campaignId)`.
+- Fallback a memoria si MongoDB no disponible.
+
+### Sensitive-path filter
+Regex anclada al inicio de path-segment que rechaza con 404: `package.json`, `package-lock.json`, `.env*`, `.git`, `node_modules`, `tsconfig.json`, `vite.config.*`, `.claude`. La regex original matcheaba en cualquier substring, por lo que `/api/canales/.envio-noticias` daba 404 falso (resuelto en abril 2026, AUDIT.md A-8).
 
 ---
 
@@ -162,22 +208,36 @@ DRAFT → PAID (escrow) → PUBLISHED → COMPLETED
 ```
 
 ### Paso a paso
-1. **Advertiser crea campana** → `POST /api/campaigns` → status DRAFT + Transaccion pending
-2. **Pago** → `POST /api/campaigns/:id/pay` → Transaccion status `escrow`, Campaign status `PAID`
-3. **Creator confirma** → `POST /api/campaigns/:id/confirm` → Campaign `PUBLISHED` + ad delivery trigger
-4. **Ad delivery** → `adDeliveryService.deliverAd()` publica en la plataforma (Telegram, Discord, etc.) con 3 reintentos
-5. **Completar** → `POST /api/campaigns/:id/complete` → release escrow (`paid`) + Stripe capture + auto-transfer a creator via Connect + referral credits (5%)
+1. **Advertiser crea campana** → `POST /api/campaigns` → status DRAFT + Transaccion pending.
+2. **Pago** → `POST /api/transacciones/create-payment-intent` → devuelve `clientSecret` para Stripe Elements. Stripe procesa la tarjeta con `capture_method: manual` (escrow autorizado pero no capturado). Webhook `payment_intent.amount_capturable_updated` mueve Campaign → `PAID` y Transaccion → `escrow`.
+3. **Creator publica** y la plataforma confirma. Tras la confirmacion del creator/admin, `POST /api/campaigns/:id/publish` → status `PUBLISHED` + dispara `adDeliveryService.deliverAd()`.
+4. **Ad delivery** publica el contenido (Telegram, Discord, etc.) con 3 reintentos exponenciales.
+5. **Completar** → `POST /api/campaigns/:id/complete`:
+   - Campaign → `COMPLETED`.
+   - Stripe `paymentIntents.capture(piId, { idempotencyKey: 'capture:<piId>' })` → escrow liberado.
+   - Snapshot final + recalculo CAS no-bloqueante (`setImmediate`).
+   - Crea/actualiza row en `PayoutAttempt` (status pending) **antes** de la transferencia, para que un fallo nunca se pierda en logs serverless (AUDIT.md A-9).
+   - `setImmediate` ejecuta `stripeConnect.transferToCreator(netAmount, accountId, meta, { idempotencyKey: 'transfer:<campaignId>' })`. Marca `succeeded` o `failed` con `lastError`.
+   - Genera credito de referido del 5% (constante `REFERRAL_RATE` en `config/commissions.js`).
+   - Notifica a ambas partes.
+
+### Comision y netAmount
+- Tasa centralizada en `config/commissions.js` (`COMMISSION_TIERS.standard = 0.20`, partnerAPI 0.18, autoCampaign 0.25, etc.). Ningun otro archivo debe hardcodear porcentajes.
+- `Campaign.netAmount = price * (1 - commissionRate)` recalculado en `pre('save')` cuando se inserta o cambian `price`/`commissionRate`. Helper `resolveNetAmount(campaign)` en el controller cubre docs legacy con netAmount = 0.
 
 ### Escrow
-- `payCampaign` → transaction status = `escrow` (dinero retenido)
-- `completeCampaign` → transaction status = `paid` (dinero liberado)
-- Stripe PaymentIntent con `capture_method: manual` para hold real
+- `crearPaymentIntent` (`controllers/transaccionController.js`) crea PI con `capture_method: 'manual'` + `idempotencyKey: 'pi:<txId>'`.
+- Webhook firmado por Stripe (HMAC) actualiza Transaccion + Campaign. Si falta `STRIPE_WEBHOOK_SECRET`, el webhook **rechaza con 503** — nunca acepta sin firma (AUDIT.md C-1).
 
 ### Ad Delivery
-- Archivo: `services/adDeliveryService.js`
-- Retry: 3 intentos con backoff exponencial (5s, 15s, 45s)
-- Tracking: `Campaign.delivery` = `{ status, attempts, error, platformMessageId, deliveredAt }`
-- Cron retry: `campaignCron.js` ejecuta `retryFailedDeliveries()` cada 10 min
+- Archivo: `services/adDeliveryService.js`.
+- Retry: 3 intentos con backoff exponencial (5s, 15s, 45s).
+- Tracking: `Campaign.delivery` = `{ status, attempts, error, platformMessageId, deliveredAt }`.
+- Cron retry: `campaignCron.js` ejecuta `retryFailedDeliveries()` cada 10 min.
+
+### Payouts fallidos
+- Cada intento de transfer se persiste en `PayoutAttempt` con status, attempts, lastError, lastAttemptedAt, succeededAt, stripeTransferId, stripeIdempotencyKey.
+- Endpoint admin para listar y reintentar: `GET /api/admin/payouts` (default = pending+processing+failed) y `POST /api/admin/payouts/:id/retry`. El reintento reusa la misma `idempotencyKey` para que dos clicks no generen dos transferencias.
 
 ---
 
@@ -207,20 +267,41 @@ DRAFT → PAID (escrow) → PUBLISHED → COMPLETED
 
 ## 7. Sistema de pagos (Stripe)
 
+### Reglas duras (no negociables)
+
+- **Toda llamada Stripe pasa `idempotencyKey`.** Sin esto un retry de red duplica cargos, captures o transferencias. Patrones estables: `pi:<txId>`, `pi-partner:<campaignId>`, `capture:<piId>`, `cancel:<piId>`, `refund:<piId>`, `transfer:<campaignId>`, `connect-account:<userId>`. Para checkout sessions usamos `recharge:<userId>:<UUID>` (cada click = sesion nueva, retries dentro del mismo click coalescen).
+- **Todo webhook verifica firma con raw body.** `stripe.webhooks.constructEvent(req.body, sig, secret)` montado con `express.raw({ type: 'application/json' })`. Si `STRIPE_WEBHOOK_SECRET` no esta configurado, la ruta devuelve 503 (no fallback a JSON parse).
+- **Comision desde `config/commissions.js`** — nunca hardcodear porcentajes. La env var `PLATFORM_COMMISSION_RATE` no se lee, dejarla en `.env` confunde.
+
+### Webhooks
+
+| Endpoint | Quien lo llama | Eventos |
+|----------|----------------|---------|
+| `POST /api/partners/webhooks/stripe` | Stripe (Partner API flow) | `payment_intent.amount_capturable_updated`, `payment_intent.canceled`, `payment_intent.payment_failed` |
+| `POST /api/transacciones/webhook` | Stripe (recargas + escrow propio) | `payment_intent.succeeded`, `checkout.session.completed` |
+| `GET /api/webhooks/whatsapp` | Meta (verify subscribe) | challenge handshake con `WHATSAPP_VERIFY_TOKEN` |
+| `POST /api/webhooks/whatsapp` | Meta (mensajes entrantes) | HMAC-SHA256 con `META_APP_SECRET` sobre raw Buffer (no JSON.stringify, ver AUDIT.md C-2) |
+| `POST /api/webhooks/telegram` | Telegram Bot API | parse de updates para metricas |
+
 ### Checkout (recarga de saldo)
-- `POST /api/transacciones/create-checkout-session` → redirect a Stripe Checkout
-- Webhook `checkout.session.completed` → crea Transaccion tipo `recarga`
+- `POST /api/transacciones/create-checkout-session` → redirect a Stripe Checkout, `idempotencyKey: recharge:<userId>:<UUID>`.
+- Webhook `checkout.session.completed` → crea Transaccion tipo `recarga`.
 
 ### PaymentIntent (pago de campana)
-- `POST /api/transacciones/create-payment-intent` → devuelve clientSecret
-- Webhook `payment_intent.succeeded` → actualiza Transaccion + Campaign
+- `POST /api/transacciones/create-payment-intent` → devuelve clientSecret + paymentIntentId, `idempotencyKey: pi:<txId>`.
+- Webhook `payment_intent.amount_capturable_updated` → Campaign `PAID`, Transaccion `escrow`.
 
 ### Stripe Connect (payouts a creators)
-- `POST /api/payouts/onboard` → crea Express account + onboarding URL
-- Creator completa KYC en Stripe
-- Al completar campana → `stripeConnect.transferToCreator(amount, accountId)`
-- `POST /api/payouts/withdraw` → retiro manual
-- `GET /api/payouts/status` → estado de la cuenta Connect
+- `POST /api/payouts/onboard` → crea Express account (`idempotencyKey: connect-account:<userId>`) + onboarding URL.
+- Creator completa KYC en Stripe.
+- Al completar campana → ver Seccion 5 (PayoutAttempt + transfer + retry).
+- `POST /api/payouts/withdraw` → retiro manual.
+- `GET /api/payouts/status` → estado de la cuenta Connect.
+
+### Admin payouts queue
+- `GET /api/admin/payouts` (default: pending + processing + failed; `?status=` para filtrar).
+- `GET /api/admin/payouts/:id` (con campaign + creator populados).
+- `POST /api/admin/payouts/:id/retry` (sincrono, reusa idempotency key).
 
 ---
 
@@ -292,54 +373,85 @@ Cada disputa tiene un array `timeline[]` con eventos tipados: `opened`, `message
 
 ## 11. Variables de entorno (produccion)
 
-### Criticas (sin estas no arranca)
+> Lista completa con valores de ejemplo en [.env.example](../.env.example). El validador `config/validateEnv.js` aborta el proceso en produccion si falta cualquier `[required-prod]`.
+
+### Criticas (sin estas no arranca en produccion)
 ```
 MONGODB_URI          # MongoDB Atlas connection string
-JWT_SECRET           # Access token signing key
+JWT_SECRET           # Access token signing key (>= 48 bytes random)
 JWT_REFRESH_SECRET   # Refresh token signing key
-ENCRYPTION_KEY       # AES-256 key (exactamente 32 caracteres)
-FRONTEND_URL         # https://channelad.io
+FRONTEND_URL         # https://channelad.io (CORS allowlist + email links)
 BACKEND_URL          # https://channelad.io (mismo dominio, Vercel rewrites)
 ```
 
-### Stripe
+### Stripe (sin esto los pagos quedan en modo simulado)
 ```
-STRIPE_SECRET_KEY    # sk_live_...
-STRIPE_WEBHOOK_SECRET # whsec_...
+STRIPE_SECRET_KEY     # sk_live_...
+STRIPE_WEBHOOK_SECRET # whsec_... — sin esto el webhook devuelve 503
+STRIPE_CURRENCY       # eur (default; nunca usd salvo cambio explicito)
 ```
 
 ### Email
 ```
-EMAIL_PROVIDER       # gmail | smtp
-EMAIL_USER           # sender email
-EMAIL_PASS           # app password
+EMAIL_PROVIDER       # smtp | gmail | sendgrid | mailgun
+EMAIL_HOST, EMAIL_PORT, EMAIL_SECURE
+EMAIL_USER           # SMTP username / sender email
+EMAIL_PASS           # SMTP password
 EMAIL_FROM_NAME      # Channelad
 EMAIL_FROM_ADDRESS   # noreply@channelad.io
 ```
 
-### OAuth
+### OAuth + plataformas
 ```
-META_APP_ID          # Facebook App ID
-META_APP_SECRET      # Facebook App Secret
-LINKEDIN_CLIENT_ID   # LinkedIn App ID
-LINKEDIN_CLIENT_SECRET # LinkedIn App Secret
+META_APP_ID, META_APP_SECRET     # Facebook Login + WhatsApp signing
+INSTAGRAM_APP_ID, INSTAGRAM_APP_SECRET
+LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET
+GOOGLE_CLIENT_ID                  # Sign in with Google
+TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_USERNAME
+TELEGRAM_API_ID, TELEGRAM_API_HASH, TELEGRAM_SESSION  # MTProto intel scraping
+DISCORD_BOT_TOKEN, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET
+WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_VERIFY_TOKEN
+WHATSAPP_SESSION_PATH             # opcional, activa el worker whatsapp-web.js (VPS only)
 ```
 
-### Opcionales
+### Seguridad y operacion
 ```
-CRON_SECRET          # Vercel cron authorization
-FULL_ACCESS_EMAILS   # Comma-separated admin/beta tester emails
-NODE_ENV             # production
+ENCRYPTION_KEY        # AES-256 (exactamente 32 caracteres)
+SESSION_SECRET
+CRON_SECRET           # bearer token que validan los 6 vercel cron jobs
+CORS_ORIGIN           # comma-separated allowlist adicional (FRONTEND_URL ya esta)
+BCRYPT_ROUNDS         # default 10, recomendado 12+
+MAX_REQUEST_SIZE      # default 10mb (express.json + urlencoded)
+REDIS_URL             # opcional, mejora rate-limit y OTP TTL
 ```
+
+### Internas
+```
+BOT_API_KEY           # Auth del bot Telegram para POST /api/auth/bot-token (CRITICO)
+FULL_ACCESS_EMAILS    # comma-separated emails con beta access automatico (vacio en prod)
+DEMO_MODE, DEMO_PASSWORD
+```
+
+> La env `PLATFORM_COMMISSION_RATE` que aparece en .env.example legacy es ignorada — la tasa real vive en `config/commissions.js`.
 
 ---
 
 ## 12. Deploy y operaciones
 
 ### Vercel
-- Auto-deploy desde `main` branch
-- `vercel.json`: build command, rewrites, cron, function timeout (30s)
-- Cron: `/api/oauth/meta/cron-refresh` diario a las 3:00 UTC
+- Auto-deploy desde `main` branch.
+- `vercel.json`: una unica funcion `api/index.js` con `maxDuration: 60`.
+- Output directory: `dist/` (vite build con `root: 'client'`, `outDir: '../dist'`).
+- Cron jobs (todos validados con `CRON_SECRET`):
+
+| Schedule (UTC)  | Endpoint                           | Que hace |
+|-----------------|------------------------------------|----------|
+| `0 3 * * *`     | `/api/oauth/meta/cron-refresh`     | Refresca tokens Meta que expiran en <7d |
+| `0 3 * * *`     | `/api/admin/scoring/run`           | Recalcula CAS de todos los canales |
+| `30 3 * * *`    | `/api/admin/metrics/capture`       | Snapshot diario de metricas de campana |
+| `30 2 * * *`    | `/api/jobs/telegram-intel`         | Scraping diario de Telegram |
+| `0 4 * * *`     | `/api/jobs/multiplatform-intel`    | Scraping diario multiplataforma |
+| `0 5 * * 1`     | `/api/jobs/tgstat-discover`        | Discovery semanal via tgstat |
 
 ### Health check
 - `GET /health` o `GET /api/health`
@@ -437,6 +549,32 @@ stripePaymentIntentId, stripeClientSecret
 referralCreditGenerated, referralUserId
 ```
 
+### PayoutAttempt (nuevo, AUDIT.md A-9)
+```
+campaign (unique), creator, stripeAccountId, amount, currency
+status: pending|processing|succeeded|failed
+attempts, lastError, lastAttemptedAt, succeededAt
+stripeTransferId, stripeIdempotencyKey
+```
+
+### TrackingLink
+```
+code (unique), targetUrl, createdBy, type (campaign|verification|custom)
+campaign, channel
+stats: { totalClicks, uniqueClicks, lastClickAt, devices, countries, referers }
+clicks: [{ ip, userAgent, referer, country, device, os, browser, language, utm*, timestamp }]  # last 500
+verification: { status, minClicks, expiresAt, verifiedAt, postScreenshot }
+active
+```
+
+### TrackingFingerprint (nuevo, AUDIT.md A-10)
+```
+trackingLinkId, fingerprint  # unique compound index, race-safe upsert
+firstSeenAt                  # TTL: 90 dias
+```
+
+Reemplaza `TrackingLink._seenIps` (array capped a 10000 que se acercaba a 16MB BSON limit). El array sigue presente como fallback durante la migracion.
+
 ### Dispute
 ```
 campaign, openedBy, againstUser
@@ -517,6 +655,53 @@ messages: [{ sender, text, createdAt }]
 |--------|------|------|-------------|
 | GET | /:transactionId | Si | Descargar factura HTML |
 
+### Onboarding (`/api/onboarding`) — wizard creators
+| Metodo | Ruta | Auth | Descripcion |
+|--------|------|------|-------------|
+| POST | /telegram/instrucciones | Si | Texto + chatId para verificar |
+| POST | /telegram/verificar | Si + email verified | Confirma admin status del bot |
+| POST | /discord/instrucciones | Si | Pasos para invitar el bot |
+| POST | /discord/verificar | Si + email verified | Confirma webhook configurado |
+| GET | /instagram/auth-url | Si + email verified | Genera URL OAuth con `state.source` |
+| GET | /instagram/callback | No | Routing por `state.source` (wizard vs dashboard) |
+| POST | /whatsapp/instrucciones | Si + email verified | Inicia OTP flow |
+| POST | /whatsapp/verificar-otp | Si + email verified | Valida OTP recibido por WhatsApp |
+| POST | /whatsapp/verificar | Si + email verified | Final del flow Cloud API |
+| POST | /whatsapp/iniciar | Si + email verified | Init worker baileys (VPS only) |
+| GET | /estado/:canalId | Si | Estado de integracion en tiempo real |
+
+### Webhooks (`/api/webhooks`) — entrada de plataformas externas
+| Metodo | Ruta | Verificacion |
+|--------|------|--------------|
+| GET | /whatsapp | `WHATSAPP_VERIFY_TOKEN` (Meta subscribe handshake) |
+| POST | /whatsapp | HMAC-SHA256 con `META_APP_SECRET` sobre raw Buffer (AUDIT.md C-2) |
+| POST | /telegram | Parse de updates de Bot API |
+
+### Admin (`/api/admin/*`) — gated por `req.usuario.rol === 'admin'`
+| Endpoint | Que hace |
+|----------|----------|
+| GET `/api/admin/dashboard/{overview,users,channels,campaigns,disputes,finances,scoring}` | KPIs y listados |
+| PUT `/api/admin/dashboard/{users,campaigns,disputes}/:id` | Mutaciones admin |
+| GET `/api/admin/payouts` | PayoutAttempt queue (default: pending+processing+failed) |
+| POST `/api/admin/payouts/:id/retry` | Reintenta transfer Stripe (idempotency-key reusa) |
+| POST `/api/admin/scoring/run` | Recalcula CAS (cron — header `Authorization: Bearer <CRON_SECRET>`) |
+| POST `/api/admin/metrics/capture` | Snapshot diario (cron) |
+
+### Cron jobs (`/api/jobs/*`) — tambien gated por `CRON_SECRET`
+`telegram-intel`, `multiplatform-intel`, `tgstat-discover`, `massive-seed`.
+
+### Otras rutas
+- `/api/lists` (userLists) y `/api/lists/public` (lists publicas)
+- `/api/autobuy` (reglas + trigger)
+- `/api/tracking` (links + analytics)
+- `/api/reviews` (5 stars + helpful + report)
+- `/api/notifications` (CRUD + push subscription)
+- `/api/files` (upload via multer + sharp)
+- `/api/anuncios` (CRUD anuncios + aprobacion)
+- `/api/transacciones` (historial + estadisticas + retiros + webhook stripe)
+- `/api/estadisticas` (dashboards creator/advertiser/channel/campaign)
+- `/api/baileys` (WhatsApp link + sessions, VPS only)
+
 ---
 
-*Documento generado automaticamente. Para preguntas: soporte@channelad.io*
+*Para preguntas: rafa@channelad.io. Reportes de seguridad: ver [SECURITY.md](../SECURITY.md).*
