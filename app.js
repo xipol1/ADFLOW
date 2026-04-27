@@ -108,9 +108,11 @@ logger.info('ChannelAd API starting', { env: ENV });
 app.use(express.json({ limit: MAX_REQUEST_SIZE }));
 app.use(express.urlencoded({ extended: true, limit: MAX_REQUEST_SIZE }));
 
-// Security middleware — sanitize inputs against NoSQL injection, XSS, and HTTP parameter pollution
+// Security middleware — sanitize inputs against NoSQL injection and HTTP parameter pollution.
+// xss-clean was removed (deprecated/unmaintained since 2018). XSS hardening
+// belongs at the rendering layer (React escapes by default) plus helmet's
+// CSP; sanitizing inbound JSON gives a false sense of safety.
 try { app.use(require('express-mongo-sanitize')()); } catch (e) { console.warn('express-mongo-sanitize not loaded:', e.message); }
-try { app.use(require('xss-clean')()); } catch (e) { console.warn('xss-clean not loaded:', e.message); }
 try { app.use(require('hpp')()); } catch (e) { console.warn('hpp not loaded:', e.message); }
 
 // Block access to sensitive files that could reveal tech stack or secrets
