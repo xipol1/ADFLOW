@@ -31,29 +31,60 @@ router.get('/whatsapp', (req, res) => {
  * POST /api/webhooks/whatsapp
  * Meta envía mensajes entrantes aquí.
  * Procesamos respuestas de verificación OTP.
+ *
+ * IMPORTANT: mounted with express.raw() so req.body is the original Buffer.
+ * Meta computes the HMAC over the exact bytes of the request body, so we
+ * must verify against that Buffer — JSON.stringify(parsedBody) does NOT
+ * preserve key ordering or whitespace and will never match.
  */
-router.post('/whatsapp', express.json(), async (req, res) => {
+router.post('/whatsapp', express.raw({ type: 'application/json', limit: '1mb' }), async (req, res) => {
   // Siempre responder 200 inmediatamente — Meta reintenta si no recibe 200
   res.status(200).json({ status: 'ok' });
 
   try {
-    // Validar firma de Meta si tenemos el secret
-    const appSecret = process.env.INSTAGRAM_APP_SECRET || process.env.META_APP_SECRET;
-    if (appSecret && req.headers['x-hub-signature-256']) {
-      const signature = req.headers['x-hub-signature-256'];
-      const rawBody = JSON.stringify(req.body);
+    // Validar firma de Meta. En producción es OBLIGATORIO:
+    //   - sin `META_APP_SECRET` → rechazamos todo (abriría la puerta a OTP falsos)
+    //   - sin header `x-hub-signature-256` → rechazamos
+    // En dev se permite sin secret para poder testear localmente.
+    const appSecret = process.env.META_APP_SECRET || process.env.INSTAGRAM_APP_SECRET;
+    const isProd = process.env.NODE_ENV === 'production';
+    const signature = req.headers['x-hub-signature-256'];
+
+    if (isProd && !appSecret) {
+      console.error('WhatsApp webhook recibido sin META_APP_SECRET en prod — rechazado');
+      return;
+    }
+
+    // req.body is a Buffer because of express.raw above. Hold on to it for
+    // the HMAC check, then parse as JSON for the actual processing.
+    const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body || '');
+
+    if (appSecret) {
+      if (!signature) {
+        console.warn('WhatsApp webhook sin firma, rechazado');
+        return;
+      }
       const expectedSig = 'sha256=' + crypto
         .createHmac('sha256', appSecret)
         .update(rawBody)
         .digest('hex');
-
-      if (signature !== expectedSig) {
-        console.warn('⚠️ WhatsApp webhook — firma inválida, ignorando');
+      const provided = Buffer.from(signature);
+      const expected = Buffer.from(expectedSig);
+      // timingSafeEqual throws on length mismatch, so guard explicitly first.
+      const valid = provided.length === expected.length && crypto.timingSafeEqual(provided, expected);
+      if (!valid) {
+        console.warn('WhatsApp webhook — firma inválida, ignorando');
         return;
       }
     }
 
-    const body = req.body;
+    let body;
+    try {
+      body = JSON.parse(rawBody.toString('utf8') || '{}');
+    } catch (err) {
+      console.warn('WhatsApp webhook — payload no es JSON válido:', err.message);
+      return;
+    }
 
     // Estructura de un webhook de WhatsApp Cloud API:
     // body.entry[].changes[].value.messages[]
