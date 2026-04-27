@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Channelad">
+  <title>Channelad</title>
+  <defs>
+    <linearGradient id="cad" x1="0%" y1="30%" x2="100%" y2="70%">
+      <stop offset="0%"  stop-color="#6D28D9"/>
+      <stop offset="18%" stop-color="#EC4899"/>
+      <stop offset="40%" stop-color="#3B82F6"/>
+      <stop offset="62%" stop-color="#14B8A6"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+  </defs>
+  <text x="50%" y="68%"
+        font-family="'Instrument Serif', 'Playfair Display', Didot, 'Bodoni MT', Georgia, serif"
+        font-weight="400"
+        font-size="620"
+        text-anchor="middle"
+        fill="url(#cad)"
+        letter-spacing="-18">CAD</text>
+  <rect x="790" y="620" width="62" height="62" fill="#10B981"/>
+</svg>
