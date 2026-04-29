@@ -18,6 +18,14 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     root: clientRoot,
     base: '/',
+    // Vite would otherwise look for publicDir at <root>/public (i.e.
+    // client/public, which does not exist). Point it at the project's
+    // /public folder where build-blog.js writes the static blog,
+    // sitemap.xml, robots.txt, manifest.json, sw.js and logos. Without
+    // this, Vercel served the SPA shell as text/html for /sitemap.xml,
+    // /robots.txt and /manifest.json — which broke Google Search Console
+    // sitemap discovery and PWA install.
+    publicDir: path.resolve(__dirname, 'public'),
     define: {
       'process.env.NEXT_PUBLIC_API_URL': JSON.stringify(env.NEXT_PUBLIC_API_URL ?? ''),
     },
