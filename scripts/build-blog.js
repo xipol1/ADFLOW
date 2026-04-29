@@ -577,6 +577,24 @@ ${allEntries.map(e => `  <url>
   fs.writeFileSync(SITEMAP_PATH, sitemap, 'utf-8');
   console.log(`  \u2705 sitemap.xml (${allEntries.length} URLs)`);
 
+  // \u2500\u2500\u2500 Blog-only sitemap (recommended by Google for content-heavy sections) \u2500\u2500\u2500
+  // Submitted separately in Search Console as `/blog/sitemap.xml`. Lets
+  // Google prioritise blog crawl independently from the main sitemap and
+  // makes per-section indexing stats actionable.
+  const blogSitemapEntries = [...blogEntries, ...reactEntries];
+  const blogSitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${blogSitemapEntries.map(e => `  <url>
+    <loc>${DOMAIN}${e.url}</loc>
+    <lastmod>${e.lastmod || todayDate}</lastmod>
+    <changefreq>${e.freq}</changefreq>
+    <priority>${e.priority}</priority>
+  </url>`).join('\n')}
+</urlset>`;
+  const BLOG_SITEMAP_PATH = path.join(OUTPUT_DIR, 'sitemap.xml');
+  fs.writeFileSync(BLOG_SITEMAP_PATH, blogSitemap, 'utf-8');
+  console.log(`  \u2705 blog/sitemap.xml (${blogSitemapEntries.length} URLs)`);
+
   // ─── Generate RSS feed ───
   const allPostsForFeed = [...posts, ...reactOnlyPosts].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const rssItems = allPostsForFeed.map(p => `    <item>
