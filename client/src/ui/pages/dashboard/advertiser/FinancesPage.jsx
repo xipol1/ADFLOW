@@ -147,7 +147,7 @@ const RechargeModal = ({ onClose }) => {
         <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
             <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Selecciona un importe</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '8px' }}>
               {PRESETS.map(amt => (
                 <button key={amt} onClick={() => setAmount(amt)} style={{
                   background: amount === amt ? PURPLE : 'var(--bg)',
@@ -308,7 +308,7 @@ export default function FinancesPage() {
           setRawTx(items)
           setTransactions(items.map(normalizeTx))
         }
-      } catch { /* empty state */ }
+      } catch (err) { console.error('FinancesPage.loadTransactions failed:', err) /* empty state */ }
       if (mounted) setLoading(false)
     }
     load()

@@ -50,14 +50,14 @@ export default function NotificationsPage() {
       setNotifications(prev => prev.map(n =>
         (n._id || n.id) === id ? { ...n, leida: true, read: true } : n
       ))
-    } catch {}
+    } catch (err) { console.error('NotificationsPage.markAsRead failed:', err) }
   }
 
   const markAllRead = async () => {
     try {
       await apiService.request('/notifications/leer-todas', { method: 'PUT' })
       setNotifications(prev => prev.map(n => ({ ...n, leida: true, read: true })))
-    } catch {}
+    } catch (err) { console.error('NotificationsPage.markAllRead failed:', err) }
   }
 
   const unreadCount = notifications.filter(n => !n.leida && !n.read).length

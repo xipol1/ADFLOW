@@ -811,7 +811,7 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
               })}
 
               {/* Summary */}
-              <div style={{ background: AG(0.04), border: `1px solid ${AG(0.15)}`, borderRadius: '12px', padding: '16px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginTop: '4px' }}>
+              <div style={{ background: AG(0.04), border: `1px solid ${AG(0.15)}`, borderRadius: '12px', padding: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '12px', marginTop: '4px' }}>
                 {[
                   { label: 'Precio minimo', value: `€${Math.min(...Object.values(dayPricing).filter(v => v.enabled).map(v => v.price)) || 0}` },
                   { label: 'Precio promedio', value: `€${avgPrice}` },
@@ -892,7 +892,7 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
                           Score: {ins.score}/100
                         </div>
                       </div>
-                      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', minWidth: '280px' }}>
+                      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '8px', minWidth: '0' }}>
                         {[
                           { label: 'Avg Views', field: 'avgViews', val: ins.avgViews },
                           { label: 'Avg Clicks', field: 'avgClicks', val: ins.avgClicks },
@@ -936,7 +936,7 @@ export default function CreatorChannelsPage() {
         const items = Array.isArray(res.data) ? res.data : res.data?.items || []
         setChannels(items)
       }
-    } catch { /* empty state */ }
+    } catch (err) { console.error('CreatorChannelsPage.loadChannels failed:', err) /* empty state */ }
     finally { setLoading(false) }
   }
 

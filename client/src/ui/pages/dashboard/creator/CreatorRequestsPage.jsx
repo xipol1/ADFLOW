@@ -134,7 +134,7 @@ const ChatPanel = ({ campaign, onSent }) => {
       try {
         const r = await apiService.getCampaignMessages(campaign._id)
         if (r?.success && active) setMsgs(r.data || [])
-      } catch {}
+      } catch (err) { console.error('CreatorRequestsPage.fetchMessages failed:', err) }
     }
     fetchMessages()
     const poll = setInterval(fetchMessages, 8000)

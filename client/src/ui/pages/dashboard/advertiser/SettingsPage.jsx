@@ -208,7 +208,7 @@ export default function SettingsPage() {
           if (u.preferenciasNotificacion) setNotifs(p => ({ ...p, ...u.preferenciasNotificacion }))
           if (u.datosFacturacion) setBilling(p => ({ ...p, ...u.datosFacturacion }))
         }
-      } catch { /* keep defaults from auth context */ }
+      } catch (err) { console.error('SettingsPage.loadProfile failed:', err) /* keep defaults from auth context */ }
     }
     load()
     return () => { cancelled = true }

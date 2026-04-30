@@ -133,10 +133,13 @@ export default function RegisterStep() {
         )}
 
         <div>
-          <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
+          <label htmlFor="onboarding-email" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
             Correo electronico
           </label>
           <input
+            id="onboarding-email"
+            name="email"
+            autoComplete="email"
             type="email" required autoFocus
             value={email} onChange={e => setEmail(e.target.value)}
             onFocus={() => setFocused('email')} onBlur={() => setFocused(null)}
@@ -146,10 +149,13 @@ export default function RegisterStep() {
         </div>
 
         <div>
-          <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
+          <label htmlFor="onboarding-password" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
             Contrasena
           </label>
           <input
+            id="onboarding-password"
+            name="password"
+            autoComplete="new-password"
             type="password" required
             value={password} onChange={e => setPassword(e.target.value)}
             onFocus={() => setFocused('pass')} onBlur={() => setFocused(null)}

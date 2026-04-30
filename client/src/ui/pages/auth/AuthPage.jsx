@@ -34,6 +34,7 @@ export default function AuthPage({ defaultTab = 'login' }) {
   const [needs2FA, setNeeds2FA] = useState(false)
   const [twoFACode, setTwoFACode] = useState('')
   const [twoFAEmail, setTwoFAEmail] = useState('')
+  const [useBackupCode, setUseBackupCode] = useState(false)
   const [botToken, setBotToken] = useState(botTokenParam)
   const [founderData, setFounderData] = useState(null) // { valid, channelUsername, channelTier, niche }
 
@@ -109,7 +110,11 @@ export default function AuthPage({ defaultTab = 'login' }) {
 
   const on2FAVerify = async (e) => {
     e.preventDefault()
-    if (twoFACode.length < 6) { setError('Introduce un codigo de 6 digitos'); return }
+    const minLen = useBackupCode ? 8 : 6
+    if (twoFACode.length < minLen) {
+      setError(useBackupCode ? 'Introduce tu código de respaldo de 8 caracteres' : 'Introduce un codigo de 6 digitos')
+      return
+    }
     setError('')
     setLoading(true)
     const valRes = await apiService.validate2FA(twoFAEmail, twoFACode)
@@ -131,13 +136,27 @@ export default function AuthPage({ defaultTab = 'login' }) {
   const [registerSuccess, setRegisterSuccess] = useState(false)
   const [registeredEmail, setRegisteredEmail] = useState('')
 
+  // Real-time password requirement checks (used by both submit + UI checklist)
+  const passwordChecks = {
+    length: password.length >= 8,
+    upper: /[A-Z]/.test(password),
+    lower: /[a-z]/.test(password),
+    digit: /\d/.test(password),
+  }
+  const passwordValid = Object.values(passwordChecks).every(Boolean)
+
   const onRegister = async (e) => {
     e.preventDefault()
     setError('')
-    if (password.length < 8) { setError('La contraseña debe tener al menos 8 caracteres'); return }
-    if (!/[A-Z]/.test(password)) { setError('La contraseña debe incluir al menos una mayúscula'); return }
-    if (!/[a-z]/.test(password)) { setError('La contraseña debe incluir al menos una minúscula'); return }
-    if (!/\d/.test(password)) { setError('La contraseña debe incluir al menos un número'); return }
+    if (!passwordValid) {
+      const missing = []
+      if (!passwordChecks.length) missing.push('8 caracteres')
+      if (!passwordChecks.upper) missing.push('una mayúscula')
+      if (!passwordChecks.lower) missing.push('una minúscula')
+      if (!passwordChecks.digit) missing.push('un número')
+      setError(`La contraseña debe incluir: ${missing.join(', ')}`)
+      return
+    }
     setLoading(true)
     const regData = { email, password, nombre: name, role }
     // Attach profile sub-type only when creator (advertisers don't have this split)
@@ -266,26 +285,50 @@ export default function AuthPage({ defaultTab = 'login' }) {
           {/* 2FA VERIFICATION STEP */}
           {tab === 'login' && needs2FA && (
             <form onSubmit={on2FAVerify} style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center', padding: '8px 0' }}>
-              <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: `${AG(0.1)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>🔐</div>
+              <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: `${AG(0.1)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>{useBackupCode ? '🔑' : '🔐'}</div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', fontFamily: D, marginBottom: '6px' }}>Verificacion en dos pasos</div>
-                <div style={{ fontSize: '13px', color: 'var(--muted)' }}>Introduce el codigo de tu app de autenticacion</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', fontFamily: D, marginBottom: '6px' }}>
+                  {useBackupCode ? 'Código de respaldo' : 'Verificación en dos pasos'}
+                </div>
+                <div style={{ fontSize: '13px', color: 'var(--muted)' }}>
+                  {useBackupCode
+                    ? 'Introduce uno de los códigos de 8 caracteres que guardaste al activar 2FA'
+                    : 'Introduce el código de tu app de autenticación'}
+                </div>
               </div>
               <input
-                type="text" value={twoFACode} onChange={e => setTwoFACode(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                placeholder="000000" maxLength={8} autoFocus
-                style={{ ...inputStyle(focusedField === '2fa'), width: '200px', textAlign: 'center', fontFamily: 'monospace', fontSize: '20px', letterSpacing: '0.3em', fontWeight: 700 }}
+                type="text"
+                value={twoFACode}
+                onChange={e => {
+                  const raw = e.target.value
+                  if (useBackupCode) {
+                    setTwoFACode(raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 8))
+                  } else {
+                    setTwoFACode(raw.replace(/\D/g, '').slice(0, 6))
+                  }
+                }}
+                placeholder={useBackupCode ? 'XXXXXXXX' : '000000'}
+                maxLength={8}
+                autoFocus
+                aria-label={useBackupCode ? 'Código de respaldo' : 'Código de autenticación'}
+                style={{ ...inputStyle(focusedField === '2fa'), width: useBackupCode ? '240px' : '200px', textAlign: 'center', fontFamily: 'monospace', fontSize: '20px', letterSpacing: '0.3em', fontWeight: 700 }}
                 onFocus={() => setFocusedField('2fa')} onBlur={() => setFocusedField(null)}
               />
-              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Tambien puedes usar un codigo de respaldo</div>
-              <button type="submit" disabled={loading || twoFACode.length < 6} style={{
-                width: '100%', background: loading || twoFACode.length < 6 ? 'var(--muted2)' : A,
+              <button
+                type="button"
+                onClick={() => { setUseBackupCode(!useBackupCode); setTwoFACode(''); setError('') }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: A, fontSize: '12px', fontWeight: 500, textDecoration: 'underline' }}
+              >
+                {useBackupCode ? 'Usar app de autenticación' : '¿No tienes acceso al móvil? Usa un código de respaldo'}
+              </button>
+              <button type="submit" disabled={loading || twoFACode.length < (useBackupCode ? 8 : 6)} style={{
+                width: '100%', background: loading || twoFACode.length < (useBackupCode ? 8 : 6) ? 'var(--muted2)' : A,
                 color: '#fff', border: 'none', borderRadius: '10px', padding: '13px',
                 fontSize: '14px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: F,
               }}>
                 {loading ? 'Verificando...' : 'Verificar'}
               </button>
-              <button type="button" onClick={() => { setNeeds2FA(false); setTwoFACode(''); setError('') }} style={{
+              <button type="button" onClick={() => { setNeeds2FA(false); setTwoFACode(''); setUseBackupCode(false); setError('') }} style={{
                 background: 'none', border: 'none', cursor: 'pointer', color: A, fontSize: '13px', fontWeight: 500,
               }}>Volver al login</button>
             </form>
@@ -318,10 +361,13 @@ export default function AuthPage({ defaultTab = 'login' }) {
               )}
 
               <div>
-                <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
+                <label htmlFor="login-email" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
                   Correo electrónico <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
+                  id="login-email"
+                  name="email"
+                  autoComplete="email"
                   type="email" required value={email}
                   onChange={e => setEmail(e.target.value)}
                   onFocus={() => setFocusedField('email')}
@@ -332,11 +378,14 @@ export default function AuthPage({ defaultTab = 'login' }) {
               </div>
 
               <div>
-                <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
+                <label htmlFor="login-password" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
                   Contraseña <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
+                    id="login-password"
+                    name="password"
+                    autoComplete="current-password"
                     type={showPass ? 'text' : 'password'} required value={password}
                     onChange={e => setPassword(e.target.value)}
                     onFocus={() => setFocusedField('pass')}
@@ -344,10 +393,16 @@ export default function AuthPage({ defaultTab = 'login' }) {
                     placeholder="••••••••"
                     style={{ ...inputStyle(focusedField === 'pass'), paddingRight: '44px' }}
                   />
-                  <button type="button" onClick={() => setShowPass(!showPass)} style={{
-                    position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted2)', fontSize: '13px',
-                  }}>{showPass ? '🙈' : '👁'}</button>
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                    aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    aria-pressed={showPass}
+                    style={{
+                      position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+                      background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted2)', fontSize: '13px',
+                    }}
+                  >{showPass ? '🙈' : '👁'}</button>
                 </div>
               </div>
 
@@ -457,10 +512,13 @@ export default function AuthPage({ defaultTab = 'login' }) {
               )}
 
               <div>
-                <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
+                <label htmlFor="register-name" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
                   Nombre <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
+                  id="register-name"
+                  name="name"
+                  autoComplete="name"
                   type="text" required value={name}
                   onChange={e => setName(e.target.value)}
                   onFocus={() => setFocusedField('name')}
@@ -471,10 +529,13 @@ export default function AuthPage({ defaultTab = 'login' }) {
               </div>
 
               <div>
-                <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
+                <label htmlFor="register-email" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
                   Correo electrónico <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
+                  id="register-email"
+                  name="email"
+                  autoComplete="email"
                   type="email" required value={email}
                   onChange={e => { if (!founderData?.valid) setEmail(e.target.value) }}
                   readOnly={!!founderData?.valid}
@@ -494,24 +555,68 @@ export default function AuthPage({ defaultTab = 'login' }) {
               </div>
 
               <div>
-                <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
+                <label htmlFor="register-password" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
                   Contraseña <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
+                    id="register-password"
+                    name="password"
+                    autoComplete="new-password"
                     type={showPass ? 'text' : 'password'} required value={password}
                     onChange={e => setPassword(e.target.value)}
                     onFocus={() => setFocusedField('pass')}
                     onBlur={() => setFocusedField(null)}
-                    placeholder="Min. 8 chars, mayuscula, minuscula y numero"
+                    placeholder="Crea una contraseña segura"
                     style={{ ...inputStyle(focusedField === 'pass'), paddingRight: '44px' }}
                     autoFocus={!!founderData?.valid}
+                    aria-describedby="password-requirements"
                   />
-                  <button type="button" onClick={() => setShowPass(!showPass)} style={{
-                    position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted2)', fontSize: '13px',
-                  }}>{showPass ? '🙈' : '👁'}</button>
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                    aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    aria-pressed={showPass}
+                    style={{
+                      position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+                      background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted2)', fontSize: '13px',
+                    }}
+                  >{showPass ? '🙈' : '👁'}</button>
                 </div>
+                {/* Real-time password requirements checklist */}
+                {(focusedField === 'pass' || password.length > 0) && (
+                  <div
+                    id="password-requirements"
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '4px 12px',
+                      marginTop: '8px',
+                      padding: '8px 10px',
+                      background: 'var(--bg)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                    }}
+                  >
+                    {[
+                      [passwordChecks.length, '8+ caracteres'],
+                      [passwordChecks.upper, '1 mayúscula'],
+                      [passwordChecks.lower, '1 minúscula'],
+                      [passwordChecks.digit, '1 número'],
+                    ].map(([ok, label]) => (
+                      <div key={label} style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        fontSize: '11px',
+                        color: ok ? '#10b981' : 'var(--muted2)',
+                        fontWeight: ok ? 600 : 400,
+                        transition: 'color .15s',
+                      }}>
+                        <span style={{ fontSize: '11px', width: '10px' }}>{ok ? '✓' : '○'}</span>
+                        {label}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Role selector — hidden when coming from bot (auto-creator) */}
@@ -572,11 +677,13 @@ export default function AuthPage({ defaultTab = 'login' }) {
 
               {/* Referral code field */}
               <div>
-                <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                <label htmlFor="register-referral" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                   <span style={{ fontSize: '14px' }}>🎁</span> Codigo de invitacion
                   {referral && <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 600 }}>Aplicado</span>}
                 </label>
                 <input
+                  id="register-referral"
+                  name="referralCode"
                   type="text" value={referral}
                   onChange={e => setReferral(e.target.value.toUpperCase())}
                   onFocus={() => setFocusedField('referral')}

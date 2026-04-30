@@ -1,16 +1,12 @@
-const CACHE_NAME = 'channelad-v1';
-const STATIC_ASSETS = ['/', '/index.html'];
+// Service worker — bump CACHE_NAME on each release so clients drop stale assets.
+const CACHE_NAME = 'channelad-v2';
 
-// Install: cache static assets
+// Install: take over immediately so users on a new bundle don't need to refresh twice.
 self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(STATIC_ASSETS))
-      .then(() => self.skipWaiting())
-  );
+  e.waitUntil(self.skipWaiting());
 });
 
-// Activate: clean old caches
+// Activate: drop old caches, claim open clients.
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -19,25 +15,48 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Fetch: network-first for API, cache-first for static
+// Fetch strategy:
+//   /api/*               → network-only (no cache; let the app handle errors)
+//   /assets/*  (hashed)  → cache-first (filenames change per build, safe to cache long-term)
+//   HTML / everything else → network-first (so a new deploy is picked up immediately;
+//                            falls back to cache when offline)
 self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
+
   if (url.pathname.startsWith('/api/')) {
+    return; // let the network handle it directly
+  }
+
+  // Vite emits hashed filenames under /assets/
+  if (url.pathname.startsWith('/assets/')) {
     e.respondWith(
-      fetch(e.request).catch(() => caches.match(e.request))
+      caches.match(e.request).then(cached => cached || fetch(e.request).then(response => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+        }
+        return response;
+      }))
     );
     return;
   }
+
+  // Network-first for documents and other static files (logo.svg, manifest.json, etc.)
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).then(response => {
-      if (response.ok && e.request.method === 'GET') {
+    fetch(e.request).then(response => {
+      if (response.ok) {
         const clone = response.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
       }
       return response;
-    }).catch(() => {
-      if (e.request.destination === 'document') return caches.match('/');
-    }))
+    }).catch(() =>
+      caches.match(e.request).then(cached => {
+        if (cached) return cached;
+        if (e.request.destination === 'document') return caches.match('/');
+        return new Response('Offline', { status: 503, statusText: 'Offline' });
+      })
+    )
   );
 });
 

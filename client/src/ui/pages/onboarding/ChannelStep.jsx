@@ -136,10 +136,12 @@ export default function ChannelStep() {
 
       {/* Channel name */}
       <div style={{ marginBottom: '16px' }}>
-        <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
+        <label htmlFor="onboarding-channel-name" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
           Nombre del canal
         </label>
         <input
+          id="onboarding-channel-name"
+          name="channelName"
           type="text" required
           value={channelName} onChange={e => setChannelName(e.target.value)}
           onFocus={() => setFocused('name')} onBlur={() => setFocused(null)}
@@ -150,10 +152,12 @@ export default function ChannelStep() {
 
       {/* Category */}
       <div style={{ marginBottom: '16px' }}>
-        <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
+        <label htmlFor="onboarding-channel-category" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
           Categoria
         </label>
         <select
+          id="onboarding-channel-category"
+          name="category"
           value={category}
           onChange={e => setCategory(e.target.value)}
           onFocus={() => setFocused('category')}
@@ -168,10 +172,12 @@ export default function ChannelStep() {
 
       {/* Channel link (optional) */}
       <div style={{ marginBottom: '28px' }}>
-        <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
+        <label htmlFor="onboarding-channel-link" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
           Enlace del canal <span style={{ color: 'var(--muted2)', fontWeight: 400 }}>(opcional)</span>
         </label>
         <input
+          id="onboarding-channel-link"
+          name="channelLink"
           type="text"
           value={channelLink} onChange={e => setChannelLink(e.target.value)}
           onFocus={() => setFocused('link')} onBlur={() => setFocused(null)}

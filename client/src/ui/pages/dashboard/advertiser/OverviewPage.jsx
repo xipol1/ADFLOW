@@ -328,7 +328,7 @@ export default function OverviewPage() {
           const sorted = Object.values(buckets).sort((a, b) => a.ts - b.ts).slice(-6)
           if (sorted.length > 0) setMonthlySpend(sorted)
         }
-      } catch { /* use empty state */ }
+      } catch (err) { console.error('OverviewPage.load failed:', err) /* use empty state */ }
       if (mounted) setLoading(false)
     }
     load()

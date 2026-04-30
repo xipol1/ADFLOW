@@ -178,7 +178,7 @@ export default function ReferralsPage() {
         <style>{`@keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }`}</style>
         <Skeleton w="220px" h={32} style={{ marginBottom: '8px' }} />
         <Skeleton w="340px" h={16} style={{ marginBottom: '32px' }} />
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1.2fr) repeat(3, 1fr)', gap: '14px', marginBottom: '26px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginBottom: '26px' }}>
           <Skeleton h={170} r={18} />
           {[1, 2, 3].map(i => <Skeleton key={i} h={150} r={18} />)}
         </div>
@@ -229,7 +229,7 @@ export default function ReferralsPage() {
       </div>
 
       {/* ── Credits Hero + KPI Cards ───────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1.2fr) repeat(3, 1fr)', gap: '14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
 
         {/* Credits hero card */}
         <div style={{
@@ -482,7 +482,7 @@ export default function ReferralsPage() {
                 <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Selecciona un importe
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '8px' }}>
                   {[...CONVERT_PRESETS, data.creditsBalance].map((amt, i) => {
                     const isAll = i === CONVERT_PRESETS.length
                     const label = isAll ? 'Todo' : `€${amt}`

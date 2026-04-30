@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Search, Zap, Megaphone, Wallet, BarChart3,
   Settings, LogOut, Menu, Bell, X, ChevronRight, ShieldAlert,
   Users, AlertTriangle, Radio, Inbox, Sun, Moon,
-  Shield, Database, DollarSign, FileText,
+  Shield, Database, DollarSign, FileText, HelpCircle, Plus,
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../services/api'
@@ -17,7 +17,8 @@ import { relTime } from '../utils/relTime'
 import CommandPalette from '../components/CommandPalette'
 import GlobalSearchBar from '../components/GlobalSearchBar'
 import EmailVerificationBanner from '../components/EmailVerificationBanner'
-import OnboardingWizard, { shouldShowOnboarding } from '../components/OnboardingWizard'
+import FiscalDataBanner from '../components/FiscalDataBanner'
+import OnboardingWizard, { shouldShowOnboarding, resetOnboarding } from '../components/OnboardingWizard'
 import {
   PURPLE, purpleAlpha, GREEN, greenAlpha,
   FONT_BODY, FONT_DISPLAY, EASE, NOTIF_TYPE,
@@ -41,27 +42,20 @@ const ROLE_CONFIG = {
     nav: [
       { group: null, items: [
         { path: '',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
-      ]},
-      { group: 'Canales', items: [
         { path: '/explore',  icon: Search,          label: 'Explorar',     fullOnly: true },
         { path: '/autobuy',  icon: Zap,             label: 'Auto-Buy',     fullOnly: true },
       ]},
       { group: 'Campañas', items: [
-        { path: '/campaigns',icon: BarChart3,       label: 'Mis Campañas', fullOnly: true },
-        { path: '/ads',      icon: Megaphone,       label: 'Solicitudes',  fullOnly: true },
-      ]},
-      { group: 'Análisis', items: [
-        { path: '/analytics',icon: BarChart3,       label: 'Analytics',    fullOnly: true },
-        { path: '/finances', icon: Wallet,          label: 'Finanzas',     fullOnly: true },
+        { path: '/campaigns',icon: Megaphone,       label: 'Mis Campañas', fullOnly: true },
+        { path: '/campaigns/new', icon: Plus,       label: 'Nueva Campaña', fullOnly: true },
       ]},
       { group: 'Cuenta', items: [
+        { path: '/finances', icon: Wallet,          label: 'Finanzas',     fullOnly: true },
         { path: '/referrals',icon: Users,           label: 'Referidos'             },
-        { path: '/disputes', icon: ShieldAlert,     label: 'Disputas',     fullOnly: true },
+        { path: '/settings', icon: Settings,        label: 'Configuración', fullOnly: true },
       ]},
     ],
-    bottomNav: [
-      { path: '/settings', icon: Settings, label: 'Configuración', fullOnly: true },
-    ],
+    bottomNav: [],
   },
   creator: {
     color: GREEN,
@@ -653,7 +647,7 @@ export default function DashboardLayout({ role = 'advertiser' }) {
       try {
         const res = await apiService.request('/notifications')
         if (!cancelled && res?.success) setNotifications(res.data || [])
-      } catch {}
+      } catch (err) { console.error('DashboardLayout.fetchNotifications failed:', err) }
 
       // Creator: also fetch pending requests count
       if (role === 'creator') {
@@ -662,7 +656,7 @@ export default function DashboardLayout({ role = 'advertiser' }) {
           if (!cancelled && res?.success && Array.isArray(res.data)) {
             setPendingCount(res.data.filter(a => (a.estado || a.status) === 'pendiente').length)
           }
-        } catch {}
+        } catch (err) { console.error('DashboardLayout.fetchPendingCount failed:', err) }
       }
     }
     fetchData()
@@ -973,6 +967,24 @@ export default function DashboardLayout({ role = 'advertiser' }) {
             {!isMobile && (
               <GlobalSearchBar compact />
             )}
+            {/* Reopen onboarding wizard */}
+            <button
+              type="button"
+              onClick={() => { resetOnboarding(role); setShowOnboarding(true) }}
+              aria-label="Ver tutorial de onboarding"
+              title="Ver tutorial"
+              style={{
+                width: '36px', height: '36px', borderRadius: '10px',
+                background: 'transparent', border: '1px solid var(--border)',
+                cursor: 'pointer', color: 'var(--muted)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'background .15s, color .15s, border-color .15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface2)'; e.currentTarget.style.color = cfg.color; e.currentTarget.style.borderColor = cfg.alpha(0.3) }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--muted)'; e.currentTarget.style.borderColor = 'var(--border)' }}
+            >
+              <HelpCircle size={16} strokeWidth={2} />
+            </button>
             <ThemeToggle />
             <NotificationBell
               notifications={notifications}
@@ -1018,6 +1030,7 @@ export default function DashboardLayout({ role = 'advertiser' }) {
           overflowY: 'auto', overflowX: 'hidden',
         }}>
           <EmailVerificationBanner />
+          <FiscalDataBanner />
           <PageErrorBoundary accentColor={cfg.color}>
             <Outlet />
           </PageErrorBoundary>

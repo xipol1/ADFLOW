@@ -5,22 +5,32 @@ import { GoogleOAuthProvider } from '@react-oauth/google'
 import AppRoutes from './routes/AppRoutes'
 import { AuthProvider } from './auth/AuthContext'
 import { NotificationsProvider } from './hooks/useNotifications'
+import { ToastProvider } from './components/ui/Toast'
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
 
 export default function App() {
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    if (!('serviceWorker' in navigator)) return
+    // In dev, never run a service worker — it caches stale bundles and
+    // breaks Vite's HMR. Unregister any leftover from a prior run.
+    if (import.meta.env.DEV) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(r => r.unregister())
+      })
+      return
     }
-  }, []);
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  }, [])
 
   const content = (
     <HelmetProvider>
       <BrowserRouter>
         <AuthProvider>
           <NotificationsProvider>
-            <AppRoutes />
+            <ToastProvider>
+              <AppRoutes />
+            </ToastProvider>
           </NotificationsProvider>
         </AuthProvider>
       </BrowserRouter>

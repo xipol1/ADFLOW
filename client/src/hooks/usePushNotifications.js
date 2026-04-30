@@ -38,7 +38,7 @@ export default function usePushNotifications() {
     }
     setSubscription(sub);
     // Send to backend
-    try { await apiService.request('/notifications/push-subscribe', { method: 'POST', data: { subscription: sub.toJSON() } }); } catch {}
+    try { await apiService.request('/notifications/push-subscribe', { method: 'POST', data: { subscription: sub.toJSON() } }); } catch (err) { console.error('usePushNotifications.subscribe failed:', err) }
     return sub;
   }, [isSupported]);
 
@@ -46,7 +46,7 @@ export default function usePushNotifications() {
     if (subscription) {
       await subscription.unsubscribe();
       setSubscription(null);
-      try { await apiService.request('/notifications/push-unsubscribe', { method: 'POST' }); } catch {}
+      try { await apiService.request('/notifications/push-unsubscribe', { method: 'POST' }); } catch (err) { console.error('usePushNotifications.unsubscribe failed:', err) }
     }
   }, [subscription]);
 

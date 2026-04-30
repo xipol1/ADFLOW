@@ -156,7 +156,7 @@ export default function DashboardPage() {
             </div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <Link
-                to={role === 'creator' || role === 'creador' ? '/creator/channels/new' : '/creator/channels/new'}
+                to={role === 'creator' || role === 'creador' ? '/creator/channels/new' : '/advertiser/explore'}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -171,7 +171,7 @@ export default function DashboardPage() {
                   fontFamily: F,
                 }}
               >
-                Verificar mi canal
+                {role === 'creator' || role === 'creador' ? 'Verificar mi canal' : 'Explorar canales'}
               </Link>
               <Link
                 to={role === 'creator' || role === 'creador' ? '/creator/referrals' : '/advertiser/referrals'}

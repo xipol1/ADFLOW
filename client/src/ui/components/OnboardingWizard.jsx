@@ -301,3 +301,8 @@ export default function OnboardingWizard({ role = 'advertiser', onClose }) {
 export function shouldShowOnboarding(role) {
   return !localStorage.getItem(getStorageKey(role))
 }
+
+/** Helper to clear the dismissal so the wizard reopens. */
+export function resetOnboarding(role) {
+  localStorage.removeItem(getStorageKey(role))
+}

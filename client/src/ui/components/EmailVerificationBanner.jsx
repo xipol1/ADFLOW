@@ -35,7 +35,7 @@ export default function EmailVerificationBanner() {
           return prev - 1
         })
       }, 1000)
-    } catch {}
+    } catch (err) { console.error('EmailVerificationBanner.resend failed:', err) }
     setResending(false)
   }
 

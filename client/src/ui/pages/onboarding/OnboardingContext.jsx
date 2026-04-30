@@ -44,7 +44,7 @@ function loadState() {
     }
     const saved = sessionStorage.getItem(STORAGE_KEY)
     if (saved) return { ...initialState, ...JSON.parse(saved) }
-  } catch {}
+  } catch (err) { console.error('OnboardingContext.loadState failed:', err) }
   return initialState
 }
 

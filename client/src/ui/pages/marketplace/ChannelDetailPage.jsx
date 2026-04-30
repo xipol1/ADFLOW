@@ -215,7 +215,7 @@ export default function ChannelDetailPage() {
         </div>
 
         {/* Stats row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px', marginBottom: '24px' }}>
           {[
             { label: 'Seguidores', value: fmtNumber(miembros), color: BLUE },
             { label: 'Engagement', value: engagement, color: OK },

@@ -94,13 +94,23 @@ export default function CandidatesReviewPage() {
     try {
       const res = await apiService.approveCandidate(cid)
       if (res?.success) { setCandidates((p) => p.filter((c) => (c._id || c.id) !== cid)); showToast(`Canal anadido al marketplace ✓`) }
-    } catch {}
+    } catch (err) {
+      console.error('CandidatesReviewPage.approve failed:', err)
+      showToast('Error al aprobar el canal')
+    }
     setActionId(null)
   }
 
   const handleReject = async (cid, reason) => {
     setActionId(cid)
-    try { await apiService.rejectCandidate(cid, reason); setCandidates((p) => p.filter((c) => (c._id || c.id) !== cid)); showToast('Canal rechazado') } catch {}
+    try {
+      await apiService.rejectCandidate(cid, reason)
+      setCandidates((p) => p.filter((c) => (c._id || c.id) !== cid))
+      showToast('Canal rechazado')
+    } catch (err) {
+      console.error('CandidatesReviewPage.reject failed:', err)
+      showToast('Error al rechazar el canal')
+    }
     setActionId(null)
   }
 

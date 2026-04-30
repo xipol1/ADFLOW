@@ -83,7 +83,7 @@ export default function AutoBuyPage() {
             setSelectedListId(prev => prev || items[0]._id || items[0].id || '')
           }
         }
-      } catch { /* keep localStorage fallback */ }
+      } catch (err) { console.error('AutoBuyPage.fetchLists failed:', err) /* keep localStorage fallback */ }
     }
     fetchLists()
     return () => { cancelled = true }
@@ -121,7 +121,7 @@ export default function AutoBuyPage() {
             category: ch.categoria || ch.category || '',
           })))
         }
-      } catch { /* keep empty fallback */ }
+      } catch (err) { console.error('AutoBuyPage.fetchRecommended failed:', err) /* keep empty fallback */ }
       if (!cancelled) setLoadingRec(false)
     }
     fetchRecommended()
@@ -142,7 +142,7 @@ export default function AutoBuyPage() {
         if (d.mode) setMode(d.mode)
         if (d.adText) setAdText(d.adText)
         if (d.url) setUrl(d.url)
-      } catch {}
+      } catch (err) { console.error('AutoBuyPage.restoreDraft parse failed:', err) }
     }
     draftRestored.current = true
   }, [])
@@ -690,7 +690,7 @@ export default function AutoBuyPage() {
           </div>
 
           {/* Row 1: Starter / Growth / Pro (highlight) / Scale */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '16px' }}>
             {PACKS.filter(p => p.row === 1).map(pack => {
               const discount = getPackDiscount(pack)
               const isSelected = selectedPack === pack.id

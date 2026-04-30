@@ -352,7 +352,7 @@ function PlatformConnectionSection({ channel, connectForm, setConnectForm }) {
         const res = await apiService.connectPlatform(channelId, { platform })
         if (res?.success && res.data?.url) window.open(res.data.url, '_blank')
       }
-    } catch { /* silent */ }
+    } catch (err) { console.error('CreatorAnalytics.connectPlatform failed:', err) }
   }
 
   return (
@@ -1180,7 +1180,7 @@ export default function CreatorAnalyticsPage() {
     try {
       const res = await apiService.recalculateScore(selectedChannelId)
       if (res?.success && res.data) setScoreData(res.data)
-    } catch { /* silent */ }
+    } catch (err) { console.error('CreatorAnalytics.recalculateScore failed:', err) }
     finally { setScoreLoading(false) }
   }
 

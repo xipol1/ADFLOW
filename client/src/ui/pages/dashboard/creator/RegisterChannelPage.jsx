@@ -241,7 +241,7 @@ export default function RegisterChannelPage() {
             setTimeout(() => { if (active) setStep(4) }, 1500)
           }
         }
-      } catch {}
+      } catch (err) { console.error('RegisterChannelPage.poll verification failed:', err) }
     }
     poll()
     setPollActive(true)
@@ -340,7 +340,7 @@ export default function RegisterChannelPage() {
         try {
           const vRes = await apiService.createVerificationLink(channelId)
           if (vRes?.success) setVerifyLink(vRes.data)
-        } catch {}
+        } catch (err) { console.error('RegisterChannelPage.createVerificationLink failed:', err) }
         setStep(3) // Go to verification post step
       } else {
         setError(res?.message || 'Error al guardar')
@@ -852,7 +852,7 @@ export default function RegisterChannelPage() {
             </div>
             <div style={{ padding: '20px' }}>
               {/* Stats grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                 <div style={{ background: 'var(--bg)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
                   <div style={{ fontFamily: D, fontSize: '28px', fontWeight: 800, color: 'var(--text)' }}>
                     {verifyStatus?.stats?.totalClicks || 0}
@@ -1029,7 +1029,7 @@ export default function RegisterChannelPage() {
             </div>
 
             {connectionResult?.connected && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '10px' }}>
                 <div style={{ background: 'var(--bg)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
                   <Users size={14} color={A} style={{ margin: '0 auto 4px', display: 'block' }} />
                   <div style={{ fontFamily: D, fontSize: '18px', fontWeight: 800, color: 'var(--text)' }}>{(connectionResult.followers || 0).toLocaleString('es')}</div>

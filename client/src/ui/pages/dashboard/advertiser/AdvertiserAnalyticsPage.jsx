@@ -378,7 +378,7 @@ function WatchlistSection({ lists, onRefresh }) {
       setNewName('')
       setCreating(false)
       onRefresh()
-    } catch { /* silent */ }
+    } catch (err) { console.error('AdvertiserAnalytics.createList failed:', err) }
     finally { setSaving(false) }
   }
 
@@ -386,7 +386,7 @@ function WatchlistSection({ lists, onRefresh }) {
     try {
       await apiService.removeChannelFromList(listId, channelId)
       onRefresh()
-    } catch { /* silent */ }
+    } catch (err) { console.error('AdvertiserAnalytics.removeChannelFromList failed:', err) }
   }
 
   const mapWatchlistChannel = (ch) => ({

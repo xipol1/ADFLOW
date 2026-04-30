@@ -638,7 +638,7 @@ export default function GetalinkPartnershipDashboard() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <Card title="Ajustar Escenarios" icon={Settings}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
             <Input label="Conservador (usuarios)" value={inputs.projConservativeUsers} onChange={v => upd('projConservativeUsers', v)} />
             <Input label="Realista (usuarios)" value={inputs.projRealisticUsers} onChange={v => upd('projRealisticUsers', v)} />
             <Input label="Agresivo (usuarios)" value={inputs.projAggressiveUsers} onChange={v => upd('projAggressiveUsers', v)} />

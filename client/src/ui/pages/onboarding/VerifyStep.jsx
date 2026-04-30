@@ -81,14 +81,17 @@ function PrimaryButton({ children, onClick, disabled, loading }) {
 }
 
 function TextInput({ value, onChange, placeholder, label, focused, setFocused, name }) {
+  const inputId = `verify-step-${name}`
   return (
     <div style={{ marginBottom: '20px' }}>
       {label && (
-        <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
+        <label htmlFor={inputId} style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
           {label}
         </label>
       )}
       <input
+        id={inputId}
+        name={name}
         type="text"
         value={value}
         onChange={e => onChange(e.target.value)}

@@ -160,7 +160,7 @@ const ChatPanel = ({ campaign, myRole = 'advertiser' }) => {
       try {
         const res = await apiService.getCampaignMessages(campaign._id)
         if (res?.success && active) setMessages(res.data || [])
-      } catch {}
+      } catch (err) { console.error('CampaignsPage.fetchMessages failed:', err) }
     }
     fetchMessages()
     const poll = setInterval(fetchMessages, 8000)
@@ -418,23 +418,38 @@ export default function CampaignsPage() {
   const navigate = useNavigate()
   const [campaigns, setCampaigns] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const [actionError, setActionError] = useState('')
   const [tab, setTab] = useState('Todas')
   const [selected, setSelected] = useState(null)
   const [actionLoading, setActionLoading] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
+    setLoadError('')
     try {
       const res = await apiService.getMyCampaigns()
       if (res?.success) {
         const items = res.data?.items || res.data || []
         setCampaigns(Array.isArray(items) ? items : [])
+      } else {
+        setLoadError(res?.message || 'No se pudieron cargar las campañas')
       }
-    } catch { /* silent */ }
+    } catch (err) {
+      console.error('CampaignsPage.load failed:', err)
+      setLoadError(err?.message || 'Error de conexión. Comprueba tu internet e inténtalo de nuevo.')
+    }
     setLoading(false)
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  // Auto-clear action errors after 5s
+  useEffect(() => {
+    if (!actionError) return
+    const t = setTimeout(() => setActionError(''), 5000)
+    return () => clearTimeout(t)
+  }, [actionError])
 
   const filtered = useMemo(() => {
     if (tab === 'Todas') return campaigns
@@ -446,10 +461,18 @@ export default function CampaignsPage() {
   /* Actions */
   const doAction = async (id, action) => {
     setActionLoading(id)
+    setActionError('')
     try {
       const res = await action(id)
-      if (res?.success) await load()
-    } catch { /* silent */ }
+      if (res?.success) {
+        await load()
+      } else {
+        setActionError(res?.message || 'No se pudo completar la acción')
+      }
+    } catch (err) {
+      console.error('CampaignsPage.doAction failed:', err)
+      setActionError(err?.message || 'Error de conexión. Inténtalo de nuevo.')
+    }
     setActionLoading('')
   }
 
@@ -515,7 +538,7 @@ export default function CampaignsPage() {
       </div>
 
       {/* ── KPI grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
         <KpiCard icon={BarChart3} label="Total" value={campaigns.length} color={PURPLE} />
         <KpiCard icon={Eye} label="Activas" value={activeCount} color={BLUE} sub="En progreso" />
         <KpiCard icon={CheckCircle} label="Completadas" value={completedCount} color={OK} />
@@ -548,6 +571,25 @@ export default function CampaignsPage() {
         })}
       </div>
 
+      {/* ── Action error banner (transient) ── */}
+      {actionError && (
+        <div role="alert" style={{
+          background: 'rgba(239,68,68,0.08)',
+          border: '1px solid rgba(239,68,68,0.25)',
+          borderRadius: '12px',
+          padding: '12px 16px',
+          display: 'flex', alignItems: 'center', gap: '10px',
+          fontSize: '13px', color: '#ef4444', fontFamily: FONT_BODY,
+        }}>
+          <AlertCircle size={16} />
+          <span style={{ flex: 1 }}>{actionError}</span>
+          <button onClick={() => setActionError('')} style={{
+            background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444',
+            fontSize: '18px', padding: 0, lineHeight: 1,
+          }} aria-label="Cerrar">×</button>
+        </div>
+      )}
+
       {/* ── Content: Split panel ── */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '80px 20px' }}>
@@ -555,6 +597,29 @@ export default function CampaignsPage() {
             <RefreshCw size={18} color={purpleAlpha(0.4)} />
           </div>
           <div style={{ fontSize: '14px', color: 'var(--muted)' }}>Cargando campanas...</div>
+        </div>
+      ) : loadError ? (
+        <div role="alert" style={{
+          textAlign: 'center', padding: '64px 20px',
+          background: 'var(--surface)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '20px',
+        }}>
+          <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
+            <AlertCircle size={28} color="#ef4444" />
+          </div>
+          <div style={{ fontFamily: FONT_DISPLAY, fontSize: '18px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>
+            No pudimos cargar tus campañas
+          </div>
+          <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '24px', maxWidth: '420px', margin: '0 auto 24px', lineHeight: 1.5 }}>
+            {loadError}
+          </div>
+          <button onClick={load} style={{
+            background: PURPLE, color: '#fff', border: 'none', borderRadius: '12px',
+            padding: '12px 28px', fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+            fontFamily: FONT_BODY, boxShadow: `0 4px 16px ${purpleAlpha(0.3)}`,
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+          }}>
+            <RefreshCw size={14} /> Reintentar
+          </button>
         </div>
       ) : filtered.length === 0 ? (
         <div style={{
