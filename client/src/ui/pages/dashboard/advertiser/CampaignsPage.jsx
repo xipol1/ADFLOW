@@ -7,6 +7,8 @@ import {
 } from 'lucide-react'
 import apiService from '../../../../services/api'
 import DeliveryBadge from '../../../components/DeliveryBadge'
+import EmptyState from '../../../components/EmptyState'
+import ChannelHealthMonitor from '../../../components/ChannelHealthMonitor'
 import AdsPage from './AdsPage'
 import {
   PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE,
@@ -672,24 +674,17 @@ export default function CampaignsPage() {
           </button>
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{
-          textAlign: 'center', padding: '80px 20px',
-          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px',
-        }}>
-          <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: purpleAlpha(0.06), border: `1px solid ${purpleAlpha(0.1)}`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
-            <Zap size={28} color={purpleAlpha(0.3)} />
-          </div>
-          <div style={{ fontFamily: FONT_DISPLAY, fontSize: '18px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>Sin campanas</div>
-          <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '24px', maxWidth: '360px', margin: '0 auto 24px', lineHeight: 1.5 }}>
-            Explora canales de creadores y lanza tu primera campana de publicidad
-          </div>
-          <button onClick={() => navigate('/advertiser/explore')} className="adf-btn-primary" style={{
-            background: PURPLE, color: '#fff', border: 'none', borderRadius: '12px',
-            padding: '12px 28px', fontSize: '14px', fontWeight: 600, cursor: 'pointer',
-            fontFamily: FONT_BODY, boxShadow: `0 4px 16px ${purpleAlpha(0.3)}`,
-          }}>
-            Explorar canales
-          </button>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px' }}>
+          <EmptyState
+            icon={Megaphone}
+            title={tab === 'Todas' ? 'Sin campañas' : `Sin campañas en ${tab.toLowerCase()}`}
+            description={tab === 'Todas'
+              ? 'Explora canales de creadores y lanza tu primera campaña de publicidad.'
+              : 'Cambia de filtro o crea una nueva campaña.'}
+            actionLabel="Nueva campaña"
+            onAction={() => navigate('/advertiser/campaigns/new')}
+            secondary={{ label: 'Explorar canales', onClick: () => navigate('/advertiser/explore') }}
+          />
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: isOpen ? '380px minmax(0, 1fr)' : '1fr', gap: '16px', transition: 'grid-template-columns .3s ease' }}>
@@ -842,6 +837,90 @@ export default function CampaignsPage() {
                       </div>
                     ))}
                   </div>
+                )}
+
+                {/* ── Quick performance insights ─── */}
+                {['PUBLISHED', 'COMPLETED'].includes(sel.status) && sel.tracking && (sel.tracking.impressions > 0) && (() => {
+                  const clicks = sel.tracking.clicks || 0
+                  const impr = sel.tracking.impressions || 0
+                  const conv = sel.tracking.conversions || 0
+                  const ctr = impr > 0 ? (clicks / impr) * 100 : 0
+                  const convRate = clicks > 0 ? (conv / clicks) * 100 : 0
+                  // Benchmarks (typical industry averages for niche-agnostic comparison)
+                  const NICHE_CTR = 2.0
+                  const NICHE_CONV = 3.5
+                  const ctrDelta = ctr > 0 ? ((ctr - NICHE_CTR) / NICHE_CTR) * 100 : 0
+                  const convDelta = convRate > 0 ? ((convRate - NICHE_CONV) / NICHE_CONV) * 100 : 0
+                  const insights = []
+                  if (ctr > 0) {
+                    insights.push({
+                      ok: ctr >= NICHE_CTR,
+                      label: 'CTR',
+                      value: `${ctr.toFixed(2)}%`,
+                      benchmark: `media ${NICHE_CTR}%`,
+                      delta: ctrDelta,
+                    })
+                  }
+                  if (convRate > 0) {
+                    insights.push({
+                      ok: convRate >= NICHE_CONV,
+                      label: 'Conversión',
+                      value: `${convRate.toFixed(2)}%`,
+                      benchmark: `media ${NICHE_CONV}%`,
+                      delta: convDelta,
+                    })
+                  }
+                  if (insights.length === 0) return null
+                  return (
+                    <div style={{
+                      background: 'var(--bg)', border: `1px solid ${purpleAlpha(0.18)}`,
+                      borderRadius: 12, padding: 14,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                        <TrendingUp size={13} color={PURPLE} />
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Insights de rendimiento
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {insights.map((ins, i) => (
+                          <div key={i} style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            padding: '8px 10px',
+                            background: ins.ok ? `${OK}08` : `${WARN}08`,
+                            border: `1px solid ${ins.ok ? OK : WARN}25`,
+                            borderRadius: 8,
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              {ins.ok
+                                ? <CheckCircle size={14} color={OK} strokeWidth={2.4} />
+                                : <AlertCircle size={14} color={WARN} strokeWidth={2.4} />}
+                              <span style={{ fontSize: 12, color: 'var(--text)' }}>
+                                <strong>{ins.label}</strong> {ins.value} <span style={{ color: 'var(--muted)' }}>· {ins.benchmark}</span>
+                              </span>
+                            </div>
+                            <span style={{
+                              fontSize: 11, fontWeight: 700,
+                              color: ins.delta > 0 ? OK : ERR,
+                              background: ins.delta > 0 ? `${OK}14` : `${ERR}14`,
+                              borderRadius: 14, padding: '2px 8px',
+                            }}>
+                              {ins.delta > 0 ? '+' : ''}{ins.delta.toFixed(0)}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
+
+                {/* Channel health monitor — baseline vs during campaign */}
+                {['PAID', 'PUBLISHED', 'COMPLETED'].includes(sel.status) && (sel.channel?._id || sel.channel?.id) && (
+                  <ChannelHealthMonitor
+                    channelId={sel.channel._id || sel.channel.id}
+                    campaignAt={sel.paidAt || sel.publishedAt || sel.createdAt}
+                    plataforma={sel.channel.plataforma}
+                  />
                 )}
 
                 {/* Chat */}

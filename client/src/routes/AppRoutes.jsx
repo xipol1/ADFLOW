@@ -28,6 +28,8 @@ import SettingsPage     from '../ui/pages/dashboard/advertiser/SettingsPage'
 import ReferralsPage   from '../ui/pages/dashboard/advertiser/ReferralsPage'
 import AdvertiserAnalyticsPage from '../ui/pages/dashboard/advertiser/AdvertiserAnalyticsPage'
 import CampaignAnalyticsPage from '../ui/pages/dashboard/advertiser/CampaignAnalyticsPage'
+import AnalyzeChannelPage from '../ui/pages/dashboard/advertiser/AnalyzeChannelPage'
+import AnalyzeAdPage from '../ui/pages/dashboard/advertiser/AnalyzeAdPage'
 
 // Creator dashboard suite
 import CreatorLayout        from '../ui/pages/dashboard/creator/CreatorLayout'
@@ -72,6 +74,7 @@ import BlogPost from '../ui/pages/blog/BlogPost'
 // WhatsApp linking
 import LinkWhatsAppPage from '../ui/pages/dashboard/creator/LinkWhatsAppPage'
 import WhatsAppAuditLogPage from '../ui/pages/dashboard/creator/WhatsAppAuditLogPage'
+import VerifyWhatsAppAdminPage from '../ui/pages/dashboard/creator/VerifyWhatsAppAdminPage'
 
 // Rescued pages (404, password reset, channel detail, onboarding flow)
 import NotFoundPage from '../ui/pages/NotFoundPage'
@@ -167,6 +170,8 @@ export default function AppRoutes() {
         <Route path="ads"      element={<Navigate to="/advertiser/campaigns?tab=solicitudes" replace />} />
         <Route path="finances" element={<FullAccessOnly feature="Finanzas"><FinancesPage /></FullAccessOnly>} />
         <Route path="analytics" element={<Navigate to="/advertiser/finances" replace />} />
+        <Route path="analyze/channel" element={<FullAccessOnly feature="Análisis de canal"><AnalyzeChannelPage /></FullAccessOnly>} />
+        <Route path="analyze/ad"      element={<FullAccessOnly feature="Análisis de anuncio"><AnalyzeAdPage /></FullAccessOnly>} />
         <Route path="referrals" element={<ReferralsPage />} />
         <Route path="disputes" element={<FullAccessOnly feature="Disputas"><DisputesPage /></FullAccessOnly>} />
         <Route path="notifications" element={<NotificationsPage />} />
@@ -186,6 +191,7 @@ export default function AppRoutes() {
         <Route path="channels" element={<CreatorChannelsPage />} />
         <Route path="channels/new" element={<RegisterChannelPage />} />
         <Route path="channels/link-whatsapp" element={<LinkWhatsAppPage />} />
+        <Route path="channels/:canalId/verify-wa-admin" element={<VerifyWhatsAppAdminPage />} />
         <Route path="whatsapp-audit" element={<WhatsAppAuditLogPage />} />
         <Route path="requests" element={<FullAccessOnly feature="Solicitudes"><CreatorRequestsPage /></FullAccessOnly>} />
         <Route path="earnings" element={<FullAccessOnly feature="Ganancias"><CreatorEarningsPage /></FullAccessOnly>} />

@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import { ArrowLeft, Send, Calendar, Link2, FileText, DollarSign, CheckCircle, Loader2, AlertCircle, ChevronLeft, ChevronRight, Clock, Zap } from 'lucide-react'
 import apiService from '../../../../services/api'
 import { Badge } from '../../../../components/ui'
+import CopyAnalyzerCompact from '../../../components/CopyAnalyzerCompact'
 
 function scoreColor(v) {
   if (v >= 90) return 'var(--gold)'
@@ -270,6 +271,7 @@ export default function NewCampaignPage() {
               maxLength={5000}
             />
             <div className="text-right mt-1 text-[11px]" style={{ color: content.length > 4500 ? 'var(--red, #f85149)' : 'var(--muted2)' }}>{content.length}/5000 caracteres</div>
+            <CopyAnalyzerCompact text={content} />
           </div>
 
           {/* Target URL */}

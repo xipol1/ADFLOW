@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Wallet, TrendingUp, ArrowDownLeft, ArrowUpRight, Download, Plus, X, CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react'
+import { Wallet, TrendingUp, ArrowDownLeft, ArrowUpRight, Download, Plus, X, CheckCircle, Clock, AlertCircle, Loader2, BarChart3, Receipt, CreditCard } from 'lucide-react'
 import apiService from '../../../../services/api'
 import { SkeletonPage } from '../../../components/Skeleton'
 import EmptyState from '../../../components/EmptyState'
 import {
   PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, BLUE,
 } from '../../../theme/tokens'
+
+
+// ─── Tab config ───────────────────────────────────────────────────────────────
+const FIN_TABS = [
+  { key: 'resumen',       label: 'Resumen',        icon: BarChart3 },
+  { key: 'transacciones', label: 'Transacciones',  icon: Receipt },
+  { key: 'pagos',         label: 'Métodos de pago', icon: CreditCard },
+]
 
 
 // ─── Status config ───────────────────────────────────────────────────────────
@@ -287,6 +295,17 @@ export default function FinancesPage() {
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [rawTx, setRawTx] = useState([])
+  const [activeTab, setActiveTab] = useState(() => {
+    const t = searchParams.get('tab')
+    return FIN_TABS.find(x => x.key === t) ? t : 'resumen'
+  })
+
+  const handleTabChange = (key) => {
+    setActiveTab(key)
+    if (key === 'resumen') searchParams.delete('tab')
+    else searchParams.set('tab', key)
+    setSearchParams(searchParams, { replace: true })
+  }
 
   // Handle Stripe redirect callback
   useEffect(() => {
@@ -340,7 +359,11 @@ export default function FinancesPage() {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
         <div>
           <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: '28px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.04em', marginBottom: '4px' }}>Finanzas</h1>
-          <p style={{ fontSize: '14px', color: 'var(--muted)' }}>Controla tu saldo, gasto y métodos de pago</p>
+          <p style={{ fontSize: '14px', color: 'var(--muted)' }}>
+            {activeTab === 'resumen' && 'Tu saldo, gasto mensual y rendimiento por plataforma'}
+            {activeTab === 'transacciones' && 'Historial completo de movimientos y facturas'}
+            {activeTab === 'pagos' && 'Tarjetas guardadas y métodos de pago'}
+          </p>
         </div>
         <button
           onClick={() => setShowRecharge(true)}
@@ -351,6 +374,30 @@ export default function FinancesPage() {
           <Plus size={16} strokeWidth={2.5} /> Recargar saldo
         </button>
       </div>
+
+      {/* ── Tabs ── */}
+      <div style={{ display: 'flex', gap: '2px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '3px', width: 'fit-content' }}>
+        {FIN_TABS.map(({ key, label, icon: Icon }) => {
+          const active = activeTab === key
+          return (
+            <button key={key} onClick={() => handleTabChange(key)} style={{
+              background: active ? PURPLE : 'transparent',
+              color: active ? '#fff' : 'var(--muted)',
+              border: 'none', borderRadius: '9px', padding: '8px 14px',
+              fontSize: '13px', fontWeight: active ? 600 : 400,
+              cursor: 'pointer', fontFamily: FONT_BODY,
+              transition: 'all .18s ease',
+              display: 'flex', alignItems: 'center', gap: '6px',
+            }}>
+              <Icon size={13} />
+              {label}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* ── RESUMEN tab content ── */}
+      {activeTab === 'resumen' && (<React.Fragment>
 
       {/* ── Balance + KPI row ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
@@ -434,6 +481,11 @@ export default function FinancesPage() {
           </div>
         </div>
       </div>
+
+      </React.Fragment>)}
+
+      {/* ── TRANSACCIONES tab content ── */}
+      {activeTab === 'transacciones' && (<React.Fragment>
 
       {/* ── Transactions ── */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', overflow: 'hidden' }}>
@@ -546,6 +598,11 @@ export default function FinancesPage() {
         </div>
       </div>
 
+      </React.Fragment>)}
+
+      {/* ── PAGOS tab content ── */}
+      {activeTab === 'pagos' && (<React.Fragment>
+
       {/* ── Payment methods ── */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', padding: '22px' }}>
         <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '16px' }}>Métodos de pago</h2>
@@ -578,6 +635,8 @@ export default function FinancesPage() {
           </button>
         </div>
       </div>
+
+      </React.Fragment>)}
 
       {showRecharge && <RechargeModal onClose={() => setShowRecharge(false)} />}
     </div>

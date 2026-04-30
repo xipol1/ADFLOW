@@ -49,6 +49,10 @@ const ROLE_CONFIG = {
         { path: '/campaigns',icon: Megaphone,       label: 'Mis Campañas', fullOnly: true },
         { path: '/campaigns/new', icon: Plus,       label: 'Nueva Campaña', fullOnly: true },
       ]},
+      { group: 'Análisis', items: [
+        { path: '/analyze/channel', icon: BarChart3, label: 'Analizar canal',   fullOnly: true },
+        { path: '/analyze/ad',      icon: Megaphone, label: 'Analizar anuncio', fullOnly: true },
+      ]},
       { group: 'Cuenta', items: [
         { path: '/finances', icon: Wallet,          label: 'Finanzas',     fullOnly: true },
         { path: '/referrals',icon: Users,           label: 'Referidos'             },
