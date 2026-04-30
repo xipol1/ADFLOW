@@ -40,6 +40,21 @@ const buildUserResponse = (usuario) => {
     rol === 'admin' ||
     usuario?.betaAccess === true ||
     FULL_ACCESS_EMAILS.includes(email);
+  // Build datosFacturacion safely from a Mongoose subdoc or POJO.
+  const df = usuario?.datosFacturacion?.toObject?.() || usuario?.datosFacturacion || {};
+  const datosFacturacion = {
+    razonSocial: df.razonSocial || '',
+    nif: df.nif || '',
+    direccion: df.direccion || '',
+    cp: df.cp || '',
+    ciudad: df.ciudad || '',
+    provincia: df.provincia || '',
+    pais: df.pais || 'ES',
+    emailFacturacion: df.emailFacturacion || '',
+    esEmpresa: df.esEmpresa !== false,
+    viesValidado: !!df.viesValidado,
+    completado: !!df.completado,
+  };
   return {
     id: usuario?._id ? usuario._id.toString() : undefined,
     email: usuario?.email,
@@ -52,6 +67,7 @@ const buildUserResponse = (usuario) => {
     fullAccess: betaAccess,
     betaAccess,
     campaignCredits: usuario?.campaignCreditsBalance || 0,
+    datosFacturacion,
   };
 };
 
@@ -452,16 +468,79 @@ const obtenerPerfil = async (req, res) => {
   }
 };
 
+const FISCAL_FIELDS = [
+  'razonSocial', 'nif', 'direccion', 'cp', 'ciudad', 'provincia',
+  'pais', 'emailFacturacion', 'esEmpresa',
+];
+
 const actualizarPerfil = async (req, res) => {
   try {
     if (!database.estaConectado()) await database.conectar();
-    const allowed = ['nombre', 'apellido'];
-    const updates = {};
-    allowed.forEach(k => { if (req.body[k] !== undefined) updates[k] = String(req.body[k]).trim(); });
-    const user = await Usuario.findByIdAndUpdate(req.usuario.id, updates, { new: true }).select('-password -sesiones');
+    const user = await Usuario.findById(req.usuario.id);
+    if (!user) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+
+    if (req.body.nombre !== undefined) user.nombre = String(req.body.nombre).trim();
+    if (req.body.apellido !== undefined) user.apellido = String(req.body.apellido).trim();
+
+    if (req.body.datosFacturacion && typeof req.body.datosFacturacion === 'object') {
+      const incoming = req.body.datosFacturacion;
+      // Mongoose subdocs are auto-created via the schema default, but defensively
+      // ensure the path exists so we don't NPE on a legacy user document.
+      if (!user.datosFacturacion) user.datosFacturacion = {};
+
+      // Detect changes that invalidate VIES validation. Compared *before* we
+      // overwrite the fields so we still have the previous values.
+      const prevNif = user.datosFacturacion.nif || '';
+      const prevPais = user.datosFacturacion.pais || '';
+      const newNif = incoming.nif !== undefined ? String(incoming.nif).trim().toUpperCase() : prevNif;
+      const newPais = incoming.pais !== undefined ? String(incoming.pais).trim().toUpperCase() : prevPais;
+      const fiscalIdentityChanged = newNif !== prevNif || newPais !== prevPais;
+
+      FISCAL_FIELDS.forEach(k => {
+        if (incoming[k] === undefined) return;
+        if (k === 'esEmpresa') {
+          user.datosFacturacion[k] = !!incoming[k];
+        } else if (k === 'nif' || k === 'pais') {
+          user.datosFacturacion[k] = String(incoming[k]).trim().toUpperCase();
+        } else if (k === 'emailFacturacion') {
+          user.datosFacturacion[k] = String(incoming[k]).trim().toLowerCase();
+        } else {
+          user.datosFacturacion[k] = String(incoming[k]).trim();
+        }
+      });
+
+      if (fiscalIdentityChanged) {
+        user.datosFacturacion.viesValidado = false;
+        user.datosFacturacion.viesValidadoAt = null;
+      }
+    }
+
+    await user.save();  // pre-save hook recomputes datosFacturacion.completado
     return res.json({ success: true, user: buildUserResponse(user) });
   } catch (e) {
+    logErr('actualizarPerfil', e);
     return res.status(500).json({ success: false, message: 'Error interno' });
+  }
+};
+
+/**
+ * POST /api/auth/validar-vies
+ * Dispara una validación VIES contra los datos fiscales del usuario.
+ * No requiere body — usa el NIF/país que ya están guardados en el perfil.
+ * Devuelve el estado actualizado.
+ */
+const validarVIES = async (req, res) => {
+  try {
+    if (!database.estaConectado()) await database.conectar();
+    const { validateUserVIES } = require('../services/viesService');
+    const result = await validateUserVIES(req.usuario.id);
+
+    // Reload user para devolver el estado actualizado al frontend.
+    const user = await Usuario.findById(req.usuario.id).select('-password -sesiones');
+    return res.json({ success: true, result, user: buildUserResponse(user) });
+  } catch (e) {
+    logErr('validarVIES', e);
+    return res.status(500).json({ success: false, message: 'Error validando VIES' });
   }
 };
 
@@ -757,6 +836,7 @@ module.exports = {
   logout,
   obtenerPerfil,
   actualizarPerfil,
+  validarVIES,
   cambiarPassword,
   desactivarCuenta,
   obtenerEstadisticas,

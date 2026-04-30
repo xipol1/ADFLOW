@@ -122,6 +122,8 @@ const validacionesNuevaPassword = [
     .withMessage('La contraseña debe incluir mayúscula, minúscula y número')
 ];
 
+const { isValidFiscalId } = require('../lib/fiscalValidation');
+
 const validacionesActualizarPerfil = [
   body('nombre')
     .optional()
@@ -168,7 +170,59 @@ const validacionesActualizarPerfil = [
   body('zonaHoraria')
     .optional()
     .isLength({ min: 3, max: 50 })
-    .withMessage('Zona horaria inválida')
+    .withMessage('Zona horaria inválida'),
+
+  // Datos fiscales — usados para emisión legal de facturas.
+  body('datosFacturacion.razonSocial')
+    .optional()
+    .trim()
+    .isLength({ max: 200 })
+    .withMessage('La razón social no puede exceder 200 caracteres'),
+  body('datosFacturacion.nif')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ min: 4, max: 20 })
+    .withMessage('NIF/CIF inválido (longitud)')
+    .custom((value, { req }) => {
+      const pais = (req.body?.datosFacturacion?.pais || 'ES').toUpperCase();
+      if (!isValidFiscalId(value, pais)) {
+        throw new Error('NIF/CIF inválido para el país indicado');
+      }
+      return true;
+    }),
+  body('datosFacturacion.direccion')
+    .optional()
+    .trim()
+    .isLength({ max: 200 })
+    .withMessage('La dirección no puede exceder 200 caracteres'),
+  body('datosFacturacion.cp')
+    .optional()
+    .trim()
+    .isLength({ max: 12 })
+    .withMessage('Código postal inválido'),
+  body('datosFacturacion.ciudad')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('La ciudad no puede exceder 100 caracteres'),
+  body('datosFacturacion.provincia')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('La provincia no puede exceder 100 caracteres'),
+  body('datosFacturacion.pais')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 2 })
+    .withMessage('Código de país inválido (ISO 3166-1 alpha-2)'),
+  body('datosFacturacion.emailFacturacion')
+    .optional({ checkFalsy: true })
+    .isEmail()
+    .withMessage('Email de facturación inválido'),
+  body('datosFacturacion.esEmpresa')
+    .optional()
+    .isBoolean()
+    .withMessage('esEmpresa debe ser booleano'),
 ];
 
 // Rate limiting específico para autenticación
@@ -382,6 +436,18 @@ router.put('/perfil',
   validacionesActualizarPerfil,
   validarCampos,
   authController.actualizarPerfil
+);
+
+/**
+ * @route   POST /api/auth/validar-vies
+ * @desc    Validar el VAT del usuario contra VIES (Comisión Europea).
+ *          Usa los datos fiscales ya guardados en el perfil. Útil para
+ *          aplicar reverse charge en facturas intra-UE B2B.
+ * @access  Privado
+ */
+router.post('/validar-vies',
+  autenticar,
+  authController.validarVIES
 );
 
 /**

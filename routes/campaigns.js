@@ -1,6 +1,6 @@
 const express = require('express');
 const { body, param } = require('express-validator');
-const { autenticar, requiereEmailVerificado } = require('../middleware/auth');
+const { autenticar, requiereEmailVerificado, requiereDatosFacturacion } = require('../middleware/auth');
 const { validarCampos } = require('../middleware/validarCampos');
 const campaignController = require('../controllers/campaignController');
 
@@ -23,6 +23,7 @@ router.post(
   '/launch-auto',
   autenticar,
   requiereEmailVerificado,
+  requiereDatosFacturacion,
   [
     body('budget').isFloat({ min: 50 }).withMessage('Presupuesto mínimo: €50'),
     body('content').isString().notEmpty().trim().isLength({ max: 5000 }).withMessage('Contenido requerido (max 5000 caracteres)'),
@@ -37,6 +38,7 @@ router.post(
   '/',
   autenticar,
   requiereEmailVerificado,
+  requiereDatosFacturacion,
   [
     body('channel').isMongoId().withMessage('channel inválido'),
     body('content').isString().notEmpty().trim().isLength({ max: 5000 }).withMessage('Contenido demasiado largo (max 5000 caracteres)'),

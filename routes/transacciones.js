@@ -1,6 +1,6 @@
 const express = require('express');
 const { param, body } = require('express-validator');
-const { autenticar, requiereEmailVerificado } = require('../middleware/auth');
+const { autenticar, requiereEmailVerificado, requiereDatosFacturacion } = require('../middleware/auth');
 const { validarCampos } = require('../middleware/validarCampos');
 const transaccionController = require('../controllers/transaccionController');
 
@@ -9,11 +9,13 @@ const router = express.Router();
 // Stripe webhook — raw body required for signature verification
 router.post('/webhook', express.raw({ type: 'application/json' }), transaccionController.webhookPago);
 
-// Create Stripe Checkout Session for wallet top-up
+// Create Stripe Checkout Session for wallet top-up.
+// Gated by datos fiscales: cargar saldo implica una factura emitida → necesitamos NIF.
 router.post(
   '/create-checkout-session',
   autenticar,
   requiereEmailVerificado,
+  requiereDatosFacturacion,
   [body('amount').isFloat({ min: 5 }).withMessage('Importe mínimo: 5')],
   validarCampos,
   transaccionController.crearCheckoutSession
@@ -24,16 +26,19 @@ router.post(
   '/create-payment-intent',
   autenticar,
   requiereEmailVerificado,
+  requiereDatosFacturacion,
   [body('transaccionId').isMongoId().withMessage('ID de transacción inválido')],
   validarCampos,
   transaccionController.crearPaymentIntent
 );
 
-// Creator withdrawal request
+// Creator withdrawal request — datos fiscales son obligatorios para emitir
+// factura recibida del creator y cumplir con la retención IRPF/Modelo 130.
 router.post(
   '/retiro',
   autenticar,
   requiereEmailVerificado,
+  requiereDatosFacturacion,
   [
     body('amount').isFloat({ min: 10 }).withMessage('Importe mínimo de retiro: 10'),
     body('method').optional().isIn(['bank', 'paypal']).withMessage('Método inválido'),

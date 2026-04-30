@@ -11,6 +11,33 @@ const SesionSchema = new mongoose.Schema(
   { _id: false }
 );
 
+// Datos fiscales para emisión legal de facturas (España + UE).
+// Los campos requeridos para emitir factura legal son:
+// razonSocial, nif, direccion, cp, ciudad, pais. `completado` se calcula
+// automáticamente en el pre-save hook cuando todos están presentes.
+const DatosFacturacionSchema = new mongoose.Schema(
+  {
+    razonSocial: { type: String, default: '', trim: true },
+    nif: { type: String, default: '', trim: true, uppercase: true },
+    direccion: { type: String, default: '', trim: true },
+    cp: { type: String, default: '', trim: true },
+    ciudad: { type: String, default: '', trim: true },
+    provincia: { type: String, default: '', trim: true },
+    // ISO 3166-1 alpha-2 (ES, FR, DE, ...). Por defecto España.
+    pais: { type: String, default: 'ES', trim: true, uppercase: true },
+    emailFacturacion: { type: String, default: '', trim: true, lowercase: true },
+    esEmpresa: { type: Boolean, default: true },
+    // VIES validation (intra-UE B2B reverse charge). Se invalida automáticamente
+    // si nif o pais cambian.
+    viesValidado: { type: Boolean, default: false },
+    viesValidadoAt: { type: Date, default: null },
+    // Calculado automáticamente cuando los campos requeridos están presentes.
+    completado: { type: Boolean, default: false },
+    completadoAt: { type: Date, default: null },
+  },
+  { _id: false }
+);
+
 const UsuarioSchema = new mongoose.Schema(
   {
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
@@ -97,6 +124,10 @@ const UsuarioSchema = new mongoose.Schema(
     // Email reminders (used by scheduler to avoid re-sending)
     recordatorioPerfil: { type: Boolean, default: false },
     recordatorioPerfilAt: { type: Date, default: null },
+
+    // Datos fiscales requeridos para emitir/recibir facturas legales.
+    // Bloquea creación de campañas (advertisers) y retiros (creators) si está incompleto.
+    datosFacturacion: { type: DatosFacturacionSchema, default: () => ({}) },
   },
   { timestamps: true }
 );
@@ -109,6 +140,21 @@ UsuarioSchema.pre('save', function(next) {
     const crypto = require('crypto')
     const random = crypto.randomBytes(6).toString('hex').toUpperCase().slice(0, 6)
     this.referralCode = 'CH' + random
+  }
+
+  // Recompute datosFacturacion.completado on every save based on required fields.
+  // Required: razonSocial, nif, direccion, cp, ciudad, pais.
+  if (this.datosFacturacion) {
+    const d = this.datosFacturacion;
+    const required = ['razonSocial', 'nif', 'direccion', 'cp', 'ciudad', 'pais'];
+    const allFilled = required.every(k => d[k] && String(d[k]).trim().length > 0);
+    if (allFilled && !d.completado) {
+      d.completado = true;
+      d.completadoAt = new Date();
+    } else if (!allFilled && d.completado) {
+      d.completado = false;
+      d.completadoAt = null;
+    }
   }
   next()
 })

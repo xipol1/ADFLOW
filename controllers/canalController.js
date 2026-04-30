@@ -50,10 +50,32 @@ const obtenerMisCanales = async (req, res, next) => {
     if (!userId) return next(httpError(401, 'No autorizado'));
 
     const items = await Canal.find({ propietario: userId }).sort({ createdAt: -1 }).lean();
-    return res.json({ success: true, data: { items } });
+    return res.json({ success: true, data: { items: items.map(stripCanalSecrets) } });
   } catch (error) {
     next(error);
   }
+};
+
+// Strip secret credential fields from a Canal POJO before sending it over the
+// wire. Tokens live in the DB so the server can post on the channel's behalf;
+// they must never be returned to any client (not even the owner — the UI only
+// needs a "connected: yes/no" signal, which `verificado`/`estado` already provide).
+const stripCanalSecrets = (canal) => {
+  if (!canal) return canal;
+  delete canal.credenciales;
+  if (canal.botConfig) {
+    if (canal.botConfig.telegram) delete canal.botConfig.telegram.botToken;
+    if (canal.botConfig.discord) delete canal.botConfig.discord.botToken;
+    if (canal.botConfig.instagram) delete canal.botConfig.instagram.accessToken;
+  }
+  if (Array.isArray(canal.metaOAuth?.connectedPages)) {
+    canal.metaOAuth.connectedPages = canal.metaOAuth.connectedPages.map((p) => {
+      const { pageAccessToken, ...rest } = p || {};
+      return rest;
+    });
+  }
+  if (canal.claimToken) delete canal.claimToken;
+  return canal;
 };
 
 const obtenerCanal = async (req, res, next) => {
@@ -64,7 +86,7 @@ const obtenerCanal = async (req, res, next) => {
     const canal = await Canal.findById(req.params.id).lean();
     if (!canal) return next(httpError(404, 'Canal no encontrado'));
 
-    return res.json({ success: true, data: canal });
+    return res.json({ success: true, data: stripCanalSecrets(canal) });
   } catch (error) {
     next(error);
   }

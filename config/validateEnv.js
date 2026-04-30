@@ -8,11 +8,11 @@
 const GROUPS = [
   {
     tag: 'core',
-    required: ['MONGODB_URI', 'JWT_SECRET', 'FRONTEND_URL', 'BACKEND_URL'],
+    required: ['MONGODB_URI', 'JWT_SECRET', 'JWT_REFRESH_SECRET', 'FRONTEND_URL', 'BACKEND_URL'],
   },
   {
     tag: 'auth',
-    required: ['JWT_SECRET'],
+    required: ['JWT_SECRET', 'JWT_REFRESH_SECRET'],
     optional: ['JWT_ISSUER', 'JWT_AUDIENCE', 'GOOGLE_CLIENT_ID'],
   },
   {

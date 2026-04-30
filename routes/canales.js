@@ -14,6 +14,7 @@ router.get('/claimed/mine', autenticar, claimController.myClaimedChannels);
 
 router.get(
   '/:id',
+  autenticar,
   [param('id').isMongoId().withMessage('ID inválido')],
   validarCampos,
   canalController.obtenerCanal

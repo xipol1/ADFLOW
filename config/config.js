@@ -15,6 +15,40 @@ const toBool = (value, fallback) => {
 
 const databaseUri = process.env.MONGODB_URI || '';
 
+// ── Security: fail-fast validation of critical secrets ─────────────────────
+// In production, missing JWT secrets would silently degrade auth (signing
+// tokens with `''` produces tokens any attacker can forge). We refuse to boot
+// rather than serve traffic in that state. In dev/test we only warn so local
+// workflows and unit tests aren't blocked by an unset env var.
+const _secretsCheck = () => {
+  const required = {
+    JWT_SECRET: process.env.JWT_SECRET,
+    JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
+  };
+  const missing = Object.entries(required).filter(([, v]) => !v).map(([k]) => k);
+
+  if (env === 'production') {
+    if (missing.length) {
+      throw new Error(
+        `Configuración insegura: faltan ${missing.join(', ')}. ` +
+        'El servidor no puede arrancar sin secretos JWT en producción.'
+      );
+    }
+    if (required.JWT_SECRET.length < 32) {
+      console.warn('⚠️ JWT_SECRET tiene menos de 32 caracteres — regenera con mayor entropía.');
+    }
+    if (required.JWT_REFRESH_SECRET.length < 32) {
+      console.warn('⚠️ JWT_REFRESH_SECRET tiene menos de 32 caracteres — regenera con mayor entropía.');
+    }
+    if (required.JWT_SECRET === required.JWT_REFRESH_SECRET) {
+      throw new Error('JWT_SECRET y JWT_REFRESH_SECRET no pueden ser iguales.');
+    }
+  } else if (missing.length) {
+    console.warn(`⚠️ ${missing.join(', ')} sin configurar — autenticación deshabilitada (${env}).`);
+  }
+};
+_secretsCheck();
+
 module.exports = {
   app: {
     nombre: process.env.APP_NAME || 'ChannelAd'
@@ -126,5 +160,21 @@ module.exports = {
   },
   encryption: {
     key: process.env.ENCRYPTION_KEY || '',
+  },
+  // Datos fiscales del emisor (Channelad). Hasta que MICHI SOLUCIONS S.L.
+  // esté constituida, el NIF queda vacío y el invoiceService advertirá en
+  // el HTML "Pendiente constitución sociedad" en lugar de un NIF inventado.
+  // Cuando se constituya la sociedad, basta con poblar las env vars en
+  // Vercel y reiniciar — no hace falta tocar código.
+  emisor: {
+    razonSocial: (process.env.EMISOR_RAZON_SOCIAL || 'MICHI SOLUCIONS S.L. (en constitución)').trim(),
+    nif: (process.env.EMISOR_NIF || '').trim().toUpperCase(),
+    direccion: (process.env.EMISOR_DIRECCION || '').trim(),
+    cp: (process.env.EMISOR_CP || '').trim(),
+    ciudad: (process.env.EMISOR_CIUDAD || '').trim(),
+    provincia: (process.env.EMISOR_PROVINCIA || '').trim(),
+    pais: (process.env.EMISOR_PAIS || 'ES').trim().toUpperCase(),
+    emailFacturacion: (process.env.EMISOR_EMAIL_FACTURACION || 'facturacion@channelad.io').trim().toLowerCase(),
+    serie: (process.env.EMISOR_SERIE_FACTURA || 'A').trim().toUpperCase(),
   },
 };

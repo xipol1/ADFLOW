@@ -188,12 +188,37 @@ CanalSchema.index({ plataforma: 1, identificadorCanal: 1 }, { unique: false });
 CanalSchema.index({ categoria: 1, CAS: 1 });
 
 // ── Encrypt sensitive credential fields before saving ──
+//
+// Without ENCRYPTION_KEY the pre-save hook used to silently skip encryption,
+// which meant any environment that forgot to set the env var would write bot
+// tokens and OAuth access tokens to MongoDB in plaintext. We now refuse to
+// persist credentials in production when the key is missing — better a 500
+// at write time than a silent leak. In dev we still allow saves so tests that
+// don't exercise the credential paths aren't forced to set the key.
+const SENSITIVE_CRED_FIELDS = ['botToken', 'accessToken', 'phoneNumberId', 'refreshToken', 'pageAccessToken'];
+
+const _hasSensitiveCredsModified = (doc) =>
+  SENSITIVE_CRED_FIELDS.some((f) => doc.credenciales?.[f] && doc.isModified(`credenciales.${f}`)) ||
+  doc.metaOAuth?.connectedPages?.some((p) => p?.pageAccessToken);
+
 CanalSchema.pre('save', function (next) {
   try {
-    if (!process.env.ENCRYPTION_KEY) return next(); // skip if no key configured
+    if (!process.env.ENCRYPTION_KEY) {
+      const env = process.env.NODE_ENV || 'development';
+      // In production refuse to persist credentials in the clear.
+      if (env === 'production' && _hasSensitiveCredsModified(this)) {
+        return next(new Error(
+          'ENCRYPTION_KEY no configurado: rechazado el guardado de credenciales sin cifrar.'
+        ));
+      }
+      // Dev/test without key + with credentials → warn loudly so it's visible.
+      if (_hasSensitiveCredsModified(this)) {
+        console.warn('⚠️ ENCRYPTION_KEY ausente — credenciales se guardarán SIN CIFRAR (solo dev/test).');
+      }
+      return next();
+    }
 
-    const sensitiveFields = ['botToken', 'accessToken', 'phoneNumberId', 'refreshToken', 'pageAccessToken'];
-    for (const field of sensitiveFields) {
+    for (const field of SENSITIVE_CRED_FIELDS) {
       if (this.credenciales?.[field] && this.isModified(`credenciales.${field}`)) {
         this.credenciales[field] = encryptIfNeeded(this.credenciales[field]);
       }
@@ -207,10 +232,11 @@ CanalSchema.pre('save', function (next) {
         }
       }
     }
+    return next();
   } catch (err) {
-    console.error('Error encrypting credentials on save:', err.message);
+    // Encryption failure must NOT silently fall through to a plaintext write.
+    return next(err);
   }
-  next();
 });
 
 module.exports = mongoose.models.Canal || mongoose.model('Canal', CanalSchema);
