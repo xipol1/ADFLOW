@@ -1,23 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Plus, TrendingUp, TrendingDown, Eye, MousePointer,
-  DollarSign, Megaphone, ArrowUpRight, MoreHorizontal,
-  Activity, Target, Zap, Clock, ChevronRight, ExternalLink,
+  Plus, TrendingUp, TrendingDown, DollarSign, Megaphone,
+  Activity, Clock, AlertTriangle, CheckCircle2, MessageSquare,
+  ArrowRight, Sparkles,
 } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
-import { PLATFORM_COLORS } from './mockData'
 import apiService from '../../../../services/api'
-import { Sparkline } from '../shared/DashComponents'
 import {
   FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE,
 } from '../../../theme/tokens'
 
-// Use CSS variables for accent color (works in both light/dark themes)
 const PURPLE = 'var(--accent, #8B5CF6)'
 const purpleAlpha = (o) => `var(--accent-dim, rgba(139,92,246,${o}))`
 import DashboardModule from '../../../components/DashboardModule'
-import MetricContext from '../../../components/MetricContext'
 
 
 // ─── Time-aware greeting ──────────────────────────────────────────────────────
@@ -28,23 +24,9 @@ function getGreeting(name) {
   return                         { text: `Buenas noches, ${name}`, emoji: '🌙' }
 }
 
-// ─── Mini donut ring ──────────────────────────────────────────────────────────
-function Ring({ pct, color, size = 48 }) {
-  const r = size / 2 - 5
-  const circ = 2 * Math.PI * r
-  const dash = (pct / 100) * circ
-  return (
-    <svg width={size} height={size} style={{ flexShrink: 0, transform: 'rotate(-90deg)' }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--border)" strokeWidth="4.5" />
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth="4.5"
-        strokeDasharray={`${dash} ${circ - dash}`} strokeLinecap="round"
-        style={{ transition: 'stroke-dasharray .6s cubic-bezier(.4,0,.2,1)' }} />
-    </svg>
-  )
-}
 
-// ─── KPI Card ─────────────────────────────────────────────────────────────────
-function KpiCard({ icon: Icon, label, value, change, changeLabel, sparkData, color = PURPLE, accent, ring }) {
+// ─── KPI Card (simplified, no mock sparkline) ─────────────────────────────────
+function KpiCard({ icon: Icon, label, value, change, changeLabel, accent = PURPLE, sublabel }) {
   const [hovered, setHovered] = useState(false)
   const isPositive = change > 0
   const TrendIcon = isPositive ? TrendingUp : TrendingDown
@@ -65,64 +47,59 @@ function KpiCard({ icon: Icon, label, value, change, changeLabel, sparkData, col
         transition: 'border-color .2s, box-shadow .2s, transform .2s',
         transform: hovered ? 'translateY(-2px)' : 'none',
         boxShadow: hovered ? `0 8px 32px ${purpleAlpha(0.1)}` : '0 1px 4px rgba(0,0,0,0.06)',
-        cursor: 'default',
-        position: 'relative',
-        overflow: 'hidden',
       }}
     >
-      {/* subtle gradient overlay on hover */}
-      <div style={{
-        position: 'absolute', inset: 0, borderRadius: '16px',
-        background: hovered ? purpleAlpha(0.03) : 'transparent',
-        transition: 'background .2s', pointerEvents: 'none',
-      }} />
-
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', zIndex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div style={{
           width: '40px', height: '40px', borderRadius: '11px',
-          background: `${accent || PURPLE}15`,
-          border: `1px solid ${accent || PURPLE}25`,
+          background: `${accent}15`, border: `1px solid ${accent}25`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Icon size={18} color={accent || PURPLE} strokeWidth={2} />
+          <Icon size={18} color={accent} strokeWidth={2} />
         </div>
-        {ring !== undefined && <Ring pct={ring} color={accent || PURPLE} size={44} />}
-        {sparkData && !ring && <Sparkline data={sparkData} color={accent || PURPLE} />}
+        {change !== undefined && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '3px',
+            background: `${trendColor}12`, border: `1px solid ${trendColor}25`,
+            borderRadius: '20px', padding: '2px 8px',
+          }}>
+            <TrendIcon size={11} color={trendColor} strokeWidth={2.5} />
+            <span style={{ fontSize: '11px', fontWeight: 700, color: trendColor }}>
+              {isPositive ? '+' : ''}{change}%
+            </span>
+          </div>
+        )}
       </div>
 
-      <div style={{ zIndex: 1 }}>
+      <div>
         <div style={{
           fontSize: '28px', fontWeight: 800, fontFamily: FONT_DISPLAY, color: 'var(--text)',
           letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '4px',
         }}>
           {value}
         </div>
-        <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '8px' }}>{label}</div>
-
-        {change !== undefined && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '3px',
-              background: `${trendColor}12`, border: `1px solid ${trendColor}25`,
-              borderRadius: '20px', padding: '2px 8px',
-            }}>
-              <TrendIcon size={11} color={trendColor} strokeWidth={2.5} />
-              <span style={{ fontSize: '11px', fontWeight: 700, color: trendColor }}>
-                {isPositive ? '+' : ''}{change}%
-              </span>
-            </div>
-            {changeLabel && <span style={{ fontSize: '11px', color: 'var(--muted2)' }}>{changeLabel}</span>}
-          </div>
+        <div style={{ fontSize: '13px', color: 'var(--muted)' }}>{label}</div>
+        {sublabel && <div style={{ fontSize: '11px', color: 'var(--muted2)', marginTop: '4px' }}>{sublabel}</div>}
+        {changeLabel && change !== undefined && (
+          <div style={{ fontSize: '11px', color: 'var(--muted2)', marginTop: '6px' }}>{changeLabel}</div>
         )}
       </div>
     </div>
   )
 }
 
+
 // ─── Bar chart (monthly spend) ────────────────────────────────────────────────
 function BarChart({ data }) {
-  const max = Math.max(...data.map(d => d.value))
   const [hoverIdx, setHoverIdx] = useState(null)
+  if (!data || data.length === 0) {
+    return (
+      <div style={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>
+        Sin datos de gasto este periodo
+      </div>
+    )
+  }
+  const max = Math.max(...data.map(d => d.value), 1)
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '120px', paddingBottom: '20px' }}>
       {data.map((d, i) => {
@@ -163,58 +140,21 @@ function BarChart({ data }) {
   )
 }
 
-// ─── SVG donut chart ──────────────────────────────────────────────────────────
-function Donut({ segments, total, size = 148 }) {
-  const r = 52, cx = size / 2, cy = size / 2
-  const circ = 2 * Math.PI * r
-  let offset = 0
-
-  const arcs = segments.map(s => {
-    const frac  = total > 0 ? s.value / total : 0
-    const sweep = frac * circ - 3
-    const start = offset
-    offset += frac * circ
-    return { ...s, dasharray: `${Math.max(0, sweep)} ${circ}`, dashoffset: -start }
-  })
-
-  return (
-    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--border)" strokeWidth="16" />
-      {arcs.map((arc, i) => (
-        <circle key={i} cx={cx} cy={cy} r={r} fill="none"
-          stroke={arc.color} strokeWidth="16"
-          strokeDasharray={arc.dasharray}
-          strokeDashoffset={arc.dashoffset}
-          strokeLinecap="round"
-          style={{ transition: 'stroke-dasharray .5s ease' }}
-        />
-      ))}
-    </svg>
-  )
-}
 
 // ─── Campaign row ─────────────────────────────────────────────────────────────
 function CampaignRow({ ad, isLast }) {
   const [hovered, setHovered] = useState(false)
   const navigate = useNavigate()
 
-  // Normalize status for both mock data and API data
   const statusCfg = {
-    activo:     { color: OK,   bg: `${OK}12`,   label: 'Activo'    },
-    pendiente:  { color: WARN, bg: `${WARN}12`,  label: 'Pendiente' },
-    completado: { color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', label: 'Complet.' },
-    pausado:    { color: '#f97316', bg: 'rgba(249,115,22,0.1)', label: 'Pausado' },
-    DRAFT:      { color: WARN, bg: `${WARN}12`,  label: 'Borrador'  },
-    PAID:       { color: BLUE, bg: `${BLUE}12`,   label: 'Pagada'    },
-    PUBLISHED:  { color: OK,   bg: `${OK}12`,     label: 'Activo'    },
-    COMPLETED:  { color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', label: 'Complet.' },
-    CANCELLED:  { color: ERR,  bg: `${ERR}12`,    label: 'Cancelada' },
+    DRAFT:      { color: WARN, bg: `${WARN}12`, label: 'Borrador'  },
+    PAID:       { color: BLUE, bg: `${BLUE}12`, label: 'Pagada'    },
+    PUBLISHED:  { color: OK,   bg: `${OK}12`,   label: 'Activa'    },
+    COMPLETED:  { color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', label: 'Completada' },
+    CANCELLED:  { color: ERR,  bg: `${ERR}12`,  label: 'Cancelada' },
   }[ad.status] || { color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', label: ad.status }
 
-  // Support both mock (ad.platform / ad.channel) and API (ad.channel.plataforma / ad.channel.nombreCanal)
   const channelName = typeof ad.channel === 'object' ? ad.channel?.nombreCanal : ad.channel || ''
-  const platform = typeof ad.channel === 'object' ? ad.channel?.plataforma : ad.platform || ''
-  const platColor = PLATFORM_COLORS[platform] || PURPLE
   const views = ad.tracking?.impressions || ad.views || 0
   const clicks = ad.tracking?.clicks || ad.clicks || 0
   const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : (ad.ctr || 0)
@@ -241,12 +181,9 @@ function CampaignRow({ ad, isLast }) {
         <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text)', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {ad.title || ad.content?.slice(0, 50) || 'Campaña'}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: platColor, flexShrink: 0 }} />
-          <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{channelName}</span>
-        </div>
+        <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{channelName}</div>
       </div>
-      <div style={{ fontSize: '13px', color: 'var(--text)', fontWeight: 500 }}>{views.toLocaleString('es')}</div>
+      <div style={{ fontSize: '13px', color: 'var(--text)', fontWeight: 500 }}>{Number(views).toLocaleString('es')}</div>
       <div style={{ fontSize: '13px', color: Number(ctr) > 4 ? OK : 'var(--text)', fontWeight: 600 }}>{ctr}%</div>
       <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>€{spent}</div>
       <span style={{
@@ -261,37 +198,70 @@ function CampaignRow({ ad, isLast }) {
   )
 }
 
-// ─── Activity feed item ───────────────────────────────────────────────────────
-const ACTIVITY = [
-  { id: 1, icon: '📢', title: 'Campaña "Tech Pro 2026" aprobada', time: 'hace 2 horas', color: OK },
-  { id: 2, icon: '💰', title: 'Recarga de €500 procesada', time: 'hace 5 horas', color: BLUE },
-  { id: 3, icon: '📊', title: 'Campaña "Fintech España" alcanzó 50K impresiones', time: 'ayer', color: PURPLE },
-  { id: 4, icon: '⏸️', title: 'Campaña "Gaming Rush" pausada automáticamente', time: 'ayer', color: WARN },
-  { id: 5, icon: '✅', title: 'Pago de €350 procesado a TechReview ES', time: 'hace 2 días', color: OK },
-]
 
-// ─── Top channels ──────────────────────────────────────────────────────────────
-const TOP_CHANNELS = [
-  { name: 'TechReview ES', platform: 'Telegram', pct: 82, earned: '€1,240', color: '#2aabee' },
-  { name: 'Marketing Daily', platform: 'Instagram', pct: 67, earned: '€860', color: '#e1306c' },
-  { name: 'Business Insider ES', platform: 'Newsletter', pct: 51, earned: '€620', color: '#f59e0b' },
-  { name: 'Crypto Signals', platform: 'Discord', pct: 39, earned: '€480', color: '#5865f2' },
-]
+// ─── Action card (Requiere atención) ───────────────────────────────────────────
+function ActionCard({ icon: Icon, color, count, title, description, ctaLabel, onClick }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: 'var(--surface)',
+        border: `1px solid ${hovered ? color : 'var(--border)'}`,
+        borderRadius: 14,
+        padding: 18,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 14,
+        cursor: 'pointer',
+        textAlign: 'left',
+        transition: 'border-color .15s, transform .15s, box-shadow .15s',
+        transform: hovered ? 'translateY(-1px)' : 'none',
+        boxShadow: hovered ? `0 6px 20px ${color}20` : 'none',
+        fontFamily: FONT_BODY,
+      }}
+    >
+      <div style={{
+        width: 44, height: 44, borderRadius: 12,
+        background: `${color}15`, border: `1px solid ${color}30`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        position: 'relative',
+      }}>
+        <Icon size={20} color={color} strokeWidth={2} />
+        {count > 0 && (
+          <span style={{
+            position: 'absolute', top: -6, right: -6,
+            minWidth: 20, height: 20, padding: '0 6px',
+            background: color, color: '#fff',
+            borderRadius: 10, fontSize: 11, fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: '2px solid var(--surface)',
+          }}>{count}</span>
+        )}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)', marginBottom: 2, fontFamily: FONT_DISPLAY }}>
+          {title}
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.4 }}>
+          {description}
+        </div>
+      </div>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 4,
+        color: hovered ? color : 'var(--muted)',
+        fontSize: 12, fontWeight: 600, flexShrink: 0,
+        transition: 'color .15s',
+      }}>
+        {ctaLabel}
+        <ArrowRight size={14} />
+      </div>
+    </button>
+  )
+}
 
-// ─── Mock sparklines ──────────────────────────────────────────────────────────
-const SPEND_SPARK  = [320, 410, 380, 450, 520, 490, 610, 580, 670, 720, 700, 830]
-const VIEWS_SPARK  = [8200, 9100, 8800, 10200, 11500, 10900, 12400, 13100, 12800, 14200, 15100, 16800]
-const CLICKS_SPARK = [210, 280, 260, 310, 340, 320, 390, 410, 380, 440, 470, 520]
-const CTR_SPARK    = [2.6, 3.1, 2.9, 3.0, 2.9, 2.9, 3.1, 3.1, 3.0, 3.1, 3.1, 3.1]
-
-// ─── Platform spend ───────────────────────────────────────────────────────────
-const PLATFORM_SPEND = [
-  { label: 'Telegram',   value: 1240, color: '#2aabee' },
-  { label: 'Instagram',  value: 860,  color: '#e1306c' },
-  { label: 'Newsletter', value: 620,  color: WARN },
-  { label: 'Discord',    value: 480,  color: '#5865f2' },
-]
-const PLAT_TOTAL = PLATFORM_SPEND.reduce((s, p) => s + p.value, 0)
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function OverviewPage() {
@@ -300,6 +270,7 @@ export default function OverviewPage() {
   const [campaigns, setCampaigns] = useState([])
   const [loading, setLoading] = useState(true)
   const [monthlySpend, setMonthlySpend] = useState([])
+  const [unreadMessages, setUnreadMessages] = useState(0)
 
   useEffect(() => {
     let mounted = true
@@ -313,6 +284,9 @@ export default function OverviewPage() {
         if (campsRes?.success) {
           const items = Array.isArray(campsRes.data) ? campsRes.data : Array.isArray(campsRes.data?.items) ? campsRes.data.items : []
           setCampaigns(items)
+          // Sum unread chat messages from each campaign if exposed by API
+          const unread = items.reduce((s, c) => s + (c.unreadMessages || c.unreadCount || 0), 0)
+          setUnreadMessages(unread)
         }
         if (txRes?.success) {
           const txItems = Array.isArray(txRes.data) ? txRes.data : Array.isArray(txRes.data?.items) ? txRes.data.items : []
@@ -328,7 +302,9 @@ export default function OverviewPage() {
           const sorted = Object.values(buckets).sort((a, b) => a.ts - b.ts).slice(-6)
           if (sorted.length > 0) setMonthlySpend(sorted)
         }
-      } catch (err) { console.error('OverviewPage.load failed:', err) /* use empty state */ }
+      } catch (err) {
+        console.error('OverviewPage.load failed:', err)
+      }
       if (mounted) setLoading(false)
     }
     load()
@@ -338,16 +314,61 @@ export default function OverviewPage() {
   const nombre   = user?.nombre || user?.name || 'Usuario'
   const greeting = getGreeting(nombre.split(' ')[0])
 
-  // Compute KPIs from real campaign data
-  const totalSpend  = campaigns.reduce((s, c) => s + (c.price || c.spent || c.budget || 0), 0)
-  const totalViews  = campaigns.reduce((s, a) => s + (a.tracking?.impressions || a.views || 0), 0)
-  const totalClicks = campaigns.reduce((s, a) => s + (a.tracking?.clicks || a.clicks || 0), 0)
-  const avgCtr      = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : '0.0'
-  const activeAds   = campaigns.filter(a => a.status === 'activo' || a.status === 'PUBLISHED' || a.status === 'PAID').length
+  // ─── KPIs from real data ─────────────────────────────────────────────────────
+  const totalSpend = campaigns
+    .filter(c => c.status !== 'DRAFT' && c.status !== 'CANCELLED')
+    .reduce((s, c) => s + (c.price || c.spent || 0), 0)
+  const activeAds = campaigns.filter(c => c.status === 'PUBLISHED' || c.status === 'PAID').length
+  const totalViews = campaigns.reduce((s, c) => s + (c.tracking?.impressions || c.views || 0), 0)
+  const totalClicks = campaigns.reduce((s, c) => s + (c.tracking?.clicks || c.clicks || 0), 0)
+  const avgCtr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : '0.0'
 
-  const budgetTotal = campaigns.reduce((s, c) => s + (c.price || c.budget || 0), 0) || 5000
-  const spentTotal  = campaigns.filter(c => c.status !== 'DRAFT' && c.status !== 'CANCELLED').reduce((s, c) => s + (c.price || c.spent || 0), 0)
-  const budgetUsed  = budgetTotal > 0 ? Math.round((spentTotal / budgetTotal) * 100) : 0
+  // Prev-month delta (compute if we have at least 2 months)
+  const spendDelta = (() => {
+    if (monthlySpend.length < 2) return undefined
+    const cur = monthlySpend[monthlySpend.length - 1].value
+    const prev = monthlySpend[monthlySpend.length - 2].value
+    if (prev === 0) return undefined
+    return Math.round(((cur - prev) / prev) * 100)
+  })()
+
+  // ─── Action items ────────────────────────────────────────────────────────────
+  const draftsCount = campaigns.filter(c => c.status === 'DRAFT').length
+  const publishedCount = campaigns.filter(c => c.status === 'PUBLISHED').length
+
+  const actionItems = []
+  if (draftsCount > 0) {
+    actionItems.push({
+      icon: AlertTriangle, color: WARN, count: draftsCount,
+      title: 'Campañas pendientes de pago',
+      description: `Activa el escrow para que ${draftsCount === 1 ? 'tu campaña pase' : 'tus campañas pasen'} a publicación.`,
+      ctaLabel: 'Pagar', onClick: () => navigate('/advertiser/campaigns?tab=borrador'),
+    })
+  }
+  if (publishedCount > 0) {
+    actionItems.push({
+      icon: CheckCircle2, color: OK, count: publishedCount,
+      title: 'Campañas listas para liberar',
+      description: `${publishedCount === 1 ? 'Una campaña ha sido publicada' : `${publishedCount} campañas han sido publicadas`} y esperan tu confirmación para liberar el pago al creador.`,
+      ctaLabel: 'Revisar', onClick: () => navigate('/advertiser/campaigns?tab=publicada'),
+    })
+  }
+  if (unreadMessages > 0) {
+    actionItems.push({
+      icon: MessageSquare, color: BLUE, count: unreadMessages,
+      title: 'Mensajes sin leer',
+      description: `Tienes ${unreadMessages} ${unreadMessages === 1 ? 'mensaje nuevo' : 'mensajes nuevos'} de creadores en tus campañas.`,
+      ctaLabel: 'Ver chat', onClick: () => navigate('/advertiser/campaigns'),
+    })
+  }
+  if (campaigns.length === 0) {
+    actionItems.push({
+      icon: Sparkles, color: PURPLE, count: 0,
+      title: 'Lanza tu primera campaña',
+      description: 'Empieza explorando nuestros canales o usa Auto-Buy para que la IA encuentre los mejores para ti.',
+      ctaLabel: 'Empezar', onClick: () => navigate('/advertiser/explore'),
+    })
+  }
 
   return (
     <div style={{ fontFamily: FONT_BODY, display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '1200px' }}>
@@ -362,11 +383,13 @@ export default function OverviewPage() {
             <span style={{ fontSize: '24px' }}>{greeting.emoji}</span>
           </div>
           <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.5 }}>
-            Resumen de tu actividad · <span style={{ color: PURPLE, fontWeight: 500 }}>{activeAds} campañas activas</span>
+            {activeAds > 0
+              ? <>Tienes <span style={{ color: PURPLE, fontWeight: 600 }}>{activeAds} {activeAds === 1 ? 'campaña activa' : 'campañas activas'}</span> ahora mismo</>
+              : 'Resumen de tu actividad'}
           </p>
         </div>
         <button
-          onClick={() => navigate('/advertiser/explore')}
+          onClick={() => navigate('/advertiser/campaigns/new')}
           style={{
             display: 'flex', alignItems: 'center', gap: '8px',
             background: PURPLE, color: '#fff', border: 'none', borderRadius: '12px',
@@ -381,248 +404,115 @@ export default function OverviewPage() {
         </button>
       </div>
 
-      {/* ── KPI grid ── */}
+      {/* ── KPI grid (3 cards) ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
         <KpiCard
-          icon={DollarSign} label="Gasto este mes" value={`€${totalSpend.toLocaleString('es')}`}
-          change={12} changeLabel="vs mes anterior"
-          sparkData={SPEND_SPARK} accent={PURPLE}
+          icon={DollarSign}
+          label="Gasto este mes"
+          value={`€${totalSpend.toLocaleString('es')}`}
+          change={spendDelta}
+          changeLabel={spendDelta !== undefined ? 'vs mes anterior' : undefined}
+          accent={PURPLE}
         />
         <KpiCard
-          icon={Eye} label="Impresiones totales" value={totalViews >= 1000 ? `${(totalViews/1000).toFixed(0)}K` : totalViews}
-          change={18} changeLabel="vs mes anterior"
-          sparkData={VIEWS_SPARK} accent={BLUE}
+          icon={Megaphone}
+          label="Campañas activas"
+          value={activeAds}
+          sublabel={`${campaigns.length} totales`}
+          accent={OK}
         />
         <KpiCard
-          icon={MousePointer} label="Clicks totales" value={totalClicks.toLocaleString('es')}
-          change={9} changeLabel="vs mes anterior"
-          sparkData={CLICKS_SPARK} accent={OK}
-        />
-        <KpiCard
-          icon={Activity} label="CTR promedio" value={`${avgCtr}%`}
-          change={2} changeLabel="vs mes anterior"
-          sparkData={CTR_SPARK} accent={WARN}
-        />
-        <KpiCard
-          icon={Target} label="Presupuesto usado" value={`${budgetUsed}%`}
-          change={-5} changeLabel={`de €${budgetTotal.toLocaleString('es')}`}
-          ring={budgetUsed} accent={PURPLE}
+          icon={Activity}
+          label="CTR promedio"
+          value={`${avgCtr}%`}
+          sublabel={`${totalClicks.toLocaleString('es')} clicks · ${totalViews.toLocaleString('es')} vistas`}
+          accent={BLUE}
         />
       </div>
 
-      {/* ── Recommendations ("Para ti") ── */}
-      {(() => {
-        const recs = []
-        if (activeAds === 0 && campaigns.length > 0) {
-          recs.push({ icon: '🎯', text: 'No tienes campañas activas — explora canales disponibles', link: '/advertiser/explore', cta: 'Explorar' })
-        }
-        if (campaigns.length === 0) {
-          recs.push({ icon: '🚀', text: 'Lanza tu primera campaña para empezar a ver resultados', link: '/advertiser/explore', cta: 'Buscar canales' })
-        }
-        if (campaigns.filter(c => c.status === 'COMPLETED').length > 0) {
-          recs.push({ icon: '📊', text: 'Revisa el rendimiento de tus campañas completadas', link: '/advertiser/analytics', cta: 'Ver analytics' })
-        }
-        if (recs.length === 0) return null
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {recs.slice(0, 2).map((r, i) => (
-              <div
-                key={i}
+      {/* ── Requiere atención ── */}
+      {actionItems.length > 0 && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <h2 style={{
+              fontFamily: FONT_DISPLAY, fontSize: 16, fontWeight: 700,
+              color: 'var(--text)', letterSpacing: '-0.02em', margin: 0,
+            }}>
+              Requiere atención
+            </h2>
+            <span style={{
+              fontSize: 11, fontWeight: 700, color: PURPLE,
+              background: purpleAlpha(0.12), border: `1px solid ${purpleAlpha(0.25)}`,
+              borderRadius: 20, padding: '2px 8px',
+            }}>
+              {actionItems.length}
+            </span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 12 }}>
+            {actionItems.map((item, i) => (
+              <ActionCard key={i} {...item} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 2-col main layout: Spend chart + Recent campaigns ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.6fr)', gap: '20px' }}>
+
+        {/* Monthly spend chart */}
+        <DashboardModule
+          title="Gasto mensual"
+          icon={DollarSign}
+          tooltip="Gasto acumulado en campañas publicadas y completadas por mes."
+          linkTo="/advertiser/finances"
+          linkLabel="Ver detalle"
+        >
+          <BarChart data={monthlySpend} />
+        </DashboardModule>
+
+        {/* Recent campaigns table */}
+        <DashboardModule
+          title="Campañas recientes"
+          icon={Megaphone}
+          tooltip={`${campaigns.length} campañas en total. Haz clic para ver el detalle.`}
+          linkTo="/advertiser/campaigns"
+          linkLabel="Ver todas"
+          noPadding
+        >
+          {campaigns.length === 0 ? (
+            <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+              <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>
+                Aún no tienes campañas
+              </div>
+              <button
+                onClick={() => navigate('/advertiser/campaigns/new')}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  background: `${PURPLE}08`,
-                  border: `1px solid ${PURPLE}22`,
-                  borderRadius: 12,
-                  padding: '10px 16px',
+                  background: purpleAlpha(0.1), color: PURPLE,
+                  border: `1px solid ${purpleAlpha(0.3)}`, borderRadius: 8,
+                  padding: '8px 16px', fontSize: 12, fontWeight: 600,
+                  cursor: 'pointer', fontFamily: FONT_BODY,
                 }}
               >
-                <span style={{ fontSize: 18, flexShrink: 0 }}>{r.icon}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 1 }}>💡 Para ti</div>
-                  <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.4 }}>{r.text}</div>
-                </div>
-                <button
-                  onClick={() => navigate(r.link)}
-                  style={{
-                    background: purpleAlpha(0.1), color: PURPLE,
-                    border: `1px solid ${purpleAlpha(0.3)}`, borderRadius: 8,
-                    padding: '5px 12px', fontSize: 11, fontWeight: 600,
-                    cursor: 'pointer', fontFamily: FONT_BODY, flexShrink: 0, whiteSpace: 'nowrap',
-                  }}
-                >{r.cta} →</button>
+                Crear primera campaña
+              </button>
+            </div>
+          ) : (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 72px 72px 80px', padding: '10px 20px', borderBottom: '1px solid var(--border)', background: 'var(--bg2)', gap: '12px' }}>
+                {['Campaña', 'Vistas', 'CTR', 'Gasto', 'Estado'].map(h => (
+                  <div key={h} style={{ fontSize: '11px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</div>
+                ))}
               </div>
-            ))}
-          </div>
-        )
-      })()}
-
-      {/* ── 2-col main layout ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) minmax(280px, 1fr)', gap: '20px' }}>
-
-        {/* ── Left column ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
-          {/* Monthly spend chart */}
-          <DashboardModule
-            title="Gasto mensual"
-            icon={DollarSign}
-            tooltip="Gasto acumulado en campañas publicadas y completadas por mes."
-            linkTo="/advertiser/analytics"
-            linkLabel="Ver análisis de gasto"
-          >
-            <BarChart data={monthlySpend.length > 0 ? monthlySpend : []} />
-          </DashboardModule>
-
-          {/* Top campaigns table */}
-          <DashboardModule
-            title="Campañas recientes"
-            icon={Megaphone}
-            tooltip={`${campaigns.length} campañas en total. Haz clic en una para ver su rendimiento detallado.`}
-            linkTo="/advertiser/campaigns"
-            linkLabel="Ver todas las campañas"
-            noPadding
-          >
-
-            {/* Table header */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 72px 72px 80px', padding: '10px 20px', borderBottom: '1px solid var(--border)', background: 'var(--bg2)', gap: '12px' }}>
-              {['Campaña', 'Vistas', 'CTR', 'Gasto', 'Estado'].map(h => (
-                <div key={h} style={{ fontSize: '11px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</div>
+              {campaigns.slice(0, 5).map((ad, i) => (
+                <CampaignRow
+                  key={ad.id || ad._id}
+                  ad={ad}
+                  isLast={i === Math.min(4, campaigns.length - 1)}
+                />
               ))}
-            </div>
-
-            {campaigns.slice(0, 5).map((ad, i) => (
-              <CampaignRow key={ad.id || ad._id} ad={ad} isLast={i === Math.min(4, campaigns.length - 1)} />
-            ))}
-          </DashboardModule>
-        </div>
-
-        {/* ── Right column ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
-          {/* Platform spend donut */}
-          <DashboardModule
-            title="Gasto por plataforma"
-            icon={Target}
-            tooltip="Distribución de tu gasto publicitario por plataforma este mes."
-            linkTo="/advertiser/analytics"
-            linkLabel="Ver análisis completo"
-          >
-            <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '18px' }}>Este mes</p>
-
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px', position: 'relative' }}>
-              <Donut segments={PLATFORM_SPEND} total={PLAT_TOTAL} size={148} />
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                <div style={{ fontFamily: FONT_DISPLAY, fontSize: '20px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em' }}>
-                  €{(PLAT_TOTAL / 1000).toFixed(1)}K
-                </div>
-                <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '1px' }}>Total</div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {PLATFORM_SPEND.map(p => (
-                <div key={p.label} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color, flexShrink: 0 }} />
-                  <span style={{ flex: 1, fontSize: '13px', color: 'var(--text)' }}>{p.label}</span>
-                  <div style={{ flex: 2, height: '4px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${(p.value / PLAT_TOTAL) * 100}%`, background: p.color, borderRadius: '2px', transition: 'width .5s ease' }} />
-                  </div>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)', minWidth: '48px', textAlign: 'right' }}>€{p.value}</span>
-                </div>
-              ))}
-            </div>
-          </DashboardModule>
-
-          {/* Top channels */}
-          <DashboardModule
-            title="Top canales"
-            icon={TrendingUp}
-            tooltip="Los canales más rentables basados en tus campañas anteriores."
-            linkTo="/advertiser/explore"
-            linkLabel="Explorar canales"
-            noPadding
-          >
-            {TOP_CHANNELS.map((ch, i) => (
-              <div key={ch.name} style={{ padding: '13px 20px', borderBottom: i < TOP_CHANNELS.length - 1 ? '1px solid var(--border)' : 'none' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg2)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '7px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: `${ch.color}18`, border: `1px solid ${ch.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontSize: '14px' }}>{
-                        ch.platform === 'Telegram' ? '✈️' :
-                        ch.platform === 'Instagram' ? '📸' :
-                        ch.platform === 'Newsletter' ? '📧' : '💬'
-                      }</span>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>{ch.name}</div>
-                      <div style={{ fontSize: '10px', color: 'var(--muted)' }}>{ch.platform}</div>
-                    </div>
-                  </div>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>{ch.earned}</span>
-                </div>
-                <div style={{ height: '4px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${ch.pct}%`, background: `linear-gradient(90deg, ${ch.color} 0%, ${ch.color}80 100%)`, borderRadius: '2px', transition: 'width .5s ease' }} />
-                </div>
-              </div>
-            ))}
-          </DashboardModule>
-
-          {/* Activity feed */}
-          <DashboardModule
-            title="Actividad reciente"
-            icon={Activity}
-            tooltip="Últimas acciones en tus campañas y transacciones."
-            noPadding
-          >
-            <div style={{ padding: '8px 0' }}>
-              {ACTIVITY.map((item, i) => (
-                <div key={item.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '11px 20px' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg2)' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-                >
-                  <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: `${item.color}12`, border: `1px solid ${item.color}25`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '14px' }}>
-                    {item.icon}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', lineHeight: 1.4 }}>{item.title}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Clock size={10} />
-                      {item.time}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </DashboardModule>
-
-          {/* Quick budget widget */}
-          <div style={{ background: 'var(--accent)', borderRadius: '18px', padding: '20px', color: '#fff' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-              <div>
-                <div style={{ fontSize: '12px', opacity: 0.8, marginBottom: '4px' }}>Presupuesto mensual</div>
-                <div style={{ fontFamily: FONT_DISPLAY, fontSize: '26px', fontWeight: 800, letterSpacing: '-0.03em' }}>€{(budgetTotal * budgetUsed / 100).toLocaleString('es')}</div>
-                <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '2px' }}>de €{budgetTotal.toLocaleString('es')} usados</div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontFamily: FONT_DISPLAY, fontSize: '28px', fontWeight: 800 }}>{budgetUsed}%</div>
-              </div>
-            </div>
-            <div style={{ height: '6px', background: 'rgba(255,255,255,0.2)', borderRadius: '3px', overflow: 'hidden', marginBottom: '14px' }}>
-              <div style={{ height: '100%', width: `${budgetUsed}%`, background: 'rgba(255,255,255,0.85)', borderRadius: '3px' }} />
-            </div>
-            <button
-              onClick={() => navigate('/advertiser/finances')}
-              style={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '9px', padding: '8px 16px', fontSize: '13px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: FONT_BODY }}
-            >
-              Ver finanzas →
-            </button>
-          </div>
-        </div>
+            </>
+          )}
+        </DashboardModule>
       </div>
     </div>
   )

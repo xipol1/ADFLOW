@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   RefreshCw, CreditCard, CheckCircle, XCircle, Eye, Clock, Zap,
   TrendingUp, MessageCircle, Send, ArrowRight, ExternalLink, Shield,
-  BarChart3, ChevronRight, Copy, AlertCircle,
+  BarChart3, ChevronRight, Copy, AlertCircle, Megaphone, Plus,
 } from 'lucide-react'
 import apiService from '../../../../services/api'
 import DeliveryBadge from '../../../components/DeliveryBadge'
+import AdsPage from './AdsPage'
 import {
   PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE,
 } from '../../../theme/tokens'
@@ -408,21 +409,56 @@ const KpiCard = ({ icon: Icon, label, value, color, sub }) => (
 )
 
 /* ── Tabs ───────────────────────────────────────────────────────────────────── */
-const TABS = ['Todas', 'Borrador', 'Pagadas', 'Publicadas', 'Completadas']
+const TABS = ['Todas', 'Borrador', 'Pagadas', 'Publicadas', 'Completadas', 'Solicitudes']
 const TAB_MAP = { 'Borrador': 'DRAFT', 'Pagadas': 'PAID', 'Publicadas': 'PUBLISHED', 'Completadas': 'COMPLETED' }
+const TAB_URL_MAP = {
+  'todas': 'Todas',
+  'borrador': 'Borrador',
+  'pagadas': 'Pagadas',
+  'publicadas': 'Publicadas',
+  'publicada': 'Publicadas',
+  'completadas': 'Completadas',
+  'solicitudes': 'Solicitudes',
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    MAIN COMPONENT
    ═══════════════════════════════════════════════════════════════════════════════ */
 export default function CampaignsPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [campaigns, setCampaigns] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [actionError, setActionError] = useState('')
-  const [tab, setTab] = useState('Todas')
+  const [tab, setTab] = useState(() => {
+    const urlTab = searchParams.get('tab')
+    return (urlTab && TAB_URL_MAP[urlTab.toLowerCase()]) || 'Todas'
+  })
   const [selected, setSelected] = useState(null)
   const [actionLoading, setActionLoading] = useState('')
+
+  // Sync tab change to URL
+  const handleTabChange = useCallback((newTab) => {
+    setTab(newTab)
+    setSelected(null)
+    if (newTab === 'Todas') {
+      searchParams.delete('tab')
+    } else {
+      searchParams.set('tab', newTab.toLowerCase())
+    }
+    setSearchParams(searchParams, { replace: true })
+  }, [searchParams, setSearchParams])
+
+  // React to URL changes (e.g., from /advertiser/ads redirect)
+  useEffect(() => {
+    const urlTab = searchParams.get('tab')
+    const mapped = urlTab && TAB_URL_MAP[urlTab.toLowerCase()]
+    if (mapped && mapped !== tab) {
+      setTab(mapped)
+      setSelected(null)
+    }
+  }, [searchParams])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -526,13 +562,13 @@ export default function CampaignsPage() {
           }}>
             <RefreshCw size={14} /> Actualizar
           </button>
-          <button onClick={() => navigate('/advertiser/explore')} className="adf-btn-primary" style={{
+          <button onClick={() => navigate('/advertiser/campaigns/new')} className="adf-btn-primary" style={{
             background: PURPLE, color: '#fff', border: 'none', borderRadius: '10px',
             padding: '10px 20px', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
             fontFamily: FONT_BODY, display: 'flex', alignItems: 'center', gap: '6px',
             boxShadow: `0 4px 14px ${purpleAlpha(0.3)}`,
           }}>
-            <Zap size={14} /> Nueva campana
+            <Plus size={14} /> Nueva campaña
           </button>
         </div>
       </div>
@@ -546,12 +582,13 @@ export default function CampaignsPage() {
       </div>
 
       {/* ── Tabs ── */}
-      <div style={{ display: 'flex', gap: '2px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '3px', width: 'fit-content' }}>
+      <div style={{ display: 'flex', gap: '2px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '3px', width: 'fit-content', flexWrap: 'wrap' }}>
         {TABS.map(t => {
           const active = tab === t
-          const count = tabCount(t)
+          const isSolicitudes = t === 'Solicitudes'
+          const count = isSolicitudes ? null : tabCount(t)
           return (
-            <button key={t} onClick={() => setTab(t)} style={{
+            <button key={t} onClick={() => handleTabChange(t)} style={{
               background: active ? PURPLE : 'transparent',
               color: active ? '#fff' : 'var(--muted)',
               border: 'none', borderRadius: '9px', padding: '8px 14px',
@@ -559,13 +596,19 @@ export default function CampaignsPage() {
               cursor: 'pointer', fontFamily: FONT_BODY,
               transition: 'all .18s ease',
               display: 'flex', alignItems: 'center', gap: '6px',
+              borderLeft: isSolicitudes && !active ? '1px solid var(--border)' : 'none',
+              marginLeft: isSolicitudes ? '4px' : 0,
+              paddingLeft: isSolicitudes ? '14px' : '14px',
             }}>
+              {isSolicitudes && <Megaphone size={13} />}
               {t}
-              <span style={{
-                background: active ? 'rgba(255,255,255,0.2)' : 'var(--bg)',
-                borderRadius: '6px', padding: '1px 6px', fontSize: '11px',
-                fontWeight: 600, minWidth: '18px', textAlign: 'center',
-              }}>{count}</span>
+              {count !== null && (
+                <span style={{
+                  background: active ? 'rgba(255,255,255,0.2)' : 'var(--bg)',
+                  borderRadius: '6px', padding: '1px 6px', fontSize: '11px',
+                  fontWeight: 600, minWidth: '18px', textAlign: 'center',
+                }}>{count}</span>
+              )}
             </button>
           )
         })}
@@ -590,8 +633,15 @@ export default function CampaignsPage() {
         </div>
       )}
 
-      {/* ── Content: Split panel ── */}
-      {loading ? (
+      {/* ── Content: Solicitudes embeds AdsPage flow ── */}
+      {tab === 'Solicitudes' ? (
+        <div style={{
+          background: 'var(--surface)', border: `1px solid ${purpleAlpha(0.18)}`,
+          borderRadius: 16, padding: '20px 24px',
+        }}>
+          <AdsPage />
+        </div>
+      ) : loading ? (
         <div style={{ textAlign: 'center', padding: '80px 20px' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: purpleAlpha(0.08), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', animation: 'adf-pulse 1.5s infinite' }}>
             <RefreshCw size={18} color={purpleAlpha(0.4)} />

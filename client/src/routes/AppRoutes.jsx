@@ -164,9 +164,9 @@ export default function AppRoutes() {
         <Route path="campaigns" element={<FullAccessOnly feature="Campanas"><CampaignsPage /></FullAccessOnly>} />
         <Route path="campaigns/new" element={<FullAccessOnly feature="Campanas"><NewCampaignPage /></FullAccessOnly>} />
         <Route path="campaigns/:id/analytics" element={<FullAccessOnly feature="Campanas"><CampaignAnalyticsPage /></FullAccessOnly>} />
-        <Route path="ads"      element={<FullAccessOnly feature="Anuncios"><AdsPage /></FullAccessOnly>} />
+        <Route path="ads"      element={<Navigate to="/advertiser/campaigns?tab=solicitudes" replace />} />
         <Route path="finances" element={<FullAccessOnly feature="Finanzas"><FinancesPage /></FullAccessOnly>} />
-        <Route path="analytics" element={<FullAccessOnly feature="Analytics"><AdvertiserAnalyticsPage /></FullAccessOnly>} />
+        <Route path="analytics" element={<Navigate to="/advertiser/finances" replace />} />
         <Route path="referrals" element={<ReferralsPage />} />
         <Route path="disputes" element={<FullAccessOnly feature="Disputas"><DisputesPage /></FullAccessOnly>} />
         <Route path="notifications" element={<NotificationsPage />} />
