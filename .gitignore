@@ -61,6 +61,16 @@ Thumbs.db
 
 # ── Claude Code local state (never commit) ────────────────────────────────────
 .claude/
+.agents/
+
+# ── IDE / agent state ─────────────────────────────────────────────────────────
+.trae/
+
+# ── Skill manifests (locally generated) ───────────────────────────────────────
+skills-lock.json
+
+# ── Sibling projects kept in this folder for convenience ──────────────────────
+channelad-pitch-video/
 
 # ── Project local settings ────────────────────────────────────────────────────
 settings.local.json
