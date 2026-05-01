@@ -20,59 +20,148 @@ const pa = (o) => `rgba(139,92,246,${o})`
 // ─── Inline CSS for react-grid-layout ─────────────────────────────────────────
 const GRID_STYLES = `
 .react-grid-layout { position: relative; transition: height 200ms ease; }
-.react-grid-item { transition: transform 200ms ease, width 200ms ease, height 200ms ease, opacity .15s; }
+.react-grid-item { transition: transform 220ms cubic-bezier(.22,1,.36,1), width 220ms cubic-bezier(.22,1,.36,1), height 220ms cubic-bezier(.22,1,.36,1), opacity .15s; }
 .react-grid-item.cssTransforms { transition-property: transform, width, height; }
-.react-grid-item.resizing { z-index: 1; opacity: 0.92; transition: none; }
-.react-grid-item.react-draggable-dragging { transition: none; z-index: 100; opacity: 0.92; cursor: grabbing !important; }
+.react-grid-item.resizing { z-index: 5; opacity: 0.96; transition: none; }
+.react-grid-item.resizing .adflow-widget-card { box-shadow: 0 12px 40px ${pa(0.3)}; border-color: ${pa(0.6)}; }
+.react-grid-item.react-draggable-dragging { transition: none; z-index: 100; opacity: 0.96; }
+.react-grid-item.react-draggable-dragging .adflow-widget-card { box-shadow: 0 16px 48px rgba(0,0,0,0.25), 0 0 0 2px ${pa(0.5)}; transform: scale(1.02); }
 .react-grid-item.react-grid-placeholder {
-  background: ${pa(0.18)};
-  border: 2px dashed ${pa(0.5)};
+  background: ${pa(0.12)};
+  border: 2px dashed ${pa(0.55)};
   border-radius: 16px;
   opacity: 1;
   transition-duration: 100ms;
   z-index: 2;
   user-select: none;
 }
+
+/* ═══ RESIZE HANDLES — all 8 directions ═══ */
 .react-grid-item > .react-resizable-handle {
   position: absolute;
-  width: 22px; height: 22px;
-  bottom: 4px; right: 4px;
-  cursor: se-resize;
   background: transparent;
-  z-index: 3;
+  z-index: 4;
+  opacity: 0;
+  transition: opacity .15s;
 }
-.react-grid-item > .react-resizable-handle::after {
-  content: "";
-  position: absolute;
-  right: 6px; bottom: 6px;
-  width: 8px; height: 8px;
-  border-right: 2.5px solid ${pa(0.6)};
-  border-bottom: 2.5px solid ${pa(0.6)};
-  border-radius: 0 0 2px 0;
+.react-grid-item:hover > .react-resizable-handle,
+.react-grid-item.resizing > .react-resizable-handle { opacity: 1; }
+
+/* Corners — visible chevron indicators */
+.react-grid-item > .react-resizable-handle-se {
+  width: 18px; height: 18px; bottom: 0; right: 0; cursor: se-resize;
 }
+.react-grid-item > .react-resizable-handle-se::after {
+  content: ""; position: absolute; right: 4px; bottom: 4px;
+  width: 9px; height: 9px;
+  border-right: 2.5px solid ${pa(0.7)};
+  border-bottom: 2.5px solid ${pa(0.7)};
+  border-radius: 0 0 3px 0;
+}
+.react-grid-item > .react-resizable-handle-sw {
+  width: 18px; height: 18px; bottom: 0; left: 0; cursor: sw-resize;
+}
+.react-grid-item > .react-resizable-handle-sw::after {
+  content: ""; position: absolute; left: 4px; bottom: 4px;
+  width: 9px; height: 9px;
+  border-left: 2.5px solid ${pa(0.7)};
+  border-bottom: 2.5px solid ${pa(0.7)};
+  border-radius: 0 0 0 3px;
+}
+.react-grid-item > .react-resizable-handle-ne {
+  width: 18px; height: 18px; top: 0; right: 0; cursor: ne-resize;
+}
+.react-grid-item > .react-resizable-handle-ne::after {
+  content: ""; position: absolute; right: 4px; top: 4px;
+  width: 9px; height: 9px;
+  border-right: 2.5px solid ${pa(0.7)};
+  border-top: 2.5px solid ${pa(0.7)};
+  border-radius: 0 3px 0 0;
+}
+.react-grid-item > .react-resizable-handle-nw {
+  width: 18px; height: 18px; top: 0; left: 0; cursor: nw-resize;
+}
+.react-grid-item > .react-resizable-handle-nw::after {
+  content: ""; position: absolute; left: 4px; top: 4px;
+  width: 9px; height: 9px;
+  border-left: 2.5px solid ${pa(0.7)};
+  border-top: 2.5px solid ${pa(0.7)};
+  border-radius: 3px 0 0 0;
+}
+
+/* Edges — thin pill indicators */
+.react-grid-item > .react-resizable-handle-n {
+  height: 8px; left: 18px; right: 18px; top: 0; cursor: n-resize;
+}
+.react-grid-item > .react-resizable-handle-s {
+  height: 8px; left: 18px; right: 18px; bottom: 0; cursor: s-resize;
+}
+.react-grid-item > .react-resizable-handle-e {
+  width: 8px; top: 18px; bottom: 18px; right: 0; cursor: e-resize;
+}
+.react-grid-item > .react-resizable-handle-w {
+  width: 8px; top: 18px; bottom: 18px; left: 0; cursor: w-resize;
+}
+.react-grid-item > .react-resizable-handle-n::after,
+.react-grid-item > .react-resizable-handle-s::after {
+  content: ""; position: absolute; left: 50%; transform: translateX(-50%);
+  top: 50%; margin-top: -1px;
+  width: 28px; height: 3px; border-radius: 2px; background: ${pa(0.55)};
+}
+.react-grid-item > .react-resizable-handle-e::after,
+.react-grid-item > .react-resizable-handle-w::after {
+  content: ""; position: absolute; top: 50%; transform: translateY(-50%);
+  left: 50%; margin-left: -1px;
+  width: 3px; height: 28px; border-radius: 2px; background: ${pa(0.55)};
+}
+
+/* ═══ Widget card ═══ */
 .adflow-widget-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 18px;
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: border-color .15s, box-shadow .15s;
+  transition: border-color .15s, box-shadow .15s, transform .2s;
   position: relative;
 }
-.adflow-widget-card.editing {
-  border-color: ${pa(0.35)};
-  cursor: grab;
+.adflow-widget-card.editing { border-color: ${pa(0.35)}; }
+.adflow-widget-card.editing:hover { box-shadow: 0 6px 24px ${pa(0.15)}; }
+
+/* Drag header hover state (inline styles handle base render) */
+.adflow-widget-drag-header:hover {
+  background: linear-gradient(180deg, ${pa(0.18)} 0%, ${pa(0.04)} 100%) !important;
 }
-.adflow-widget-card.editing:hover { box-shadow: 0 6px 24px ${pa(0.18)}; }
-.adflow-widget-card.editing:active { cursor: grabbing; }
+.adflow-widget-drag-header:active { cursor: grabbing !important; }
+
 .adflow-widget-controls { opacity: 0; transition: opacity .15s; }
 .adflow-widget-card.editing .adflow-widget-controls { opacity: 1; }
-.adflow-widget-card .adflow-widget-content { flex: 1; min-height: 0; overflow: auto; }
-@keyframes editPulse { 0%,100%{ box-shadow: 0 0 0 0 ${pa(0.0)} } 50% { box-shadow: 0 0 0 4px ${pa(0.08)} } }
-.adflow-widget-card.editing { animation: editPulse 2s ease infinite; }
+
+/* Body — NO scroll. Content adapts via useWidgetSize. */
+.adflow-widget-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+}
+.adflow-widget-card.editing .adflow-widget-body { padding-top: 8px; }
+
+/* Subtle pulse so users notice editing mode */
+@keyframes editGlow { 0%,100%{ box-shadow: 0 0 0 0 ${pa(0.0)} } 50% { box-shadow: 0 0 0 3px ${pa(0.06)} } }
+.adflow-widget-card.editing { animation: editGlow 2.4s ease infinite; }
+
+/* Touch-friendly resize handles on coarse pointers */
+@media (pointer: coarse) {
+  .react-grid-item > .react-resizable-handle { opacity: 0.6; }
+  .react-grid-item > .react-resizable-handle-se,
+  .react-grid-item > .react-resizable-handle-sw,
+  .react-grid-item > .react-resizable-handle-ne,
+  .react-grid-item > .react-resizable-handle-nw { width: 26px; height: 26px; }
+}
 `
 
 // ─── Widget Card (wrapper around each widget) ─────────────────────────────────
@@ -92,9 +181,35 @@ function WidgetCard({ widget, data, editing, onRemove, onChangeVariant }) {
 
   return (
     <div className={`adflow-widget-card ${editing ? 'editing' : ''}`}>
+      {/* Drag handle bar — visible only in edit mode, ONLY draggable area */}
+      {editing && (
+        <div className="adflow-widget-drag-header adflow-drag-handle"
+          title="Arrastra para mover"
+          style={{
+            height: 24,
+            opacity: 1,
+            background: `linear-gradient(180deg, ${pa(0.08)} 0%, transparent 100%)`,
+            borderBottom: `1px dashed ${pa(0.18)}`,
+            borderRadius: '16px 16px 0 0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 4,
+            cursor: 'grab',
+            userSelect: 'none',
+            flexShrink: 0,
+          }}
+        >
+          {Array.from({ length: 8 }).map((_, i) => (
+            <span key={i} style={{ width: 3, height: 3, borderRadius: 2, background: pa(0.6) }} />
+          ))}
+        </div>
+      )}
+
+      {/* Edit-mode floating controls */}
       {editing && (
         <div className="adflow-widget-controls" style={{
-          position: 'absolute', top: 8, right: 8, zIndex: 5,
+          position: 'absolute', top: 26, right: 8, zIndex: 5,
           display: 'flex', alignItems: 'center', gap: 4,
         }}>
           {cfg.variants.length > 1 && (
@@ -104,11 +219,12 @@ function WidgetCard({ widget, data, editing, onRemove, onChangeVariant }) {
                 onClick={(e) => { e.stopPropagation(); setMenuOpen(o => !o) }}
                 style={{
                   background: 'var(--bg2)', border: '1px solid var(--border)',
-                  borderRadius: 8, height: 28, padding: '0 9px',
+                  borderRadius: 8, height: 26, padding: '0 8px',
                   display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer',
                   fontSize: 11, fontWeight: 600, color: 'var(--text)', fontFamily: FONT_BODY,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                 }}
-                title="Cambiar versión"
+                title="Cambiar versión del widget"
               >
                 <Settings2 size={12} />
                 {cfg.variants.find(v => v.id === widget.variant)?.name || 'Versión'}
@@ -116,7 +232,7 @@ function WidgetCard({ widget, data, editing, onRemove, onChangeVariant }) {
               </button>
               {menuOpen && (
                 <div style={{
-                  position: 'absolute', top: 32, right: 0,
+                  position: 'absolute', top: 30, right: 0,
                   background: 'var(--bg)', border: '1px solid var(--border)',
                   borderRadius: 10, padding: 4, minWidth: 140, zIndex: 10,
                   boxShadow: '0 8px 28px rgba(0,0,0,0.25)',
@@ -155,10 +271,11 @@ function WidgetCard({ widget, data, editing, onRemove, onChangeVariant }) {
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onRemove() }}
             style={{
-              width: 28, height: 28, borderRadius: 8,
+              width: 26, height: 26, borderRadius: 8,
               background: 'var(--bg2)', border: '1px solid var(--border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer', color: '#ef4444',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             }}
             title="Eliminar widget"
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.1)' }}
@@ -169,17 +286,7 @@ function WidgetCard({ widget, data, editing, onRemove, onChangeVariant }) {
         </div>
       )}
 
-      {editing && (
-        <div style={{
-          position: 'absolute', top: 6, left: 6, zIndex: 4,
-          width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: 'var(--muted)', pointerEvents: 'none',
-        }}>
-          <GripVertical size={14} />
-        </div>
-      )}
-
-      <div className="adflow-widget-content" style={{ pointerEvents: editing ? 'none' : 'auto' }}>
+      <div className="adflow-widget-body">
         <WidgetRenderer type={widget.type} variant={widget.variant} data={data} widgetId={widget.i} />
       </div>
     </div>
@@ -441,7 +548,7 @@ export default function CustomizableDashboard({ data }) {
           display: 'flex', alignItems: 'center', gap: 8,
         }}>
           <span style={{ color: PURPLE, fontWeight: 600 }}>💡 Modo edición activo:</span>
-          arrastra los widgets para moverlos, agarra la esquina inferior derecha para redimensionar, usa el menú para cambiar la versión, o pulsa la X para eliminar.
+          arrastra desde la barra superior para mover · estira desde cualquier borde o esquina para redimensionar · cambia la versión o elimina con los botones de la esquina superior derecha.
         </div>
       )}
 
@@ -455,16 +562,12 @@ export default function CustomizableDashboard({ data }) {
           layouts={layouts}
           breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
           cols={{ lg: 12, md: 12, sm: 12, xs: 4, xxs: 4 }}
-          rowHeight={62}
-          margin={[14, 14]}
+          rowHeight={56}
+          margin={[12, 12]}
           containerPadding={[0, 0]}
-          isDraggable={editing}
-          isResizable={editing}
           onLayoutChange={onLayoutChange}
-          draggableCancel=".adflow-widget-controls,.adflow-widget-controls *,textarea,button,a,input"
-          compactType="vertical"
-          preventCollision={false}
-          useCSSTransforms={true}
+          dragConfig={{ enabled: editing, handle: '.adflow-drag-handle' }}
+          resizeConfig={{ enabled: editing, handles: ['s', 'w', 'e', 'n', 'sw', 'nw', 'se', 'ne'] }}
         >
           {items.map(it => (
             <div key={it.i}>

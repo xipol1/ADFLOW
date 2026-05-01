@@ -8,16 +8,17 @@ import {
   ExternalLink, ChevronRight, ChevronLeft,
 } from 'lucide-react'
 import { WIDGET_TYPES } from './WidgetRegistry'
+import useWidgetSize, { rowsThatFit } from './useWidgetSize'
 import { FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE } from '../../../../theme/tokens'
 
 const PURPLE = 'var(--accent, #8B5CF6)'
 const pa = (o) => `rgba(139,92,246,${o})`
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SHARED MINI COMPONENTS
+// SHARED HELPERS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function Trend({ value }) {
+function Trend({ value, size = 11 }) {
   if (value === undefined || value === null) return null
   const pos = value > 0
   const Icon = pos ? TrendingUp : TrendingDown
@@ -26,9 +27,10 @@ function Trend({ value }) {
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 3,
       background: `${color}12`, border: `1px solid ${color}25`,
-      borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 700, color,
+      borderRadius: 20, padding: '2px 8px', fontSize: size, fontWeight: 700, color,
+      whiteSpace: 'nowrap',
     }}>
-      <Icon size={11} strokeWidth={2.5} />
+      <Icon size={size} strokeWidth={2.5} />
       {pos ? '+' : ''}{value}%
     </span>
   )
@@ -51,6 +53,9 @@ function MiniSparkline({ data, color = PURPLE, width = 80, height = 28 }) {
   )
 }
 
+// Fill helper: a div that grows to fill remaining vertical space
+const fill = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // WELCOME WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -62,22 +67,31 @@ function getGreeting(name) {
   return { text: `Buenas noches, ${name}`, emoji: '🌙' }
 }
 
-function WelcomeWidget({ data, variant }) {
+function WelcomeWidget({ data }) {
   const navigate = useNavigate()
+  const { ref, width, height } = useWidgetSize()
   const greeting = getGreeting((data.userName || 'Usuario').split(' ')[0])
-  const compact = variant === 'compact'
+  const compact = width < 480 || height < 90
+  const tiny = height < 60
 
   return (
-    <div style={{ display: 'flex', alignItems: compact ? 'center' : 'flex-start', justifyContent: 'space-between', gap: 16, height: '100%', padding: '8px 4px' }}>
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: compact ? 20 : 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.04em', lineHeight: 1.1, margin: 0 }}>
+    <div ref={ref} style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      gap: 12, height: '100%', padding: '4px 4px',
+    }}>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: tiny ? 0 : 2 }}>
+          <h1 style={{
+            fontFamily: FONT_DISPLAY, fontSize: tiny ? 16 : compact ? 18 : 24,
+            fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.04em',
+            lineHeight: 1.1, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
             {greeting.text}
           </h1>
-          <span style={{ fontSize: compact ? 18 : 22 }}>{greeting.emoji}</span>
+          {!tiny && <span style={{ fontSize: compact ? 16 : 22 }}>{greeting.emoji}</span>}
         </div>
         {!compact && (
-          <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0, lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {data.activeAds > 0
               ? <>Tienes <span style={{ color: PURPLE, fontWeight: 600 }}>{data.activeAds} {data.activeAds === 1 ? 'campaña activa' : 'campañas activas'}</span> ahora mismo</>
               : 'Resumen de tu actividad'}
@@ -87,14 +101,15 @@ function WelcomeWidget({ data, variant }) {
       <button
         onClick={() => navigate('/advertiser/campaigns/new')}
         style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          background: PURPLE, color: '#fff', border: 'none', borderRadius: 12,
-          padding: compact ? '8px 14px' : '11px 20px', fontSize: compact ? 12 : 14, fontWeight: 600,
-          cursor: 'pointer', fontFamily: FONT_BODY, boxShadow: `0 4px 16px ${pa(0.35)}`,
+          display: 'flex', alignItems: 'center', gap: 6,
+          background: PURPLE, color: '#fff', border: 'none', borderRadius: 10,
+          padding: tiny ? '6px 10px' : compact ? '8px 12px' : '10px 18px',
+          fontSize: tiny ? 11 : compact ? 12 : 13, fontWeight: 600,
+          cursor: 'pointer', fontFamily: FONT_BODY, boxShadow: `0 4px 14px ${pa(0.3)}`,
           whiteSpace: 'nowrap', flexShrink: 0,
         }}
       >
-        <Plus size={14} strokeWidth={2.5} /> Nueva campaña
+        <Plus size={tiny ? 12 : 14} strokeWidth={2.5} /> {tiny ? '' : 'Nueva campaña'}
       </button>
     </div>
   )
@@ -125,12 +140,12 @@ const KPI_CONFIGS = {
   [WIDGET_TYPES.KPI_VIEWS]: {
     icon: Eye, label: 'Vistas totales', accent: '#f59e0b',
     getValue: (d) => (d.totalViews || 0).toLocaleString('es'),
-    getSublabel: (d) => 'impresiones acumuladas',
+    getSublabel: () => 'impresiones acumuladas',
   },
   [WIDGET_TYPES.KPI_CLICKS]: {
     icon: MousePointerClick, label: 'Clicks totales', accent: '#ec4899',
     getValue: (d) => (d.totalClicks || 0).toLocaleString('es'),
-    getSublabel: (d) => 'en todas las campañas',
+    getSublabel: () => 'en todas las campañas',
   },
   [WIDGET_TYPES.KPI_ROI]: {
     icon: TrendingUp, label: 'ROI estimado', accent: OK,
@@ -145,46 +160,69 @@ const KPI_CONFIGS = {
   },
 }
 
-function KpiWidget({ data, variant, type }) {
+function KpiWidget({ data, type }) {
   const cfg = KPI_CONFIGS[type]
+  const { ref, width, height } = useWidgetSize()
   if (!cfg) return null
+
   const Icon = cfg.icon
   const value = cfg.getValue(data)
   const change = cfg.getChange?.(data)
   const sublabel = cfg.getSublabel?.(data)
   const sparkData = cfg.sparkData?.(data)
-  const compact = variant === 'compact'
-  const detailed = variant === 'detailed'
+
+  // Auto-scale to box size — no scrolling, content adapts
+  const tiny = width < 160 || height < 110
+  const small = !tiny && (width < 220 || height < 150)
+  const showSpark = sparkData && height > 180
+  const showSublabel = sublabel && !tiny && height > 130
+  const showChangeLabel = cfg.changeLabel && change !== undefined && height > 160
+
+  const valueFontSize = tiny ? 18 : small ? 22 : Math.min(32, Math.max(22, width / 8))
+  const iconSize = tiny ? 28 : small ? 34 : 40
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: compact ? 8 : 14, height: '100%', padding: '4px 0' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+    <div ref={ref} style={{
+      display: 'flex', flexDirection: 'column',
+      justifyContent: tiny ? 'center' : 'space-between',
+      gap: tiny ? 4 : 10, height: '100%', minHeight: 0,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 6 }}>
         <div style={{
-          width: compact ? 34 : 40, height: compact ? 34 : 40, borderRadius: 11,
+          width: iconSize, height: iconSize, borderRadius: 11,
           background: `${cfg.accent}15`, border: `1px solid ${cfg.accent}25`,
           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
-          <Icon size={compact ? 15 : 18} color={cfg.accent} strokeWidth={2} />
+          <Icon size={Math.round(iconSize * 0.45)} color={cfg.accent} strokeWidth={2} />
         </div>
-        <Trend value={change} />
+        <Trend value={change} size={tiny ? 10 : 11} />
       </div>
 
-      <div>
+      <div style={{ minHeight: 0, overflow: 'hidden' }}>
         <div style={{
-          fontSize: compact ? 22 : 28, fontWeight: 800, fontFamily: FONT_DISPLAY,
-          color: 'var(--text)', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 4,
+          fontSize: valueFontSize, fontWeight: 800, fontFamily: FONT_DISPLAY,
+          color: 'var(--text)', letterSpacing: '-0.03em', lineHeight: 1.05,
+          marginBottom: tiny ? 2 : 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {value}
         </div>
-        <div style={{ fontSize: 13, color: 'var(--muted)' }}>{cfg.label}</div>
-        {sublabel && <div style={{ fontSize: 11, color: 'var(--muted2)', marginTop: 4 }}>{sublabel}</div>}
-        {cfg.changeLabel && change !== undefined && (
+        <div style={{ fontSize: tiny ? 11 : 13, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {cfg.label}
+        </div>
+        {showSublabel && (
+          <div style={{ fontSize: 11, color: 'var(--muted2)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {sublabel}
+          </div>
+        )}
+        {showChangeLabel && (
           <div style={{ fontSize: 11, color: 'var(--muted2)', marginTop: 4 }}>{cfg.changeLabel}</div>
         )}
       </div>
 
-      {(detailed || (variant === 'standard' && sparkData)) && sparkData && (
-        <MiniSparkline data={sparkData} color={cfg.accent} width={200} height={36} />
+      {showSpark && (
+        <div style={{ height: 36, marginTop: 4 }}>
+          <MiniSparkline data={sparkData} color={cfg.accent} width={width - 4} height={36} />
+        </div>
       )}
     </div>
   )
@@ -196,11 +234,13 @@ function KpiWidget({ data, variant, type }) {
 
 function SpendChartWidget({ data, variant }) {
   const [hoverIdx, setHoverIdx] = useState(null)
+  const { ref, width, height } = useWidgetSize()
   const spendData = data.monthlySpend || []
+  const showHeader = height > 100
 
   if (spendData.length === 0) {
     return (
-      <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>
+      <div ref={ref} style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>
         Sin datos de gasto este periodo
       </div>
     )
@@ -208,12 +248,12 @@ function SpendChartWidget({ data, variant }) {
 
   const max = Math.max(...spendData.map(d => d.value), 1)
   const isLine = variant === 'line'
-  const isMini = variant === 'mini'
+  const isMini = variant === 'mini' || height < 90
 
   if (isLine) {
-    const w = 300
-    const h = 120
-    const pad = 20
+    const w = Math.max(200, width - 4)
+    const h = Math.max(60, height - (showHeader ? 32 : 4))
+    const pad = h > 80 ? 20 : 12
     const points = spendData.map((d, i) => {
       const x = pad + (i / Math.max(spendData.length - 1, 1)) * (w - pad * 2)
       const y = h - pad - ((d.value / max) * (h - pad * 2))
@@ -223,57 +263,65 @@ function SpendChartWidget({ data, variant }) {
     const areaD = `${pathD} L ${points[points.length - 1].x} ${h - pad} L ${points[0].x} ${h - pad} Z`
 
     return (
-      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 8, fontFamily: FONT_DISPLAY }}>Gasto mensual</div>
-        <svg viewBox={`0 0 ${w} ${h}`} style={{ flex: 1, width: '100%' }} preserveAspectRatio="xMidYMid meet">
-          <defs>
-            <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={PURPLE} stopOpacity="0.3" />
-              <stop offset="100%" stopColor={PURPLE} stopOpacity="0.02" />
-            </linearGradient>
-          </defs>
-          <path d={areaD} fill="url(#spendGrad)" />
-          <path d={pathD} fill="none" stroke={PURPLE} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-          {points.map((p, i) => (
-            <g key={i}>
-              <circle cx={p.x} cy={p.y} r={hoverIdx === i ? 5 : 3} fill={PURPLE} stroke="#fff" strokeWidth={2}
-                style={{ cursor: 'pointer' }}
-                onMouseEnter={() => setHoverIdx(i)} onMouseLeave={() => setHoverIdx(null)}
-              />
-              {hoverIdx === i && (
-                <text x={p.x} y={p.y - 10} textAnchor="middle" fill={PURPLE} fontSize={11} fontWeight={700}>
-                  €{p.value}
-                </text>
-              )}
-              <text x={p.x} y={h - 4} textAnchor="middle" fill="var(--muted)" fontSize={9}>{p.label}</text>
-            </g>
-          ))}
-        </svg>
+      <div ref={ref} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        {showHeader && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 6, fontFamily: FONT_DISPLAY }}>Gasto mensual</div>}
+        <div style={{ ...fill, position: 'relative' }}>
+          <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: '100%' }} preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={PURPLE} stopOpacity="0.3" />
+                <stop offset="100%" stopColor={PURPLE} stopOpacity="0.02" />
+              </linearGradient>
+            </defs>
+            <path d={areaD} fill="url(#spendGrad)" />
+            <path d={pathD} fill="none" stroke={PURPLE} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+            {points.map((p, i) => (
+              <g key={i}>
+                <circle cx={p.x} cy={p.y} r={hoverIdx === i ? 5 : 3} fill={PURPLE} stroke="#fff" strokeWidth={2}
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={() => setHoverIdx(i)} onMouseLeave={() => setHoverIdx(null)}
+                />
+                {hoverIdx === i && (
+                  <text x={p.x} y={p.y - 10} textAnchor="middle" fill={PURPLE} fontSize={11} fontWeight={700}>€{p.value}</text>
+                )}
+                {h > 80 && <text x={p.x} y={h - 4} textAnchor="middle" fill="var(--muted)" fontSize={9}>{p.label}</text>}
+              </g>
+            ))}
+          </svg>
+        </div>
       </div>
     )
   }
 
   if (isMini) {
     return (
-      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 8, fontFamily: FONT_DISPLAY }}>Gasto</div>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: 4 }}>
+      <div ref={ref} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        {height > 60 && <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text)', marginBottom: 4, fontFamily: FONT_DISPLAY }}>Gasto</div>}
+        <div style={{ ...fill, alignItems: 'flex-end', flexDirection: 'row', gap: 4 }}>
           {spendData.map((d, i) => (
-            <div key={i} style={{ flex: 1, borderRadius: '4px 4px 0 0', background: i === spendData.length - 1 ? PURPLE : pa(0.3), height: `${(d.value / max) * 100}%`, minHeight: 3, transition: 'height .3s' }} />
+            <div key={i} style={{
+              flex: 1, borderRadius: '4px 4px 0 0',
+              background: i === spendData.length - 1 ? PURPLE : pa(0.3),
+              height: `${(d.value / max) * 100}%`, minHeight: 3,
+              transition: 'height .3s',
+            }} />
           ))}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-          <span style={{ fontSize: 9, color: 'var(--muted)' }}>{spendData[0]?.label}</span>
-          <span style={{ fontSize: 9, color: PURPLE, fontWeight: 600 }}>{spendData[spendData.length - 1]?.label}</span>
-        </div>
+        {height > 80 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+            <span style={{ fontSize: 9, color: 'var(--muted)' }}>{spendData[0]?.label}</span>
+            <span style={{ fontSize: 9, color: PURPLE, fontWeight: 600 }}>{spendData[spendData.length - 1]?.label}</span>
+          </div>
+        )}
       </div>
     )
   }
 
+  // Bars
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 12, fontFamily: FONT_DISPLAY }}>Gasto mensual</div>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: 6, paddingBottom: 20, position: 'relative' }}>
+    <div ref={ref} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      {showHeader && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 8, fontFamily: FONT_DISPLAY }}>Gasto mensual</div>}
+      <div style={{ ...fill, alignItems: 'flex-end', flexDirection: 'row', gap: 6, paddingBottom: height > 140 ? 18 : 4, position: 'relative' }}>
         {spendData.map((d, i) => {
           const isLast = i === spendData.length - 1
           const isHov = hoverIdx === i
@@ -281,11 +329,11 @@ function SpendChartWidget({ data, variant }) {
           return (
             <div key={i}
               onMouseEnter={() => setHoverIdx(i)} onMouseLeave={() => setHoverIdx(null)}
-              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, height: '100%', cursor: 'default' }}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', cursor: 'default' }}
             >
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', width: '100%' }}>
-                {(isHov || isLast) && (
-                  <div style={{ fontSize: 11, color: isLast ? PURPLE : 'var(--muted)', fontWeight: 700, textAlign: 'center', marginBottom: 4 }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', width: '100%', minHeight: 0 }}>
+                {(isHov || isLast) && height > 100 && (
+                  <div style={{ fontSize: 10, color: isLast ? PURPLE : 'var(--muted)', fontWeight: 700, textAlign: 'center', marginBottom: 4 }}>
                     €{d.value}
                   </div>
                 )}
@@ -295,9 +343,11 @@ function SpendChartWidget({ data, variant }) {
                   transition: 'background .15s, height .4s cubic-bezier(.4,0,.2,1)',
                 }} />
               </div>
-              <span style={{ fontSize: 10, color: isLast ? PURPLE : 'var(--muted)', fontWeight: isLast ? 600 : 400, whiteSpace: 'nowrap' }}>
-                {d.label}
-              </span>
+              {height > 110 && (
+                <span style={{ fontSize: 10, color: isLast ? PURPLE : 'var(--muted)', fontWeight: isLast ? 600 : 400, whiteSpace: 'nowrap' }}>
+                  {d.label}
+                </span>
+              )}
             </div>
           )
         })}
@@ -307,7 +357,7 @@ function SpendChartWidget({ data, variant }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CAMPAIGNS TABLE WIDGET
+// CAMPAIGNS TABLE WIDGET — adaptive rows (no scroll)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const STATUS_CFG = {
@@ -320,27 +370,37 @@ const STATUS_CFG = {
 
 function CampaignsTableWidget({ data, variant }) {
   const navigate = useNavigate()
+  const { ref, width, height } = useWidgetSize()
   const campaigns = data.campaigns || []
 
   if (campaigns.length === 0) {
     return (
-      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-        <Megaphone size={28} color="var(--muted)" strokeWidth={1.5} />
+      <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+        <Megaphone size={26} color="var(--muted)" strokeWidth={1.5} />
         <div style={{ fontSize: 13, color: 'var(--muted)' }}>Aún no tienes campañas</div>
         <button onClick={() => navigate('/advertiser/campaigns/new')}
-          style={{ background: pa(0.1), color: PURPLE, border: `1px solid ${pa(0.3)}`, borderRadius: 8, padding: '8px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: FONT_BODY }}>
+          style={{ background: pa(0.1), color: PURPLE, border: `1px solid ${pa(0.3)}`, borderRadius: 8, padding: '7px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: FONT_BODY }}>
           Crear primera campaña
         </button>
       </div>
     )
   }
 
+  // ── Cards variant ──────────────────────────────────────────────────────────
   if (variant === 'cards') {
+    const headerH = height > 120 ? 22 : 0
+    const cardH = 76
+    const colMin = 180
+    const cols = Math.max(1, Math.floor(width / colMin))
+    const rowsAvail = rowsThatFit(height - headerH, cardH + 10)
+    const visibleN = Math.max(1, cols * rowsAvail)
+    const items = campaigns.slice(0, visibleN)
+
     return (
-      <div style={{ height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 8, fontFamily: FONT_DISPLAY }}>Campañas recientes</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10, flex: 1 }}>
-          {campaigns.slice(0, 6).map(ad => {
+      <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 8, fontFamily: FONT_DISPLAY }}>Campañas recientes</div>}
+        <div style={{ ...fill, display: 'grid', gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: 8 }}>
+          {items.map(ad => {
             const st = STATUS_CFG[ad.status] || { color: '#94a3b8', label: ad.status }
             const title = ad.title || ad.content?.slice(0, 40) || 'Campaña'
             const views = ad.tracking?.impressions || ad.views || 0
@@ -348,19 +408,61 @@ function CampaignsTableWidget({ data, variant }) {
               <div key={ad.id || ad._id}
                 onClick={() => navigate('/advertiser/campaigns')}
                 style={{
-                  background: 'var(--bg2)', borderRadius: 12, padding: 14, cursor: 'pointer',
-                  border: '1px solid var(--border)', transition: 'border-color .15s',
+                  background: 'var(--bg2)', borderRadius: 10, padding: 12, cursor: 'pointer',
+                  border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6, minHeight: 0,
                 }}
               >
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {title}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 11, color: 'var(--muted)' }}>{Number(views).toLocaleString('es')} vistas</span>
-                  <span style={{ background: `${st.color}12`, color: st.color, border: `1px solid ${st.color}35`, borderRadius: 20, padding: '2px 8px', fontSize: 10, fontWeight: 600 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>{Number(views).toLocaleString('es')} vistas</span>
+                  <span style={{ background: `${st.color}12`, color: st.color, border: `1px solid ${st.color}35`, borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 600 }}>
                     {st.label}
                   </span>
                 </div>
+              </div>
+            )
+          })}
+        </div>
+        {campaigns.length > visibleN && (
+          <button onClick={() => navigate('/advertiser/campaigns')}
+            style={{ marginTop: 6, fontSize: 11, color: PURPLE, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontFamily: FONT_BODY, textAlign: 'left' }}>
+            Ver {campaigns.length - visibleN} más →
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  // ── Compact list variant ──────────────────────────────────────────────────
+  if (variant === 'compact') {
+    const headerH = height > 90 ? 22 : 0
+    const rowH = 32
+    const visibleN = rowsThatFit(height - headerH, rowH)
+    const items = campaigns.slice(0, visibleN)
+
+    return (
+      <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 6, fontFamily: FONT_DISPLAY }}>Campañas</div>}
+        <div style={{ ...fill, justifyContent: 'flex-start' }}>
+          {items.map((ad, i) => {
+            const st = STATUS_CFG[ad.status] || { color: '#94a3b8', label: ad.status }
+            return (
+              <div key={ad.id || ad._id}
+                onClick={() => navigate('/advertiser/campaigns')}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                  padding: '7px 0', borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none',
+                  cursor: 'pointer', minWidth: 0,
+                }}
+              >
+                <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
+                  {ad.title || ad.content?.slice(0, 30) || 'Campaña'}
+                </span>
+                <span style={{ background: `${st.color}12`, color: st.color, borderRadius: 20, padding: '2px 7px', fontSize: 10, fontWeight: 600, flexShrink: 0 }}>
+                  {st.label}
+                </span>
               </div>
             )
           })}
@@ -369,70 +471,64 @@ function CampaignsTableWidget({ data, variant }) {
     )
   }
 
-  if (variant === 'compact') {
-    return (
-      <div style={{ height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 8, fontFamily: FONT_DISPLAY }}>Campañas</div>
-        {campaigns.slice(0, 8).map((ad, i) => {
+  // ── Full table variant ────────────────────────────────────────────────────
+  const headerH = height > 110 ? 22 : 0
+  const tableHeaderH = 30
+  const rowH = 38
+  const visibleN = rowsThatFit(height - headerH - tableHeaderH, rowH)
+  const items = campaigns.slice(0, visibleN)
+  const showCols = width > 360
+  const showAllCols = width > 480
+
+  return (
+    <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 6, fontFamily: FONT_DISPLAY }}>Campañas recientes</div>}
+      <div style={{ ...fill, justifyContent: 'flex-start' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: showAllCols ? '1fr 60px 50px 60px 70px' : showCols ? '1fr 60px 70px' : '1fr 70px',
+          padding: '6px 0', borderBottom: '1px solid var(--border)', gap: 8,
+        }}>
+          {(showAllCols ? ['Campaña','Vistas','CTR','Gasto','Estado'] : showCols ? ['Campaña','Vistas','Estado'] : ['Campaña','Estado']).map(h => (
+            <div key={h} style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</div>
+          ))}
+        </div>
+        {items.map((ad, i) => {
           const st = STATUS_CFG[ad.status] || { color: '#94a3b8', label: ad.status }
+          const views = ad.tracking?.impressions || ad.views || 0
+          const clicks = ad.tracking?.clicks || ad.clicks || 0
+          const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : '0.0'
+          const spent = ad.price || ad.spent || ad.budget || 0
           return (
             <div key={ad.id || ad._id}
               onClick={() => navigate('/advertiser/campaigns')}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                padding: '9px 0', borderBottom: i < campaigns.length - 1 ? '1px solid var(--border)' : 'none',
-                cursor: 'pointer',
+                display: 'grid',
+                gridTemplateColumns: showAllCols ? '1fr 60px 50px 60px 70px' : showCols ? '1fr 60px 70px' : '1fr 70px',
+                alignItems: 'center', padding: '8px 0',
+                borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none',
+                cursor: 'pointer', gap: 8, minWidth: 0,
               }}
             >
-              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                {ad.title || ad.content?.slice(0, 30) || 'Campaña'}
-              </span>
-              <span style={{ background: `${st.color}12`, color: st.color, borderRadius: 20, padding: '2px 8px', fontSize: 10, fontWeight: 600, flexShrink: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {ad.title || ad.content?.slice(0, 40) || 'Campaña'}
+              </div>
+              {showCols && <div style={{ fontSize: 11.5, color: 'var(--text)' }}>{Number(views).toLocaleString('es')}</div>}
+              {showAllCols && <div style={{ fontSize: 11.5, color: Number(ctr) > 4 ? OK : 'var(--text)', fontWeight: 600 }}>{ctr}%</div>}
+              {showAllCols && <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)' }}>€{spent}</div>}
+              <span style={{ background: `${st.color}12`, color: st.color, border: `1px solid ${st.color}35`, borderRadius: 20, padding: '2px 6px', fontSize: 10, fontWeight: 600, textAlign: 'center' }}>
                 {st.label}
               </span>
             </div>
           )
         })}
       </div>
-    )
-  }
-
-  // full table variant
-  return (
-    <div style={{ height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 8, fontFamily: FONT_DISPLAY }}>Campañas recientes</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 70px 60px 70px 74px', padding: '8px 0', borderBottom: '1px solid var(--border)', gap: 8 }}>
-        {['Campaña', 'Vistas', 'CTR', 'Gasto', 'Estado'].map(h => (
-          <div key={h} style={{ fontSize: 10, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</div>
-        ))}
-      </div>
-      {campaigns.slice(0, 5).map((ad, i) => {
-        const st = STATUS_CFG[ad.status] || { color: '#94a3b8', label: ad.status }
-        const views = ad.tracking?.impressions || ad.views || 0
-        const clicks = ad.tracking?.clicks || ad.clicks || 0
-        const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : '0.0'
-        const spent = ad.price || ad.spent || ad.budget || 0
-        return (
-          <div key={ad.id || ad._id}
-            onClick={() => navigate('/advertiser/campaigns')}
-            style={{
-              display: 'grid', gridTemplateColumns: '1fr 70px 60px 70px 74px', alignItems: 'center',
-              padding: '10px 0', borderBottom: i < 4 ? '1px solid var(--border)' : 'none',
-              cursor: 'pointer', gap: 8,
-            }}
-          >
-            <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {ad.title || ad.content?.slice(0, 40) || 'Campaña'}
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--text)' }}>{Number(views).toLocaleString('es')}</div>
-            <div style={{ fontSize: 12, color: Number(ctr) > 4 ? OK : 'var(--text)', fontWeight: 600 }}>{ctr}%</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>€{spent}</div>
-            <span style={{ background: `${st.color}12`, color: st.color, border: `1px solid ${st.color}35`, borderRadius: 20, padding: '2px 7px', fontSize: 10, fontWeight: 600, textAlign: 'center' }}>
-              {st.label}
-            </span>
-          </div>
-        )
-      })}
+      {campaigns.length > visibleN && (
+        <button onClick={() => navigate('/advertiser/campaigns')}
+          style={{ marginTop: 4, fontSize: 11, color: PURPLE, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontFamily: FONT_BODY, textAlign: 'left' }}>
+          Ver {campaigns.length - visibleN} más →
+        </button>
+      )}
     </div>
   )
 }
@@ -442,104 +538,120 @@ function CampaignsTableWidget({ data, variant }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function ActionItemsWidget({ data, variant }) {
-  const navigate = useNavigate()
+  const { ref, width, height } = useWidgetSize()
   const items = data.actionItems || []
 
   if (items.length === 0) {
     return (
-      <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>
-        <CheckCircle2 size={16} style={{ marginRight: 8 }} /> Todo en orden
+      <div ref={ref} style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13, gap: 8 }}>
+        <CheckCircle2 size={16} /> Todo en orden
       </div>
     )
   }
 
+  // ── Compact ───────────────────────────────────────────────────────────────
   if (variant === 'compact') {
+    const rowH = 26
+    const headerH = height > 80 ? 22 : 0
+    const visibleN = rowsThatFit(height - headerH, rowH)
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, height: '100%', justifyContent: 'center' }}>
-        {items.slice(0, 3).map((item, i) => {
-          const Icon = item.icon
-          return (
-            <div key={i} onClick={item.onClick}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '4px 0' }}>
-              <div style={{ width: 24, height: 24, borderRadius: 6, background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Icon size={12} color={item.color} />
+      <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 4, minHeight: 0 }}>
+        {headerH > 0 && <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Atención</div>}
+        <div style={{ ...fill, justifyContent: 'space-around' }}>
+          {items.slice(0, visibleN).map((item, i) => {
+            const Icon = item.icon
+            return (
+              <div key={i} onClick={item.onClick}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', minWidth: 0 }}>
+                <div style={{ width: 22, height: 22, borderRadius: 6, background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon size={11} color={item.color} />
+                </div>
+                <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
+                {item.count > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: item.color, flexShrink: 0 }}>{item.count}</span>}
               </div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', flex: 1 }}>{item.title}</span>
-              {item.count > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: item.color }}>{item.count}</span>}
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
     )
   }
 
+  // ── List ──────────────────────────────────────────────────────────────────
   if (variant === 'list') {
+    const rowH = 50
+    const headerH = height > 110 ? 22 : 0
+    const visibleN = rowsThatFit(height - headerH, rowH)
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, height: '100%', overflow: 'auto' }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4, fontFamily: FONT_DISPLAY }}>Requiere atención</div>
-        {items.map((item, i) => {
+      <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 4, minHeight: 0 }}>
+        {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4, fontFamily: FONT_DISPLAY }}>Requiere atención</div>}
+        <div style={{ ...fill, justifyContent: 'flex-start' }}>
+          {items.slice(0, visibleN).map((item, i) => {
+            const Icon = item.icon
+            return (
+              <div key={i} onClick={item.onClick}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '8px 6px', borderRadius: 8, transition: 'background .12s' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
+                  <Icon size={14} color={item.color} />
+                  {item.count > 0 && <span style={{ position: 'absolute', top: -3, right: -3, minWidth: 14, height: 14, background: item.color, color: '#fff', borderRadius: 7, fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.count}</span>}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
+                  <div style={{ fontSize: 10.5, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</div>
+                </div>
+                <ChevronRight size={13} color="var(--muted)" />
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  // ── Cards ─────────────────────────────────────────────────────────────────
+  const rowH = 70
+  const headerH = height > 120 ? 28 : 0
+  const visibleN = rowsThatFit(height - headerH, rowH)
+
+  return (
+    <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 6, minHeight: 0 }}>
+      {headerH > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Requiere atención</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: PURPLE, background: pa(0.12), border: `1px solid ${pa(0.25)}`, borderRadius: 20, padding: '1px 7px' }}>
+            {items.length}
+          </span>
+        </div>
+      )}
+      <div style={{ ...fill, gap: 6, justifyContent: 'flex-start' }}>
+        {items.slice(0, visibleN).map((item, i) => {
           const Icon = item.icon
           return (
-            <div key={i} onClick={item.onClick}
+            <button key={i} onClick={item.onClick}
               style={{
-                display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
-                padding: '10px 8px', borderRadius: 10, transition: 'background .12s',
+                background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10,
+                padding: 10, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+                textAlign: 'left', fontFamily: FONT_BODY, transition: 'border-color .15s',
+                width: '100%', minWidth: 0,
               }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              onMouseEnter={e => e.currentTarget.style.borderColor = item.color}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
             >
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
-                <Icon size={15} color={item.color} />
-                {item.count > 0 && <span style={{ position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, background: item.color, color: '#fff', borderRadius: 8, fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.count}</span>}
+              <div style={{ width: 34, height: 34, borderRadius: 9, background: `${item.color}15`, border: `1px solid ${item.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
+                <Icon size={15} color={item.color} strokeWidth={2} />
+                {item.count > 0 && <span style={{ position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, background: item.color, color: '#fff', borderRadius: 8, fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg2)' }}>{item.count}</span>}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)' }}>{item.title}</div>
-                <div style={{ fontSize: 11, color: 'var(--muted)' }}>{item.description}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 1, fontFamily: FONT_DISPLAY, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
+                <div style={{ fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</div>
               </div>
-              <ChevronRight size={14} color="var(--muted)" />
-            </div>
+              <ArrowRight size={12} color="var(--muted)" style={{ flexShrink: 0 }} />
+            </button>
           )
         })}
       </div>
-    )
-  }
-
-  // cards variant
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, height: '100%', overflow: 'auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Requiere atención</span>
-        <span style={{ fontSize: 10, fontWeight: 700, color: PURPLE, background: pa(0.12), border: `1px solid ${pa(0.25)}`, borderRadius: 20, padding: '2px 8px' }}>
-          {items.length}
-        </span>
-      </div>
-      {items.map((item, i) => {
-        const Icon = item.icon
-        return (
-          <button key={i} onClick={item.onClick}
-            style={{
-              background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 12,
-              padding: 14, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
-              textAlign: 'left', fontFamily: FONT_BODY, transition: 'border-color .15s',
-              width: '100%',
-            }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = item.color}
-            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-          >
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: `${item.color}15`, border: `1px solid ${item.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
-              <Icon size={17} color={item.color} strokeWidth={2} />
-              {item.count > 0 && <span style={{ position: 'absolute', top: -5, right: -5, minWidth: 18, height: 18, background: item.color, color: '#fff', borderRadius: 9, fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg2)' }}>{item.count}</span>}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 2, fontFamily: FONT_DISPLAY }}>{item.title}</div>
-              <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4 }}>{item.description}</div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--muted)', fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
-              {item.ctaLabel} <ArrowRight size={12} />
-            </div>
-          </button>
-        )
-      })}
     </div>
   )
 }
@@ -548,8 +660,9 @@ function ActionItemsWidget({ data, variant }) {
 // QUICK ACTIONS WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function QuickActionsWidget({ data, variant }) {
+function QuickActionsWidget({ variant }) {
   const navigate = useNavigate()
+  const { ref, width, height } = useWidgetSize()
   const actions = [
     { icon: Plus, label: 'Nueva campaña', path: '/advertiser/campaigns/new', color: PURPLE },
     { icon: Search, label: 'Explorar canales', path: '/advertiser/explore', color: BLUE },
@@ -559,15 +672,16 @@ function QuickActionsWidget({ data, variant }) {
     { icon: CalendarDays, label: 'Calendario', path: '/advertiser/analyze/calendar', color: '#06b6d4' },
   ]
 
-  if (variant === 'compact') {
+  if (variant === 'compact' || (width < 250 && height < 90)) {
+    const btnSize = Math.min(42, height - 16)
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, height: '100%', flexWrap: 'wrap' }}>
-        {actions.slice(0, 6).map((a, i) => {
+      <div ref={ref} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: '100%', flexWrap: 'wrap' }}>
+        {actions.map((a, i) => {
           const Icon = a.icon
           return (
             <button key={i} onClick={() => navigate(a.path)}
               style={{
-                width: 42, height: 42, borderRadius: 12, border: '1px solid var(--border)',
+                width: btnSize, height: btnSize, borderRadius: 10, border: '1px solid var(--border)',
                 background: 'var(--bg2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'border-color .15s, transform .15s',
               }}
@@ -575,7 +689,7 @@ function QuickActionsWidget({ data, variant }) {
               onMouseEnter={e => { e.currentTarget.style.borderColor = a.color; e.currentTarget.style.transform = 'translateY(-1px)' }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none' }}
             >
-              <Icon size={16} color={a.color} />
+              <Icon size={Math.round(btnSize * 0.4)} color={a.color} />
             </button>
           )
         })}
@@ -583,28 +697,45 @@ function QuickActionsWidget({ data, variant }) {
     )
   }
 
+  const headerH = height > 80 ? 24 : 0
+  const bodyH = height - headerH
+  // Approx button: 32px tall with ~150px wide. Compute how many rows of buttons fit.
+  const btnH = 32
+  const rows = Math.max(1, Math.floor(bodyH / (btnH + 6)))
+  // Per-row capacity by width (avg button width ~140 + gap 6)
+  const perRow = Math.max(1, Math.floor((width + 6) / 146))
+  const maxVisible = Math.max(1, rows * perRow)
+  const visible = actions.slice(0, maxVisible)
+  const overflow = actions.length - visible.length
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, height: '100%' }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY, marginBottom: 4 }}>Acciones rápidas</div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flex: 1, alignContent: 'flex-start' }}>
-        {actions.map((a, i) => {
+    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 6, height: '100%', minHeight: 0 }}>
+      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Acciones rápidas</div>}
+      <div style={{ ...fill, flexDirection: 'row', gap: 6, flexWrap: 'wrap', alignContent: 'flex-start', overflow: 'hidden' }}>
+        {visible.map((a, i) => {
           const Icon = a.icon
           return (
             <button key={i} onClick={() => navigate(a.path)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10,
-                padding: '8px 14px', cursor: 'pointer', fontFamily: FONT_BODY,
+                display: 'flex', alignItems: 'center', gap: 7,
+                background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 9,
+                padding: '7px 12px', cursor: 'pointer', fontFamily: FONT_BODY,
                 transition: 'border-color .15s, transform .15s', fontSize: 12, fontWeight: 500, color: 'var(--text)',
+                whiteSpace: 'nowrap', flexShrink: 0,
               }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = a.color; e.currentTarget.style.transform = 'translateY(-1px)' }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none' }}
             >
-              <Icon size={14} color={a.color} strokeWidth={2} />
+              <Icon size={13} color={a.color} strokeWidth={2} />
               {a.label}
             </button>
           )
         })}
+        {overflow > 0 && (
+          <span style={{ alignSelf: 'center', fontSize: 11, color: 'var(--muted)', padding: '0 4px' }}>
+            +{overflow}
+          </span>
+        )}
       </div>
     </div>
   )
@@ -614,9 +745,10 @@ function QuickActionsWidget({ data, variant }) {
 // ACTIVITY FEED WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function ActivityFeedWidget({ data, variant }) {
+function ActivityFeedWidget({ data }) {
+  const { ref, height } = useWidgetSize()
   const campaigns = data.campaigns || []
-  const activities = campaigns.slice(0, 8).map((c, i) => {
+  const activities = campaigns.map(c => {
     const statusMsg = {
       DRAFT: 'Campaña creada como borrador',
       PAID: 'Pago procesado correctamente',
@@ -634,31 +766,35 @@ function ActivityFeedWidget({ data, variant }) {
 
   if (activities.length === 0) {
     return (
-      <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>
+      <div ref={ref} style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>
         Sin actividad reciente
       </div>
     )
   }
 
-  const compact = variant === 'compact'
+  const rowH = 44
+  const headerH = height > 90 ? 22 : 0
+  const visibleN = rowsThatFit(height - headerH, rowH)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, height: '100%', overflow: 'auto' }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4, fontFamily: FONT_DISPLAY }}>Actividad reciente</div>
-      {activities.slice(0, compact ? 4 : 8).map((a, i) => (
-        <div key={i} style={{ display: 'flex', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ width: 8, height: 8, borderRadius: 4, background: a.color, marginTop: 5, flexShrink: 0 }} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</div>
-            <div style={{ fontSize: 11, color: 'var(--muted)' }}>{a.msg}</div>
+    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 4, height: '100%', minHeight: 0 }}>
+      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4, fontFamily: FONT_DISPLAY }}>Actividad reciente</div>}
+      <div style={{ ...fill, justifyContent: 'flex-start' }}>
+        {activities.slice(0, visibleN).map((a, i) => (
+          <div key={i} style={{ display: 'flex', gap: 8, padding: '7px 0', borderBottom: i < Math.min(visibleN, activities.length) - 1 ? '1px solid var(--border)' : 'none', minWidth: 0 }}>
+            <div style={{ width: 7, height: 7, borderRadius: 4, background: a.color, marginTop: 5, flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</div>
+              <div style={{ fontSize: 10.5, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.msg}</div>
+            </div>
+            {a.time && (
+              <span style={{ fontSize: 10, color: 'var(--muted2)', flexShrink: 0 }}>
+                {new Date(a.time).toLocaleDateString('es', { day: 'numeric', month: 'short' })}
+              </span>
+            )}
           </div>
-          {a.time && (
-            <span style={{ fontSize: 10, color: 'var(--muted2)', flexShrink: 0 }}>
-              {new Date(a.time).toLocaleDateString('es', { day: 'numeric', month: 'short' })}
-            </span>
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }
@@ -668,6 +804,7 @@ function ActivityFeedWidget({ data, variant }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function TopChannelsWidget({ data, variant }) {
+  const { ref, width, height } = useWidgetSize()
   const campaigns = data.campaigns || []
   const channelMap = {}
   campaigns.forEach(c => {
@@ -678,36 +815,41 @@ function TopChannelsWidget({ data, variant }) {
     channelMap[name].spent += (c.price || c.spent || 0)
     channelMap[name].count++
   })
-  const channels = Object.values(channelMap).sort((a, b) => b.views - a.views).slice(0, 5)
+  const channels = Object.values(channelMap).sort((a, b) => b.views - a.views)
 
   if (channels.length === 0) {
     return (
-      <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>
+      <div ref={ref} style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>
         Sin datos de canales
       </div>
     )
   }
 
-  const compact = variant === 'compact'
+  const rowH = 38
+  const headerH = height > 90 ? 22 : 0
+  const visibleN = rowsThatFit(height - headerH, rowH)
+  const showSecondary = variant !== 'compact' && width > 200
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, height: '100%', overflow: 'auto' }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4, fontFamily: FONT_DISPLAY }}>Top canales</div>
-      {channels.map((ch, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: i < channels.length - 1 ? '1px solid var(--border)' : 'none' }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: pa(0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: PURPLE, flexShrink: 0 }}>
-            {i + 1}
+    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 4, height: '100%', minHeight: 0 }}>
+      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4, fontFamily: FONT_DISPLAY }}>Top canales</div>}
+      <div style={{ ...fill, justifyContent: 'flex-start' }}>
+        {channels.slice(0, visibleN).map((ch, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: i < Math.min(visibleN, channels.length) - 1 ? '1px solid var(--border)' : 'none', minWidth: 0 }}>
+            <div style={{ width: 24, height: 24, borderRadius: 7, background: pa(0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: PURPLE, flexShrink: 0 }}>
+              {i + 1}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ch.name}</div>
+              {showSecondary && <div style={{ fontSize: 10.5, color: 'var(--muted)' }}>{ch.count} campaña{ch.count !== 1 ? 's' : ''}</div>}
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)' }}>{ch.views.toLocaleString('es')}</div>
+              {showSecondary && <div style={{ fontSize: 10.5, color: 'var(--muted)' }}>€{ch.spent}</div>}
+            </div>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ch.name}</div>
-            {!compact && <div style={{ fontSize: 11, color: 'var(--muted)' }}>{ch.count} campaña{ch.count !== 1 ? 's' : ''}</div>}
-          </div>
-          <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{ch.views.toLocaleString('es')} vistas</div>
-            {!compact && <div style={{ fontSize: 11, color: 'var(--muted)' }}>€{ch.spent}</div>}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }
@@ -716,7 +858,8 @@ function TopChannelsWidget({ data, variant }) {
 // BUDGET DONUT WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function BudgetDonutWidget({ data, variant }) {
+function BudgetDonutWidget({ data }) {
+  const { ref, width, height } = useWidgetSize()
   const campaigns = data.campaigns || []
   const statusBuckets = {}
   campaigns.forEach(c => {
@@ -729,25 +872,37 @@ function BudgetDonutWidget({ data, variant }) {
 
   if (total === 0) {
     return (
-      <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>
+      <div ref={ref} style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>
         Sin datos de presupuesto
       </div>
     )
   }
 
   const colors = [PURPLE, OK, BLUE, WARN, ERR, '#ec4899', '#06b6d4']
-  const compact = variant === 'compact'
-  const size = compact ? 80 : 110
-  const strokeW = compact ? 12 : 16
-  const r = (size - strokeW) / 2
+  const headerH = height > 130 ? 22 : 0
+  const isHorizontal = width > height + 40
+  const size = Math.min(
+    isHorizontal ? height - headerH - 16 : width - 16,
+    isHorizontal ? width / 2 - 16 : height - headerH - 60,
+    150,
+  )
+  const safeSize = Math.max(60, size)
+  const strokeW = Math.max(10, Math.round(safeSize / 8))
+  const r = (safeSize - strokeW) / 2
   const circ = 2 * Math.PI * r
   let offset = 0
 
+  const showLegend = (isHorizontal ? width > 220 : height > 180)
+
   return (
-    <div style={{ display: 'flex', alignItems: compact ? 'center' : 'flex-start', gap: 16, height: '100%', flexDirection: compact ? 'row' : 'column', justifyContent: 'center' }}>
-      {!compact && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Distribución</div>}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <svg width={size} height={size} style={{ flexShrink: 0 }}>
+    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 6, height: '100%', minHeight: 0 }}>
+      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Distribución</div>}
+      <div style={{
+        ...fill,
+        flexDirection: isHorizontal ? 'row' : 'column',
+        alignItems: 'center', justifyContent: 'center', gap: 14, minHeight: 0,
+      }}>
+        <svg width={safeSize} height={safeSize} style={{ flexShrink: 0 }}>
           {entries.map(([key, val], i) => {
             const pct = val / total
             const dash = circ * pct
@@ -755,32 +910,34 @@ function BudgetDonutWidget({ data, variant }) {
             const rot = offset
             offset += pct * 360
             return (
-              <circle key={key} cx={size / 2} cy={size / 2} r={r}
+              <circle key={key} cx={safeSize / 2} cy={safeSize / 2} r={r}
                 fill="none" stroke={colors[i % colors.length]} strokeWidth={strokeW}
                 strokeDasharray={`${dash} ${gap}`}
                 strokeDashoffset={0}
-                transform={`rotate(${rot - 90} ${size / 2} ${size / 2})`}
+                transform={`rotate(${rot - 90} ${safeSize / 2} ${safeSize / 2})`}
                 strokeLinecap="round"
               />
             )
           })}
-          <text x={size / 2} y={size / 2} textAnchor="middle" dominantBaseline="central"
-            fill="var(--text)" fontSize={compact ? 12 : 14} fontWeight={700} fontFamily={FONT_DISPLAY}>
+          <text x={safeSize / 2} y={safeSize / 2} textAnchor="middle" dominantBaseline="central"
+            fill="var(--text)" fontSize={Math.round(safeSize / 8)} fontWeight={700} fontFamily={FONT_DISPLAY}>
             €{total.toLocaleString('es')}
           </text>
         </svg>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {entries.map(([key, val], i) => {
-            const label = STATUS_CFG[key]?.label || key
-            return (
-              <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 8, height: 8, borderRadius: 2, background: colors[i % colors.length], flexShrink: 0 }} />
-                <span style={{ fontSize: 11, color: 'var(--muted)' }}>{label}</span>
-                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)' }}>€{val}</span>
-              </div>
-            )
-          })}
-        </div>
+        {showLegend && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+            {entries.map(([key, val], i) => {
+              const label = STATUS_CFG[key]?.label || key
+              return (
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 2, background: colors[i % colors.length], flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, color: 'var(--muted)' }}>{label}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)' }}>€{val}</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -791,6 +948,7 @@ function BudgetDonutWidget({ data, variant }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function NotesWidget({ widgetId }) {
+  const { ref, height } = useWidgetSize()
   const storageKey = `channelad-notes-${widgetId}`
   const [text, setText] = useState(() => {
     try { return localStorage.getItem(storageKey) || '' } catch { return '' }
@@ -799,19 +957,20 @@ function NotesWidget({ widgetId }) {
     setText(val)
     try { localStorage.setItem(storageKey, val) } catch {}
   }
+  const headerH = height > 90 ? 22 : 0
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 6 }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Notas</div>
+    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 6, minHeight: 0 }}>
+      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Notas</div>}
       <textarea
         value={text}
         onChange={e => save(e.target.value)}
         placeholder="Escribe tus notas aquí..."
         style={{
           flex: 1, width: '100%', resize: 'none', border: '1px solid var(--border)',
-          borderRadius: 10, padding: 12, fontSize: 13, fontFamily: FONT_BODY,
+          borderRadius: 10, padding: 10, fontSize: 13, fontFamily: FONT_BODY,
           background: 'var(--bg2)', color: 'var(--text)', outline: 'none',
-          lineHeight: 1.6,
+          lineHeight: 1.5, minHeight: 0,
         }}
         onFocus={e => e.currentTarget.style.borderColor = PURPLE}
         onBlur={e => e.currentTarget.style.borderColor = 'var(--border)'}
@@ -825,6 +984,7 @@ function NotesWidget({ widgetId }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function CampaignCalendarWidget({ data, variant }) {
+  const { ref, height } = useWidgetSize()
   const [monthOffset, setMonthOffset] = useState(0)
   const now = new Date()
   const viewDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1)
@@ -850,16 +1010,16 @@ function CampaignCalendarWidget({ data, variant }) {
 
   if (variant === 'compact') {
     const startOfWeek = new Date()
-    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1)
+    startOfWeek.setDate(startOfWeek.getDate() - ((startOfWeek.getDay() + 6) % 7))
     const weekDays = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(startOfWeek)
       d.setDate(d.getDate() + i)
       return d
     })
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, height: '100%' }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Esta semana</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, flex: 1 }}>
+      <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 6, height: '100%', minHeight: 0 }}>
+        {height > 90 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Esta semana</div>}
+        <div style={{ ...fill, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
           {weekDays.map((d, i) => {
             const isToday = d.toDateString() === now.toDateString()
             const hasCampaign = campaigns.some(c => {
@@ -868,7 +1028,7 @@ function CampaignCalendarWidget({ data, variant }) {
             })
             return (
               <div key={i} style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
                 padding: 6, borderRadius: 8,
                 background: isToday ? pa(0.1) : 'transparent',
                 border: isToday ? `1px solid ${pa(0.3)}` : '1px solid transparent',
@@ -885,7 +1045,7 @@ function CampaignCalendarWidget({ data, variant }) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, height: '100%' }}>
+    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 6, height: '100%', minHeight: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <button onClick={() => setMonthOffset(o => o - 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 4 }}>
           <ChevronLeft size={16} />
@@ -897,7 +1057,7 @@ function CampaignCalendarWidget({ data, variant }) {
           <ChevronRight size={16} />
         </button>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+      <div style={{ ...fill, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridAutoRows: '1fr', gap: 2 }}>
         {dayNames.map(d => (
           <div key={d} style={{ fontSize: 10, fontWeight: 600, color: 'var(--muted)', textAlign: 'center', padding: '4px 0' }}>{d}</div>
         ))}
@@ -907,12 +1067,14 @@ function CampaignCalendarWidget({ data, variant }) {
           const hasCampaign = !!campaignDates[day]
           return (
             <div key={day} style={{
-              textAlign: 'center', padding: '5px 2px', borderRadius: 6, position: 'relative',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              borderRadius: 6, position: 'relative',
               background: isToday ? pa(0.15) : 'transparent',
               cursor: hasCampaign ? 'pointer' : 'default',
+              minWidth: 0,
             }}>
-              <span style={{ fontSize: 12, fontWeight: isToday ? 700 : 400, color: isToday ? PURPLE : 'var(--text)' }}>{day}</span>
-              {hasCampaign && <div style={{ width: 4, height: 4, borderRadius: 2, background: PURPLE, margin: '2px auto 0' }} />}
+              <span style={{ fontSize: 11, fontWeight: isToday ? 700 : 400, color: isToday ? PURPLE : 'var(--text)' }}>{day}</span>
+              {hasCampaign && <div style={{ width: 4, height: 4, borderRadius: 2, background: PURPLE, marginTop: 1 }} />}
             </div>
           )
         })}
@@ -922,28 +1084,27 @@ function CampaignCalendarWidget({ data, variant }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// WIDGET RENDERER (dispatches to the right component)
+// WIDGET RENDERER
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export default function WidgetRenderer({ type, variant, data, widgetId }) {
   const props = { data, variant, type, widgetId }
-
   switch (type) {
-    case WIDGET_TYPES.WELCOME:          return <WelcomeWidget {...props} />
+    case WIDGET_TYPES.WELCOME:           return <WelcomeWidget {...props} />
     case WIDGET_TYPES.KPI_SPEND:
     case WIDGET_TYPES.KPI_CAMPAIGNS:
     case WIDGET_TYPES.KPI_CTR:
     case WIDGET_TYPES.KPI_VIEWS:
     case WIDGET_TYPES.KPI_CLICKS:
-    case WIDGET_TYPES.KPI_ROI:          return <KpiWidget {...props} />
-    case WIDGET_TYPES.SPEND_CHART:      return <SpendChartWidget {...props} />
-    case WIDGET_TYPES.CAMPAIGNS_TABLE:  return <CampaignsTableWidget {...props} />
-    case WIDGET_TYPES.ACTION_ITEMS:     return <ActionItemsWidget {...props} />
-    case WIDGET_TYPES.QUICK_ACTIONS:    return <QuickActionsWidget {...props} />
-    case WIDGET_TYPES.ACTIVITY_FEED:    return <ActivityFeedWidget {...props} />
-    case WIDGET_TYPES.TOP_CHANNELS:     return <TopChannelsWidget {...props} />
-    case WIDGET_TYPES.BUDGET_DONUT:     return <BudgetDonutWidget {...props} />
-    case WIDGET_TYPES.NOTES:            return <NotesWidget {...props} />
+    case WIDGET_TYPES.KPI_ROI:           return <KpiWidget {...props} />
+    case WIDGET_TYPES.SPEND_CHART:       return <SpendChartWidget {...props} />
+    case WIDGET_TYPES.CAMPAIGNS_TABLE:   return <CampaignsTableWidget {...props} />
+    case WIDGET_TYPES.ACTION_ITEMS:      return <ActionItemsWidget {...props} />
+    case WIDGET_TYPES.QUICK_ACTIONS:     return <QuickActionsWidget {...props} />
+    case WIDGET_TYPES.ACTIVITY_FEED:     return <ActivityFeedWidget {...props} />
+    case WIDGET_TYPES.TOP_CHANNELS:      return <TopChannelsWidget {...props} />
+    case WIDGET_TYPES.BUDGET_DONUT:      return <BudgetDonutWidget {...props} />
+    case WIDGET_TYPES.NOTES:             return <NotesWidget {...props} />
     case WIDGET_TYPES.CAMPAIGN_CALENDAR: return <CampaignCalendarWidget {...props} />
     default: return <div style={{ color: 'var(--muted)', fontSize: 13 }}>Widget desconocido: {type}</div>
   }
