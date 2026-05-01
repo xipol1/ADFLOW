@@ -211,11 +211,44 @@ export default function AnalyzeChannelPage() {
   const [data, setData] = useState(null)
   const [niche, setNiche] = useState(null)
   const [similar, setSimilar] = useState([])
+  const [matches, setMatches] = useState([])  // multiple-match suggestions
+
+  const analyzeById = useCallback(async (resolvedId) => {
+    setLoading(true); setError(''); setData(null); setNiche(null); setSimilar([]); setMatches([])
+    try {
+      const intel = await apiService.getChannelIntelligence(resolvedId)
+      if (!intel?.success || !intel.data) {
+        setError('No se pudo cargar la información del canal.')
+        setLoading(false); return
+      }
+      setData(intel.data)
+      const nicho = intel.data.canal?.nicho
+      if (nicho) {
+        const [trends, supply, leaderboard] = await Promise.all([
+          apiService.getNicheTrends(nicho, 30).catch(() => null),
+          apiService.getNicheSupplyDemand(nicho).catch(() => null),
+          apiService.getNicheLeaderboard(nicho, 8).catch(() => null),
+        ])
+        setNiche({
+          trends: trends?.success ? trends.data : null,
+          supply: supply?.success ? supply.data : null,
+        })
+        if (leaderboard?.success && Array.isArray(leaderboard.data)) {
+          const currentId = intel.data.canal?.id || intel.data.canal?._id
+          setSimilar(leaderboard.data.filter(c => (c.id || c._id) !== currentId).slice(0, 5))
+        }
+      }
+    } catch (e) {
+      console.error('AnalyzeChannel.analyzeById failed:', e)
+      setError(e.message || 'Error al cargar el canal')
+    }
+    setLoading(false)
+  }, [])
 
   const runAnalysis = useCallback(async () => {
     const raw = (query || '').trim()
     if (!raw) return
-    setLoading(true); setError(''); setData(null); setNiche(null); setSimilar([])
+    setLoading(true); setError(''); setData(null); setNiche(null); setSimilar([]); setMatches([])
 
     // Normalize input: strip @, t.me/, https://, etc.
     const cleaned = raw
@@ -232,11 +265,27 @@ export default function AnalyzeChannelPage() {
       if (/^[0-9a-fA-F]{24}$/.test(cleaned)) {
         resolvedId = cleaned
       } else {
-        const lookup = await apiService.getChannelByUsername(cleaned)
+        const lookup = await apiService.getChannelByUsername(cleaned).catch(() => null)
         if (lookup?.success && lookup.data?.id) resolvedId = lookup.data.id
       }
+
+      // Fallback: full-text search across name/description/category/identifier
       if (!resolvedId) {
-        setError(`No encontramos un canal con "${cleaned}". Verifica el username.`)
+        const search = await apiService.searchChannels({ busqueda: cleaned, limite: 8 }).catch(() => null)
+        const items = search?.data?.canales || search?.data?.items || search?.data || []
+        if (Array.isArray(items) && items.length === 1) {
+          // Single match — analyze directly
+          resolvedId = items[0].id || items[0]._id
+        } else if (Array.isArray(items) && items.length > 1) {
+          // Multiple matches — let user pick
+          setMatches(items.slice(0, 8))
+          setLoading(false)
+          return
+        }
+      }
+
+      if (!resolvedId) {
+        setError(`No encontramos canales que coincidan con "${cleaned}". Prueba con un username (ej: acrelianews, channelad_demo) o el nombre del canal.`)
         setLoading(false)
         return
       }
@@ -335,7 +384,7 @@ export default function AnalyzeChannelPage() {
       )}
 
       {/* Empty state — initial */}
-      {!data && !loading && !error && (
+      {!data && !loading && !error && matches.length === 0 && (
         <div style={{
           background: 'var(--surface)', border: '1px dashed var(--border)',
           borderRadius: 18, padding: '60px 28px', textAlign: 'center',
@@ -351,9 +400,79 @@ export default function AnalyzeChannelPage() {
           <h3 style={{ fontFamily: FONT_DISPLAY, fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
             Empieza por buscar un canal
           </h3>
-          <p style={{ fontSize: 13, color: 'var(--muted)', maxWidth: 420, margin: '0 auto', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 13, color: 'var(--muted)', maxWidth: 460, margin: '0 auto 16px', lineHeight: 1.6 }}>
             El análisis incluye scoring CAS/CAF/CER/CTF, comparativa con el nicho, oferta y demanda, y recomendación de compra.
           </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 11, color: 'var(--muted2)' }}>Ejemplos:</span>
+            {['acrelianews', 'channelad_demo', '8020ai'].map(ex => (
+              <button key={ex}
+                onClick={() => { setQuery(ex); setTimeout(runAnalysis, 0) }}
+                style={{
+                  background: purpleAlpha(0.08), color: PURPLE,
+                  border: `1px solid ${purpleAlpha(0.2)}`, borderRadius: 6,
+                  padding: '2px 8px', fontSize: 11, fontWeight: 600,
+                  cursor: 'pointer', fontFamily: FONT_BODY,
+                }}
+              >{ex}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Multiple matches — let user pick */}
+      {matches.length > 0 && !loading && (
+        <div style={{
+          background: 'var(--surface)', border: '1px solid var(--border)',
+          borderRadius: 16, padding: 20,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+            <Search size={16} color={PURPLE} />
+            <h3 style={{ fontFamily: FONT_DISPLAY, fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0 }}>
+              {matches.length} {matches.length === 1 ? 'coincidencia' : 'coincidencias'} para «{query}»
+            </h3>
+            <span style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 'auto' }}>
+              Selecciona el canal a analizar
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {matches.map(m => {
+              const id = m.id || m._id
+              const name = m.nombreCanal || m.nombre || m.identificadorCanal || 'Canal'
+              return (
+                <button key={id}
+                  onClick={() => analyzeById(id)}
+                  style={{
+                    background: 'var(--bg2)', border: '1px solid var(--border)',
+                    borderRadius: 10, padding: '12px 14px',
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    cursor: 'pointer', fontFamily: FONT_BODY, textAlign: 'left',
+                    transition: 'border-color .15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = purpleAlpha(0.4)}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                >
+                  <div style={{
+                    width: 36, height: 36, borderRadius: 10,
+                    background: purpleAlpha(0.1), color: PURPLE,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: FONT_DISPLAY, fontSize: 14, fontWeight: 800,
+                    flexShrink: 0,
+                  }}>{name[0].toUpperCase()}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)' }}>{name}</div>
+                    <div style={{ fontSize: 11.5, color: 'var(--muted)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {m.identificadorCanal && <span>{m.identificadorCanal}</span>}
+                      {m.plataforma && <span>· {m.plataforma}</span>}
+                      {m.categoria && <span>· {m.categoria}</span>}
+                      {m.seguidores != null && <span>· {fmtNum(m.seguidores)} seg.</span>}
+                    </div>
+                  </div>
+                  <ArrowRight size={14} color="var(--muted)" />
+                </button>
+              )
+            })}
+          </div>
         </div>
       )}
 
