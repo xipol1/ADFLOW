@@ -46,6 +46,8 @@ try { _routes['./routes/baileys']             = require('./routes/baileys');    
 try { _routes['./routes/adminPayouts']        = require('./routes/adminPayouts');        } catch (e) { _routes['./routes/adminPayouts']        = e; }
 try { _routes['./routes/dashboard']           = require('./routes/dashboard');           } catch (e) { _routes['./routes/dashboard']           = e; }
 try { _routes['./routes/inbox']               = require('./routes/inbox');               } catch (e) { _routes['./routes/inbox']               = e; }
+try { _routes['./routes/conversions']         = require('./routes/conversions');         } catch (e) { _routes['./routes/conversions']         = e; }
+try { _routes['./routes/trackPixel']          = require('./routes/trackPixel');          } catch (e) { _routes['./routes/trackPixel']          = e; }
 
 // Pre-load for Vercel nft tracer (require only, don't execute swagger-jsdoc at top level)
 let _swaggerPathsJson;
@@ -110,6 +112,7 @@ logger.info('ChannelAd API starting', { env: ENV });
 
 app.use(express.json({ limit: MAX_REQUEST_SIZE }));
 app.use(express.urlencoded({ extended: true, limit: MAX_REQUEST_SIZE }));
+try { app.use(require('cookie-parser')()); } catch (e) { console.warn('cookie-parser not loaded:', e.message); }
 
 // Security middleware — sanitize inputs against NoSQL injection and HTTP parameter pollution.
 // xss-clean was removed (deprecated/unmaintained since 2018). XSS hardening
@@ -301,6 +304,12 @@ const trackingRedirectHandler = async (req, res) => {
     const utmMedium = req.query.utm_medium || '';
     const utmCampaign = req.query.utm_campaign || '';
 
+    // ── Generate clickId for closed-loop conversion attribution ──
+    // Synchronous so we can include it in cookie + redirect URL below.
+    // Format: 16 hex chars (~64 bits) — collision-safe for any realistic volume.
+    const cryptoSync = require('crypto');
+    const clickId = cryptoSync.randomBytes(8).toString('hex');
+
     // ── Record click (fire-and-forget) ──
     setImmediate(async () => {
       try {
@@ -341,6 +350,7 @@ const trackingRedirectHandler = async (req, res) => {
         // Add click record (keep last 500)
         if (link.clicks.length >= 500) link.clicks.shift();
         link.clicks.push({
+          clickId,
           ip, userAgent: ua, referer, country, device, os, browser, language,
           utmSource, utmMedium, utmCampaign, timestamp: new Date(),
         });
@@ -388,18 +398,33 @@ const trackingRedirectHandler = async (req, res) => {
       } catch (_) { /* tracking must never fail */ }
     });
 
-    // ── Build redirect URL with UTM passthrough ──
+    // ── Build redirect URL with UTM passthrough + closed-loop cid ──
     let targetUrl = link.targetUrl;
-    // Append UTMs from query to target if they exist and target doesn't have them
-    if (utmSource || utmMedium || utmCampaign) {
-      try {
-        const url = new URL(targetUrl);
-        if (utmSource && !url.searchParams.has('utm_source')) url.searchParams.set('utm_source', utmSource);
-        if (utmMedium && !url.searchParams.has('utm_medium')) url.searchParams.set('utm_medium', utmMedium);
-        if (utmCampaign && !url.searchParams.has('utm_campaign')) url.searchParams.set('utm_campaign', utmCampaign);
-        targetUrl = url.toString();
-      } catch { /* use original URL */ }
-    }
+    try {
+      const url = new URL(targetUrl);
+      if (utmSource && !url.searchParams.has('utm_source')) url.searchParams.set('utm_source', utmSource);
+      if (utmMedium && !url.searchParams.has('utm_medium')) url.searchParams.set('utm_medium', utmMedium);
+      if (utmCampaign && !url.searchParams.has('utm_campaign')) url.searchParams.set('utm_campaign', utmCampaign);
+      // Closed-loop conversion attribution: append our click ID so the
+      // advertiser can echo it back in their conversion webhook/pixel.
+      if (!url.searchParams.has('cid')) url.searchParams.set('cid', clickId);
+      targetUrl = url.toString();
+    } catch { /* use original URL */ }
+
+    // Also drop a first-party cookie (90-day window) so the pixel endpoint
+    // can recover the click ID even if the advertiser strips the query param.
+    // SameSite=None + Secure required for cross-site cookies (the cookie is
+    // set on our channelad.io domain but read by the pixel embedded on the
+    // advertiser's site → cross-site).
+    try {
+      res.cookie('_chad_cid', clickId, {
+        maxAge: 90 * 24 * 60 * 60 * 1000,
+        httpOnly: false,                // pixel JS needs to read it
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+      });
+    } catch { /* ignore — redirect is more important than the cookie */ }
 
     return res.redirect(302, targetUrl);
   } catch (_) {
@@ -473,6 +498,8 @@ const enabledRoutes = [
   ['/api/admin/payouts', './routes/adminPayouts'],
   ['/api/dashboard', './routes/dashboard'],
   ['/api/inbox',     './routes/inbox'],
+  ['/api/conversions', './routes/conversions'],
+  ['/api/track',     './routes/trackPixel'],
 ];
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));

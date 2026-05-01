@@ -1375,6 +1375,23 @@ class ApiService {
   async getInboxCount() {
     return this.request('/inbox/count');
   }
+
+  // ==========================================
+  // CONVERSIONS / CLOSED-LOOP ROI
+  // ==========================================
+
+  async getMyROI(sinceDays) {
+    const qs = sinceDays ? `?sinceDays=${sinceDays}` : '';
+    return this.request(`/conversions/me${qs}`);
+  }
+
+  async getCampaignROI(campaignId) {
+    return this.request(`/conversions/campaigns/${encodeURIComponent(campaignId)}`);
+  }
+
+  async getCampaignConversions(campaignId, limit = 50) {
+    return this.request(`/conversions/campaigns/${encodeURIComponent(campaignId)}/list?limit=${limit}`);
+  }
 }
 
 // Crear instancia única del servicio

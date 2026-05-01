@@ -17,16 +17,19 @@ export default function OverviewPage() {
   const [loading, setLoading] = useState(true)
   const [monthlySpend, setMonthlySpend] = useState([])
   const [unreadMessages, setUnreadMessages] = useState(0)
+  const [realRoi, setRealRoi] = useState(null)
 
   useEffect(() => {
     let mounted = true
     const load = async () => {
       try {
-        const [campsRes, txRes] = await Promise.all([
+        const [campsRes, txRes, roiRes] = await Promise.all([
           apiService.getMyCampaigns().catch(() => null),
           apiService.getMyTransactions().catch(() => null),
+          apiService.getMyROI?.().catch(() => null),
         ])
         if (!mounted) return
+        if (roiRes?.success && roiRes.data) setRealRoi(roiRes.data)
         if (campsRes?.success) {
           const items = Array.isArray(campsRes.data) ? campsRes.data : Array.isArray(campsRes.data?.items) ? campsRes.data.items : []
           setCampaigns(items)
@@ -125,8 +128,9 @@ export default function OverviewPage() {
       actionItems,
       loading,
       creditsBalance: user?.campaignCreditsBalance || 0,
+      realRoi, // closed-loop conversion data, used by KPI_ROI widget
     }
-  }, [user, campaigns, monthlySpend, unreadMessages, loading, navigate])
+  }, [user, campaigns, monthlySpend, unreadMessages, loading, realRoi, navigate])
 
   return <CustomizableDashboard data={dashboardData} />
 }

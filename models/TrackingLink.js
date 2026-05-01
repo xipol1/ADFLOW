@@ -2,6 +2,13 @@ const mongoose = require('mongoose');
 const crypto = require('crypto');
 
 const ClickSchema = new mongoose.Schema({
+  // Public-facing unique ID for closed-loop conversion attribution.
+  // Emitted as both a `_chad_cid` cookie and a `?cid=...` query param on
+  // the destination URL. The advertiser sends this back when posting a
+  // conversion (POST /api/conversions or pixel) so we can join the
+  // resulting Conversion document to the click that produced it.
+  clickId: { type: String, default: '', index: true, sparse: true },
+
   ip: { type: String, default: '' },
   userAgent: { type: String, default: '' },
   referer: { type: String, default: '' },

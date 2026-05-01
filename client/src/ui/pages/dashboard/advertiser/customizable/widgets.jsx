@@ -149,15 +149,24 @@ const KPI_CONFIGS = {
     getSublabel: () => 'en todas las campañas',
   },
   [WIDGET_TYPES.KPI_ROI]: {
-    icon: TrendingUp, label: 'ROI estimado', accent: OK,
+    // Label adapts: "ROI real" if we have real conversions in scope,
+    // otherwise "ROI estimado" with a CPM-based heuristic.
+    icon: TrendingUp, accent: OK,
+    getLabel: (d) => d.realRoi?.hasRealData ? 'ROI real' : 'ROI estimado',
     getValue: (d) => {
+      // Prefer the closed-loop ROI from /api/conversions/me if available
+      if (d.realRoi?.hasRealData) {
+        return `${Math.round(d.realRoi.roi)}%`
+      }
       const spend = d.totalSpend || 0
       if (!spend) return '—'
       const views = d.totalViews || 0
       const estimatedValue = views * 0.015
       return `${((estimatedValue / spend) * 100).toFixed(0)}%`
     },
-    getSublabel: () => 'basado en CPM estimado',
+    getSublabel: (d) => d.realRoi?.hasRealData
+      ? `${d.realRoi.conversions} conversiones · €${d.realRoi.revenue} ingresos`
+      : 'basado en CPM estimado',
   },
 }
 
@@ -171,6 +180,7 @@ function KpiWidget({ data, type }) {
   const change = cfg.getChange?.(data)
   const sublabel = cfg.getSublabel?.(data)
   const sparkData = cfg.sparkData?.(data)
+  const label = cfg.getLabel?.(data) || cfg.label
 
   // Auto-scale to box size — no scrolling, content adapts
   const tiny = width < 160 || height < 110
@@ -207,8 +217,14 @@ function KpiWidget({ data, type }) {
         }}>
           {value}
         </div>
-        <div style={{ fontSize: tiny ? 11 : 13, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {cfg.label}
+        <div style={{ fontSize: tiny ? 11 : 13, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
+          {label}
+          {type === WIDGET_TYPES.KPI_ROI && data.realRoi?.hasRealData && (
+            <span title="Datos reales de conversiones tracked"
+              style={{ fontSize: 9, fontWeight: 700, color: cfg.accent, background: `${cfg.accent}18`, border: `1px solid ${cfg.accent}40`, borderRadius: 6, padding: '1px 5px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              real
+            </span>
+          )}
         </div>
         {showSublabel && (
           <div style={{ fontSize: 11, color: 'var(--muted2)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
