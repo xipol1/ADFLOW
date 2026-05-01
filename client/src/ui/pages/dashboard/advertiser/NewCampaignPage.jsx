@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { ArrowLeft, Send, Calendar, Link2, FileText, DollarSign, CheckCircle, Loader2, AlertCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Clock, Zap, Settings } from 'lucide-react'
+import { ArrowLeft, Send, Calendar, Link2, FileText, DollarSign, CheckCircle, Loader2, AlertCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Clock, Zap, Settings, Lock, Edit2 } from 'lucide-react'
 import apiService from '../../../../services/api'
 import { Badge } from '../../../../components/ui'
 import CopyAnalyzerCompact from '../../../components/CopyAnalyzerCompact'
@@ -26,6 +26,75 @@ const STEPS = [
   { num: 2, label: 'Contenido', icon: '✏️' },
   { num: 3, label: 'Confirmar', icon: '✓' },
 ]
+
+// ─── Progressive disclosure section ──────────────────────────────────────────
+// Wraps each sub-step of Step 2. Status:
+//   'locked'   — user hasn't completed previous step. Greyed out, no interaction.
+//   'active'   — currently in progress. Open, accent border.
+//   'done'     — completed and shown as a summary chip. Click to re-edit.
+function Section({ status, num, title, icon: Icon, summary, children, sectionRef, onEdit }) {
+  const isLocked = status === 'locked'
+  const isDone = status === 'done'
+  const isActive = status === 'active'
+
+  const accent = isActive ? 'var(--accent)' : isDone ? 'var(--accent)' : 'var(--border)'
+  const bg = isActive ? 'var(--bg)' : isDone ? 'var(--bg2, var(--bg))' : 'var(--bg)'
+  const opacity = isLocked ? 0.55 : 1
+
+  return (
+    <div ref={sectionRef} style={{
+      borderRadius: 14,
+      border: `1px solid ${isActive ? accent : 'var(--border)'}`,
+      background: bg, opacity,
+      transition: 'opacity .25s, border-color .2s, box-shadow .2s',
+      boxShadow: isActive ? `0 4px 18px rgba(139,92,246,0.10)` : 'none',
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '14px 16px',
+        borderBottom: isActive || isDone ? '1px solid var(--border)' : 'none',
+      }}>
+        <div style={{
+          width: 26, height: 26, borderRadius: '50%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          background: isDone ? 'var(--accent)' : isActive ? 'var(--accent-dim, rgba(139,92,246,0.15))' : 'var(--bg3, var(--border))',
+          color: isDone ? '#080C10' : isActive ? 'var(--accent)' : 'var(--muted2)',
+          fontSize: 12, fontWeight: 700,
+        }}>
+          {isDone ? <CheckCircle size={14} strokeWidth={2.5} /> : isLocked ? <Lock size={11} /> : num}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: isLocked ? 'var(--muted2)' : 'var(--text)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            {Icon && <Icon size={13} style={{ color: isActive ? 'var(--accent)' : 'var(--muted2)' }} />}
+            {title}
+          </div>
+          {isDone && summary && (
+            <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {summary}
+            </div>
+          )}
+          {isLocked && (
+            <div style={{ fontSize: 11, color: 'var(--muted2)', marginTop: 2 }}>
+              Completa el paso anterior para desbloquear
+            </div>
+          )}
+        </div>
+        {isDone && onEdit && (
+          <button type="button" onClick={onEdit}
+            style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '4px 10px', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Edit2 size={11} /> Editar
+          </button>
+        )}
+      </div>
+      {(isActive || (isDone && false)) && (
+        <div style={{ padding: 16, animation: 'sectionReveal .3s cubic-bezier(.22,1,.36,1)' }}>
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function StepBar({ current }) {
   return (
@@ -71,6 +140,37 @@ export default function NewCampaignPage() {
   const [linkFormat, setLinkFormat] = useState('domain')
   const [linkSlug, setLinkSlug] = useState('')
   const [showAdvanced, setShowAdvanced] = useState(false)
+
+  // ── Progressive disclosure state ─────────────────────────────────────────
+  // Tracks which sub-step of Step 2 is currently expanded. Allows the user
+  // to reopen a previous section via the "Editar" button.
+  const [openSection, setOpenSection] = useState('content') // 'content' | 'url' | 'date' | null
+  const contentRef = useRef(null)
+  const urlRef     = useRef(null)
+  const dateRef    = useRef(null)
+
+  // Validation helpers — also drive section unlocking.
+  const isContentValid = content.trim().length >= 30
+  const isUrlValid = (() => {
+    try { new URL(targetUrl); return /^https?:/.test(targetUrl) } catch { return false }
+  })()
+  const isDateValid = !!selectedDate?.date
+
+  // Auto-advance to the next unlocked section + scroll into view.
+  // We only auto-advance forward, never override a manual "Editar" click.
+  const prevValidsRef = useRef({ content: false, url: false })
+  useEffect(() => {
+    if (step !== 2) return
+    const prev = prevValidsRef.current
+    if (isContentValid && !prev.content && openSection === 'content') {
+      setOpenSection('url')
+      setTimeout(() => urlRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60)
+    } else if (isUrlValid && !prev.url && openSection === 'url') {
+      setOpenSection('date')
+      setTimeout(() => dateRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60)
+    }
+    prevValidsRef.current = { content: isContentValid, url: isUrlValid }
+  }, [isContentValid, isUrlValid, step, openSection])
 
   // Calendar state
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
@@ -280,34 +380,65 @@ export default function NewCampaignPage() {
             </button>
           </div>
 
-          {/* Content */}
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-wider block mb-2" style={{ color: 'var(--text-secondary)' }}>
-              <FileText size={12} className="inline mr-1" /> Contenido del anuncio
-            </label>
+          <style>{`@keyframes sectionReveal { from { opacity:0; transform: translateY(-6px) } to { opacity:1; transform: translateY(0) } }`}</style>
+
+          {/* ── 1. Contenido del anuncio ── */}
+          <Section
+            sectionRef={contentRef}
+            num={1}
+            title="Contenido del anuncio"
+            icon={FileText}
+            status={openSection === 'content' ? 'active' : isContentValid ? 'done' : 'locked'}
+            summary={isContentValid ? `${content.length} caracteres · "${content.trim().slice(0, 50)}${content.length > 50 ? '…' : ''}"` : null}
+            onEdit={() => setOpenSection('content')}
+          >
             <textarea
               value={content} onChange={(e) => setContent(e.target.value)}
-              placeholder="Escribe el texto que se publicara en el canal..."
+              placeholder="Escribe el texto que se publicará en el canal..."
               rows={5} className={input} style={{ ...inputStyle, resize: 'vertical' }}
               maxLength={5000}
+              autoFocus
             />
-            <div className="text-right mt-1 text-[11px]" style={{ color: content.length > 4500 ? 'var(--red, #f85149)' : 'var(--muted2)' }}>{content.length}/5000 caracteres</div>
+            <div className="flex items-center justify-between mt-1">
+              <div className="text-[11px]" style={{ color: 'var(--muted2)' }}>
+                Mínimo 30 caracteres para continuar
+              </div>
+              <div className="text-[11px]" style={{ color: content.length > 4500 ? 'var(--red, #f85149)' : 'var(--muted2)' }}>
+                {content.length}/5000 caracteres
+              </div>
+            </div>
             <CopyAnalyzerCompact text={content} />
-          </div>
+          </Section>
 
-          {/* Target URL */}
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-wider block mb-2" style={{ color: 'var(--text-secondary)' }}>
-              <Link2 size={12} className="inline mr-1" /> URL de destino
-            </label>
+          {/* ── 2. URL de destino ── */}
+          <Section
+            sectionRef={urlRef}
+            num={2}
+            title="URL de destino"
+            icon={Link2}
+            status={openSection === 'url' ? (isContentValid ? 'active' : 'locked') : isUrlValid ? 'done' : isContentValid ? 'active' : 'locked'}
+            summary={isUrlValid ? targetUrl : null}
+            onEdit={() => setOpenSection('url')}
+          >
             <input
               type="url" value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)}
               placeholder="https://tu-web.com/landing"
               className={input} style={inputStyle}
             />
-          </div>
+            {targetUrl && !isUrlValid && (
+              <div className="text-[11px] mt-1" style={{ color: 'var(--red, #f85149)' }}>
+                La URL debe empezar por http:// o https://
+              </div>
+            )}
+            {!targetUrl && (
+              <div className="text-[11px] mt-1" style={{ color: 'var(--muted2)' }}>
+                Donde llegarán los lectores cuando hagan click en tu anuncio
+              </div>
+            )}
+          </Section>
 
-          {/* ── Opciones avanzadas (collapsed by default — progressive disclosure) ── */}
+          {/* ── Opciones avanzadas — solo desbloqueado si hay URL válida ── */}
+          {isUrlValid && (
           <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
             <button
               type="button"
@@ -375,12 +506,22 @@ export default function NewCampaignPage() {
               </div>
             )}
           </div>
+          )}
 
-          {/* ── Publication Calendar ──────────────────────────── */}
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-wider block mb-2" style={{ color: 'var(--text-secondary)' }}>
-              <Calendar size={12} className="inline mr-1" /> Fecha de publicacion
-            </label>
+          {/* ── 3. Fecha de publicación ── */}
+          <Section
+            sectionRef={dateRef}
+            num={3}
+            title="Fecha de publicación"
+            icon={Calendar}
+            status={
+              openSection === 'date' ? (isUrlValid ? 'active' : 'locked')
+              : isDateValid ? 'done'
+              : isUrlValid ? 'active' : 'locked'
+            }
+            summary={isDateValid ? `${new Date(selectedDate.date + 'T00:00:00').toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })} · €${selectedDate.price || channel?.precio || channel?.CPMDinamico || '?'}` : null}
+            onEdit={() => setOpenSection('date')}
+          >
             <div className="rounded-xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
               {/* Month nav */}
               <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
@@ -511,7 +652,7 @@ export default function NewCampaignPage() {
                 </div>
               )}
             </div>
-          </div>
+          </Section>
 
           {/* ── Price summary (dynamic from selected date) ──── */}
           <div className="rounded-lg p-4" style={{
