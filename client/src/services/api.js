@@ -1334,6 +1334,35 @@ class ApiService {
       body: JSON.stringify({ code }),
     });
   }
+
+  // ==========================================
+  // DASHBOARD VIEWS (customizable layouts)
+  // ==========================================
+
+  async getDashboardViews() {
+    return this.request('/dashboard/views');
+  }
+
+  async saveDashboardViews(views, activeViewId) {
+    return this.request('/dashboard/views', {
+      method: 'PUT',
+      body: JSON.stringify({ views, activeViewId }),
+    });
+  }
+
+  async updateDashboardView(viewId, payload) {
+    return this.request(`/dashboard/views/${encodeURIComponent(viewId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async setActiveDashboardView(viewId) {
+    return this.request('/dashboard/active-view', {
+      method: 'PUT',
+      body: JSON.stringify({ viewId }),
+    });
+  }
 }
 
 // Crear instancia única del servicio

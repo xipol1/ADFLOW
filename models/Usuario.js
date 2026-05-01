@@ -128,6 +128,24 @@ const UsuarioSchema = new mongoose.Schema(
     // Datos fiscales requeridos para emitir/recibir facturas legales.
     // Bloquea creación de campañas (advertisers) y retiros (creators) si está incompleto.
     datosFacturacion: { type: DatosFacturacionSchema, default: () => ({}) },
+
+    // Customizable dashboard views — each view is a named layout the user can
+    // switch between (e.g. "Marketing", "Performance", "Finanzas"). The full
+    // schema is loose on purpose: the frontend owns the widget catalog and
+    // grid coordinates, and we just persist arbitrary JSON per view.
+    // Mixed type avoids strict validation issues when the frontend evolves
+    // its widget shape independently of the backend.
+    dashboardViews: {
+      type: [{
+        id: { type: String, required: true },
+        name: { type: String, required: true, trim: true, maxlength: 60 },
+        items: { type: mongoose.Schema.Types.Mixed, default: [] },
+        isDefault: { type: Boolean, default: false },
+        updatedAt: { type: Date, default: Date.now },
+      }],
+      default: [],
+    },
+    dashboardActiveViewId: { type: String, default: null },
   },
   { timestamps: true }
 );

@@ -44,6 +44,7 @@ try { _routes['./routes/multiplatformIntel']  = require('./routes/multiplatformI
 try { _routes['./routes/channelCandidates']   = require('./routes/channelCandidates');   } catch (e) { _routes['./routes/channelCandidates']   = e; }
 try { _routes['./routes/baileys']             = require('./routes/baileys');             } catch (e) { _routes['./routes/baileys']             = e; }
 try { _routes['./routes/adminPayouts']        = require('./routes/adminPayouts');        } catch (e) { _routes['./routes/adminPayouts']        = e; }
+try { _routes['./routes/dashboard']           = require('./routes/dashboard');           } catch (e) { _routes['./routes/dashboard']           = e; }
 
 // Pre-load for Vercel nft tracer (require only, don't execute swagger-jsdoc at top level)
 let _swaggerPathsJson;
@@ -357,7 +358,15 @@ const trackingRedirectHandler = async (req, res) => {
 
         await link.save();
 
-        // ── Auto-verify channel if threshold reached ──
+        // ── Soft-verify channel if click threshold reached ──
+        //
+        // Reaching N unique clicks proves the user can drive traffic somewhere,
+        // but NOT that they actually own the channel — the fingerprint dedup
+        // (ip+ua+device+os+browser) is trivially bypassed with VPN+browser
+        // variations and the click can't be tied to channel members. So we
+        // record this as a soft signal (tipoAcceso='tracking_url',
+        // confianzaScore=30) and never flip the binary `verificado` flag,
+        // which is reserved for strong proofs (oauth_graph, admin_directo).
         if (link.type === 'verification' && link.verification?.status !== 'verified') {
           if (link.stats.uniqueClicks >= link.verification.minClicks) {
             link.verification.status = 'verified';
@@ -366,8 +375,8 @@ const trackingRedirectHandler = async (req, res) => {
 
             const Canal = require('./models/Canal');
             await Canal.findByIdAndUpdate(link.channel, {
-              estado: 'activo',
-              verificado: true,
+              'verificacion.tipoAcceso': 'tracking_url',
+              'verificacion.confianzaScore': 30,
               'estadisticas.ultimaActualizacion': new Date(),
             });
           } else if (link.verification.status === 'pending') {
@@ -461,6 +470,7 @@ const enabledRoutes = [
   ['/api/channel-candidates', './routes/channelCandidates'],
   ['/api/baileys', './routes/baileys'],
   ['/api/admin/payouts', './routes/adminPayouts'],
+  ['/api/dashboard', './routes/dashboard'],
 ];
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));
