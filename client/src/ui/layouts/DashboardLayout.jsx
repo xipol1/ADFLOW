@@ -11,6 +11,7 @@ import {
   Users, AlertTriangle, Radio, Inbox, Sun, Moon,
   Shield, Database, DollarSign, FileText, HelpCircle, Plus,
   Columns3, Map, Calculator, Target, ClipboardList, Calendar,
+  Activity, Filter,
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../services/api'
@@ -47,18 +48,23 @@ const ROLE_CONFIG = {
         { path: '/autobuy',  icon: Zap,             label: 'Auto-Buy',     fullOnly: true },
       ]},
       { group: 'Campañas', items: [
-        { path: '/campaigns',icon: Megaphone,       label: 'Mis Campañas', fullOnly: true },
-        { path: '/campaigns/new', icon: Plus,       label: 'Nueva Campaña', fullOnly: true },
+        { path: '/campaigns',          icon: Megaphone, label: 'Mis Campañas',   fullOnly: true },
+        { path: '/campaigns/new',      icon: Plus,      label: 'Nueva Campaña',  fullOnly: true },
+        { path: '/campaigns/calendar', icon: Calendar,  label: 'Calendario',     fullOnly: true },
       ]},
-      { group: 'Análisis', items: [
-        { path: '/analyze/channel',   icon: BarChart3,    label: 'Analizar canal',   fullOnly: true },
-        { path: '/analyze/compare',   icon: Columns3,     label: 'Comparar canales', fullOnly: true },
+      { group: 'Análisis de canales', items: [
+        { path: '/analyze/channel',   icon: BarChart3,    label: 'Analizar canal',    fullOnly: true },
+        { path: '/analyze/compare',   icon: Columns3,     label: 'Comparar canales',  fullOnly: true },
         { path: '/analyze/lookalike', icon: Target,       label: 'Canales similares', fullOnly: true },
-        { path: '/analyze/audit',     icon: ClipboardList,label: 'Auditoría bulk',   fullOnly: true },
+        { path: '/analyze/audit',     icon: ClipboardList,label: 'Auditoría bulk',    fullOnly: true },
         { path: '/analyze/niches',    icon: Map,          label: 'Heatmap de nichos', fullOnly: true },
-        { path: '/analyze/ad',        icon: Megaphone,    label: 'Analizar anuncio', fullOnly: true },
-        { path: '/analyze/forecast',  icon: Calculator,   label: 'Forecaster ROI',   fullOnly: true },
-        { path: '/analyze/calendar',  icon: Calendar,     label: 'Calendario',       fullOnly: true },
+      ]},
+      { group: 'Análisis de rendimiento', items: [
+        { path: '/analyze/ad',        icon: Megaphone,    label: 'Analizar anuncio',  fullOnly: true },
+        { path: '/analyze/realtime',  icon: Activity,     label: 'Tiempo real',       fullOnly: true },
+        { path: '/analyze/funnel',    icon: Filter,       label: 'Funnel',            fullOnly: true },
+        { path: '/analyze/cohorts',   icon: Users,        label: 'Cohortes',          fullOnly: true },
+        { path: '/analyze/forecast',  icon: Calculator,   label: 'Forecaster ROI',    fullOnly: true },
       ]},
       { group: 'Cuenta', items: [
         { path: '/finances', icon: Wallet,          label: 'Finanzas',     fullOnly: true },

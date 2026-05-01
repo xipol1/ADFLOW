@@ -36,6 +36,9 @@ import ForecastROIPage from '../ui/pages/dashboard/advertiser/ForecastROIPage'
 import LookalikeChannelsPage from '../ui/pages/dashboard/advertiser/LookalikeChannelsPage'
 import AuditChannelsPage from '../ui/pages/dashboard/advertiser/AuditChannelsPage'
 import CampaignCalendarPage from '../ui/pages/dashboard/advertiser/CampaignCalendarPage'
+import RealtimeMonitorPage from '../ui/pages/dashboard/advertiser/RealtimeMonitorPage'
+import FunnelAnalyzerPage from '../ui/pages/dashboard/advertiser/FunnelAnalyzerPage'
+import CohortAnalysisPage from '../ui/pages/dashboard/advertiser/CohortAnalysisPage'
 
 // Creator dashboard suite
 import CreatorLayout        from '../ui/pages/dashboard/creator/CreatorLayout'
@@ -183,6 +186,10 @@ export default function AppRoutes() {
         <Route path="analyze/niches"    element={<FullAccessOnly feature="Heatmap de nichos"><NicheHeatmapPage /></FullAccessOnly>} />
         <Route path="analyze/ad"        element={<FullAccessOnly feature="Análisis de anuncio"><AnalyzeAdPage /></FullAccessOnly>} />
         <Route path="analyze/forecast"  element={<FullAccessOnly feature="Forecaster ROI"><ForecastROIPage /></FullAccessOnly>} />
+        <Route path="analyze/realtime"  element={<FullAccessOnly feature="Monitor en tiempo real"><RealtimeMonitorPage /></FullAccessOnly>} />
+        <Route path="analyze/funnel"    element={<FullAccessOnly feature="Funnel Analyzer"><FunnelAnalyzerPage /></FullAccessOnly>} />
+        <Route path="analyze/cohorts"   element={<FullAccessOnly feature="Análisis por cohortes"><CohortAnalysisPage /></FullAccessOnly>} />
+        <Route path="campaigns/calendar" element={<FullAccessOnly feature="Calendario de campañas"><CampaignCalendarPage /></FullAccessOnly>} />
         <Route path="analyze/calendar"  element={<FullAccessOnly feature="Calendario de campañas"><CampaignCalendarPage /></FullAccessOnly>} />
         <Route path="referrals" element={<ReferralsPage />} />
         <Route path="disputes" element={<FullAccessOnly feature="Disputas"><DisputesPage /></FullAccessOnly>} />
