@@ -10,7 +10,7 @@ import {
   Settings, LogOut, Menu, Bell, X, ChevronRight, ShieldAlert,
   Users, AlertTriangle, Radio, Inbox, Sun, Moon,
   Shield, Database, DollarSign, FileText, HelpCircle, Plus,
-  Columns3, Map, Calculator,
+  Columns3, Map, Calculator, Target, ClipboardList, Calendar,
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../services/api'
@@ -51,11 +51,14 @@ const ROLE_CONFIG = {
         { path: '/campaigns/new', icon: Plus,       label: 'Nueva Campaña', fullOnly: true },
       ]},
       { group: 'Análisis', items: [
-        { path: '/analyze/channel',  icon: BarChart3, label: 'Analizar canal',   fullOnly: true },
-        { path: '/analyze/compare',  icon: Columns3,  label: 'Comparar canales', fullOnly: true },
-        { path: '/analyze/niches',   icon: Map,       label: 'Heatmap de nichos', fullOnly: true },
-        { path: '/analyze/ad',       icon: Megaphone, label: 'Analizar anuncio', fullOnly: true },
-        { path: '/analyze/forecast', icon: Calculator,label: 'Forecaster ROI',   fullOnly: true },
+        { path: '/analyze/channel',   icon: BarChart3,    label: 'Analizar canal',   fullOnly: true },
+        { path: '/analyze/compare',   icon: Columns3,     label: 'Comparar canales', fullOnly: true },
+        { path: '/analyze/lookalike', icon: Target,       label: 'Canales similares', fullOnly: true },
+        { path: '/analyze/audit',     icon: ClipboardList,label: 'Auditoría bulk',   fullOnly: true },
+        { path: '/analyze/niches',    icon: Map,          label: 'Heatmap de nichos', fullOnly: true },
+        { path: '/analyze/ad',        icon: Megaphone,    label: 'Analizar anuncio', fullOnly: true },
+        { path: '/analyze/forecast',  icon: Calculator,   label: 'Forecaster ROI',   fullOnly: true },
+        { path: '/analyze/calendar',  icon: Calendar,     label: 'Calendario',       fullOnly: true },
       ]},
       { group: 'Cuenta', items: [
         { path: '/finances', icon: Wallet,          label: 'Finanzas',     fullOnly: true },
