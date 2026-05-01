@@ -18,6 +18,7 @@ import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../services/api'
 import { relTime } from '../utils/relTime'
 import CommandPalette from '../components/CommandPalette'
+import InboxBell from '../components/InboxBell'
 import GlobalSearchBar from '../components/GlobalSearchBar'
 import EmailVerificationBanner from '../components/EmailVerificationBanner'
 import FiscalDataBanner from '../components/FiscalDataBanner'
@@ -1066,6 +1067,9 @@ export default function DashboardLayout({ role = 'advertiser' }) {
               <HelpCircle size={16} strokeWidth={2} />
             </button>
             <ThemeToggle />
+            {role === 'advertiser' && (
+              <InboxBell accentColor={cfg.color} accentAlpha={cfg.alpha} role={role} />
+            )}
             <NotificationBell
               notifications={notifications}
               accentColor={cfg.color}

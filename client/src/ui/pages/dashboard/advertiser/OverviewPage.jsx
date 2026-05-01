@@ -124,6 +124,7 @@ export default function OverviewPage() {
       unreadMessages,
       actionItems,
       loading,
+      creditsBalance: user?.campaignCreditsBalance || 0,
     }
   }, [user, campaigns, monthlySpend, unreadMessages, loading, navigate])
 

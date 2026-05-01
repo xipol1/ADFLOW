@@ -24,6 +24,7 @@ import AutoBuyPage      from '../ui/pages/dashboard/advertiser/AutoBuyPage'
 import AdsPage          from '../ui/pages/dashboard/advertiser/AdsPage'
 import CampaignsPage    from '../ui/pages/dashboard/advertiser/CampaignsPage'
 import FinancesPage     from '../ui/pages/dashboard/advertiser/FinancesPage'
+import InboxPage        from '../ui/pages/dashboard/advertiser/InboxPage'
 import SettingsPage     from '../ui/pages/dashboard/advertiser/SettingsPage'
 import ReferralsPage   from '../ui/pages/dashboard/advertiser/ReferralsPage'
 import AdvertiserAnalyticsPage from '../ui/pages/dashboard/advertiser/AdvertiserAnalyticsPage'
@@ -186,6 +187,7 @@ export default function AppRoutes() {
         <Route path="campaigns/:id/analytics" element={<FullAccessOnly feature="Campanas"><CampaignAnalyticsPage /></FullAccessOnly>} />
         <Route path="ads"      element={<Navigate to="/advertiser/campaigns?tab=solicitudes" replace />} />
         <Route path="finances" element={<FullAccessOnly feature="Finanzas"><FinancesPage /></FullAccessOnly>} />
+        <Route path="inbox"    element={<InboxPage />} />
         <Route path="analytics" element={<Navigate to="/advertiser/finances" replace />} />
         <Route path="analyze/channel"   element={<FullAccessOnly feature="Análisis de canal"><AnalyzeChannelPage /></FullAccessOnly>} />
         <Route path="analyze/compare"   element={<FullAccessOnly feature="Comparar canales"><CompareChannelsPage /></FullAccessOnly>} />

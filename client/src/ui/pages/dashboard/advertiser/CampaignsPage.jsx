@@ -4,15 +4,19 @@ import {
   RefreshCw, CreditCard, CheckCircle, XCircle, Eye, Clock, Zap,
   TrendingUp, MessageCircle, Send, ArrowRight, ExternalLink, Shield,
   BarChart3, ChevronRight, Copy, AlertCircle, Megaphone, Plus,
+  LayoutGrid, Table2,
 } from 'lucide-react'
 import apiService from '../../../../services/api'
 import DeliveryBadge from '../../../components/DeliveryBadge'
 import EmptyState from '../../../components/EmptyState'
 import ChannelHealthMonitor from '../../../components/ChannelHealthMonitor'
 import AdsPage from './AdsPage'
+import CampaignsTableView from './CampaignsTableView'
 import {
   PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE,
 } from '../../../theme/tokens'
+
+const VIEW_MODE_KEY = 'channelad-campaigns-view-mode'
 
 const SLATE = '#64748b'
 
@@ -439,6 +443,13 @@ export default function CampaignsPage() {
   })
   const [selected, setSelected] = useState(null)
   const [actionLoading, setActionLoading] = useState('')
+  const [viewMode, setViewMode] = useState(() => {
+    try { return localStorage.getItem(VIEW_MODE_KEY) || 'cards' } catch { return 'cards' }
+  })
+
+  useEffect(() => {
+    try { localStorage.setItem(VIEW_MODE_KEY, viewMode) } catch {}
+  }, [viewMode])
 
   // Sync tab change to URL
   const handleTabChange = useCallback((newTab) => {
@@ -687,6 +698,41 @@ export default function CampaignsPage() {
           />
         </div>
       ) : (
+        <>
+          {/* ── View mode toggle (Cards | Table) ── */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 8 }}>
+            <div style={{ display: 'inline-flex', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, padding: 3 }}>
+              {[
+                { key: 'cards', label: 'Tarjetas', icon: LayoutGrid },
+                { key: 'table', label: 'Tabla',    icon: Table2 },
+              ].map(({ key, label, icon: Icon }) => {
+                const active = viewMode === key
+                return (
+                  <button key={key} onClick={() => setViewMode(key)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 5,
+                      background: active ? 'var(--surface)' : 'transparent',
+                      color: active ? PURPLE : 'var(--muted)',
+                      border: 'none', borderRadius: 7, padding: '5px 12px',
+                      fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: FONT_BODY,
+                      boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      transition: 'all .15s',
+                    }}
+                  >
+                    <Icon size={12} /> {label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {viewMode === 'table' ? (
+            <CampaignsTableView
+              campaigns={filtered}
+              selectedId={sel?._id || sel?.id}
+              onRowClick={(c) => setSelected(sel?._id === c._id ? null : c)}
+            />
+          ) : (
         <div style={{ display: 'grid', gridTemplateColumns: isOpen ? '380px minmax(0, 1fr)' : '1fr', gap: '16px', transition: 'grid-template-columns .3s ease' }}>
 
           {/* ── Left: Campaign list ── */}
@@ -1023,6 +1069,8 @@ export default function CampaignsPage() {
             </div>
           )}
         </div>
+          )}
+        </>
       )}
     </div>
   )

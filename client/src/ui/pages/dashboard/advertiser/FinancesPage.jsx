@@ -7,6 +7,7 @@ import EmptyState from '../../../components/EmptyState'
 import {
   PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK, WARN, BLUE,
 } from '../../../theme/tokens'
+import MetricCard, { computeDelta } from '../../../components/MetricCard'
 
 
 // ─── Tab config ───────────────────────────────────────────────────────────────
@@ -341,6 +342,48 @@ export default function FinancesPage() {
   const monthlyData = buildMonthlySpend(rawTx)
   const platformBreakdown = buildPlatformBreakdown(rawTx)
 
+  // ── Sparkline + delta helpers (last 6 months bucketed) ──────────────────────
+  const monthlySparkSpend = monthlyData.map(m => m.value)
+  const monthlySparkReleased = (() => {
+    const labels = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
+    const buckets = {}
+    rawTx.filter(t => t.status === 'released').forEach(t => {
+      const d = new Date(t.paidAt || t.createdAt)
+      if (isNaN(d.getTime())) return
+      const k = `${d.getFullYear()}-${d.getMonth()}`
+      if (!buckets[k]) buckets[k] = { ts: d.getTime(), v: 0 }
+      buckets[k].v += Math.abs(t.amount || 0)
+    })
+    return Object.values(buckets).sort((a,b) => a.ts - b.ts).slice(-6).map(b => b.v)
+  })()
+  const monthlySparkBalance = (() => {
+    // running escrow balance per month bucket
+    const labels = []
+    const buckets = {}
+    rawTx.forEach(t => {
+      const d = new Date(t.paidAt || t.createdAt)
+      if (isNaN(d.getTime())) return
+      const k = `${d.getFullYear()}-${d.getMonth()}`
+      if (!buckets[k]) buckets[k] = { ts: d.getTime(), v: 0 }
+      if (t.status === 'paid') buckets[k].v += (t.amount || 0)
+    })
+    return Object.values(buckets).sort((a,b) => a.ts - b.ts).slice(-6).map(b => b.v)
+  })()
+
+  const spendDelta = computeDelta(
+    monthlySparkSpend[monthlySparkSpend.length - 1],
+    monthlySparkSpend[monthlySparkSpend.length - 2],
+  )
+  const releasedTotal = rawTx.filter(t => t.status === 'released').reduce((s,t) => s + Math.abs(t.amount||0), 0)
+  const releasedDelta = computeDelta(
+    monthlySparkReleased[monthlySparkReleased.length - 1],
+    monthlySparkReleased[monthlySparkReleased.length - 2],
+  )
+  const balanceDelta = computeDelta(
+    monthlySparkBalance[monthlySparkBalance.length - 1],
+    monthlySparkBalance[monthlySparkBalance.length - 2],
+  )
+
   const filteredTx = transactions.filter(tx => {
     if (txFilter === 'todos') return true
     if (txFilter === 'escrow') return tx.type === 'escrow'
@@ -420,24 +463,37 @@ export default function FinancesPage() {
           </button>
         </div>
 
-        {/* KPI cards */}
-        {[
-          { icon: TrendingUp, label: 'Gasto total', val: `€${totalSpend.toLocaleString('es')}`, sub: `${txCount} transacciones`, color: BLUE },
-          { icon: ArrowDownLeft, label: 'En escrow', val: `€${Math.abs(balance).toLocaleString('es')}`, sub: 'Retenido en campañas', color: PURPLE },
-          { icon: ArrowUpRight, label: 'Liberado', val: `€${rawTx.filter(t => t.status === 'released').reduce((s,t) => s + Math.abs(t.amount||0), 0).toLocaleString('es', {maximumFractionDigits: 0})}`, sub: 'Pagado a creadores', color: OK, subColor: OK },
-        ].map(({ icon: Icon, label, val, sub, color, subColor }) => (
-          <div key={label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px', padding: '22px', transition: 'border-color .15s' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = purpleAlpha(0.3) }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)' }}
-          >
-            <div style={{ width: '38px', height: '38px', borderRadius: '11px', background: `${color}14`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
-              <Icon size={17} color={color} />
-            </div>
-            <div style={{ fontFamily: FONT_DISPLAY, fontSize: '24px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', marginBottom: '3px' }}>{val}</div>
-            <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '4px' }}>{label}</div>
-            <div style={{ fontSize: '11px', color: subColor || 'var(--muted2)', fontWeight: subColor ? 600 : 400 }}>{sub}</div>
-          </div>
-        ))}
+        {/* KPI cards — Stripe-style with sparklines + deltas */}
+        <MetricCard
+          icon={TrendingUp}
+          label="Gasto total"
+          value={`€${totalSpend.toLocaleString('es')}`}
+          sublabel={`${txCount} transacciones`}
+          accent={BLUE}
+          delta={spendDelta}
+          deltaLabel="vs mes anterior"
+          spark={monthlySparkSpend}
+        />
+        <MetricCard
+          icon={ArrowDownLeft}
+          label="En escrow"
+          value={`€${Math.abs(balance).toLocaleString('es')}`}
+          sublabel="Retenido en campañas"
+          accent={PURPLE}
+          delta={balanceDelta}
+          deltaLabel="vs mes anterior"
+          spark={monthlySparkBalance}
+        />
+        <MetricCard
+          icon={ArrowUpRight}
+          label="Liberado a creadores"
+          value={`€${releasedTotal.toLocaleString('es', { maximumFractionDigits: 0 })}`}
+          sublabel="Pagado a creadores"
+          accent={OK}
+          delta={releasedDelta}
+          deltaLabel="vs mes anterior"
+          spark={monthlySparkReleased}
+        />
       </div>
 
       {/* ── 2-col: chart + breakdown ── */}

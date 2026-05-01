@@ -21,6 +21,7 @@ import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { FONT_BODY as F, FONT_DISPLAY as D } from '../../../theme/tokens'
 import { KPICard, CASBadge } from '../../../components/scoring'
+import MetricCard, { computeDelta } from '../../../components/MetricCard'
 import ChannelCard from '../../../components/ChannelCard'
 import { ErrorBanner } from '../shared/DashComponents'
 
@@ -136,6 +137,46 @@ function CampaignPerformanceSection({ campaigns, period }) {
   const completedSpend = completed.reduce((s, c) => s + (c.price || 0), 0)
   const avgCPM = completed.length > 0 ? completedSpend / completed.length : 0
 
+  // ── Previous period comparison for deltas ───────────────────────────────────
+  const prevCutoffStart = new Date(Date.now() - periodDays * 2 * 86400000)
+  const prevCutoffEnd = cutoff
+  const prevPeriod = campaigns.filter(c => {
+    const d = new Date(c.createdAt)
+    return d >= prevCutoffStart && d < prevCutoffEnd
+  })
+  const prevSpend = prevPeriod.reduce((s, c) => s + (c.price || 0), 0)
+  const prevCompleted = prevPeriod.filter(c => c.status === 'COMPLETED').length
+  const prevAvgCPM = prevPeriod.filter(c => c.status === 'COMPLETED').length > 0
+    ? prevPeriod.filter(c => c.status === 'COMPLETED').reduce((s,c) => s + (c.price||0), 0) / prevPeriod.filter(c => c.status === 'COMPLETED').length
+    : 0
+  const prevSuccessRate = prevPeriod.length > 0 ? (prevCompleted / prevPeriod.length) * 100 : 0
+  const successRate = filtered.length > 0 ? (completed.length / filtered.length) * 100 : 0
+
+  const spendSpark = useMemo(() => {
+    // bucket campaign spend into 8 segments across the current period
+    const segs = 8
+    const segMs = (periodDays * 86400000) / segs
+    const buckets = new Array(segs).fill(0)
+    filtered.forEach(c => {
+      const t = new Date(c.createdAt).getTime() - cutoff.getTime()
+      const idx = Math.max(0, Math.min(segs - 1, Math.floor(t / segMs)))
+      buckets[idx] += (c.price || 0)
+    })
+    return buckets
+  }, [filtered, periodDays, cutoff])
+
+  const completedSpark = useMemo(() => {
+    const segs = 8
+    const segMs = (periodDays * 86400000) / segs
+    const buckets = new Array(segs).fill(0)
+    completed.forEach(c => {
+      const t = new Date(c.createdAt).getTime() - cutoff.getTime()
+      const idx = Math.max(0, Math.min(segs - 1, Math.floor(t / segMs)))
+      buckets[idx] += 1
+    })
+    return buckets
+  }, [completed, periodDays, cutoff])
+
   // Monthly bar chart data
   const barData = useMemo(() => {
     const now = new Date()
@@ -170,12 +211,47 @@ function CampaignPerformanceSection({ campaigns, period }) {
 
   return (
     <SectionCard title="Rendimiento de campañas">
-      {/* KPI row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 24 }}>
-        <KPICard label="Gasto total" valor={fmtMoney(totalSpend)} icon={<DollarSign size={16} />} color={'var(--accent)'} />
-        <KPICard label="Completadas" valor={completed.length} context={`de ${filtered.length} campañas`} icon={<Target size={16} />} />
-        <KPICard label="Coste medio" valor={fmtMoney(avgCPM)} context="por campaña" icon={<ShoppingCart size={16} />} />
-        <KPICard label="Tasa éxito" valor={filtered.length > 0 ? `${Math.round((completed.length / filtered.length) * 100)}%` : '--'} color={completed.length > 0 ? 'var(--accent)' : 'var(--text-secondary)'} icon={<TrendingUp size={16} />} />
+      {/* KPI row — Stripe-style with sparklines + period-over-period delta */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
+        <MetricCard
+          icon={DollarSign}
+          label="Gasto total"
+          value={fmtMoney(totalSpend)}
+          accent="var(--accent, #8B5CF6)"
+          delta={computeDelta(totalSpend, prevSpend)}
+          deltaLabel="vs periodo anterior"
+          spark={spendSpark}
+        />
+        <MetricCard
+          icon={Target}
+          label="Completadas"
+          value={completed.length}
+          sublabel={`de ${filtered.length} campañas`}
+          accent="#06b6d4"
+          delta={computeDelta(completed.length, prevCompleted)}
+          deltaLabel="vs periodo anterior"
+          spark={completedSpark}
+        />
+        <MetricCard
+          icon={ShoppingCart}
+          label="Coste medio"
+          value={fmtMoney(avgCPM)}
+          sublabel="por campaña"
+          accent="#f59e0b"
+          delta={computeDelta(avgCPM, prevAvgCPM)}
+          deltaLabel="vs periodo anterior"
+          inverseDelta
+        />
+        <MetricCard
+          icon={TrendingUp}
+          label="Tasa de éxito"
+          value={filtered.length > 0 ? `${Math.round(successRate)}%` : '--'}
+          sublabel={completed.length > 0 ? 'campañas completadas' : 'sin completar todavía'}
+          accent={completed.length > 0 ? 'var(--accent, #8B5CF6)' : '#94a3b8'}
+          delta={prevPeriod.length > 0 ? computeDelta(successRate, prevSuccessRate) : undefined}
+          deltaLabel="vs periodo anterior"
+          ringPct={filtered.length > 0 ? successRate : 0}
+        />
       </div>
 
       {/* Monthly spend chart */}

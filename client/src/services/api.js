@@ -1363,6 +1363,18 @@ class ApiService {
       body: JSON.stringify({ viewId }),
     });
   }
+
+  // ==========================================
+  // INBOX (unified action center)
+  // ==========================================
+
+  async getInbox() {
+    return this.request('/inbox');
+  }
+
+  async getInboxCount() {
+    return this.request('/inbox/count');
+  }
 }
 
 // Crear instancia única del servicio

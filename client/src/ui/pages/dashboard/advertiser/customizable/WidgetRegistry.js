@@ -3,6 +3,7 @@ import {
   TrendingUp, BarChart3, LineChart, PieChart, Table2,
   AlertTriangle, Zap, CalendarDays, Users, Target,
   StickyNote, Layout, Sparkles, MessageSquare, Clock,
+  Lightbulb,
 } from 'lucide-react'
 
 export const WIDGET_CATEGORIES = {
@@ -29,6 +30,7 @@ export const WIDGET_TYPES = {
   BUDGET_DONUT: 'BUDGET_DONUT',
   NOTES: 'NOTES',
   CAMPAIGN_CALENDAR: 'CAMPAIGN_CALENDAR',
+  SMART_INSIGHTS: 'SMART_INSIGHTS',
 }
 
 export const VARIANT_IDS = {
@@ -244,6 +246,19 @@ export const WIDGET_CATALOG = {
     defaultVariant: 'standard',
   },
 
+  [WIDGET_TYPES.SMART_INSIGHTS]: {
+    type: WIDGET_TYPES.SMART_INSIGHTS,
+    name: 'Insights inteligentes',
+    description: 'Sugerencias automáticas basadas en el rendimiento de tus campañas',
+    icon: Lightbulb,
+    category: 'TOOLS',
+    variants: [
+      { id: 'standard', name: 'Estándar', defaultW: 6, defaultH: 4, minW: 4, minH: 3, maxW: 12, maxH: 6 },
+      { id: 'compact', name: 'Compacto', defaultW: 4, defaultH: 3, minW: 3, minH: 2, maxW: 6, maxH: 4 },
+    ],
+    defaultVariant: 'standard',
+  },
+
   [WIDGET_TYPES.CAMPAIGN_CALENDAR]: {
     type: WIDGET_TYPES.CAMPAIGN_CALENDAR,
     name: 'Calendario',
@@ -287,9 +302,12 @@ export function getDefaultLayout() {
     { i: 'w-actions',    type: WIDGET_TYPES.ACTION_ITEMS,   variant: 'cards',    x: 0, y: 4, w: 5, h: 3 },
     { i: 'w-spendchart', type: WIDGET_TYPES.SPEND_CHART,    variant: 'line',     x: 5, y: 4, w: 7, h: 3 },
 
-    // Row 7-10 — drill-down + scale opportunity
-    { i: 'w-table',      type: WIDGET_TYPES.CAMPAIGNS_TABLE, variant: 'full',    x: 0, y: 7, w: 7, h: 4 },
+    // Row 7-10 — AI insights + scale opportunity
+    { i: 'w-insights',   type: WIDGET_TYPES.SMART_INSIGHTS, variant: 'standard', x: 0, y: 7, w: 7, h: 4 },
     { i: 'w-topch',      type: WIDGET_TYPES.TOP_CHANNELS,   variant: 'standard', x: 7, y: 7, w: 5, h: 4 },
+
+    // Row 11-14 — drill-down (campaigns table) at the bottom
+    { i: 'w-table',      type: WIDGET_TYPES.CAMPAIGNS_TABLE, variant: 'full',    x: 0, y: 11, w: 12, h: 4 },
   ]
 }
 

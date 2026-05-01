@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { WIDGET_TYPES } from './WidgetRegistry'
 import useWidgetSize, { rowsThatFit } from './useWidgetSize'
+import SmartInsights from '../../../../components/SmartInsights'
 import { FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE } from '../../../../theme/tokens'
 
 const PURPLE = 'var(--accent, #8B5CF6)'
@@ -1084,6 +1085,24 @@ function CampaignCalendarWidget({ data, variant }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// SMART INSIGHTS WIDGET
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function SmartInsightsWidget({ data }) {
+  return (
+    <div style={{ height: '100%', overflow: 'hidden' }}>
+      <SmartInsights
+        campaigns={data.campaigns || []}
+        creditsBalance={data.creditsBalance || 0}
+        spendDelta={data.spendDelta}
+        startCollapsed={false}
+        maxItems={4}
+      />
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // WIDGET RENDERER
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1106,6 +1125,7 @@ export default function WidgetRenderer({ type, variant, data, widgetId }) {
     case WIDGET_TYPES.BUDGET_DONUT:      return <BudgetDonutWidget {...props} />
     case WIDGET_TYPES.NOTES:             return <NotesWidget {...props} />
     case WIDGET_TYPES.CAMPAIGN_CALENDAR: return <CampaignCalendarWidget {...props} />
+    case WIDGET_TYPES.SMART_INSIGHTS:    return <SmartInsightsWidget {...props} />
     default: return <div style={{ color: 'var(--muted)', fontSize: 13 }}>Widget desconocido: {type}</div>
   }
 }
