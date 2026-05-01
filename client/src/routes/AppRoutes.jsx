@@ -30,6 +30,9 @@ import AdvertiserAnalyticsPage from '../ui/pages/dashboard/advertiser/Advertiser
 import CampaignAnalyticsPage from '../ui/pages/dashboard/advertiser/CampaignAnalyticsPage'
 import AnalyzeChannelPage from '../ui/pages/dashboard/advertiser/AnalyzeChannelPage'
 import AnalyzeAdPage from '../ui/pages/dashboard/advertiser/AnalyzeAdPage'
+import CompareChannelsPage from '../ui/pages/dashboard/advertiser/CompareChannelsPage'
+import NicheHeatmapPage from '../ui/pages/dashboard/advertiser/NicheHeatmapPage'
+import ForecastROIPage from '../ui/pages/dashboard/advertiser/ForecastROIPage'
 
 // Creator dashboard suite
 import CreatorLayout        from '../ui/pages/dashboard/creator/CreatorLayout'
@@ -171,7 +174,10 @@ export default function AppRoutes() {
         <Route path="finances" element={<FullAccessOnly feature="Finanzas"><FinancesPage /></FullAccessOnly>} />
         <Route path="analytics" element={<Navigate to="/advertiser/finances" replace />} />
         <Route path="analyze/channel" element={<FullAccessOnly feature="Análisis de canal"><AnalyzeChannelPage /></FullAccessOnly>} />
+        <Route path="analyze/compare" element={<FullAccessOnly feature="Comparar canales"><CompareChannelsPage /></FullAccessOnly>} />
+        <Route path="analyze/niches"  element={<FullAccessOnly feature="Heatmap de nichos"><NicheHeatmapPage /></FullAccessOnly>} />
         <Route path="analyze/ad"      element={<FullAccessOnly feature="Análisis de anuncio"><AnalyzeAdPage /></FullAccessOnly>} />
+        <Route path="analyze/forecast" element={<FullAccessOnly feature="Forecaster ROI"><ForecastROIPage /></FullAccessOnly>} />
         <Route path="referrals" element={<ReferralsPage />} />
         <Route path="disputes" element={<FullAccessOnly feature="Disputas"><DisputesPage /></FullAccessOnly>} />
         <Route path="notifications" element={<NotificationsPage />} />
