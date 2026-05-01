@@ -32,7 +32,7 @@ const STEPS = [
 //   'locked'   — user hasn't completed previous step. Greyed out, no interaction.
 //   'active'   — currently in progress. Open, accent border.
 //   'done'     — completed and shown as a summary chip. Click to re-edit.
-function Section({ status, num, title, icon: Icon, summary, children, sectionRef, onEdit }) {
+function Section({ status, num, title, icon: Icon, summary, children, sectionRef, onEdit, lockedHint }) {
   const isLocked = status === 'locked'
   const isDone = status === 'done'
   const isActive = status === 'active'
@@ -76,7 +76,7 @@ function Section({ status, num, title, icon: Icon, summary, children, sectionRef
           )}
           {isLocked && (
             <div style={{ fontSize: 11, color: 'var(--muted2)', marginTop: 2 }}>
-              Completa el paso anterior para desbloquear
+              {lockedHint || 'Completa el paso anterior para desbloquear'}
             </div>
           )}
         </div>
@@ -156,21 +156,21 @@ export default function NewCampaignPage() {
   })()
   const isDateValid = !!selectedDate?.date
 
-  // Auto-advance to the next unlocked section + scroll into view.
-  // We only auto-advance forward, never override a manual "Editar" click.
-  const prevValidsRef = useRef({ content: false, url: false })
+  // Auto-advance only forward, never override a manual "Editar" click.
+  // NOTE: Content → URL is intentionally NOT auto-advanced. Writing copy is
+  // a creative flow we don't want to interrupt at the 30-char mark — the
+  // user clicks "Siguiente" when they're done. URL → Date IS auto-advanced
+  // because typing/pasting a URL is a quick, atomic action.
+  const prevValidsRef = useRef({ url: false })
   useEffect(() => {
     if (step !== 2) return
     const prev = prevValidsRef.current
-    if (isContentValid && !prev.content && openSection === 'content') {
-      setOpenSection('url')
-      setTimeout(() => urlRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60)
-    } else if (isUrlValid && !prev.url && openSection === 'url') {
+    if (isUrlValid && !prev.url && openSection === 'url') {
       setOpenSection('date')
       setTimeout(() => dateRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60)
     }
-    prevValidsRef.current = { content: isContentValid, url: isUrlValid }
-  }, [isContentValid, isUrlValid, step, openSection])
+    prevValidsRef.current = { url: isUrlValid }
+  }, [isUrlValid, step, openSection])
 
   // Calendar state
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
@@ -408,6 +408,30 @@ export default function NewCampaignPage() {
               </div>
             </div>
             <CopyAnalyzerCompact text={content} />
+
+            {/* Manual advance — content writing is creative, don't interrupt the flow */}
+            <div className="flex items-center justify-end mt-3">
+              <button
+                type="button"
+                disabled={!isContentValid}
+                onClick={() => {
+                  setOpenSection('url')
+                  setTimeout(() => urlRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60)
+                }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '9px 16px', borderRadius: 9, border: 'none',
+                  background: isContentValid ? 'var(--accent)' : 'var(--bg3, var(--border))',
+                  color: isContentValid ? '#fff' : 'var(--muted2)',
+                  fontSize: 13, fontWeight: 600,
+                  cursor: isContentValid ? 'pointer' : 'not-allowed',
+                  transition: 'background .15s',
+                  boxShadow: isContentValid ? '0 4px 14px rgba(139,92,246,0.35)' : 'none',
+                }}
+              >
+                Siguiente <ChevronRight size={14} />
+              </button>
+            </div>
           </Section>
 
           {/* ── 2. URL de destino ── */}
@@ -416,9 +440,14 @@ export default function NewCampaignPage() {
             num={2}
             title="URL de destino"
             icon={Link2}
-            status={openSection === 'url' ? (isContentValid ? 'active' : 'locked') : isUrlValid ? 'done' : isContentValid ? 'active' : 'locked'}
+            status={
+              openSection === 'url' ? 'active'
+              : isUrlValid ? 'done'
+              : 'locked'
+            }
             summary={isUrlValid ? targetUrl : null}
-            onEdit={() => setOpenSection('url')}
+            onEdit={() => isContentValid && setOpenSection('url')}
+            lockedHint={isContentValid ? 'Pulsa "Siguiente" en el paso anterior para continuar' : 'Completa el contenido para desbloquear'}
           >
             <input
               type="url" value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)}
@@ -515,9 +544,9 @@ export default function NewCampaignPage() {
             title="Fecha de publicación"
             icon={Calendar}
             status={
-              openSection === 'date' ? (isUrlValid ? 'active' : 'locked')
+              openSection === 'date' ? 'active'
               : isDateValid ? 'done'
-              : isUrlValid ? 'active' : 'locked'
+              : 'locked'
             }
             summary={isDateValid ? `${new Date(selectedDate.date + 'T00:00:00').toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })} · €${selectedDate.price || channel?.precio || channel?.CPMDinamico || '?'}` : null}
             onEdit={() => setOpenSection('date')}
