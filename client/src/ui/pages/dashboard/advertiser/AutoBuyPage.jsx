@@ -1057,7 +1057,7 @@ export default function AutoBuyPage() {
                     }}>{ch.name.slice(0,2).toUpperCase()}</div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>{ch.name}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{ch.platform} {'\u00B7'} {ch.audience} seguidores</div>
+                      <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{ch.platform}{ch.audience ? ` \u00B7 ${ch.audience} seguidores` : ''}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>{'\u20AC'}{ch.price}</div>

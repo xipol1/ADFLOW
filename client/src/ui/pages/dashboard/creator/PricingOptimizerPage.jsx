@@ -181,7 +181,7 @@ function PricingCard({ channel, onUpdate, niche, marketCpm }) {
               fontFamily: FONT_BODY,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}>
-            <Tag size={13} /> Actualizar precio a {fmtMoney(suggested)}
+            <Tag size={13} /> Aplicar {fmtMoney(suggested)} en Mis Canales →
           </button>
         )}
       </div>
@@ -215,27 +215,15 @@ export default function PricingOptimizerPage() {
     return () => { cancelled = true }
   }, [])
 
-  const handleUpdate = async (channel, newPrice) => {
+  const handleUpdate = (channel, newPrice) => {
+    // Copy suggested price to clipboard + navigate to channel detail to apply it manually.
+    // The price-update endpoint is on the roadmap; until then we route the user to the
+    // existing edit screen with a clear message.
     const id = channel._id || channel.id
-    try {
-      // Try common update endpoints — fall back gracefully if none exist
-      let res = null
-      if (apiService.updateChannel) res = await apiService.updateChannel(id, { precio: newPrice }).catch(() => null)
-      if (!res?.success && apiService.updateChannelPrice) {
-        res = await apiService.updateChannelPrice(id, newPrice).catch(() => null)
-      }
-      if (res?.success) {
-        setChannels(prev => prev.map(c => (c._id || c.id) === id ? { ...c, precio: newPrice } : c))
-        setUpdateMsg(`Precio actualizado a ${fmtMoney(newPrice)} en ${channel.nombreCanal || 'el canal'}.`)
-        setTimeout(() => setUpdateMsg(''), 4000)
-      } else {
-        setError('No se pudo actualizar el precio. Edítalo desde Mis Canales.')
-        setTimeout(() => setError(''), 4000)
-      }
-    } catch (e) {
-      setError('No se pudo actualizar el precio. Edítalo desde Mis Canales.')
-      setTimeout(() => setError(''), 4000)
-    }
+    try { navigator.clipboard?.writeText(String(newPrice)) } catch {}
+    setUpdateMsg(`Precio sugerido (€${newPrice}) copiado al portapapeles. Pégalo en la edición del canal.`)
+    setTimeout(() => setUpdateMsg(''), 5000)
+    navigate(`/creator/channels?highlight=${id}`)
   }
 
   // Aggregate insights
