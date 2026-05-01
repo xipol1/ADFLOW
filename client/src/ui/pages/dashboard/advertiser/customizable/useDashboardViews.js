@@ -10,9 +10,9 @@ const newId = () => 'view_' + Date.now().toString(36) + Math.random().toString(3
 // ─── Built-in presets (loaded into "create new view" picker) ──────────────────
 export const PRESETS = {
   default: {
-    name: 'Vista por defecto',
-    icon: '🏠',
-    description: 'KPIs, gasto, campañas y acciones — el dashboard estándar',
+    name: 'Recomendada',
+    icon: '⭐',
+    description: 'Diseño optimizado: KPIs accionables arriba, alertas + tendencia, tabla de campañas y top canales',
     items: () => getDefaultLayout(),
   },
   marketing: {
@@ -140,10 +140,10 @@ export default function useDashboardViews() {
             setViews(local.views)
             setActiveViewIdState(local.activeViewId || local.views[0].id)
           } else {
-            // Bootstrap with default view
+            // Bootstrap with the recommended default layout
             const view = {
               id: newId(),
-              name: 'Mi dashboard',
+              name: 'Resumen',
               items: getDefaultLayout(),
               isDefault: true,
               updatedAt: new Date().toISOString(),

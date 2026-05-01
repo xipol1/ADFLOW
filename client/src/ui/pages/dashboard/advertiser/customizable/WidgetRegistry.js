@@ -258,17 +258,38 @@ export const WIDGET_CATALOG = {
   },
 }
 
+/**
+ * Default dashboard layout — designed following Stripe/Meta Ads/HubSpot best
+ * practices for advertising dashboards:
+ *
+ *   Row 0-1  Welcome + Quick Actions    ← greeting + immediate CTAs
+ *   Row 2-3  4 KPIs (Spend/Campaigns/CTR/ROI)  ← Stripe "prime real estate"
+ *            Outcome metrics over vanity (Meta best practice)
+ *   Row 4-6  Action Items + Spend Chart  ← blockers next to performance trend
+ *   Row 7-10 Campaigns Table + Top Channels  ← drill-down + scale opportunity
+ *
+ * The whole layout fits in ~850px (15-row equivalent) so a 1080p laptop
+ * sees the full dashboard above the fold without scrolling.
+ */
 export function getDefaultLayout() {
   return [
-    { i: 'w-welcome', type: WIDGET_TYPES.WELCOME, variant: 'standard', x: 0, y: 0, w: 12, h: 2 },
-    { i: 'w-spend', type: WIDGET_TYPES.KPI_SPEND, variant: 'compact', x: 0, y: 2, w: 3, h: 2 },
-    { i: 'w-campaigns', type: WIDGET_TYPES.KPI_CAMPAIGNS, variant: 'compact', x: 3, y: 2, w: 3, h: 2 },
-    { i: 'w-ctr', type: WIDGET_TYPES.KPI_CTR, variant: 'compact', x: 6, y: 2, w: 3, h: 2 },
-    { i: 'w-views', type: WIDGET_TYPES.KPI_VIEWS, variant: 'compact', x: 9, y: 2, w: 3, h: 2 },
-    { i: 'w-spendchart', type: WIDGET_TYPES.SPEND_CHART, variant: 'bar', x: 0, y: 4, w: 5, h: 4 },
-    { i: 'w-table', type: WIDGET_TYPES.CAMPAIGNS_TABLE, variant: 'full', x: 5, y: 4, w: 7, h: 4 },
-    { i: 'w-actions', type: WIDGET_TYPES.ACTION_ITEMS, variant: 'cards', x: 0, y: 8, w: 6, h: 4 },
-    { i: 'w-quick', type: WIDGET_TYPES.QUICK_ACTIONS, variant: 'standard', x: 6, y: 8, w: 6, h: 2 },
+    // Row 0-1 — header zone
+    { i: 'w-welcome',    type: WIDGET_TYPES.WELCOME,        variant: 'compact',  x: 0, y: 0, w: 8, h: 2 },
+    { i: 'w-quick',      type: WIDGET_TYPES.QUICK_ACTIONS,  variant: 'standard', x: 8, y: 0, w: 4, h: 2 },
+
+    // Row 2-3 — 4 outcome KPIs in horizontal scan order (Stripe pattern)
+    { i: 'w-spend',      type: WIDGET_TYPES.KPI_SPEND,      variant: 'compact',  x: 0, y: 2, w: 3, h: 2 },
+    { i: 'w-campaigns',  type: WIDGET_TYPES.KPI_CAMPAIGNS,  variant: 'compact',  x: 3, y: 2, w: 3, h: 2 },
+    { i: 'w-ctr',        type: WIDGET_TYPES.KPI_CTR,        variant: 'compact',  x: 6, y: 2, w: 3, h: 2 },
+    { i: 'w-roi',        type: WIDGET_TYPES.KPI_ROI,        variant: 'compact',  x: 9, y: 2, w: 3, h: 2 },
+
+    // Row 4-6 — blockers + performance trend, side by side
+    { i: 'w-actions',    type: WIDGET_TYPES.ACTION_ITEMS,   variant: 'cards',    x: 0, y: 4, w: 5, h: 3 },
+    { i: 'w-spendchart', type: WIDGET_TYPES.SPEND_CHART,    variant: 'line',     x: 5, y: 4, w: 7, h: 3 },
+
+    // Row 7-10 — drill-down + scale opportunity
+    { i: 'w-table',      type: WIDGET_TYPES.CAMPAIGNS_TABLE, variant: 'full',    x: 0, y: 7, w: 7, h: 4 },
+    { i: 'w-topch',      type: WIDGET_TYPES.TOP_CHANNELS,   variant: 'standard', x: 7, y: 7, w: 5, h: 4 },
   ]
 }
 
