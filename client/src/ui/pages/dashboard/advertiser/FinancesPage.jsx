@@ -342,6 +342,30 @@ export default function FinancesPage() {
   const monthlyData = buildMonthlySpend(rawTx)
   const platformBreakdown = buildPlatformBreakdown(rawTx)
 
+  // Breakdown by transaction status (escrow, released, refunded, etc.) for the
+  // hover popover on the "En escrow" card
+  const statusBreakdown = (() => {
+    const buckets = {}
+    rawTx.forEach(tx => {
+      const k = tx.status || 'other'
+      if (!buckets[k]) buckets[k] = 0
+      buckets[k] += Math.abs(tx.amount || 0)
+    })
+    const colors = { paid: BLUE, released: OK, refunded: '#ef4444', recarga: PURPLE, other: '#94a3b8' }
+    const labels = { paid: 'En escrow', released: 'Liberado', refunded: 'Reembolsado', recarga: 'Recarga', other: 'Otros' }
+    return Object.entries(buckets)
+      .filter(([, v]) => v > 0)
+      .map(([k, v]) => ({ label: labels[k] || k, value: v, color: colors[k] || '#94a3b8' }))
+      .sort((a, b) => b.value - a.value)
+  })()
+
+  // Breakdown by month for the "Gasto total" card popover
+  const monthBreakdown = monthlyData.slice(-6).map(m => ({
+    label: m.label,
+    value: m.value,
+    color: PURPLE,
+  })).filter(m => m.value > 0)
+
   // ── Sparkline + delta helpers (last 6 months bucketed) ──────────────────────
   const monthlySparkSpend = monthlyData.map(m => m.value)
   const monthlySparkReleased = (() => {
@@ -463,7 +487,7 @@ export default function FinancesPage() {
           </button>
         </div>
 
-        {/* KPI cards — Stripe-style with sparklines + deltas */}
+        {/* KPI cards — Stripe-style with sparklines + deltas + drill-down */}
         <MetricCard
           icon={TrendingUp}
           label="Gasto total"
@@ -473,6 +497,9 @@ export default function FinancesPage() {
           delta={spendDelta}
           deltaLabel="vs mes anterior"
           spark={monthlySparkSpend}
+          breakdown={monthBreakdown}
+          breakdownTitle="Por mes (últimos 6)"
+          breakdownFormat="currency"
         />
         <MetricCard
           icon={ArrowDownLeft}
@@ -483,6 +510,9 @@ export default function FinancesPage() {
           delta={balanceDelta}
           deltaLabel="vs mes anterior"
           spark={monthlySparkBalance}
+          breakdown={statusBreakdown}
+          breakdownTitle="Por estado de pago"
+          breakdownFormat="currency"
         />
         <MetricCard
           icon={ArrowUpRight}
@@ -493,6 +523,9 @@ export default function FinancesPage() {
           delta={releasedDelta}
           deltaLabel="vs mes anterior"
           spark={monthlySparkReleased}
+          breakdown={platformBreakdown.map(p => ({ label: p.label, value: p.amount, color: p.color }))}
+          breakdownTitle="Por plataforma"
+          breakdownFormat="currency"
         />
       </div>
 

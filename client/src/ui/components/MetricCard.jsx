@@ -21,6 +21,10 @@ import { FONT_BODY, FONT_DISPLAY, OK, ERR } from '../theme/tokens'
  *   onClick    if set, the whole card is clickable
  *   compact    smaller layout for dense grids
  *   ringPct    0-100, optional radial progress around the icon
+ *   breakdown  array of { label, value, color? } — when present, hovering
+ *              the card opens a popover with the breakdown table (no nav needed)
+ *   breakdownTitle  header for the breakdown popover ("Por canal", "Por estado")
+ *   breakdownFormat formatter for breakdown values: 'currency' | 'number' | 'percent'
  */
 export default function MetricCard({
   icon: Icon,
@@ -35,10 +39,15 @@ export default function MetricCard({
   onClick,
   compact = false,
   ringPct,
+  breakdown,
+  breakdownTitle,
+  breakdownFormat = 'currency',
 }) {
   const [hovered, setHovered] = useState(false)
   const cardRef = useRef(null)
   const [width, setWidth] = useState(220)
+  const [popoverOpen, setPopoverOpen] = useState(false)
+  const popoverTimerRef = useRef(null)
 
   useEffect(() => {
     const el = cardRef.current
@@ -66,14 +75,39 @@ export default function MetricCard({
   const iconSize = compact ? 34 : 40
 
   const interactive = !!onClick
+  const hasBreakdown = Array.isArray(breakdown) && breakdown.length > 0
   const Element = interactive ? 'button' : 'div'
 
+  // Open popover after a small delay to avoid flicker on quick mouse passes
+  const handleEnter = () => {
+    setHovered(true)
+    if (hasBreakdown) {
+      if (popoverTimerRef.current) clearTimeout(popoverTimerRef.current)
+      popoverTimerRef.current = setTimeout(() => setPopoverOpen(true), 350)
+    }
+  }
+  const handleLeave = () => {
+    setHovered(false)
+    if (popoverTimerRef.current) { clearTimeout(popoverTimerRef.current); popoverTimerRef.current = null }
+    setPopoverOpen(false)
+  }
+  useEffect(() => () => { if (popoverTimerRef.current) clearTimeout(popoverTimerRef.current) }, [])
+
+  const breakdownTotal = hasBreakdown ? breakdown.reduce((s, b) => s + (Number(b.value) || 0), 0) : 0
+  const fmtBreakdown = (v) => {
+    if (breakdownFormat === 'currency') return `€${Number(v).toLocaleString('es')}`
+    if (breakdownFormat === 'percent') return `${Number(v).toFixed(1)}%`
+    return Number(v).toLocaleString('es')
+  }
+
   return (
+    <div style={{ position: 'relative', width: '100%' }}
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+    >
     <Element
       ref={cardRef}
       onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       style={{
         background: 'var(--surface)',
         border: `1px solid ${hovered ? `${accent}55` : 'var(--border)'}`,
@@ -150,7 +184,69 @@ export default function MetricCard({
           <ArrowRight size={12} />
         </div>
       )}
+
+      {hasBreakdown && hovered && !popoverOpen && (
+        <div style={{
+          position: 'absolute', bottom: 8, right: 10,
+          fontSize: 10, color: 'var(--muted2)', fontWeight: 600,
+          pointerEvents: 'none', opacity: 0.7,
+        }}>
+          ⌄ desglose
+        </div>
+      )}
     </Element>
+
+    {hasBreakdown && popoverOpen && (
+      <div style={{
+        position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 6,
+        background: 'var(--bg)', border: `1px solid ${accent}40`,
+        borderRadius: 12, padding: 12, zIndex: 100,
+        boxShadow: '0 12px 36px rgba(0,0,0,0.18)',
+        animation: 'mcPopIn 140ms ease',
+        fontFamily: FONT_BODY,
+      }}>
+        <style>{`@keyframes mcPopIn { from { opacity:0; transform: translateY(-4px) } to { opacity:1; transform: translateY(0) } }`}</style>
+        <div style={{
+          fontSize: 10, fontWeight: 700, color: 'var(--muted)',
+          textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8,
+        }}>
+          {breakdownTitle || 'Desglose'}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {breakdown.slice(0, 6).map((b, i) => {
+            const pct = breakdownTotal > 0 ? (Number(b.value) / breakdownTotal) * 100 : 0
+            const color = b.color || accent
+            return (
+              <div key={i}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: 4, background: color, flexShrink: 0 }} />
+                    <span style={{ fontSize: 11.5, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {b.label}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)', flexShrink: 0 }}>
+                    {fmtBreakdown(b.value)}
+                  </span>
+                </div>
+                <div style={{ height: 3, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%', width: `${pct}%`,
+                    background: color, borderRadius: 2, transition: 'width .3s ease',
+                  }} />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        {breakdown.length > 6 && (
+          <div style={{ fontSize: 10.5, color: 'var(--muted)', marginTop: 8, textAlign: 'center' }}>
+            y {breakdown.length - 6} más...
+          </div>
+        )}
+      </div>
+    )}
+    </div>
   )
 }
 

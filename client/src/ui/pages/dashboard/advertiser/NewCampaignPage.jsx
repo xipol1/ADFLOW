@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { ArrowLeft, Send, Calendar, Link2, FileText, DollarSign, CheckCircle, Loader2, AlertCircle, ChevronLeft, ChevronRight, Clock, Zap } from 'lucide-react'
+import { ArrowLeft, Send, Calendar, Link2, FileText, DollarSign, CheckCircle, Loader2, AlertCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Clock, Zap, Settings } from 'lucide-react'
 import apiService from '../../../../services/api'
 import { Badge } from '../../../../components/ui'
 import CopyAnalyzerCompact from '../../../components/CopyAnalyzerCompact'
@@ -70,6 +70,7 @@ export default function NewCampaignPage() {
   const [selectedDate, setSelectedDate] = useState(null) // { date: 'YYYY-MM-DD', price, status }
   const [linkFormat, setLinkFormat] = useState('domain')
   const [linkSlug, setLinkSlug] = useState('')
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
   // Calendar state
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
@@ -306,43 +307,72 @@ export default function NewCampaignPage() {
             />
           </div>
 
-          {/* Tracking link format */}
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-wider block mb-2" style={{ color: 'var(--text-secondary)' }}>
-              🔗 Formato del link de tracking
-            </label>
-            <div className="space-y-2">
-              {[
-                { key: 'domain', label: 'Mostrar tu dominio', example: targetUrl ? (() => { try { const u = new URL(targetUrl); return `channelad.io/go/${u.host}${u.pathname}` } catch { return 'channelad.io/go/tu-web.com/oferta' } })() : 'channelad.io/go/tu-web.com/oferta', desc: 'Se ve tu dominio en el link — genera confianza' },
-                { key: 'custom', label: 'Slug personalizado', example: `channelad.io/r/${linkSlug || 'mi-oferta'}`, desc: 'Elige un nombre legible para el link' },
-                { key: 'short', label: 'Link corto', example: 'channelad.io/t/a8f3c2d1', desc: 'Hash corto — maximo anonimato' },
-              ].map((opt) => (
-                <div
-                  key={opt.key}
-                  onClick={() => setLinkFormat(opt.key)}
-                  className="flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all"
-                  style={{
-                    background: linkFormat === opt.key ? 'var(--accent-dim)' : 'var(--bg)',
-                    border: `1px solid ${linkFormat === opt.key ? 'var(--accent-border)' : 'var(--border)'}`,
-                  }}
-                >
-                  <div className="w-4 h-4 rounded-full flex-shrink-0 mt-0.5 flex items-center justify-center" style={{ border: `2px solid ${linkFormat === opt.key ? 'var(--accent)' : 'var(--border-med)'}` }}>
-                    {linkFormat === opt.key && <div className="w-2 h-2 rounded-full" style={{ background: 'var(--accent)' }} />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium" style={{ color: 'var(--text)' }}>{opt.label}</div>
-                    <code className="text-[11px] block mt-0.5 truncate" style={{ color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>{opt.example}</code>
-                    <div className="text-[11px] mt-0.5" style={{ color: 'var(--muted2)' }}>{opt.desc}</div>
-                  </div>
+          {/* ── Opciones avanzadas (collapsed by default — progressive disclosure) ── */}
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(s => !s)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                width: '100%', background: 'transparent', border: 'none',
+                cursor: 'pointer', padding: '6px 0', color: 'var(--text)',
+                fontSize: 13, fontWeight: 600,
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Settings size={14} style={{ color: 'var(--muted)' }} />
+                Opciones avanzadas
+                <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--muted2)' }}>
+                  · Formato del link de tracking
+                  {linkFormat !== 'domain' && <span style={{ color: 'var(--accent)', marginLeft: 4 }}>(modificado)</span>}
+                </span>
+              </span>
+              {showAdvanced ? <ChevronUp size={16} style={{ color: 'var(--muted)' }} /> : <ChevronDown size={16} style={{ color: 'var(--muted)' }} />}
+            </button>
+
+            {showAdvanced && (
+              <div style={{ marginTop: 14, animation: 'fadeIn .2s ease' }}>
+                <style>{`@keyframes fadeIn { from { opacity:0; transform: translateY(-4px) } to { opacity:1; transform: translateY(0) } }`}</style>
+                <label className="text-xs font-semibold uppercase tracking-wider block mb-2" style={{ color: 'var(--text-secondary)' }}>
+                  🔗 Formato del link de tracking
+                </label>
+                <p style={{ fontSize: 11.5, color: 'var(--muted2)', marginBottom: 10, lineHeight: 1.5 }}>
+                  Por defecto usamos un link que muestra tu dominio (genera más confianza). Cámbialo solo si tienes un motivo específico.
+                </p>
+                <div className="space-y-2">
+                  {[
+                    { key: 'domain', label: 'Mostrar tu dominio', example: targetUrl ? (() => { try { const u = new URL(targetUrl); return `channelad.io/go/${u.host}${u.pathname}` } catch { return 'channelad.io/go/tu-web.com/oferta' } })() : 'channelad.io/go/tu-web.com/oferta', desc: 'Se ve tu dominio en el link — genera confianza (recomendado)' },
+                    { key: 'custom', label: 'Slug personalizado', example: `channelad.io/r/${linkSlug || 'mi-oferta'}`, desc: 'Elige un nombre legible para el link' },
+                    { key: 'short', label: 'Link corto', example: 'channelad.io/t/a8f3c2d1', desc: 'Hash corto — máximo anonimato' },
+                  ].map((opt) => (
+                    <div
+                      key={opt.key}
+                      onClick={() => setLinkFormat(opt.key)}
+                      className="flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all"
+                      style={{
+                        background: linkFormat === opt.key ? 'var(--accent-dim)' : 'var(--bg)',
+                        border: `1px solid ${linkFormat === opt.key ? 'var(--accent-border)' : 'var(--border)'}`,
+                      }}
+                    >
+                      <div className="w-4 h-4 rounded-full flex-shrink-0 mt-0.5 flex items-center justify-center" style={{ border: `2px solid ${linkFormat === opt.key ? 'var(--accent)' : 'var(--border-med)'}` }}>
+                        {linkFormat === opt.key && <div className="w-2 h-2 rounded-full" style={{ background: 'var(--accent)' }} />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium" style={{ color: 'var(--text)' }}>{opt.label}</div>
+                        <code className="text-[11px] block mt-0.5 truncate" style={{ color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>{opt.example}</code>
+                        <div className="text-[11px] mt-0.5" style={{ color: 'var(--muted2)' }}>{opt.desc}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            {linkFormat === 'custom' && (
-              <input
-                type="text" value={linkSlug} onChange={(e) => setLinkSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
-                placeholder="mi-oferta-especial" className={`${input} mt-2`} style={inputStyle}
-                maxLength={40}
-              />
+                {linkFormat === 'custom' && (
+                  <input
+                    type="text" value={linkSlug} onChange={(e) => setLinkSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+                    placeholder="mi-oferta-especial" className={`${input} mt-2`} style={inputStyle}
+                    maxLength={40}
+                  />
+                )}
+              </div>
             )}
           </div>
 

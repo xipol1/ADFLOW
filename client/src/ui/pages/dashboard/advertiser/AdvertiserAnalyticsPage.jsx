@@ -177,6 +177,34 @@ function CampaignPerformanceSection({ campaigns, period }) {
     return buckets
   }, [completed, periodDays, cutoff])
 
+  // Drill-down breakdowns for hover popovers
+  const spendByStatus = useMemo(() => {
+    const buckets = {}
+    filtered.forEach(c => {
+      const k = c.status || 'OTHER'
+      if (!buckets[k]) buckets[k] = 0
+      buckets[k] += (c.price || 0)
+    })
+    const colors = { DRAFT: '#f59e0b', PAID: '#06b6d4', PUBLISHED: '#22c55e', COMPLETED: '#94a3b8', CANCELLED: '#ef4444', DISPUTED: '#ef4444' }
+    const labels = { DRAFT: 'Borrador', PAID: 'Pagada', PUBLISHED: 'Activa', COMPLETED: 'Completada', CANCELLED: 'Cancelada', DISPUTED: 'En disputa' }
+    return Object.entries(buckets).filter(([, v]) => v > 0)
+      .map(([k, v]) => ({ label: labels[k] || k, value: v, color: colors[k] || '#94a3b8' }))
+      .sort((a, b) => b.value - a.value)
+  }, [filtered])
+
+  const completedByChannel = useMemo(() => {
+    const buckets = {}
+    completed.forEach(c => {
+      const name = (typeof c.channel === 'object' ? c.channel?.nombreCanal : c.channel) || 'Sin canal'
+      if (!buckets[name]) buckets[name] = 0
+      buckets[name] += 1
+    })
+    return Object.entries(buckets)
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8)
+  }, [completed])
+
   // Monthly bar chart data
   const barData = useMemo(() => {
     const now = new Date()
@@ -221,6 +249,9 @@ function CampaignPerformanceSection({ campaigns, period }) {
           delta={computeDelta(totalSpend, prevSpend)}
           deltaLabel="vs periodo anterior"
           spark={spendSpark}
+          breakdown={spendByStatus}
+          breakdownTitle="Por estado de campaña"
+          breakdownFormat="currency"
         />
         <MetricCard
           icon={Target}
@@ -231,6 +262,9 @@ function CampaignPerformanceSection({ campaigns, period }) {
           delta={computeDelta(completed.length, prevCompleted)}
           deltaLabel="vs periodo anterior"
           spark={completedSpark}
+          breakdown={completedByChannel}
+          breakdownTitle="Por canal"
+          breakdownFormat="number"
         />
         <MetricCard
           icon={ShoppingCart}
