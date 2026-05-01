@@ -1,7 +1,6 @@
 const Campaign = require('../models/Campaign');
 const Notificacion = require('../models/Notificacion');
 const Dispute = require('../models/Dispute');
-const Usuario = require('../models/Usuario');
 const database = require('../config/database');
 
 const HARD_LIMIT = 100;
@@ -23,14 +22,18 @@ const getInbox = async (req, res) => {
     const userId = req.usuario.id;
     const role = req.usuario.rol || 'advertiser';
 
+    // The inbox is currently advertiser-only. Creators and admins get an
+    // empty payload — never an unscoped Campaign.find() (would leak global
+    // campaigns). When/if we build a creator inbox, we'll add a creator
+    // branch that scopes by Channel.createdBy or similar.
+    if (role !== 'advertiser') {
+      return res.json({ success: true, data: { items: [], counts: { total: 0 } } });
+    }
+
     // Fan out the queries in parallel — each fail-soft so a single broken
     // collection doesn't kill the whole inbox.
     const [campaigns, disputes, notifs] = await Promise.all([
-      Campaign.find(
-        role === 'advertiser'
-          ? { advertiser: userId, status: { $in: ['DRAFT', 'PUBLISHED', 'DISPUTED'] } }
-          : { status: { $in: ['PAID', 'PUBLISHED', 'DISPUTED'] } },
-      )
+      Campaign.find({ advertiser: userId, status: { $in: ['DRAFT', 'PUBLISHED', 'DISPUTED'] } })
         .sort({ updatedAt: -1, createdAt: -1 })
         .limit(40)
         .populate('channel', 'nombreCanal plataforma')
@@ -60,43 +63,41 @@ const getInbox = async (req, res) => {
 
     const items = [];
 
-    // ── Draft campaigns ─ pending payment (advertiser only) ──────────────────
-    if (role === 'advertiser') {
-      campaigns
-        .filter(c => c.status === 'DRAFT')
-        .forEach(c => items.push({
-          id: `draft-${c._id}`,
-          source: 'campaign',
-          kind: 'payment_pending',
-          severity: 'warn',
-          title: 'Campaña pendiente de pago',
-          description: c.content?.slice(0, 80) || 'Campaña sin contenido',
-          channelName: c.channel?.nombreCanal || '',
-          amount: c.price,
-          ctaLabel: 'Pagar',
-          ctaPath: `/advertiser/campaigns?tab=borrador&campaign=${c._id}`,
-          createdAt: c.createdAt,
-          updatedAt: c.updatedAt || c.createdAt,
-        }));
+    // ── Draft campaigns ─ pending payment ────────────────────────────────────
+    campaigns
+      .filter(c => c.status === 'DRAFT')
+      .forEach(c => items.push({
+        id: `draft-${c._id}`,
+        source: 'campaign',
+        kind: 'payment_pending',
+        severity: 'warn',
+        title: 'Campaña pendiente de pago',
+        description: c.content?.slice(0, 80) || 'Campaña sin contenido',
+        channelName: c.channel?.nombreCanal || '',
+        amount: c.price,
+        ctaLabel: 'Pagar',
+        ctaPath: `/advertiser/campaigns?tab=borrador&campaign=${c._id}`,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt || c.createdAt,
+      }));
 
-      // Published, awaiting confirmation to release escrow
-      campaigns
-        .filter(c => c.status === 'PUBLISHED')
-        .forEach(c => items.push({
-          id: `release-${c._id}`,
-          source: 'campaign',
-          kind: 'escrow_release',
-          severity: 'info',
-          title: 'Campaña lista para liberar pago',
-          description: c.content?.slice(0, 80) || 'Campaña publicada',
-          channelName: c.channel?.nombreCanal || '',
-          amount: c.price,
-          ctaLabel: 'Liberar',
-          ctaPath: `/advertiser/campaigns?tab=publicada&campaign=${c._id}`,
-          createdAt: c.publishedAt || c.updatedAt || c.createdAt,
-          updatedAt: c.updatedAt || c.createdAt,
-        }));
-    }
+    // ── Published, awaiting confirmation to release escrow ───────────────────
+    campaigns
+      .filter(c => c.status === 'PUBLISHED')
+      .forEach(c => items.push({
+        id: `release-${c._id}`,
+        source: 'campaign',
+        kind: 'escrow_release',
+        severity: 'info',
+        title: 'Campaña lista para liberar pago',
+        description: c.content?.slice(0, 80) || 'Campaña publicada',
+        channelName: c.channel?.nombreCanal || '',
+        amount: c.price,
+        ctaLabel: 'Liberar',
+        ctaPath: `/advertiser/campaigns?tab=publicada&campaign=${c._id}`,
+        createdAt: c.publishedAt || c.updatedAt || c.createdAt,
+        updatedAt: c.updatedAt || c.createdAt,
+      }));
 
     // ── Disputed campaigns ──────────────────────────────────────────────────
     campaigns
@@ -175,13 +176,14 @@ const getInboxCount = async (req, res) => {
     const userId = req.usuario.id;
     const role = req.usuario.rol || 'advertiser';
 
+    // Same scope as getInbox: advertiser-only feature.
+    if (role !== 'advertiser') {
+      return res.json({ success: true, data: { total: 0, payment_pending: 0, escrow_release: 0, disputes: 0, notifications: 0 } });
+    }
+
     const [drafts, releases, disputes, unread] = await Promise.all([
-      role === 'advertiser'
-        ? Campaign.countDocuments({ advertiser: userId, status: 'DRAFT' }).catch(() => 0)
-        : Promise.resolve(0),
-      role === 'advertiser'
-        ? Campaign.countDocuments({ advertiser: userId, status: 'PUBLISHED' }).catch(() => 0)
-        : Promise.resolve(0),
+      Campaign.countDocuments({ advertiser: userId, status: 'DRAFT' }).catch(() => 0),
+      Campaign.countDocuments({ advertiser: userId, status: 'PUBLISHED' }).catch(() => 0),
       Dispute.countDocuments({
         $or: [{ openedBy: userId }, { againstUser: userId }],
         status: { $in: ['open', 'under_review'] },

@@ -32,39 +32,38 @@ function clientIp(req) {
   return (req.headers['x-forwarded-for']?.split(',')[0] || req.ip || '').trim();
 }
 
-// ─── POST /api/conversions  (server-to-server) ───────────────────────────────
+// ─── POST /api/conversions  (server-to-server, PUBLIC — clickId required) ───
 //
-// The advertiser's backend posts this on a confirmed sale/signup. Body:
-//   { clickId, type, value, currency, externalId, metadata }
+// Public endpoint for advertisers' backends. Always requires a valid clickId
+// — that's the only way attribution can be trusted from an unauthenticated
+// caller. The clickId is unguessable (16 hex / 64 bits, generated server-side
+// on each redirect) and bound to a specific TrackingLink + Campaign.
 //
 // Idempotent on (campaign, externalId): re-posting the same orderId is a no-op.
 const recordConversion = async (req, res) => {
   try {
     if (!database.estaConectado()) await database.conectar();
 
-    const { clickId, campaignId: campaignIdFromBody, type, value, currency, quantity, externalId, metadata } = req.body || {};
-    if (!clickId && !campaignIdFromBody) {
-      return res.status(400).json({ success: false, message: 'clickId o campaignId requerido' });
+    const { clickId, type, value, currency, quantity, externalId, metadata } = req.body || {};
+    if (!clickId || typeof clickId !== 'string') {
+      return res.status(400).json({ success: false, message: 'clickId requerido (string)' });
     }
 
-    // Resolve attribution
-    let campaignId, advertiserId;
-    if (clickId) {
-      const resolved = await resolveClickId(clickId);
-      if (!resolved) return res.status(404).json({ success: false, message: 'clickId no reconocido' });
-      campaignId = resolved.campaignId;
-      advertiserId = resolved.advertiserId;
-    } else {
-      const c = await Campaign.findById(campaignIdFromBody).select('advertiser').lean();
-      if (!c) return res.status(404).json({ success: false, message: 'Campaña no encontrada' });
-      campaignId = campaignIdFromBody;
-      advertiserId = c.advertiser;
-    }
+    // Resolve attribution — the clickId is the trust anchor here.
+    const resolved = await resolveClickId(clickId);
+    if (!resolved) return res.status(404).json({ success: false, message: 'clickId no reconocido' });
+    const campaignId = resolved.campaignId;
+    const advertiserId = resolved.advertiserId;
 
     // Validate
     const conversionType = VALID_TYPES.includes(type) ? type : 'custom';
     const numericValue = Number(value);
-    const safeValue = Number.isFinite(numericValue) && numericValue >= 0 ? numericValue : 0;
+    // Cap value at 1M EUR to prevent abusive inflation by attackers who
+    // somehow obtained a clickId. A real advertiser can post a normal value;
+    // anything larger is almost certainly bogus.
+    const safeValue = Number.isFinite(numericValue) && numericValue >= 0 && numericValue <= 1_000_000
+      ? numericValue
+      : 0;
 
     // Idempotency check
     if (externalId) {

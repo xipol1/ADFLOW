@@ -1,16 +1,29 @@
 const express = require('express');
 const { autenticar } = require('../middleware/auth');
+const { limitarIntentos } = require('../middleware/rateLimiter');
 const conversionController = require('../controllers/conversionController');
 
 const router = express.Router();
 
+// Rate limit for the public conversion endpoint. Tuned for the realistic
+// upper bound of a busy storefront: ~120 conversions per minute per IP.
+// The advertiser's backend will usually be the only caller so per-IP
+// keying is appropriate here.
+const conversionWriteLimiter = limitarIntentos({
+  windowMs: 60 * 1000,
+  max: 120,
+  message: { success: false, message: 'Demasiadas conversiones desde esta IP. Intenta más tarde.' },
+});
+
 /**
  * @route   POST /api/conversions
  * @desc    Server-to-server conversion event from advertiser's backend.
+ *          Public — but requires a valid clickId (64-bit unguessable token
+ *          bound to a tracked click). Rate-limited per IP.
  *          Body: { clickId, type, value, currency, externalId, metadata }
- * @access  Público (recommended: gated by an Advertiser API key in a future iteration)
+ * @access  Público + rate-limited
  */
-router.post('/', conversionController.recordConversion);
+router.post('/', conversionWriteLimiter, conversionController.recordConversion);
 
 /**
  * @route   GET /api/conversions/me
