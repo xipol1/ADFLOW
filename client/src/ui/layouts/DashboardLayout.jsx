@@ -7,11 +7,11 @@ import React, { useState, useEffect, useRef, useCallback, Component } from 'reac
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Search, Zap, Megaphone, Wallet, BarChart3,
-  Settings, LogOut, Menu, Bell, X, ChevronRight, ShieldAlert,
+  Settings, LogOut, Menu, Bell, X, ChevronRight, ChevronDown, ShieldAlert,
   Users, AlertTriangle, Radio, Inbox, Sun, Moon,
   Shield, Database, DollarSign, FileText, HelpCircle, Plus,
   Columns3, Map, Calculator, Target, ClipboardList, Calendar,
-  Activity, Filter,
+  Activity, Filter, Bookmark, Layers, FlaskConical,
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../services/api'
@@ -57,10 +57,13 @@ const ROLE_CONFIG = {
         { path: '/analyze/compare',   icon: Columns3,     label: 'Comparar canales',  fullOnly: true },
         { path: '/analyze/lookalike', icon: Target,       label: 'Canales similares', fullOnly: true },
         { path: '/analyze/audit',     icon: ClipboardList,label: 'Auditoría bulk',    fullOnly: true },
+        { path: '/analyze/watchlist', icon: Bookmark,     label: 'Watchlist',         fullOnly: true },
+        { path: '/analyze/overlap',   icon: Layers,       label: 'Audiencias',        fullOnly: true },
         { path: '/analyze/niches',    icon: Map,          label: 'Heatmap de nichos', fullOnly: true },
       ]},
       { group: 'Análisis de rendimiento', items: [
         { path: '/analyze/ad',        icon: Megaphone,    label: 'Analizar anuncio',  fullOnly: true },
+        { path: '/analyze/abtest',    icon: FlaskConical, label: 'A/B Test Lab',      fullOnly: true },
         { path: '/analyze/realtime',  icon: Activity,     label: 'Tiempo real',       fullOnly: true },
         { path: '/analyze/funnel',    icon: Filter,       label: 'Funnel',            fullOnly: true },
         { path: '/analyze/cohorts',   icon: Users,        label: 'Cohortes',          fullOnly: true },
@@ -712,6 +715,36 @@ export default function DashboardLayout({ role = 'advertiser' }) {
   }))
   const allNav = [...flatNav, ...fullBottomNav]
 
+  // Collapsible groups — persist user choice in localStorage per role
+  const groupsStorageKey = `channelad-sidebar-groups-${role}`
+  const [expandedGroups, setExpandedGroups] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(groupsStorageKey) || '{}')
+      // Default: expand the group containing the current route, all expanded otherwise
+      const defaults = {}
+      visibleNavGroups.forEach(g => {
+        if (g.group) {
+          // If we have a stored value, use it; else expand by default
+          defaults[g.group] = stored[g.group] !== undefined ? stored[g.group] : true
+        }
+      })
+      // Always force-expand the group with the active route
+      const activeGroup = visibleNavGroups.find(g =>
+        g.group && g.items.some(item => location.pathname === item.to || (item.end ? false : location.pathname.startsWith(item.to + '/')))
+      )
+      if (activeGroup) defaults[activeGroup.group] = true
+      return defaults
+    } catch { return {} }
+  })
+
+  const toggleGroup = useCallback((groupName) => {
+    setExpandedGroups(prev => {
+      const next = { ...prev, [groupName]: !prev[groupName] }
+      try { localStorage.setItem(groupsStorageKey, JSON.stringify(next)) } catch {}
+      return next
+    })
+  }, [groupsStorageKey])
+
   // Find current page for breadcrumb
   const currentPage = allNav.find(n =>
     n.end ? location.pathname === n.to : location.pathname.startsWith(n.to) && n.to !== cfg.basePath
@@ -814,40 +847,64 @@ export default function DashboardLayout({ role = 'advertiser' }) {
         display: 'flex', flexDirection: 'column', gap: '2px',
         overflowY: 'auto', overflowX: 'hidden',
       }}>
-        {visibleNavGroups.map((g, gi) => (
-          <div key={g.group || `g${gi}`}>
-            {/* Group label (only when expanded and group has a name) */}
-            {!showCollapsed && g.group && (
-              <div style={{
-                fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em',
-                textTransform: 'uppercase', color: 'var(--muted2)',
-                fontFamily: FONT_BODY, padding: gi === 0 ? '2px 13px 6px' : '12px 13px 6px',
-                userSelect: 'none',
-              }}>
-                {g.group}
-              </div>
-            )}
-            {/* Collapsed: tiny separator between groups */}
-            {showCollapsed && gi > 0 && (
-              <div style={{ height: 1, background: 'var(--border)', margin: '6px 8px' }} />
-            )}
-            {g.items.map(item => (
-              <SidebarLink
-                key={item.to}
-                to={item.to}
-                icon={item.icon}
-                label={item.label}
-                end={item.end}
-                collapsed={showCollapsed}
-                accentColor={cfg.color}
-                accentAlpha={cfg.alpha}
-                badge={item.badge}
-                badgeCount={pendingCount}
-                onNavigate={isMobile ? closeMobileNav : undefined}
-              />
-            ))}
-          </div>
-        ))}
+        {visibleNavGroups.map((g, gi) => {
+          const isCollapsibleGroup = !!g.group  // null = no group, always expanded
+          const isExpanded = !isCollapsibleGroup || expandedGroups[g.group] !== false
+          // When sidebar is icon-only, always show items (the group label is hidden anyway)
+          const showItems = showCollapsed || isExpanded
+
+          return (
+            <div key={g.group || `g${gi}`}>
+              {/* Group label — clickable to toggle when sidebar expanded */}
+              {!showCollapsed && g.group && (
+                <button
+                  onClick={() => toggleGroup(g.group)}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    padding: gi === 0 ? '2px 13px 6px' : '12px 13px 6px',
+                    fontFamily: FONT_BODY,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.firstChild.style.color = 'var(--muted)' }}
+                  onMouseLeave={e => { e.currentTarget.firstChild.style.color = 'var(--muted2)' }}
+                >
+                  <span style={{
+                    fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em',
+                    textTransform: 'uppercase', color: 'var(--muted2)',
+                    userSelect: 'none', transition: 'color .15s',
+                  }}>{g.group}</span>
+                  <ChevronDown
+                    size={12}
+                    color="var(--muted2)"
+                    style={{
+                      transform: isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+                      transition: 'transform .2s',
+                    }}
+                  />
+                </button>
+              )}
+              {/* Collapsed: tiny separator between groups */}
+              {showCollapsed && gi > 0 && (
+                <div style={{ height: 1, background: 'var(--border)', margin: '6px 8px' }} />
+              )}
+              {showItems && g.items.map(item => (
+                <SidebarLink
+                  key={item.to}
+                  to={item.to}
+                  icon={item.icon}
+                  label={item.label}
+                  end={item.end}
+                  collapsed={showCollapsed}
+                  accentColor={cfg.color}
+                  accentAlpha={cfg.alpha}
+                  badge={item.badge}
+                  badgeCount={pendingCount}
+                  onNavigate={isMobile ? closeMobileNav : undefined}
+                />
+              ))}
+            </div>
+          )
+        })}
       </nav>
 
       {/* Bottom nav */}

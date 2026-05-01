@@ -39,6 +39,9 @@ import CampaignCalendarPage from '../ui/pages/dashboard/advertiser/CampaignCalen
 import RealtimeMonitorPage from '../ui/pages/dashboard/advertiser/RealtimeMonitorPage'
 import FunnelAnalyzerPage from '../ui/pages/dashboard/advertiser/FunnelAnalyzerPage'
 import CohortAnalysisPage from '../ui/pages/dashboard/advertiser/CohortAnalysisPage'
+import PositionTrackerPage from '../ui/pages/dashboard/advertiser/PositionTrackerPage'
+import AudienceOverlapPage from '../ui/pages/dashboard/advertiser/AudienceOverlapPage'
+import ABTestLabPage from '../ui/pages/dashboard/advertiser/ABTestLabPage'
 
 // Creator dashboard suite
 import CreatorLayout        from '../ui/pages/dashboard/creator/CreatorLayout'
@@ -189,6 +192,9 @@ export default function AppRoutes() {
         <Route path="analyze/realtime"  element={<FullAccessOnly feature="Monitor en tiempo real"><RealtimeMonitorPage /></FullAccessOnly>} />
         <Route path="analyze/funnel"    element={<FullAccessOnly feature="Funnel Analyzer"><FunnelAnalyzerPage /></FullAccessOnly>} />
         <Route path="analyze/cohorts"   element={<FullAccessOnly feature="Análisis por cohortes"><CohortAnalysisPage /></FullAccessOnly>} />
+        <Route path="analyze/watchlist" element={<FullAccessOnly feature="Watchlist de canales"><PositionTrackerPage /></FullAccessOnly>} />
+        <Route path="analyze/overlap"   element={<FullAccessOnly feature="Solapamiento de audiencias"><AudienceOverlapPage /></FullAccessOnly>} />
+        <Route path="analyze/abtest"    element={<FullAccessOnly feature="A/B Test Lab"><ABTestLabPage /></FullAccessOnly>} />
         <Route path="campaigns/calendar" element={<FullAccessOnly feature="Calendario de campañas"><CampaignCalendarPage /></FullAccessOnly>} />
         <Route path="analyze/calendar"  element={<FullAccessOnly feature="Calendario de campañas"><CampaignCalendarPage /></FullAccessOnly>} />
         <Route path="referrals" element={<ReferralsPage />} />
