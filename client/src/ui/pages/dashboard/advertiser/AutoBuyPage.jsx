@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Zap, Bot, Heart, MousePointer, CheckCircle, AlertCircle, ChevronDown, X, Users, Globe, Star, Package, TrendingUp } from 'lucide-react'
 import apiService from '../../../../services/api'
@@ -65,29 +65,66 @@ export default function AutoBuyPage() {
   const [selectedListId, setSelectedListId] = useState('')
   const [favChannelDetails, setFavChannelDetails] = useState([])
 
+  const reloadLists = useCallback(async () => {
+    try {
+      const res = await apiService.getMyLists()
+      if (res?.success) {
+        const items = Array.isArray(res.data) ? res.data : res.data?.items || []
+        setFavLists(items.map(l => ({
+          id: l._id || l.id,
+          name: l.name || l.nombre || 'Lista',
+          icon: l.icon || '',
+          channels: l.channels || [],
+        })))
+        setSelectedListId(prev => prev || (items[0] && (items[0]._id || items[0].id)) || '')
+      }
+    } catch (err) { console.error('AutoBuyPage.fetchLists failed:', err) }
+  }, [])
+
+  useEffect(() => { reloadLists() }, [reloadLists])
+
+  // Fetch channel details for the selected list (so we can render names instead of IDs)
   useEffect(() => {
     let cancelled = false
-    const fetchLists = async () => {
-      try {
-        const res = await apiService.getMyLists()
+    const list = favLists.find(l => l.id === selectedListId)
+    const channelIds = list?.channels || []
+    if (channelIds.length === 0) { setFavChannelDetails([]); return }
+    // Channels in the list may be either ObjectId strings or already-populated objects
+    const ids = channelIds.map(c => (typeof c === 'object' ? (c._id || c.id) : c)).filter(Boolean)
+    Promise.all(ids.map(id => apiService.getChannelById(id).catch(() => null)))
+      .then(results => {
         if (cancelled) return
-        if (res?.success) {
-          const items = Array.isArray(res.data) ? res.data : res.data?.items || []
-          if (items.length > 0) {
-            setFavLists(items.map(l => ({
-              id: l._id || l.id,
-              name: l.name || l.nombre || 'Lista',
-              icon: l.icon || '',
-              channels: l.channels || [],
-            })))
-            setSelectedListId(prev => prev || items[0]._id || items[0].id || '')
-          }
-        }
-      } catch (err) { console.error('AutoBuyPage.fetchLists failed:', err) /* keep localStorage fallback */ }
-    }
-    fetchLists()
+        const details = results
+          .map(r => r?.data || null)
+          .filter(Boolean)
+        setFavChannelDetails(details)
+      })
     return () => { cancelled = true }
-  }, [])
+  }, [selectedListId, favLists])
+
+  const handleDeleteList = async () => {
+    if (!selectedListId) return
+    if (!window.confirm('¿Eliminar esta lista? No se pueden recuperar los canales guardados (los canales en sí no se borran).')) return
+    try {
+      const res = await apiService.deleteList(selectedListId)
+      if (res?.success) {
+        setSelectedListId('')
+        await reloadLists()
+      } else {
+        setError(res?.message || 'No se pudo eliminar la lista')
+      }
+    } catch (err) {
+      setError(err?.message || 'Error eliminando la lista')
+    }
+  }
+
+  const handleRemoveFromList = async (channelId) => {
+    if (!selectedListId) return
+    try {
+      const res = await apiService.removeChannelFromList(selectedListId, channelId)
+      if (res?.success) await reloadLists()
+    } catch (err) { console.error('removeChannelFromList failed:', err) }
+  }
 
   // Manual mode
   const [showRecommended, setShowRecommended] = useState(false)
@@ -488,47 +525,101 @@ export default function AutoBuyPage() {
 
               {mode === 'fav' && (
                 <div style={{ marginTop: '16px', background: 'var(--bg)', borderRadius: '12px', border: '1px solid var(--border)', padding: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>Seleccionar lista</span>
-                    <select value={selectedListId} onChange={e => setSelectedListId(e.target.value)} style={{
-                      background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border)',
-                      borderRadius: '8px', padding: '6px 10px', fontSize: '12px', fontFamily: F,
-                    }}>
-                      {favLists.map(l => (
-                        <option key={l.id} value={l.id}>{l.icon} {l.name} ({l.channels.length})</option>
-                      ))}
-                    </select>
-                  </div>
-                  {(() => {
-                    const list = favLists.find(l => l.id === selectedListId)
-                    const channelIds = list?.channels || []
-                    if (channelIds.length === 0) return (
-                      <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)', fontSize: '13px' }}>
-                        <p style={{ marginBottom: '8px' }}>No hay canales en esta lista.</p>
-                        <button onClick={() => navigate('/advertiser/explore')} style={{
-                          background: PURPLE, color: '#fff', border: 'none', borderRadius: '8px',
-                          padding: '8px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: F,
-                        }}>Ir al explorador</button>
+                  {favLists.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '24px 12px' }}>
+                      <div style={{ fontSize: '13px', color: 'var(--text)', fontWeight: 600, marginBottom: '6px' }}>
+                        Aún no tienes listas guardadas
                       </div>
-                    )
-                    return (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {channelIds.map(id => (
-                          <div key={id} style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            padding: '8px 12px', background: 'var(--surface)', borderRadius: '8px',
-                            border: '1px solid var(--border)', fontSize: '13px',
+                      <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '12px', lineHeight: 1.5 }}>
+                        Ve al explorador y guarda tus canales favoritos en una lista para reutilizarlos aquí.
+                      </p>
+                      <button onClick={() => navigate('/advertiser/explore')} style={{
+                        background: PURPLE, color: '#fff', border: 'none', borderRadius: '8px',
+                        padding: '8px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: F,
+                      }}>Ir al explorador</button>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', gap: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>Seleccionar lista</span>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          <select value={selectedListId} onChange={e => setSelectedListId(e.target.value)} style={{
+                            background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border)',
+                            borderRadius: '8px', padding: '6px 10px', fontSize: '12px', fontFamily: F,
                           }}>
-                            <span style={{ color: 'var(--text)', fontWeight: 500 }}>Canal #{id.slice(-4)}</span>
-                            <span style={{ color: 'var(--muted)', fontSize: '11px' }}>Incluido</span>
-                          </div>
-                        ))}
-                        <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>
-                          {channelIds.length} canal{channelIds.length !== 1 ? 'es' : ''} seleccionado{channelIds.length !== 1 ? 's' : ''}
+                            {favLists.map(l => (
+                              <option key={l.id} value={l.id}>{l.icon} {l.name} ({l.channels.length})</option>
+                            ))}
+                          </select>
+                          {selectedListId && (
+                            <button onClick={handleDeleteList}
+                              title="Eliminar lista"
+                              style={{
+                                background: 'rgba(239,68,68,0.08)', color: '#ef4444',
+                                border: '1px solid rgba(239,68,68,0.25)', borderRadius: '8px',
+                                padding: '6px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer',
+                                fontFamily: F,
+                              }}>
+                              Eliminar
+                            </button>
+                          )}
                         </div>
                       </div>
-                    )
-                  })()}
+                      {(() => {
+                        const list = favLists.find(l => l.id === selectedListId)
+                        const channelIds = list?.channels || []
+                        if (channelIds.length === 0) return (
+                          <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)', fontSize: '13px' }}>
+                            <p style={{ marginBottom: '8px' }}>No hay canales en esta lista.</p>
+                            <button onClick={() => navigate('/advertiser/explore')} style={{
+                              background: PURPLE, color: '#fff', border: 'none', borderRadius: '8px',
+                              padding: '8px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: F,
+                            }}>Añadir canales</button>
+                          </div>
+                        )
+                        return (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            {channelIds.map(rawId => {
+                              const id = typeof rawId === 'object' ? (rawId._id || rawId.id) : rawId
+                              const detail = favChannelDetails.find(d => (d.id || d._id) === id) || (typeof rawId === 'object' ? rawId : null)
+                              const name = detail?.nombreCanal || detail?.nombre || detail?.identificadorCanal || `Canal #${String(id).slice(-4)}`
+                              const platform = detail?.plataforma
+                              const subs = detail?.audiencia ?? detail?.seguidores
+                              const cas = detail?.CAS
+                              return (
+                                <div key={id} style={{
+                                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                  padding: '10px 12px', background: 'var(--surface)', borderRadius: '8px',
+                                  border: '1px solid var(--border)', fontSize: '13px',
+                                }}>
+                                  <div style={{ minWidth: 0, flex: 1 }}>
+                                    <div style={{ color: 'var(--text)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      {name}
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '8px', marginTop: '2px', fontSize: '11px', color: 'var(--muted)' }}>
+                                      {platform && <span>{platform}</span>}
+                                      {subs != null && <span>· {subs >= 1000 ? `${(subs/1000).toFixed(1)}K` : subs} subs</span>}
+                                      {cas != null && <span>· CAS {cas}</span>}
+                                    </div>
+                                  </div>
+                                  <button onClick={() => handleRemoveFromList(id)}
+                                    title="Quitar de la lista"
+                                    style={{
+                                      background: 'none', border: 'none', color: 'var(--muted)',
+                                      cursor: 'pointer', fontSize: '16px', padding: '4px 8px',
+                                      lineHeight: 1, marginLeft: '8px',
+                                    }}>×</button>
+                                </div>
+                              )
+                            })}
+                            <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>
+                              {channelIds.length} canal{channelIds.length !== 1 ? 'es' : ''} en la lista
+                            </div>
+                          </div>
+                        )
+                      })()}
+                    </>
+                  )}
                 </div>
               )}
 

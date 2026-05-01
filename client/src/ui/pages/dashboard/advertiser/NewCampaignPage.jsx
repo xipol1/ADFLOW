@@ -196,18 +196,37 @@ export default function NewCampaignPage() {
             <span style={{ color: 'var(--muted2)' }}>🔍</span>
             <input
               type="text" value={searchQ} onChange={(e) => setSearchQ(e.target.value)}
-              placeholder="Buscar canal..." className="flex-1 bg-transparent border-none outline-none text-sm"
+              placeholder="Buscar por nombre, @username, categoría o nicho..."
+              className="flex-1 bg-transparent border-none outline-none text-sm"
               style={{ color: 'var(--text)' }}
             />
+            {searchQ && (
+              <button onClick={() => setSearchQ('')} style={{ background: 'none', border: 'none', color: 'var(--muted2)', cursor: 'pointer', fontSize: 14 }}>×</button>
+            )}
           </div>
 
           <div className="space-y-2">
             {loadingChannels ? (
               <div className="text-center py-8 text-sm" style={{ color: 'var(--muted2)' }}>Cargando canales...</div>
             ) : channels.length === 0 ? (
-              <div className="text-center py-8 text-sm" style={{ color: 'var(--muted2)' }}>No se encontraron canales</div>
+              <div className="text-center py-10 px-4 rounded-lg" style={{ background: 'var(--surface)', border: '1px dashed var(--border)' }}>
+                <div className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>No encontramos canales para «{searchQ}»</div>
+                <div className="text-xs mb-3" style={{ color: 'var(--muted2)' }}>
+                  Prueba con un término más general o explora el marketplace.
+                </div>
+                <div className="flex justify-center gap-2 flex-wrap">
+                  <button onClick={() => setSearchQ('')} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 600, color: 'var(--text)', cursor: 'pointer' }}>
+                    Ver todos
+                  </button>
+                  <button onClick={() => navigate('/advertiser/explore')} style={{ background: 'var(--accent)', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>
+                    Ir a Explorar
+                  </button>
+                </div>
+              </div>
             ) : (
-              channels.map((ch) => (
+              channels.map((ch) => {
+                const displayName = ch.nombre || ch.nombreCanal || ch.identificadorCanal || 'Sin nombre'
+                return (
                 <div
                   key={ch.id || ch._id}
                   onClick={() => { setChannel(ch); setStep(2) }}
@@ -217,10 +236,10 @@ export default function NewCampaignPage() {
                   onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)' }}
                 >
                   <div className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold" style={{ background: 'var(--bg3)', color: 'var(--accent)' }}>
-                    {(ch.nombre || '?').charAt(0).toUpperCase()}
+                    {displayName.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate" style={{ color: 'var(--text)' }}>{ch.nombre || '—'}</div>
+                    <div className="text-sm font-medium truncate" style={{ color: 'var(--text)' }}>{displayName}</div>
                     <div className="flex items-center gap-2 mt-0.5">
                       <Badge label={ch.plataforma} variant="platform" platform={ch.plataforma} />
                       <span className="text-[11px]" style={{ color: 'var(--muted2)', fontFamily: 'var(--font-mono)' }}>{fmtNum(ch.audiencia)} subs</span>
@@ -233,7 +252,8 @@ export default function NewCampaignPage() {
                     <span className="text-sm font-medium" style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>€{(ch.CPMDinamico || ch.precio).toFixed(0)}</span>
                   )}
                 </div>
-              ))
+                )
+              })
             )}
           </div>
         </div>
@@ -245,10 +265,10 @@ export default function NewCampaignPage() {
           {/* Selected channel */}
           <div className="flex items-center gap-3 p-3 rounded-lg" style={{ background: 'var(--accent-dim)', border: '1px solid var(--accent-border)' }}>
             <div className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold" style={{ background: 'var(--accent)', color: '#080C10' }}>
-              {(channel.nombre || '?').charAt(0).toUpperCase()}
+              {(channel.nombre || channel.nombreCanal || channel.identificadorCanal || '?').charAt(0).toUpperCase()}
             </div>
             <div className="flex-1">
-              <div className="text-sm font-medium" style={{ color: 'var(--text)' }}>{channel.nombre}</div>
+              <div className="text-sm font-medium" style={{ color: 'var(--text)' }}>{channel.nombre || channel.nombreCanal || channel.identificadorCanal || 'Canal'}</div>
               <div className="flex items-center gap-2 mt-0.5">
                 <Badge label={channel.plataforma} variant="platform" platform={channel.plataforma} />
                 <span className="text-[11px]" style={{ color: 'var(--muted2)', fontFamily: 'var(--font-mono)' }}>{fmtNum(channel.audiencia)} subs</span>

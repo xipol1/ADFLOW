@@ -692,6 +692,15 @@ class ApiService {
     });
   }
 
+  /**
+   * Eliminar lista completa
+   */
+  async deleteList(listId) {
+    return this.request(`/lists/${listId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // ==========================================
   // MÉTODOS DE TRANSACCIONES
   // ==========================================
@@ -1217,6 +1226,32 @@ class ApiService {
     return this.request('/onboarding/whatsapp/verificar', {
       method: 'POST',
       body: JSON.stringify({ verificacionId, canalId, seguidoresDeclarados }),
+    });
+  }
+
+  // ── WhatsApp Admin-Client polling (V8 — replaces backend setInterval) ──
+  // Frontend calls this on a timer (~5s) while the user is on the
+  // verification screen. Server returns one of: { active:false }, or
+  // { active:true, found, completed, expiresIn, ... }. See backend
+  // controller `whatsappAdminPoll` for full response shape.
+  async onboardingWhatsappStartAdmin(canalId, channelId) {
+    return this.request('/onboarding/whatsapp/iniciar', {
+      method: 'POST',
+      body: JSON.stringify({ canalId, channelId }),
+    });
+  }
+
+  async onboardingWhatsappPoll(canalId, channelId) {
+    return this.request('/onboarding/whatsapp/poll', {
+      method: 'POST',
+      body: JSON.stringify({ canalId, channelId }),
+    });
+  }
+
+  async onboardingWhatsappVerifyAdmin(canalId, channelId) {
+    return this.request('/onboarding/whatsapp/verificar-admin', {
+      method: 'POST',
+      body: JSON.stringify({ canalId, channelId }),
     });
   }
 

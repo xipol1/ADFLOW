@@ -815,7 +815,7 @@ const launchAutoCampaign = async (req, res, next) => {
       }).select('_id nombreCanal plataforma categoria CPMDinamico precio propietario').lean();
     } else if (mode === 'fav' && listId) {
       const UserList = require('../models/UserList');
-      const list = await UserList.findOne({ _id: listId, usuario: userId }).lean();
+      const list = await UserList.findOne({ _id: listId, owner: userId }).lean();
       if (list?.channels?.length) {
         targetChannels = await Canal.find({
           _id: { $in: list.channels },
