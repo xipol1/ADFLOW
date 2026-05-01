@@ -42,6 +42,10 @@ import CohortAnalysisPage from '../ui/pages/dashboard/advertiser/CohortAnalysisP
 import PositionTrackerPage from '../ui/pages/dashboard/advertiser/PositionTrackerPage'
 import AudienceOverlapPage from '../ui/pages/dashboard/advertiser/AudienceOverlapPage'
 import ABTestLabPage from '../ui/pages/dashboard/advertiser/ABTestLabPage'
+import BulkLauncherPage from '../ui/pages/dashboard/advertiser/BulkLauncherPage'
+import TopicResearchPage from '../ui/pages/dashboard/advertiser/TopicResearchPage'
+import AudienceInsightsPage from '../ui/pages/dashboard/advertiser/AudienceInsightsPage'
+import ReportStudioPage from '../ui/pages/dashboard/advertiser/ReportStudioPage'
 
 // Creator dashboard suite
 import CreatorLayout        from '../ui/pages/dashboard/creator/CreatorLayout'
@@ -53,6 +57,7 @@ import CreatorSettingsPage  from '../ui/pages/dashboard/creator/CreatorSettingsP
 import RegisterChannelPage  from '../ui/pages/dashboard/creator/RegisterChannelPage'
 import CreatorReferralsPage from '../ui/pages/dashboard/creator/CreatorReferralsPage'
 import CreatorAnalyticsPage from '../ui/pages/dashboard/creator/CreatorAnalyticsPage'
+import PricingOptimizerPage from '../ui/pages/dashboard/creator/PricingOptimizerPage'
 
 // Admin dashboard suite
 import AdminLayout          from '../ui/pages/dashboard/admin/AdminLayout'
@@ -195,6 +200,10 @@ export default function AppRoutes() {
         <Route path="analyze/watchlist" element={<FullAccessOnly feature="Watchlist de canales"><PositionTrackerPage /></FullAccessOnly>} />
         <Route path="analyze/overlap"   element={<FullAccessOnly feature="Solapamiento de audiencias"><AudienceOverlapPage /></FullAccessOnly>} />
         <Route path="analyze/abtest"    element={<FullAccessOnly feature="A/B Test Lab"><ABTestLabPage /></FullAccessOnly>} />
+        <Route path="campaigns/bulk"    element={<FullAccessOnly feature="Bulk Launcher"><BulkLauncherPage /></FullAccessOnly>} />
+        <Route path="analyze/topics"    element={<FullAccessOnly feature="Topic Research"><TopicResearchPage /></FullAccessOnly>} />
+        <Route path="analyze/audience"  element={<FullAccessOnly feature="Audience Insights"><AudienceInsightsPage /></FullAccessOnly>} />
+        <Route path="analyze/reports"   element={<FullAccessOnly feature="Report Studio"><ReportStudioPage /></FullAccessOnly>} />
         <Route path="campaigns/calendar" element={<FullAccessOnly feature="Calendario de campañas"><CampaignCalendarPage /></FullAccessOnly>} />
         <Route path="analyze/calendar"  element={<FullAccessOnly feature="Calendario de campañas"><CampaignCalendarPage /></FullAccessOnly>} />
         <Route path="referrals" element={<ReferralsPage />} />
@@ -221,6 +230,7 @@ export default function AppRoutes() {
         <Route path="requests" element={<FullAccessOnly feature="Solicitudes"><CreatorRequestsPage /></FullAccessOnly>} />
         <Route path="earnings" element={<FullAccessOnly feature="Ganancias"><CreatorEarningsPage /></FullAccessOnly>} />
         <Route path="analytics" element={<FullAccessOnly feature="Analytics"><CreatorAnalyticsPage /></FullAccessOnly>} />
+        <Route path="pricing" element={<FullAccessOnly feature="Pricing Optimizer"><PricingOptimizerPage /></FullAccessOnly>} />
         <Route path="referrals" element={<CreatorReferralsPage />} />
         <Route path="disputes" element={<FullAccessOnly feature="Disputas"><DisputesPage /></FullAccessOnly>} />
         <Route path="notifications" element={<NotificationsPage />} />
