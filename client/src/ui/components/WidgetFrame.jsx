@@ -81,6 +81,9 @@ export default function WidgetFrame({
       display: 'flex', flexDirection: 'column',
       fontFamily: FONT_BODY,
     }}>
+      {/* Keyframes injected once per WidgetFrame instance — small string,
+          React de-dupes identical <style> contents at the head level. */}
+      <style>{`@keyframes wfBadgePop { from { opacity:0; transform: scale(0.7) } to { opacity:1; transform: scale(1) } }`}</style>
       {/* ── Header ── */}
       {!hideHeader && (
         <div style={{
@@ -116,23 +119,24 @@ export default function WidgetFrame({
 
           {/* "+N nuevos" pill — Hootsuite-beating "since last visit" baseline */}
           {badge?.count > 0 && (
-            <span style={{
-              flexShrink: 0,
-              fontSize: compact ? 10 : 10.5,
-              fontWeight: 700,
-              color: '#fff',
-              background: accent,
-              borderRadius: 20,
-              padding: compact ? '1px 7px' : '2px 8px',
-              letterSpacing: '0.02em',
-              animation: 'wfBadgePop .25s ease',
-              boxShadow: `0 1px 4px ${accent}55`,
-            }}>
-              <style>{`@keyframes wfBadgePop { from { opacity:0; transform: scale(0.7) } to { opacity:1; transform: scale(1) } }`}</style>
-              +{badge.count} {badge.label || 'nuevos'}
-            </span>
+            <>
+              <span style={{
+                flexShrink: 0,
+                fontSize: compact ? 10 : 10.5,
+                fontWeight: 700,
+                color: '#fff',
+                background: accent,
+                borderRadius: 20,
+                padding: compact ? '1px 7px' : '2px 8px',
+                letterSpacing: '0.02em',
+                animation: 'wfBadgePop .25s ease',
+                boxShadow: `0 1px 4px ${accent}55`,
+              }}>
+                +{badge.count} {badge.label || 'nuevos'}
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }} />
+            </>
           )}
-          {badge?.count > 0 && <div style={{ flex: 1, minWidth: 0 }} />}
 
           {/* `i` info tooltip — Grafana/Datadog convention */}
           {description && (
