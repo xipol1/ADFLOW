@@ -74,6 +74,7 @@ import CreatorContentStudioPage from '../ui/pages/dashboard/creator/CreatorConte
 import CreatorToolsPage        from '../ui/pages/dashboard/creator/CreatorToolsPage'
 import CreatorActivityPage     from '../ui/pages/dashboard/creator/CreatorActivityPage'
 import CreatorBillingPage      from '../ui/pages/dashboard/creator/CreatorBillingPage'
+import PublicCreatorProfilePage from '../ui/pages/public/PublicCreatorProfilePage'
 
 // Admin dashboard suite
 import AdminLayout          from '../ui/pages/dashboard/admin/AdminLayout'
@@ -141,6 +142,7 @@ export default function AppRoutes() {
         <Route path="rankings" element={<RankingsPage />} /> {/* Public channel rankings */}
         <Route path="explore" element={<ExplorePage />} /> {/* Public explore directory */}
         <Route path="claim/:id" element={<ClaimChannelPage />} /> {/* Claim channel ownership */}
+        <Route path="c/:slug" element={<PublicCreatorProfilePage />} /> {/* Public creator profile */}
         <Route
           path="auth"
           element={isAuthenticated && user?.emailVerificado !== false ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth/login" replace />}

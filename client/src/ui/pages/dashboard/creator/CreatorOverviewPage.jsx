@@ -2,11 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   AlertTriangle, CheckCircle2, MessageSquare, Sparkles, Wallet, Inbox,
+  Radio, Plus, ArrowRight, Compass, User as UserIcon,
 } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
-import { OK, WARN, BLUE } from '../../../theme/tokens'
+import { OK, WARN, BLUE, GREEN, greenAlpha, FONT_BODY, FONT_DISPLAY } from '../../../theme/tokens'
 import CreatorCustomizableDashboard from './customizable/CreatorCustomizableDashboard'
+import CreatorOnboardingChecklist from '../../../components/CreatorOnboardingChecklist'
 
 const ACCENT = 'var(--accent, #22c55e)'
 
@@ -148,5 +150,151 @@ export default function CreatorOverviewPage() {
     }
   }, [user, channels, requests, creatorCampaigns, loading, navigate])
 
-  return <CreatorCustomizableDashboard data={dashboardData} />
+  // First-run experience: when no channels yet, show a focused welcome
+  // instead of the full customisable dashboard with empty widgets.
+  if (!loading && channels.length === 0) {
+    return (
+      <FirstRunWelcome
+        userName={dashboardData.userName}
+        navigate={navigate}
+        channels={channels}
+        campaigns={creatorCampaigns}
+        requests={requests}
+      />
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <CreatorOnboardingChecklist
+        channels={channels}
+        campaigns={creatorCampaigns}
+        requests={requests}
+        variant="banner"
+      />
+      <CreatorCustomizableDashboard data={dashboardData} />
+    </div>
+  )
+}
+
+// ─── First-run welcome (no channels yet) ────────────────────────────────────
+function FirstRunWelcome({ userName, navigate, channels, campaigns, requests }) {
+  const ga = greenAlpha
+  return (
+    <div style={{ fontFamily: FONT_BODY, display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 1100 }}>
+      {/* Hero */}
+      <div style={{
+        background: `linear-gradient(135deg, var(--surface) 0%, ${ga(0.08)} 100%)`,
+        border: `1px solid ${ga(0.25)}`, borderRadius: 18,
+        padding: 32,
+      }}>
+        <h1 style={{
+          fontFamily: FONT_DISPLAY, fontSize: 32, fontWeight: 900, color: 'var(--text)',
+          letterSpacing: '-0.03em', margin: '0 0 8px',
+        }}>
+          Hola, {userName} 👋
+        </h1>
+        <p style={{ fontSize: 16, color: 'var(--muted)', margin: '0 0 22px', lineHeight: 1.55, maxWidth: 600 }}>
+          Bienvenido a Channelad. Sigue los pasos para empezar a recibir propuestas
+          de advertisers y monetizar tus canales en pocos minutos.
+        </p>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button onClick={() => navigate('/creator/channels/new')} style={{
+            background: GREEN, color: '#fff', border: 'none', borderRadius: 11,
+            padding: '12px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: FONT_BODY,
+            display: 'inline-flex', alignItems: 'center', gap: 7, boxShadow: `0 6px 20px ${ga(0.4)}`,
+          }}>
+            <Plus size={15} strokeWidth={2.5} /> Registrar primer canal
+          </button>
+          <button onClick={() => navigate('/creator/profile')} style={{
+            background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border)',
+            borderRadius: 11, padding: '12px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+            fontFamily: FONT_BODY, display: 'inline-flex', alignItems: 'center', gap: 7,
+          }}>
+            <UserIcon size={15} /> Configurar perfil
+          </button>
+        </div>
+      </div>
+
+      {/* Onboarding checklist — shows progress already (mostly 0%) */}
+      <CreatorOnboardingChecklist
+        channels={channels}
+        campaigns={campaigns}
+        requests={requests}
+        variant="banner"
+      />
+
+      {/* Tips */}
+      <div style={{
+        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
+        padding: 24,
+      }}>
+        <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: 17, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em', margin: '0 0 14px' }}>
+          ¿Cómo funciona Channelad para creators?
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+          {[
+            { n: '1', icon: Radio,    title: 'Registra tu canal', desc: 'Telegram, WhatsApp, Discord, Instagram. Verifica con OAuth en 2 clicks.' },
+            { n: '2', icon: Sparkles, title: 'Obtén tu CAS Score', desc: 'Tu autoridad como creator — calculada automáticamente. Lo que advertisers buscan.' },
+            { n: '3', icon: Inbox,    title: 'Recibe propuestas', desc: 'Los advertisers verán tu perfil y te contactarán con campañas pagadas.' },
+            { n: '4', icon: Wallet,   title: 'Cobra en escrow', desc: 'Pago garantizado: el advertiser deposita antes, tú cobras al publicar.' },
+          ].map(t => {
+            const Icon = t.icon
+            return (
+              <div key={t.n} style={{
+                background: 'var(--bg2)', borderRadius: 12, padding: 16,
+                display: 'flex', flexDirection: 'column', gap: 8,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 9, flexShrink: 0,
+                    background: ga(0.15), border: `1px solid ${ga(0.3)}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <Icon size={14} color={GREEN} strokeWidth={2.2} />
+                  </div>
+                  <div style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--text)' }}>
+                    {t.n}. {t.title}
+                  </div>
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>
+                  {t.desc}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Discover teaser */}
+      <div style={{
+        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
+        padding: 18, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
+      }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+          background: ga(0.12), border: `1px solid ${ga(0.25)}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Compass size={20} color={GREEN} />
+        </div>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 3 }}>
+            Mientras tanto: explora briefs abiertos
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.5 }}>
+            Mira qué tipo de campañas están buscando los advertisers ahora mismo.
+            Inspira la elección de canal y nicho.
+          </div>
+        </div>
+        <button onClick={() => navigate('/creator/discover')} style={{
+          background: 'transparent', color: GREEN, border: `1px solid ${ga(0.4)}`,
+          borderRadius: 9, padding: '9px 14px', fontSize: 13, fontWeight: 700,
+          cursor: 'pointer', fontFamily: FONT_BODY, display: 'inline-flex', alignItems: 'center', gap: 5,
+        }}>
+          Ver Discover <ArrowRight size={13} />
+        </button>
+      </div>
+    </div>
+  )
 }
