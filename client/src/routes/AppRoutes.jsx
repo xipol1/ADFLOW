@@ -66,6 +66,14 @@ import CreatorAudiencePage  from '../ui/pages/dashboard/creator/CreatorAudienceP
 import CreatorComparePage   from '../ui/pages/dashboard/creator/CreatorComparePage'
 import CreatorProfilePage   from '../ui/pages/dashboard/creator/CreatorProfilePage'
 import CreatorInboxPage     from '../ui/pages/dashboard/creator/CreatorInboxPage'
+import CreatorDiscoverPage     from '../ui/pages/dashboard/creator/CreatorDiscoverPage'
+import CreatorCalendarPage     from '../ui/pages/dashboard/creator/CreatorCalendarPage'
+import CreatorBrandsPage       from '../ui/pages/dashboard/creator/CreatorBrandsPage'
+import CreatorNotificationsPage from '../ui/pages/dashboard/creator/CreatorNotificationsPage'
+import CreatorContentStudioPage from '../ui/pages/dashboard/creator/CreatorContentStudioPage'
+import CreatorToolsPage        from '../ui/pages/dashboard/creator/CreatorToolsPage'
+import CreatorActivityPage     from '../ui/pages/dashboard/creator/CreatorActivityPage'
+import CreatorBillingPage      from '../ui/pages/dashboard/creator/CreatorBillingPage'
 
 // Admin dashboard suite
 import AdminLayout          from '../ui/pages/dashboard/admin/AdminLayout'
@@ -247,6 +255,14 @@ export default function AppRoutes() {
         <Route path="compare" element={<FullAccessOnly feature="Comparativa"><CreatorComparePage /></FullAccessOnly>} />
         <Route path="profile" element={<CreatorProfilePage />} />
         <Route path="inbox" element={<FullAccessOnly feature="Inbox"><CreatorInboxPage /></FullAccessOnly>} />
+        <Route path="discover" element={<FullAccessOnly feature="Discover"><CreatorDiscoverPage /></FullAccessOnly>} />
+        <Route path="calendar" element={<FullAccessOnly feature="Calendario"><CreatorCalendarPage /></FullAccessOnly>} />
+        <Route path="brands"   element={<FullAccessOnly feature="Brands CRM"><CreatorBrandsPage /></FullAccessOnly>} />
+        <Route path="notifications" element={<CreatorNotificationsPage />} />
+        <Route path="content"  element={<FullAccessOnly feature="Content Studio"><CreatorContentStudioPage /></FullAccessOnly>} />
+        <Route path="tools"    element={<FullAccessOnly feature="Tools"><CreatorToolsPage /></FullAccessOnly>} />
+        <Route path="activity" element={<FullAccessOnly feature="Actividad"><CreatorActivityPage /></FullAccessOnly>} />
+        <Route path="billing"  element={<FullAccessOnly feature="Billing"><CreatorBillingPage /></FullAccessOnly>} />
         <Route path="referrals" element={<CreatorReferralsPage />} />
         <Route path="disputes" element={<FullAccessOnly feature="Disputas"><DisputesPage /></FullAccessOnly>} />
         <Route path="notifications" element={<NotificationsPage />} />

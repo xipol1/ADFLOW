@@ -13,6 +13,7 @@ import {
   Columns3, Map, Calculator, Target, ClipboardList, Calendar,
   Activity, Filter, Bookmark, Layers, FlaskConical,
   Rocket, Hash, PieChart, GitCompare, User as UserIcon, MessageSquare,
+  Compass, Building2, Wrench, Receipt, ClipboardCheck, Sparkles, BellRing,
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../services/api'
@@ -90,30 +91,42 @@ const ROLE_CONFIG = {
     basePath: '/creator',
     nav: [
       { group: null, items: [
-        { path: '',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
-        { path: '/channels', icon: Radio,           label: 'Mis Canales'             },
-        { path: '/inbox',    icon: MessageSquare,   label: 'Inbox',        badge: true, fullOnly: true },
+        { path: '',           icon: LayoutDashboard, label: 'Dashboard',    end: true },
+        { path: '/inbox',     icon: MessageSquare,   label: 'Inbox',        badge: true, fullOnly: true },
       ]},
-      { group: 'WhatsApp', items: [
-        { path: '/channels/link-whatsapp', icon: Radio,       label: 'Vincular canal'     },
-        { path: '/whatsapp-audit',         icon: ShieldAlert, label: 'Registro de accesos'},
+      { group: 'Trabajar', items: [
+        { path: '/discover',  icon: Compass,         label: 'Discover',     fullOnly: true },
+        { path: '/requests',  icon: Inbox,           label: 'Solicitudes',  badge: true, fullOnly: true },
+        { path: '/calendar',  icon: Calendar,        label: 'Calendario',   fullOnly: true },
       ]},
-      { group: 'Análisis', items: [
-        { path: '/analytics',icon: BarChart3,       label: 'Analytics',    fullOnly: true },
-        { path: '/audience', icon: Users,           label: 'Audiencia',    fullOnly: true },
-        { path: '/compare',  icon: GitCompare,      label: 'Comparar',     fullOnly: true },
-        { path: '/earnings', icon: Wallet,          label: 'Ganancias',    fullOnly: true },
-        { path: '/pricing',  icon: DollarSign,      label: 'Pricing Optimizer', fullOnly: true },
-        { path: '/abtest',   icon: FlaskConical,    label: 'A/B Testing',  fullOnly: true },
-        { path: '/reports',  icon: FileText,        label: 'Reports Studio', fullOnly: true },
+      { group: 'Mis canales', items: [
+        { path: '/channels',                icon: Radio,       label: 'Mis canales'        },
+        { path: '/channels/link-whatsapp',  icon: Radio,       label: 'Vincular WhatsApp'  },
+        { path: '/whatsapp-audit',          icon: ShieldAlert, label: 'Registro WhatsApp'  },
       ]},
-      { group: 'Marca', items: [
-        { path: '/profile',  icon: UserIcon,        label: 'Perfil público' },
+      { group: 'Crecer', items: [
+        { path: '/analytics', icon: BarChart3,       label: 'Analytics',    fullOnly: true },
+        { path: '/audience',  icon: Users,           label: 'Audiencia',    fullOnly: true },
+        { path: '/compare',   icon: GitCompare,      label: 'Comparar',     fullOnly: true },
+        { path: '/abtest',    icon: FlaskConical,    label: 'A/B Testing',  fullOnly: true },
       ]},
-      { group: 'Gestión', items: [
-        { path: '/requests', icon: Inbox,           label: 'Solicitudes',  badge: true, fullOnly: true },
-        { path: '/referrals',icon: Users,           label: 'Referidos'               },
-        { path: '/disputes', icon: ShieldAlert,     label: 'Disputas',     fullOnly: true },
+      { group: 'Ingresos', items: [
+        { path: '/earnings',  icon: Wallet,          label: 'Ganancias',    fullOnly: true },
+        { path: '/pricing',   icon: DollarSign,      label: 'Pricing Optimizer', fullOnly: true },
+        { path: '/reports',   icon: FileText,        label: 'Reports',      fullOnly: true },
+        { path: '/billing',   icon: Receipt,         label: 'Billing',      fullOnly: true },
+      ]},
+      { group: 'Mi marca', items: [
+        { path: '/profile',   icon: UserIcon,        label: 'Perfil público' },
+        { path: '/brands',    icon: Building2,       label: 'Brands CRM',   fullOnly: true },
+        { path: '/content',   icon: Sparkles,        label: 'Content Studio', fullOnly: true },
+      ]},
+      { group: 'Más', items: [
+        { path: '/notifications', icon: BellRing,    label: 'Notificaciones' },
+        { path: '/activity',  icon: ClipboardCheck,  label: 'Actividad',    fullOnly: true },
+        { path: '/tools',     icon: Wrench,          label: 'Tools',        fullOnly: true },
+        { path: '/referrals', icon: Users,           label: 'Referidos'              },
+        { path: '/disputes',  icon: ShieldAlert,     label: 'Disputas',     fullOnly: true },
       ]},
     ],
     bottomNav: [
