@@ -8,6 +8,10 @@ import {
 } from 'lucide-react'
 import { WIDGET_TYPES } from './CreatorWidgetRegistry'
 import useWidgetSize, { rowsThatFit } from '../../advertiser/customizable/useWidgetSize'
+import WidgetFrame, {
+  IllustrationNoChannels, IllustrationNoCampaigns, IllustrationNoData,
+  IllustrationAllClear, IllustrationInbox,
+} from '../../../../components/WidgetFrame'
 import { FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE, GREEN } from '../../../../theme/tokens'
 
 // Creator accent colour (green) — matches the role's brand in the app.
@@ -182,61 +186,73 @@ function KpiWidget({ data, type }) {
 function EarningsChartWidget({ data, variant }) {
   const { ref, width, height } = useWidgetSize()
   const series = data.earningsSeries || []
-  const showHeader = height > 100
-  if (series.length === 0) {
-    return <div ref={ref} style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>Sin ingresos en el periodo</div>
-  }
+  const isLoading = data.loading && series.length === 0
+  const isEmpty = !isLoading && series.length === 0
+
+  return (
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title={variant === 'mini' ? 'Ingresos' : 'Ingresos por mes'}
+        icon={Wallet}
+        accent={ACCENT}
+        description="Ingresos liberados desde escrow agrupados por mes."
+        loading={isLoading}
+        empty={isEmpty ? {
+          illustration: <IllustrationNoData accent={ACCENT} size={52} />,
+          title: 'Sin ingresos todavía',
+          description: 'Cuando se liberen tus primeros pagos verás aquí su evolución.',
+        } : null}
+        compact={variant === 'mini' || height < 140}
+        hideHeader={variant === 'mini' && height < 80}
+      >
+        <EarningsBody series={series} variant={variant} width={width} height={height} />
+      </WidgetFrame>
+    </div>
+  )
+}
+
+function EarningsBody({ series, variant, width, height }) {
   const max = Math.max(...series.map(s => s.value), 1)
   const isLine = variant === 'line'
   const isMini = variant === 'mini' || height < 90
 
   if (isLine) {
-    const w = Math.max(200, width - 4); const h = Math.max(60, height - (showHeader ? 32 : 4)); const pad = h > 80 ? 20 : 12
+    const w = Math.max(200, width - 4); const h = Math.max(60, height - 60); const pad = h > 80 ? 20 : 12
     const points = series.map((d, i) => ({ x: pad + (i / Math.max(series.length - 1, 1)) * (w - pad * 2), y: h - pad - ((d.value / max) * (h - pad * 2)), ...d }))
     const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
     const areaD = `${pathD} L ${points[points.length - 1].x} ${h - pad} L ${points[0].x} ${h - pad} Z`
     return (
-      <div ref={ref} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        {showHeader && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 6, fontFamily: FONT_DISPLAY }}>Ingresos por mes</div>}
-        <div style={{ ...fill }}>
-          <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: '100%' }} preserveAspectRatio="none">
-            <defs><linearGradient id="earnGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={ACCENT} stopOpacity="0.3" /><stop offset="100%" stopColor={ACCENT} stopOpacity="0.02" /></linearGradient></defs>
-            <path d={areaD} fill="url(#earnGrad)" />
-            <path d={pathD} fill="none" stroke={ACCENT} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-            {h > 80 && points.map((p, i) => <text key={i} x={p.x} y={h - 4} textAnchor="middle" fill="var(--muted)" fontSize={9}>{p.label}</text>)}
-          </svg>
-        </div>
+      <div style={{ ...fill }}>
+        <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: '100%' }} preserveAspectRatio="none">
+          <defs><linearGradient id="earnGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={ACCENT} stopOpacity="0.3" /><stop offset="100%" stopColor={ACCENT} stopOpacity="0.02" /></linearGradient></defs>
+          <path d={areaD} fill="url(#earnGrad)" />
+          <path d={pathD} fill="none" stroke={ACCENT} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+          {h > 80 && points.map((p, i) => <text key={i} x={p.x} y={h - 4} textAnchor="middle" fill="var(--muted)" fontSize={9}>{p.label}</text>)}
+        </svg>
       </div>
     )
   }
   if (isMini) {
     return (
-      <div ref={ref} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        {height > 60 && <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text)', marginBottom: 4, fontFamily: FONT_DISPLAY }}>Ingresos</div>}
-        <div style={{ ...fill, alignItems: 'flex-end', flexDirection: 'row', gap: 4 }}>
-          {series.map((d, i) => <div key={i} style={{ flex: 1, borderRadius: '4px 4px 0 0', background: i === series.length - 1 ? ACCENT : ga(0.3), height: `${(d.value / max) * 100}%`, minHeight: 3 }} />)}
-        </div>
+      <div style={{ ...fill, alignItems: 'flex-end', flexDirection: 'row', gap: 4 }}>
+        {series.map((d, i) => <div key={i} style={{ flex: 1, borderRadius: '4px 4px 0 0', background: i === series.length - 1 ? ACCENT : ga(0.3), height: `${(d.value / max) * 100}%`, minHeight: 3 }} />)}
       </div>
     )
   }
-  // bars
   return (
-    <div ref={ref} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      {showHeader && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 8, fontFamily: FONT_DISPLAY }}>Ingresos por mes</div>}
-      <div style={{ ...fill, alignItems: 'flex-end', flexDirection: 'row', gap: 6, paddingBottom: height > 140 ? 18 : 4 }}>
-        {series.map((d, i) => {
-          const isLast = i === series.length - 1
-          return (
-            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%' }}>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', width: '100%', minHeight: 0 }}>
-                {isLast && height > 100 && <div style={{ fontSize: 10, color: ACCENT, fontWeight: 700, textAlign: 'center', marginBottom: 4 }}>€{d.value}</div>}
-                <div style={{ width: '100%', borderRadius: '6px 6px 0 0', minHeight: 4, height: `${(d.value / max) * 100}%`, background: isLast ? `linear-gradient(180deg, ${ga(0.9)} 0%, ${ACCENT} 100%)` : ga(0.3), transition: 'height .4s' }} />
-              </div>
-              {height > 110 && <span style={{ fontSize: 10, color: isLast ? ACCENT : 'var(--muted)', fontWeight: isLast ? 600 : 400 }}>{d.label}</span>}
+    <div style={{ ...fill, alignItems: 'flex-end', flexDirection: 'row', gap: 6, paddingBottom: height > 140 ? 18 : 4 }}>
+      {series.map((d, i) => {
+        const isLast = i === series.length - 1
+        return (
+          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', width: '100%', minHeight: 0 }}>
+              {isLast && height > 100 && <div style={{ fontSize: 10, color: ACCENT, fontWeight: 700, textAlign: 'center', marginBottom: 4 }}>€{d.value}</div>}
+              <div style={{ width: '100%', borderRadius: '6px 6px 0 0', minHeight: 4, height: `${(d.value / max) * 100}%`, background: isLast ? `linear-gradient(180deg, ${ga(0.9)} 0%, ${ACCENT} 100%)` : ga(0.3), transition: 'height .4s' }} />
             </div>
-          )
-        })}
-      </div>
+            {height > 110 && <span style={{ fontSize: 10, color: isLast ? ACCENT : 'var(--muted)', fontWeight: isLast ? 600 : 400 }}>{d.label}</span>}
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -257,41 +273,48 @@ function RequestsTableWidget({ data, variant }) {
   const navigate = useNavigate()
   const { ref, height } = useWidgetSize()
   const requests = data.requests || []
-  if (requests.length === 0) {
-    return <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-      <Inbox size={26} color="var(--muted)" strokeWidth={1.5} />
-      <div style={{ fontSize: 13, color: 'var(--muted)' }}>No hay solicitudes nuevas</div>
-    </div>
-  }
-  const headerH = height > 110 ? 22 : 0
+  const isLoading = data.loading && requests.length === 0
+  const isEmpty = !isLoading && requests.length === 0
   const rowH = 38
-  const visibleN = rowsThatFit(height - headerH, rowH)
+  const visibleN = rowsThatFit(height - 50, rowH)
   const items = requests.slice(0, visibleN)
 
   return (
-    <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 6, fontFamily: FONT_DISPLAY }}>Solicitudes recientes</div>}
-      <div style={{ ...fill, justifyContent: 'flex-start' }}>
-        {items.map((r, i) => {
-          const st = STATUS_CFG[r.status] || { color: '#94a3b8', label: r.status }
-          return (
-            <div key={r._id || r.id} onClick={() => navigate('/creator/requests')}
-              style={{ display: 'grid', gridTemplateColumns: '1fr 60px 80px', alignItems: 'center', padding: '8px 0', borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none', cursor: 'pointer', gap: 8 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {r.advertiserName || r.title || 'Anunciante'}
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title="Solicitudes recientes"
+        icon={Inbox}
+        accent={WARN}
+        description="Propuestas de anunciantes esperando tu respuesta."
+        loading={isLoading}
+        empty={isEmpty ? {
+          illustration: <IllustrationInbox accent={WARN} size={52} />,
+          title: 'Sin solicitudes nuevas',
+          description: 'Cuando un anunciante quiera publicar en tus canales lo verás aquí.',
+        } : null}
+      >
+        <div style={{ ...fill, justifyContent: 'flex-start' }}>
+          {items.map((r, i) => {
+            const st = STATUS_CFG[r.status] || { color: '#94a3b8', label: r.status }
+            return (
+              <div key={r._id || r.id} onClick={() => navigate('/creator/requests')}
+                style={{ display: 'grid', gridTemplateColumns: '1fr 60px 80px', alignItems: 'center', padding: '8px 0', borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none', cursor: 'pointer', gap: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {r.advertiserName || r.title || 'Anunciante'}
+                </div>
+                <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)' }}>€{r.price || 0}</div>
+                <span style={{ background: `${st.color}12`, color: st.color, border: `1px solid ${st.color}35`, borderRadius: 20, padding: '2px 6px', fontSize: 10, fontWeight: 600, textAlign: 'center' }}>{st.label}</span>
               </div>
-              <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)' }}>€{r.price || 0}</div>
-              <span style={{ background: `${st.color}12`, color: st.color, border: `1px solid ${st.color}35`, borderRadius: 20, padding: '2px 6px', fontSize: 10, fontWeight: 600, textAlign: 'center' }}>{st.label}</span>
-            </div>
-          )
-        })}
-      </div>
-      {requests.length > visibleN && (
-        <button onClick={() => navigate('/creator/requests')}
-          style={{ marginTop: 4, fontSize: 11, color: ACCENT, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, textAlign: 'left' }}>
-          Ver {requests.length - visibleN} más →
-        </button>
-      )}
+            )
+          })}
+        </div>
+        {requests.length > visibleN && (
+          <button onClick={() => navigate('/creator/requests')}
+            style={{ marginTop: 4, fontSize: 11, color: ACCENT, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, textAlign: 'left' }}>
+            Ver {requests.length - visibleN} más →
+          </button>
+        )}
+      </WidgetFrame>
     </div>
   )
 }
@@ -300,43 +323,48 @@ function ChannelsTableWidget({ data }) {
   const navigate = useNavigate()
   const { ref, width, height } = useWidgetSize()
   const channels = data.channels || []
-  if (channels.length === 0) {
-    return <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-      <Radio size={26} color="var(--muted)" strokeWidth={1.5} />
-      <div style={{ fontSize: 13, color: 'var(--muted)' }}>Aún no tienes canales</div>
-      <button onClick={() => navigate('/creator/channels/new')}
-        style={{ background: ga(0.1), color: ACCENT, border: `1px solid ${ga(0.3)}`, borderRadius: 8, padding: '7px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-        Registrar canal
-      </button>
-    </div>
-  }
-  const headerH = height > 110 ? 22 : 0
+  const isLoading = data.loading && channels.length === 0
+  const isEmpty = !isLoading && channels.length === 0
   const rowH = 38
-  const visibleN = rowsThatFit(height - headerH - 30, rowH)
+  const visibleN = rowsThatFit(height - 80, rowH)
   const items = channels.slice(0, visibleN)
   const showCAS = width > 360
 
   return (
-    <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 6, fontFamily: FONT_DISPLAY }}>Mis canales</div>}
-      <div style={{ ...fill, justifyContent: 'flex-start' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: showCAS ? '1fr 80px 80px 60px' : '1fr 80px 60px', padding: '6px 0', borderBottom: '1px solid var(--border)', gap: 8 }}>
-          {(showCAS ? ['Canal', 'Plataforma', 'Audiencia', 'CAS'] : ['Canal', 'Plataforma', 'Audiencia']).map(h => (
-            <div key={h} style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</div>
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title="Mis canales"
+        icon={Radio}
+        accent={ACCENT}
+        description="Tus canales registrados con audiencia y Channel Authority Score (CAS)."
+        loading={isLoading}
+        empty={isEmpty ? {
+          illustration: <IllustrationNoChannels accent={ACCENT} size={52} />,
+          title: 'Aún no tienes canales',
+          description: 'Da de alta tu primer canal para empezar a recibir propuestas de anunciantes.',
+          actionLabel: 'Registrar canal',
+          onAction: () => navigate('/creator/channels/new'),
+        } : null}
+      >
+        <div style={{ ...fill, justifyContent: 'flex-start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: showCAS ? '1fr 80px 80px 60px' : '1fr 80px 60px', padding: '6px 0', borderBottom: '1px solid var(--border)', gap: 8 }}>
+            {(showCAS ? ['Canal', 'Plataforma', 'Audiencia', 'CAS'] : ['Canal', 'Plataforma', 'Audiencia']).map(h => (
+              <div key={h} style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</div>
+            ))}
+          </div>
+          {items.map((ch, i) => (
+            <div key={ch._id || ch.id} onClick={() => navigate('/creator/channels')}
+              style={{ display: 'grid', gridTemplateColumns: showCAS ? '1fr 80px 80px 60px' : '1fr 80px 60px', alignItems: 'center', padding: '8px 0', borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none', cursor: 'pointer', gap: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {ch.nombreCanal || ch.nombre || 'Canal'}
+              </div>
+              <div style={{ fontSize: 11.5, color: 'var(--text)' }}>{ch.plataforma || '—'}</div>
+              {showCAS && <div style={{ fontSize: 11.5, color: 'var(--text)' }}>{(ch.seguidores || ch.audiencia || 0).toLocaleString('es')}</div>}
+              <div style={{ fontSize: 11.5, color: ACCENT, fontWeight: 700, textAlign: 'right' }}>{ch.CAS ? Math.round(ch.CAS) : '—'}</div>
+            </div>
           ))}
         </div>
-        {items.map((ch, i) => (
-          <div key={ch._id || ch.id} onClick={() => navigate('/creator/channels')}
-            style={{ display: 'grid', gridTemplateColumns: showCAS ? '1fr 80px 80px 60px' : '1fr 80px 60px', alignItems: 'center', padding: '8px 0', borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none', cursor: 'pointer', gap: 8 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {ch.nombreCanal || ch.nombre || 'Canal'}
-            </div>
-            <div style={{ fontSize: 11.5, color: 'var(--text)' }}>{ch.plataforma || '—'}</div>
-            {showCAS && <div style={{ fontSize: 11.5, color: 'var(--text)' }}>{(ch.seguidores || ch.audiencia || 0).toLocaleString('es')}</div>}
-            <div style={{ fontSize: 11.5, color: ACCENT, fontWeight: 700, textAlign: 'right' }}>{ch.CAS ? Math.round(ch.CAS) : '—'}</div>
-          </div>
-        ))}
-      </div>
+      </WidgetFrame>
     </div>
   )
 }
@@ -352,28 +380,39 @@ function TopAdvertisersWidget({ data }) {
     map[name].revenue += (c.netAmount || c.price || 0)
   })
   const top = Object.values(map).sort((a, b) => b.revenue - a.revenue).slice(0, 5)
-  if (top.length === 0) return <div ref={ref} style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>Sin anunciantes aún</div>
-
-  const headerH = height > 90 ? 22 : 0
+  const isLoading = data.loading && top.length === 0
+  const isEmpty = !isLoading && top.length === 0
   const rowH = 38
-  const visibleN = rowsThatFit(height - headerH, rowH)
+  const visibleN = rowsThatFit(height - 50, rowH)
   const showSecondary = width > 200
 
   return (
-    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 4, height: '100%', minHeight: 0 }}>
-      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4, fontFamily: FONT_DISPLAY }}>Top anunciantes</div>}
-      <div style={{ ...fill, justifyContent: 'flex-start' }}>
-        {top.slice(0, visibleN).map((a, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: i < Math.min(visibleN, top.length) - 1 ? '1px solid var(--border)' : 'none' }}>
-            <div style={{ width: 24, height: 24, borderRadius: 7, background: ga(0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: ACCENT }}>{i + 1}</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</div>
-              {showSecondary && <div style={{ fontSize: 10.5, color: 'var(--muted)' }}>{a.count} campaña{a.count !== 1 ? 's' : ''}</div>}
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title="Top anunciantes"
+        icon={Users}
+        accent={ACCENT}
+        description="Los anunciantes que más han pagado por publicar en tus canales."
+        loading={isLoading}
+        empty={isEmpty ? {
+          illustration: <IllustrationNoData accent={ACCENT} size={52} />,
+          title: 'Sin anunciantes todavía',
+          description: 'Cuando recibas y aceptes tus primeras campañas verás aquí los anunciantes top.',
+        } : null}
+      >
+        <div style={{ ...fill, justifyContent: 'flex-start' }}>
+          {top.slice(0, visibleN).map((a, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: i < Math.min(visibleN, top.length) - 1 ? '1px solid var(--border)' : 'none' }}>
+              <div style={{ width: 24, height: 24, borderRadius: 7, background: ga(0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: ACCENT }}>{i + 1}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</div>
+                {showSecondary && <div style={{ fontSize: 10.5, color: 'var(--muted)' }}>{a.count} campaña{a.count !== 1 ? 's' : ''}</div>}
+              </div>
+              <div style={{ fontSize: 11.5, fontWeight: 600, color: ACCENT }}>€{Math.round(a.revenue)}</div>
             </div>
-            <div style={{ fontSize: 11.5, fontWeight: 600, color: ACCENT }}>€{Math.round(a.revenue)}</div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </WidgetFrame>
     </div>
   )
 }
@@ -406,8 +445,7 @@ function QuickActionsWidget({ variant }) {
       </div>
     )
   }
-  const headerH = height > 80 ? 24 : 0
-  const bodyH = height - headerH
+  const bodyH = height - 50
   const btnH = 32
   const rows = Math.max(1, Math.floor(bodyH / (btnH + 6)))
   const perRow = Math.max(1, Math.floor((width + 6) / 146))
@@ -416,20 +454,22 @@ function QuickActionsWidget({ variant }) {
   const overflow = actions.length - visible.length
 
   return (
-    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 6, height: '100%', minHeight: 0 }}>
-      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Acciones rápidas</div>}
-      <div style={{ ...fill, flexDirection: 'row', gap: 6, flexWrap: 'wrap', alignContent: 'flex-start', overflow: 'hidden' }}>
-        {visible.map((a, i) => {
-          const Icon = a.icon
-          return (
-            <button key={i} onClick={() => navigate(a.path)}
-              style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 9, padding: '7px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap' }}>
-              <Icon size={13} color={a.color} strokeWidth={2} /> {a.label}
-            </button>
-          )
-        })}
-        {overflow > 0 && <span style={{ alignSelf: 'center', fontSize: 11, color: 'var(--muted)' }}>+{overflow}</span>}
-      </div>
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame title="Acciones rápidas" icon={Zap} accent={ACCENT}
+        description="Atajos a las funciones que más usas como creador.">
+        <div style={{ ...fill, flexDirection: 'row', gap: 6, flexWrap: 'wrap', alignContent: 'flex-start', overflow: 'hidden' }}>
+          {visible.map((a, i) => {
+            const Icon = a.icon
+            return (
+              <button key={i} onClick={() => navigate(a.path)}
+                style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 9, padding: '7px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap' }}>
+                <Icon size={13} color={a.color} strokeWidth={2} /> {a.label}
+              </button>
+            )
+          })}
+          {overflow > 0 && <span style={{ alignSelf: 'center', fontSize: 11, color: 'var(--muted)' }}>+{overflow}</span>}
+        </div>
+      </WidgetFrame>
     </div>
   )
 }
@@ -437,42 +477,45 @@ function QuickActionsWidget({ variant }) {
 function ActionItemsWidget({ data, variant }) {
   const { ref, height } = useWidgetSize()
   const items = data.actionItems || []
-  if (items.length === 0) {
-    return <div ref={ref} style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13, gap: 8 }}>
-      <CheckCircle2 size={16} /> Todo en orden
-    </div>
-  }
+  const isLoading = data.loading && items.length === 0
+  const isEmpty = !isLoading && items.length === 0
   const rowH = variant === 'compact' ? 26 : variant === 'list' ? 50 : 70
-  const headerH = height > 110 ? 28 : 0
-  const visibleN = rowsThatFit(height - headerH, rowH)
+  const visibleN = rowsThatFit(height - 50, rowH)
 
   return (
-    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 6, height: '100%', minHeight: 0 }}>
-      {headerH > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Requiere atención</span>
-          <span style={{ fontSize: 10, fontWeight: 700, color: ACCENT, background: ga(0.12), border: `1px solid ${ga(0.25)}`, borderRadius: 20, padding: '1px 7px' }}>{items.length}</span>
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title="Requiere atención"
+        icon={AlertTriangle}
+        accent={WARN}
+        description="Items pendientes para ti: solicitudes nuevas, campañas para publicar, o tu primer canal."
+        loading={isLoading}
+        empty={isEmpty ? {
+          illustration: <IllustrationAllClear accent={OK} size={52} />,
+          title: '¡Todo en orden!',
+          description: 'No tienes ningún item pendiente.',
+        } : null}
+      >
+        <div style={{ ...fill, gap: 6, justifyContent: 'flex-start' }}>
+          {items.slice(0, visibleN).map((item, i) => {
+            const Icon = item.icon
+            return (
+              <button key={i} onClick={item.onClick}
+                style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, padding: 10, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left', fontFamily: FONT_BODY, width: '100%' }}>
+                <div style={{ width: 34, height: 34, borderRadius: 9, background: `${item.color}15`, border: `1px solid ${item.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
+                  <Icon size={15} color={item.color} strokeWidth={2} />
+                  {item.count > 0 && <span style={{ position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, background: item.color, color: '#fff', borderRadius: 8, fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg2)' }}>{item.count}</span>}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
+                  <div style={{ fontSize: 10.5, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</div>
+                </div>
+                <ArrowRight size={12} color="var(--muted)" />
+              </button>
+            )
+          })}
         </div>
-      )}
-      <div style={{ ...fill, gap: 6, justifyContent: 'flex-start' }}>
-        {items.slice(0, visibleN).map((item, i) => {
-          const Icon = item.icon
-          return (
-            <button key={i} onClick={item.onClick}
-              style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, padding: 10, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left', fontFamily: FONT_BODY, width: '100%' }}>
-              <div style={{ width: 34, height: 34, borderRadius: 9, background: `${item.color}15`, border: `1px solid ${item.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
-                <Icon size={15} color={item.color} strokeWidth={2} />
-                {item.count > 0 && <span style={{ position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, background: item.color, color: '#fff', borderRadius: 8, fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg2)' }}>{item.count}</span>}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
-                <div style={{ fontSize: 10.5, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</div>
-              </div>
-              <ArrowRight size={12} color="var(--muted)" />
-            </button>
-          )
-        })}
-      </div>
+      </WidgetFrame>
     </div>
   )
 }
@@ -486,39 +529,54 @@ function ActivityFeedWidget({ data }) {
     time: c.updatedAt || c.createdAt,
     color: (STATUS_CFG[c.status] || {}).color || '#94a3b8',
   }))
-  if (activities.length === 0) return <div ref={ref} style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>Sin actividad reciente</div>
+  const isLoading = data.loading && activities.length === 0
+  const isEmpty = !isLoading && activities.length === 0
   const rowH = 44
-  const headerH = height > 90 ? 22 : 0
-  const visibleN = rowsThatFit(height - headerH, rowH)
+  const visibleN = rowsThatFit(height - 50, rowH)
+
   return (
-    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 4, height: '100%', minHeight: 0 }}>
-      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4, fontFamily: FONT_DISPLAY }}>Actividad reciente</div>}
-      <div style={{ ...fill, justifyContent: 'flex-start' }}>
-        {activities.slice(0, visibleN).map((a, i) => (
-          <div key={i} style={{ display: 'flex', gap: 8, padding: '7px 0', borderBottom: i < Math.min(visibleN, activities.length) - 1 ? '1px solid var(--border)' : 'none' }}>
-            <div style={{ width: 7, height: 7, borderRadius: 4, background: a.color, marginTop: 5, flexShrink: 0 }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</div>
-              <div style={{ fontSize: 10.5, color: 'var(--muted)' }}>{a.msg}</div>
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title="Actividad reciente"
+        icon={Clock}
+        accent={BLUE}
+        description="Timeline de campañas activas en tus canales y pagos liberados."
+        loading={isLoading}
+        empty={isEmpty ? {
+          illustration: <IllustrationNoData accent={BLUE} size={52} />,
+          title: 'Sin actividad reciente',
+          description: 'Cuando empieces a publicar campañas verás aquí los eventos.',
+        } : null}
+      >
+        <div style={{ ...fill, justifyContent: 'flex-start' }}>
+          {activities.slice(0, visibleN).map((a, i) => (
+            <div key={i} style={{ display: 'flex', gap: 8, padding: '7px 0', borderBottom: i < Math.min(visibleN, activities.length) - 1 ? '1px solid var(--border)' : 'none' }}>
+              <div style={{ width: 7, height: 7, borderRadius: 4, background: a.color, marginTop: 5, flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</div>
+                <div style={{ fontSize: 10.5, color: 'var(--muted)' }}>{a.msg}</div>
+              </div>
+              {a.time && <span style={{ fontSize: 10, color: 'var(--muted2)' }}>{new Date(a.time).toLocaleDateString('es', { day: 'numeric', month: 'short' })}</span>}
             </div>
-            {a.time && <span style={{ fontSize: 10, color: 'var(--muted2)' }}>{new Date(a.time).toLocaleDateString('es', { day: 'numeric', month: 'short' })}</span>}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </WidgetFrame>
     </div>
   )
 }
 
 function NotesWidget({ widgetId }) {
-  const { ref, height } = useWidgetSize()
+  const { ref } = useWidgetSize()
   const storageKey = `channelad-creator-notes-${widgetId}`
   const [text, setText] = useState(() => { try { return localStorage.getItem(storageKey) || '' } catch { return '' } })
   const save = (val) => { setText(val); try { localStorage.setItem(storageKey, val) } catch {} }
   return (
-    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 6, minHeight: 0 }}>
-      {height > 90 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Notas</div>}
-      <textarea value={text} onChange={e => save(e.target.value)} placeholder="Escribe tus notas aquí..."
-        style={{ flex: 1, width: '100%', resize: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: 10, fontSize: 13, background: 'var(--bg2)', color: 'var(--text)', outline: 'none', minHeight: 0 }} />
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame title="Notas" icon={StickyNote} accent={ACCENT}
+        description="Bloc de notas personal — se guarda en este navegador.">
+        <textarea value={text} onChange={e => save(e.target.value)} placeholder="Escribe tus notas aquí..."
+          style={{ flex: 1, width: '100%', resize: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: 10, fontSize: 13, background: 'var(--bg2)', color: 'var(--text)', outline: 'none', minHeight: 0 }} />
+      </WidgetFrame>
     </div>
   )
 }
@@ -544,12 +602,18 @@ function CalendarWidget({ data, variant }) {
   })
 
   return (
-    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 6, height: '100%', minHeight: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <button onClick={() => setMonthOffset(o => o - 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 4 }}><ChevronLeft size={16} /></button>
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>{monthNames[month]} {year}</span>
-        <button onClick={() => setMonthOffset(o => o + 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 4 }}><ChevronRight size={16} /></button>
-      </div>
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title={`${monthNames[month]} ${year}`}
+        icon={CalendarDays}
+        accent={ACCENT}
+        description="Calendario mensual de tus campañas programadas en los canales."
+        menuActions={[
+          { label: 'Mes anterior', icon: ChevronLeft, onClick: () => setMonthOffset(o => o - 1) },
+          { label: 'Mes siguiente', icon: ChevronRight, onClick: () => setMonthOffset(o => o + 1) },
+          { label: 'Hoy', icon: CalendarDays, onClick: () => setMonthOffset(0) },
+        ]}
+      >
       <div style={{ ...fill, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridAutoRows: '1fr', gap: 2 }}>
         {dayNames.map(d => <div key={d} style={{ fontSize: 10, fontWeight: 600, color: 'var(--muted)', textAlign: 'center', padding: '4px 0' }}>{d}</div>)}
         {Array.from({ length: adjustedFirst }).map((_, i) => <div key={`e-${i}`} />)}
@@ -564,6 +628,7 @@ function CalendarWidget({ data, variant }) {
           )
         })}
       </div>
+      </WidgetFrame>
     </div>
   )
 }

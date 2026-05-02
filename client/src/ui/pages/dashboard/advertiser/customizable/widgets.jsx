@@ -10,6 +10,9 @@ import {
 import { WIDGET_TYPES } from './WidgetRegistry'
 import useWidgetSize, { rowsThatFit } from './useWidgetSize'
 import SmartInsights from '../../../../components/SmartInsights'
+import WidgetFrame, {
+  IllustrationNoCampaigns, IllustrationNoData, IllustrationAllClear, IllustrationInbox,
+} from '../../../../components/WidgetFrame'
 import { FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE } from '../../../../theme/tokens'
 
 const PURPLE = 'var(--accent, #8B5CF6)'
@@ -253,23 +256,39 @@ function SpendChartWidget({ data, variant }) {
   const [hoverIdx, setHoverIdx] = useState(null)
   const { ref, width, height } = useWidgetSize()
   const spendData = data.monthlySpend || []
-  const showHeader = height > 100
+  const isLoading = data.loading && spendData.length === 0
+  const isEmpty = !isLoading && spendData.length === 0
 
-  if (spendData.length === 0) {
-    return (
-      <div ref={ref} style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>
-        Sin datos de gasto este periodo
-      </div>
-    )
-  }
+  return (
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title={variant === 'mini' ? 'Gasto' : 'Gasto mensual'}
+        icon={DollarSign}
+        accent={PURPLE}
+        description="Gasto acumulado en campañas publicadas y completadas, agrupado por mes."
+        loading={isLoading}
+        empty={isEmpty ? {
+          illustration: <IllustrationNoData accent={PURPLE} size={56} />,
+          title: 'Aún no hay gasto registrado',
+          description: 'Cuando lances tu primera campaña verás aquí su evolución mensual.',
+        } : null}
+        compact={variant === 'mini' || height < 140}
+        hideHeader={variant === 'mini' && height < 80}
+      >
+        <SpendChartBody data={spendData} variant={variant} width={width} height={height} hoverIdx={hoverIdx} setHoverIdx={setHoverIdx} />
+      </WidgetFrame>
+    </div>
+  )
+}
 
+function SpendChartBody({ data: spendData, variant, width, height, hoverIdx, setHoverIdx }) {
   const max = Math.max(...spendData.map(d => d.value), 1)
   const isLine = variant === 'line'
-  const isMini = variant === 'mini' || height < 90
+  const isMini = variant === 'mini'
 
   if (isLine) {
     const w = Math.max(200, width - 4)
-    const h = Math.max(60, height - (showHeader ? 32 : 4))
+    const h = Math.max(60, height - 60)
     const pad = h > 80 ? 20 : 12
     const points = spendData.map((d, i) => {
       const x = pad + (i / Math.max(spendData.length - 1, 1)) * (w - pad * 2)
@@ -280,40 +299,36 @@ function SpendChartWidget({ data, variant }) {
     const areaD = `${pathD} L ${points[points.length - 1].x} ${h - pad} L ${points[0].x} ${h - pad} Z`
 
     return (
-      <div ref={ref} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        {showHeader && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 6, fontFamily: FONT_DISPLAY }}>Gasto mensual</div>}
-        <div style={{ ...fill, position: 'relative' }}>
-          <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: '100%' }} preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={PURPLE} stopOpacity="0.3" />
-                <stop offset="100%" stopColor={PURPLE} stopOpacity="0.02" />
-              </linearGradient>
-            </defs>
-            <path d={areaD} fill="url(#spendGrad)" />
-            <path d={pathD} fill="none" stroke={PURPLE} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-            {points.map((p, i) => (
-              <g key={i}>
-                <circle cx={p.x} cy={p.y} r={hoverIdx === i ? 5 : 3} fill={PURPLE} stroke="#fff" strokeWidth={2}
-                  style={{ cursor: 'pointer' }}
-                  onMouseEnter={() => setHoverIdx(i)} onMouseLeave={() => setHoverIdx(null)}
-                />
-                {hoverIdx === i && (
-                  <text x={p.x} y={p.y - 10} textAnchor="middle" fill={PURPLE} fontSize={11} fontWeight={700}>€{p.value}</text>
-                )}
-                {h > 80 && <text x={p.x} y={h - 4} textAnchor="middle" fill="var(--muted)" fontSize={9}>{p.label}</text>}
-              </g>
-            ))}
-          </svg>
-        </div>
+      <div style={{ ...fill, position: 'relative' }}>
+        <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: '100%' }} preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={PURPLE} stopOpacity="0.3" />
+              <stop offset="100%" stopColor={PURPLE} stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+          <path d={areaD} fill="url(#spendGrad)" />
+          <path d={pathD} fill="none" stroke={PURPLE} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+          {points.map((p, i) => (
+            <g key={i}>
+              <circle cx={p.x} cy={p.y} r={hoverIdx === i ? 5 : 3} fill={PURPLE} stroke="#fff" strokeWidth={2}
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={() => setHoverIdx(i)} onMouseLeave={() => setHoverIdx(null)}
+              />
+              {hoverIdx === i && (
+                <text x={p.x} y={p.y - 10} textAnchor="middle" fill={PURPLE} fontSize={11} fontWeight={700}>€{p.value}</text>
+              )}
+              {h > 80 && <text x={p.x} y={h - 4} textAnchor="middle" fill="var(--muted)" fontSize={9}>{p.label}</text>}
+            </g>
+          ))}
+        </svg>
       </div>
     )
   }
 
-  if (isMini) {
+  if (isMini || height < 110) {
     return (
-      <div ref={ref} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        {height > 60 && <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text)', marginBottom: 4, fontFamily: FONT_DISPLAY }}>Gasto</div>}
+      <div style={{ ...fill }}>
         <div style={{ ...fill, alignItems: 'flex-end', flexDirection: 'row', gap: 4 }}>
           {spendData.map((d, i) => (
             <div key={i} style={{
@@ -336,39 +351,36 @@ function SpendChartWidget({ data, variant }) {
 
   // Bars
   return (
-    <div ref={ref} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      {showHeader && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 8, fontFamily: FONT_DISPLAY }}>Gasto mensual</div>}
-      <div style={{ ...fill, alignItems: 'flex-end', flexDirection: 'row', gap: 6, paddingBottom: height > 140 ? 18 : 4, position: 'relative' }}>
-        {spendData.map((d, i) => {
-          const isLast = i === spendData.length - 1
-          const isHov = hoverIdx === i
-          const pct = (d.value / max) * 100
-          return (
-            <div key={i}
-              onMouseEnter={() => setHoverIdx(i)} onMouseLeave={() => setHoverIdx(null)}
-              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', cursor: 'default' }}
-            >
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', width: '100%', minHeight: 0 }}>
-                {(isHov || isLast) && height > 100 && (
-                  <div style={{ fontSize: 10, color: isLast ? PURPLE : 'var(--muted)', fontWeight: 700, textAlign: 'center', marginBottom: 4 }}>
-                    €{d.value}
-                  </div>
-                )}
-                <div style={{
-                  width: '100%', borderRadius: '6px 6px 0 0', minHeight: 4, height: `${pct}%`,
-                  background: isLast ? `linear-gradient(180deg, ${pa(0.9)} 0%, ${PURPLE} 100%)` : isHov ? pa(0.5) : pa(0.3),
-                  transition: 'background .15s, height .4s cubic-bezier(.4,0,.2,1)',
-                }} />
-              </div>
-              {height > 110 && (
-                <span style={{ fontSize: 10, color: isLast ? PURPLE : 'var(--muted)', fontWeight: isLast ? 600 : 400, whiteSpace: 'nowrap' }}>
-                  {d.label}
-                </span>
+    <div style={{ ...fill, alignItems: 'flex-end', flexDirection: 'row', gap: 6, paddingBottom: height > 140 ? 18 : 4, position: 'relative' }}>
+      {spendData.map((d, i) => {
+        const isLast = i === spendData.length - 1
+        const isHov = hoverIdx === i
+        const pct = (d.value / max) * 100
+        return (
+          <div key={i}
+            onMouseEnter={() => setHoverIdx(i)} onMouseLeave={() => setHoverIdx(null)}
+            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', cursor: 'default' }}
+          >
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', width: '100%', minHeight: 0 }}>
+              {(isHov || isLast) && height > 100 && (
+                <div style={{ fontSize: 10, color: isLast ? PURPLE : 'var(--muted)', fontWeight: 700, textAlign: 'center', marginBottom: 4 }}>
+                  €{d.value}
+                </div>
               )}
+              <div style={{
+                width: '100%', borderRadius: '6px 6px 0 0', minHeight: 4, height: `${pct}%`,
+                background: isLast ? `linear-gradient(180deg, ${pa(0.9)} 0%, ${PURPLE} 100%)` : isHov ? pa(0.5) : pa(0.3),
+                transition: 'background .15s, height .4s cubic-bezier(.4,0,.2,1)',
+              }} />
             </div>
-          )
-        })}
-      </div>
+            {height > 110 && (
+              <span style={{ fontSize: 10, color: isLast ? PURPLE : 'var(--muted)', fontWeight: isLast ? 600 : 400, whiteSpace: 'nowrap' }}>
+                {d.label}
+              </span>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -389,33 +401,46 @@ function CampaignsTableWidget({ data, variant }) {
   const navigate = useNavigate()
   const { ref, width, height } = useWidgetSize()
   const campaigns = data.campaigns || []
+  const isLoading = data.loading && campaigns.length === 0
+  const isEmpty = !isLoading && campaigns.length === 0
 
-  if (campaigns.length === 0) {
-    return (
-      <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-        <Megaphone size={26} color="var(--muted)" strokeWidth={1.5} />
-        <div style={{ fontSize: 13, color: 'var(--muted)' }}>Aún no tienes campañas</div>
-        <button onClick={() => navigate('/advertiser/campaigns/new')}
-          style={{ background: pa(0.1), color: PURPLE, border: `1px solid ${pa(0.3)}`, borderRadius: 8, padding: '7px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: FONT_BODY }}>
-          Crear primera campaña
-        </button>
-      </div>
-    )
-  }
+  return (
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title={variant === 'compact' ? 'Campañas' : 'Campañas recientes'}
+        icon={Megaphone}
+        accent={PURPLE}
+        description="Tus campañas más recientes con vistas, CTR, gasto y estado."
+        loading={isLoading}
+        empty={isEmpty ? {
+          illustration: <IllustrationNoCampaigns accent={PURPLE} size={52} />,
+          title: 'Aún no tienes campañas',
+          description: 'Lanza tu primera campaña en uno de los miles de canales del marketplace.',
+          actionLabel: 'Crear campaña',
+          onAction: () => navigate('/advertiser/campaigns/new'),
+          secondaryLabel: 'Explorar canales',
+          onSecondary: () => navigate('/advertiser/explore'),
+        } : null}
+        compact={height < 130}
+      >
+        <CampaignsTableBody campaigns={campaigns} variant={variant} width={width} height={height} navigate={navigate} />
+      </WidgetFrame>
+    </div>
+  )
+}
 
+function CampaignsTableBody({ campaigns, variant, width, height, navigate }) {
   // ── Cards variant ──────────────────────────────────────────────────────────
   if (variant === 'cards') {
-    const headerH = height > 120 ? 22 : 0
     const cardH = 76
     const colMin = 180
     const cols = Math.max(1, Math.floor(width / colMin))
-    const rowsAvail = rowsThatFit(height - headerH, cardH + 10)
+    const rowsAvail = rowsThatFit(height - 50, cardH + 10)
     const visibleN = Math.max(1, cols * rowsAvail)
     const items = campaigns.slice(0, visibleN)
 
     return (
-      <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 8, fontFamily: FONT_DISPLAY }}>Campañas recientes</div>}
+      <>
         <div style={{ ...fill, display: 'grid', gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: 8 }}>
           {items.map(ad => {
             const st = STATUS_CFG[ad.status] || { color: '#94a3b8', label: ad.status }
@@ -448,98 +473,90 @@ function CampaignsTableWidget({ data, variant }) {
             Ver {campaigns.length - visibleN} más →
           </button>
         )}
-      </div>
+      </>
     )
   }
 
   // ── Compact list variant ──────────────────────────────────────────────────
   if (variant === 'compact') {
-    const headerH = height > 90 ? 22 : 0
     const rowH = 32
-    const visibleN = rowsThatFit(height - headerH, rowH)
+    const visibleN = rowsThatFit(height - 50, rowH)
     const items = campaigns.slice(0, visibleN)
 
     return (
-      <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 6, fontFamily: FONT_DISPLAY }}>Campañas</div>}
-        <div style={{ ...fill, justifyContent: 'flex-start' }}>
-          {items.map((ad, i) => {
-            const st = STATUS_CFG[ad.status] || { color: '#94a3b8', label: ad.status }
-            return (
-              <div key={ad.id || ad._id}
-                onClick={() => navigate('/advertiser/campaigns')}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                  padding: '7px 0', borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none',
-                  cursor: 'pointer', minWidth: 0,
-                }}
-              >
-                <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
-                  {ad.title || ad.content?.slice(0, 30) || 'Campaña'}
-                </span>
-                <span style={{ background: `${st.color}12`, color: st.color, borderRadius: 20, padding: '2px 7px', fontSize: 10, fontWeight: 600, flexShrink: 0 }}>
-                  {st.label}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    )
-  }
-
-  // ── Full table variant ────────────────────────────────────────────────────
-  const headerH = height > 110 ? 22 : 0
-  const tableHeaderH = 30
-  const rowH = 38
-  const visibleN = rowsThatFit(height - headerH - tableHeaderH, rowH)
-  const items = campaigns.slice(0, visibleN)
-  const showCols = width > 360
-  const showAllCols = width > 480
-
-  return (
-    <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 6, fontFamily: FONT_DISPLAY }}>Campañas recientes</div>}
       <div style={{ ...fill, justifyContent: 'flex-start' }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: showAllCols ? '1fr 60px 50px 60px 70px' : showCols ? '1fr 60px 70px' : '1fr 70px',
-          padding: '6px 0', borderBottom: '1px solid var(--border)', gap: 8,
-        }}>
-          {(showAllCols ? ['Campaña','Vistas','CTR','Gasto','Estado'] : showCols ? ['Campaña','Vistas','Estado'] : ['Campaña','Estado']).map(h => (
-            <div key={h} style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</div>
-          ))}
-        </div>
         {items.map((ad, i) => {
           const st = STATUS_CFG[ad.status] || { color: '#94a3b8', label: ad.status }
-          const views = ad.tracking?.impressions || ad.views || 0
-          const clicks = ad.tracking?.clicks || ad.clicks || 0
-          const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : '0.0'
-          const spent = ad.price || ad.spent || ad.budget || 0
           return (
             <div key={ad.id || ad._id}
               onClick={() => navigate('/advertiser/campaigns')}
               style={{
-                display: 'grid',
-                gridTemplateColumns: showAllCols ? '1fr 60px 50px 60px 70px' : showCols ? '1fr 60px 70px' : '1fr 70px',
-                alignItems: 'center', padding: '8px 0',
-                borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none',
-                cursor: 'pointer', gap: 8, minWidth: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                padding: '7px 0', borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none',
+                cursor: 'pointer', minWidth: 0,
               }}
             >
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {ad.title || ad.content?.slice(0, 40) || 'Campaña'}
-              </div>
-              {showCols && <div style={{ fontSize: 11.5, color: 'var(--text)' }}>{Number(views).toLocaleString('es')}</div>}
-              {showAllCols && <div style={{ fontSize: 11.5, color: Number(ctr) > 4 ? OK : 'var(--text)', fontWeight: 600 }}>{ctr}%</div>}
-              {showAllCols && <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)' }}>€{spent}</div>}
-              <span style={{ background: `${st.color}12`, color: st.color, border: `1px solid ${st.color}35`, borderRadius: 20, padding: '2px 6px', fontSize: 10, fontWeight: 600, textAlign: 'center' }}>
+              <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
+                {ad.title || ad.content?.slice(0, 30) || 'Campaña'}
+              </span>
+              <span style={{ background: `${st.color}12`, color: st.color, borderRadius: 20, padding: '2px 7px', fontSize: 10, fontWeight: 600, flexShrink: 0 }}>
                 {st.label}
               </span>
             </div>
           )
         })}
       </div>
+    )
+  }
+
+  // ── Full table variant ────────────────────────────────────────────────────
+  const tableHeaderH = 30
+  const rowH = 38
+  const visibleN = rowsThatFit(height - 50 - tableHeaderH, rowH)
+  const items = campaigns.slice(0, visibleN)
+  const showCols = width > 360
+  const showAllCols = width > 480
+
+  return (
+    <div style={{ ...fill, justifyContent: 'flex-start' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: showAllCols ? '1fr 60px 50px 60px 70px' : showCols ? '1fr 60px 70px' : '1fr 70px',
+        padding: '6px 0', borderBottom: '1px solid var(--border)', gap: 8,
+      }}>
+        {(showAllCols ? ['Campaña','Vistas','CTR','Gasto','Estado'] : showCols ? ['Campaña','Vistas','Estado'] : ['Campaña','Estado']).map(h => (
+          <div key={h} style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</div>
+        ))}
+      </div>
+      {items.map((ad, i) => {
+        const st = STATUS_CFG[ad.status] || { color: '#94a3b8', label: ad.status }
+        const views = ad.tracking?.impressions || ad.views || 0
+        const clicks = ad.tracking?.clicks || ad.clicks || 0
+        const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : '0.0'
+        const spent = ad.price || ad.spent || ad.budget || 0
+        return (
+          <div key={ad.id || ad._id}
+            onClick={() => navigate('/advertiser/campaigns')}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: showAllCols ? '1fr 60px 50px 60px 70px' : showCols ? '1fr 60px 70px' : '1fr 70px',
+              alignItems: 'center', padding: '8px 0',
+              borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none',
+              cursor: 'pointer', gap: 8, minWidth: 0,
+            }}
+          >
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {ad.title || ad.content?.slice(0, 40) || 'Campaña'}
+            </div>
+            {showCols && <div style={{ fontSize: 11.5, color: 'var(--text)' }}>{Number(views).toLocaleString('es')}</div>}
+            {showAllCols && <div style={{ fontSize: 11.5, color: Number(ctr) > 4 ? OK : 'var(--text)', fontWeight: 600 }}>{ctr}%</div>}
+            {showAllCols && <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)' }}>€{spent}</div>}
+            <span style={{ background: `${st.color}12`, color: st.color, border: `1px solid ${st.color}35`, borderRadius: 20, padding: '2px 6px', fontSize: 10, fontWeight: 600, textAlign: 'center' }}>
+              {st.label}
+            </span>
+          </div>
+        )
+      })}
       {campaigns.length > visibleN && (
         <button onClick={() => navigate('/advertiser/campaigns')}
           style={{ marginTop: 4, fontSize: 11, color: PURPLE, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontFamily: FONT_BODY, textAlign: 'left' }}>
@@ -557,118 +574,112 @@ function CampaignsTableWidget({ data, variant }) {
 function ActionItemsWidget({ data, variant }) {
   const { ref, width, height } = useWidgetSize()
   const items = data.actionItems || []
-
-  if (items.length === 0) {
-    return (
-      <div ref={ref} style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13, gap: 8 }}>
-        <CheckCircle2 size={16} /> Todo en orden
-      </div>
-    )
-  }
-
-  // ── Compact ───────────────────────────────────────────────────────────────
-  if (variant === 'compact') {
-    const rowH = 26
-    const headerH = height > 80 ? 22 : 0
-    const visibleN = rowsThatFit(height - headerH, rowH)
-    return (
-      <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 4, minHeight: 0 }}>
-        {headerH > 0 && <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Atención</div>}
-        <div style={{ ...fill, justifyContent: 'space-around' }}>
-          {items.slice(0, visibleN).map((item, i) => {
-            const Icon = item.icon
-            return (
-              <div key={i} onClick={item.onClick}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', minWidth: 0 }}>
-                <div style={{ width: 22, height: 22, borderRadius: 6, background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Icon size={11} color={item.color} />
-                </div>
-                <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
-                {item.count > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: item.color, flexShrink: 0 }}>{item.count}</span>}
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    )
-  }
-
-  // ── List ──────────────────────────────────────────────────────────────────
-  if (variant === 'list') {
-    const rowH = 50
-    const headerH = height > 110 ? 22 : 0
-    const visibleN = rowsThatFit(height - headerH, rowH)
-    return (
-      <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 4, minHeight: 0 }}>
-        {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4, fontFamily: FONT_DISPLAY }}>Requiere atención</div>}
-        <div style={{ ...fill, justifyContent: 'flex-start' }}>
-          {items.slice(0, visibleN).map((item, i) => {
-            const Icon = item.icon
-            return (
-              <div key={i} onClick={item.onClick}
-                style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '8px 6px', borderRadius: 8, transition: 'background .12s' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
-                <div style={{ width: 30, height: 30, borderRadius: 8, background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
-                  <Icon size={14} color={item.color} />
-                  {item.count > 0 && <span style={{ position: 'absolute', top: -3, right: -3, minWidth: 14, height: 14, background: item.color, color: '#fff', borderRadius: 7, fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.count}</span>}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
-                  <div style={{ fontSize: 10.5, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</div>
-                </div>
-                <ChevronRight size={13} color="var(--muted)" />
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    )
-  }
-
-  // ── Cards ─────────────────────────────────────────────────────────────────
-  const rowH = 70
-  const headerH = height > 120 ? 28 : 0
-  const visibleN = rowsThatFit(height - headerH, rowH)
+  const isLoading = data.loading && items.length === 0
+  const isEmpty = !isLoading && items.length === 0
 
   return (
-    <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 6, minHeight: 0 }}>
-      {headerH > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Requiere atención</span>
-          <span style={{ fontSize: 10, fontWeight: 700, color: PURPLE, background: pa(0.12), border: `1px solid ${pa(0.25)}`, borderRadius: 20, padding: '1px 7px' }}>
-            {items.length}
-          </span>
-        </div>
-      )}
-      <div style={{ ...fill, gap: 6, justifyContent: 'flex-start' }}>
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title="Requiere atención"
+        icon={AlertTriangle}
+        accent={WARN}
+        description="Items que necesitan tu atención: pagos pendientes, campañas para liberar, mensajes sin leer."
+        loading={isLoading}
+        empty={isEmpty ? {
+          illustration: <IllustrationAllClear accent={OK} size={52} />,
+          title: '¡Todo en orden!',
+          description: 'No tienes ningún item pendiente. Buen momento para lanzar nuevas campañas.',
+        } : null}
+        compact={variant === 'compact' || height < 100}
+      >
+        <ActionItemsBody items={items} variant={variant} height={height} />
+      </WidgetFrame>
+    </div>
+  )
+}
+
+function ActionItemsBody({ items, variant, height }) {
+  if (variant === 'compact') {
+    const rowH = 26
+    const visibleN = rowsThatFit(height - 50, rowH)
+    return (
+      <div style={{ ...fill, justifyContent: 'space-around', gap: 4 }}>
         {items.slice(0, visibleN).map((item, i) => {
           const Icon = item.icon
           return (
-            <button key={i} onClick={item.onClick}
-              style={{
-                background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10,
-                padding: 10, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
-                textAlign: 'left', fontFamily: FONT_BODY, transition: 'border-color .15s',
-                width: '100%', minWidth: 0,
-              }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = item.color}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-            >
-              <div style={{ width: 34, height: 34, borderRadius: 9, background: `${item.color}15`, border: `1px solid ${item.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
-                <Icon size={15} color={item.color} strokeWidth={2} />
-                {item.count > 0 && <span style={{ position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, background: item.color, color: '#fff', borderRadius: 8, fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg2)' }}>{item.count}</span>}
+            <div key={i} onClick={item.onClick}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', minWidth: 0 }}>
+              <div style={{ width: 22, height: 22, borderRadius: 6, background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon size={11} color={item.color} />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 1, fontFamily: FONT_DISPLAY, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
-                <div style={{ fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</div>
-              </div>
-              <ArrowRight size={12} color="var(--muted)" style={{ flexShrink: 0 }} />
-            </button>
+              <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
+              {item.count > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: item.color, flexShrink: 0 }}>{item.count}</span>}
+            </div>
           )
         })}
       </div>
+    )
+  }
+
+  if (variant === 'list') {
+    const rowH = 50
+    const visibleN = rowsThatFit(height - 50, rowH)
+    return (
+      <div style={{ ...fill, justifyContent: 'flex-start' }}>
+        {items.slice(0, visibleN).map((item, i) => {
+          const Icon = item.icon
+          return (
+            <div key={i} onClick={item.onClick}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '8px 6px', borderRadius: 8, transition: 'background .12s' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
+                <Icon size={14} color={item.color} />
+                {item.count > 0 && <span style={{ position: 'absolute', top: -3, right: -3, minWidth: 14, height: 14, background: item.color, color: '#fff', borderRadius: 7, fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.count}</span>}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
+                <div style={{ fontSize: 10.5, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</div>
+              </div>
+              <ChevronRight size={13} color="var(--muted)" />
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  // Cards variant
+  const rowH = 70
+  const visibleN = rowsThatFit(height - 50, rowH)
+  return (
+    <div style={{ ...fill, gap: 6, justifyContent: 'flex-start' }}>
+      {items.slice(0, visibleN).map((item, i) => {
+        const Icon = item.icon
+        return (
+          <button key={i} onClick={item.onClick}
+            style={{
+              background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10,
+              padding: 10, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+              textAlign: 'left', fontFamily: FONT_BODY, transition: 'border-color .15s',
+              width: '100%', minWidth: 0,
+            }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = item.color}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+          >
+            <div style={{ width: 34, height: 34, borderRadius: 9, background: `${item.color}15`, border: `1px solid ${item.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
+              <Icon size={15} color={item.color} strokeWidth={2} />
+              {item.count > 0 && <span style={{ position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, background: item.color, color: '#fff', borderRadius: 8, fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg2)' }}>{item.count}</span>}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 1, fontFamily: FONT_DISPLAY, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
+              <div style={{ fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</div>
+            </div>
+            <ArrowRight size={12} color="var(--muted)" style={{ flexShrink: 0 }} />
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -714,46 +725,49 @@ function QuickActionsWidget({ variant }) {
     )
   }
 
-  const headerH = height > 80 ? 24 : 0
-  const bodyH = height - headerH
-  // Approx button: 32px tall with ~150px wide. Compute how many rows of buttons fit.
+  const bodyH = height - 50
   const btnH = 32
   const rows = Math.max(1, Math.floor(bodyH / (btnH + 6)))
-  // Per-row capacity by width (avg button width ~140 + gap 6)
   const perRow = Math.max(1, Math.floor((width + 6) / 146))
   const maxVisible = Math.max(1, rows * perRow)
   const visible = actions.slice(0, maxVisible)
   const overflow = actions.length - visible.length
 
   return (
-    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 6, height: '100%', minHeight: 0 }}>
-      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Acciones rápidas</div>}
-      <div style={{ ...fill, flexDirection: 'row', gap: 6, flexWrap: 'wrap', alignContent: 'flex-start', overflow: 'hidden' }}>
-        {visible.map((a, i) => {
-          const Icon = a.icon
-          return (
-            <button key={i} onClick={() => navigate(a.path)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 7,
-                background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 9,
-                padding: '7px 12px', cursor: 'pointer', fontFamily: FONT_BODY,
-                transition: 'border-color .15s, transform .15s', fontSize: 12, fontWeight: 500, color: 'var(--text)',
-                whiteSpace: 'nowrap', flexShrink: 0,
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = a.color; e.currentTarget.style.transform = 'translateY(-1px)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none' }}
-            >
-              <Icon size={13} color={a.color} strokeWidth={2} />
-              {a.label}
-            </button>
-          )
-        })}
-        {overflow > 0 && (
-          <span style={{ alignSelf: 'center', fontSize: 11, color: 'var(--muted)', padding: '0 4px' }}>
-            +{overflow}
-          </span>
-        )}
-      </div>
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title="Acciones rápidas"
+        icon={Zap}
+        accent={PURPLE}
+        description="Atajos a las funciones que más usas en la plataforma."
+      >
+        <div style={{ ...fill, flexDirection: 'row', gap: 6, flexWrap: 'wrap', alignContent: 'flex-start', overflow: 'hidden' }}>
+          {visible.map((a, i) => {
+            const Icon = a.icon
+            return (
+              <button key={i} onClick={() => navigate(a.path)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 7,
+                  background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 9,
+                  padding: '7px 12px', cursor: 'pointer', fontFamily: FONT_BODY,
+                  transition: 'border-color .15s, transform .15s', fontSize: 12, fontWeight: 500, color: 'var(--text)',
+                  whiteSpace: 'nowrap', flexShrink: 0,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = a.color; e.currentTarget.style.transform = 'translateY(-1px)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none' }}
+              >
+                <Icon size={13} color={a.color} strokeWidth={2} />
+                {a.label}
+              </button>
+            )
+          })}
+          {overflow > 0 && (
+            <span style={{ alignSelf: 'center', fontSize: 11, color: 'var(--muted)', padding: '0 4px' }}>
+              +{overflow}
+            </span>
+          )}
+        </div>
+      </WidgetFrame>
     </div>
   )
 }
@@ -781,37 +795,42 @@ function ActivityFeedWidget({ data }) {
     }
   })
 
-  if (activities.length === 0) {
-    return (
-      <div ref={ref} style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>
-        Sin actividad reciente
-      </div>
-    )
-  }
-
+  const isLoading = data.loading && activities.length === 0
+  const isEmpty = !isLoading && activities.length === 0
   const rowH = 44
-  const headerH = height > 90 ? 22 : 0
-  const visibleN = rowsThatFit(height - headerH, rowH)
+  const visibleN = rowsThatFit(height - 50, rowH)
 
   return (
-    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 4, height: '100%', minHeight: 0 }}>
-      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4, fontFamily: FONT_DISPLAY }}>Actividad reciente</div>}
-      <div style={{ ...fill, justifyContent: 'flex-start' }}>
-        {activities.slice(0, visibleN).map((a, i) => (
-          <div key={i} style={{ display: 'flex', gap: 8, padding: '7px 0', borderBottom: i < Math.min(visibleN, activities.length) - 1 ? '1px solid var(--border)' : 'none', minWidth: 0 }}>
-            <div style={{ width: 7, height: 7, borderRadius: 4, background: a.color, marginTop: 5, flexShrink: 0 }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</div>
-              <div style={{ fontSize: 10.5, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.msg}</div>
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title="Actividad reciente"
+        icon={Clock}
+        accent={BLUE}
+        description="Timeline de cambios en tus campañas: nuevas, publicadas, completadas, canceladas."
+        loading={isLoading}
+        empty={isEmpty ? {
+          illustration: <IllustrationNoData accent={BLUE} size={52} />,
+          title: 'Sin actividad reciente',
+          description: 'Cuando lances o gestiones campañas verás aquí los eventos.',
+        } : null}
+      >
+        <div style={{ ...fill, justifyContent: 'flex-start' }}>
+          {activities.slice(0, visibleN).map((a, i) => (
+            <div key={i} style={{ display: 'flex', gap: 8, padding: '7px 0', borderBottom: i < Math.min(visibleN, activities.length) - 1 ? '1px solid var(--border)' : 'none', minWidth: 0 }}>
+              <div style={{ width: 7, height: 7, borderRadius: 4, background: a.color, marginTop: 5, flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</div>
+                <div style={{ fontSize: 10.5, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.msg}</div>
+              </div>
+              {a.time && (
+                <span style={{ fontSize: 10, color: 'var(--muted2)', flexShrink: 0 }}>
+                  {new Date(a.time).toLocaleDateString('es', { day: 'numeric', month: 'short' })}
+                </span>
+              )}
             </div>
-            {a.time && (
-              <span style={{ fontSize: 10, color: 'var(--muted2)', flexShrink: 0 }}>
-                {new Date(a.time).toLocaleDateString('es', { day: 'numeric', month: 'short' })}
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </WidgetFrame>
     </div>
   )
 }
@@ -833,40 +852,44 @@ function TopChannelsWidget({ data, variant }) {
     channelMap[name].count++
   })
   const channels = Object.values(channelMap).sort((a, b) => b.views - a.views)
-
-  if (channels.length === 0) {
-    return (
-      <div ref={ref} style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>
-        Sin datos de canales
-      </div>
-    )
-  }
-
+  const isLoading = data.loading && channels.length === 0
+  const isEmpty = !isLoading && channels.length === 0
   const rowH = 38
-  const headerH = height > 90 ? 22 : 0
-  const visibleN = rowsThatFit(height - headerH, rowH)
+  const visibleN = rowsThatFit(height - 50, rowH)
   const showSecondary = variant !== 'compact' && width > 200
 
   return (
-    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 4, height: '100%', minHeight: 0 }}>
-      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4, fontFamily: FONT_DISPLAY }}>Top canales</div>}
-      <div style={{ ...fill, justifyContent: 'flex-start' }}>
-        {channels.slice(0, visibleN).map((ch, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: i < Math.min(visibleN, channels.length) - 1 ? '1px solid var(--border)' : 'none', minWidth: 0 }}>
-            <div style={{ width: 24, height: 24, borderRadius: 7, background: pa(0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: PURPLE, flexShrink: 0 }}>
-              {i + 1}
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title="Top canales"
+        icon={Users}
+        accent={PURPLE}
+        description="Los canales con más vistas acumuladas en tus campañas."
+        loading={isLoading}
+        empty={isEmpty ? {
+          illustration: <IllustrationNoData accent={PURPLE} size={52} />,
+          title: 'Sin datos de canales',
+          description: 'Cuando tus campañas empiecen a recibir vistas verás aquí los mejores canales.',
+        } : null}
+      >
+        <div style={{ ...fill, justifyContent: 'flex-start' }}>
+          {channels.slice(0, visibleN).map((ch, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: i < Math.min(visibleN, channels.length) - 1 ? '1px solid var(--border)' : 'none', minWidth: 0 }}>
+              <div style={{ width: 24, height: 24, borderRadius: 7, background: pa(0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: PURPLE, flexShrink: 0 }}>
+                {i + 1}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ch.name}</div>
+                {showSecondary && <div style={{ fontSize: 10.5, color: 'var(--muted)' }}>{ch.count} campaña{ch.count !== 1 ? 's' : ''}</div>}
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)' }}>{ch.views.toLocaleString('es')}</div>
+                {showSecondary && <div style={{ fontSize: 10.5, color: 'var(--muted)' }}>€{ch.spent}</div>}
+              </div>
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ch.name}</div>
-              {showSecondary && <div style={{ fontSize: 10.5, color: 'var(--muted)' }}>{ch.count} campaña{ch.count !== 1 ? 's' : ''}</div>}
-            </div>
-            <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)' }}>{ch.views.toLocaleString('es')}</div>
-              {showSecondary && <div style={{ fontSize: 10.5, color: 'var(--muted)' }}>€{ch.spent}</div>}
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </WidgetFrame>
     </div>
   )
 }
@@ -887,20 +910,13 @@ function BudgetDonutWidget({ data }) {
   const entries = Object.entries(statusBuckets).filter(([, v]) => v > 0)
   const total = entries.reduce((s, [, v]) => s + v, 0)
 
-  if (total === 0) {
-    return (
-      <div ref={ref} style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13 }}>
-        Sin datos de presupuesto
-      </div>
-    )
-  }
-
+  const isLoading = data.loading && total === 0
+  const isEmpty = !isLoading && total === 0
   const colors = [PURPLE, OK, BLUE, WARN, ERR, '#ec4899', '#06b6d4']
-  const headerH = height > 130 ? 22 : 0
   const isHorizontal = width > height + 40
   const size = Math.min(
-    isHorizontal ? height - headerH - 16 : width - 16,
-    isHorizontal ? width / 2 - 16 : height - headerH - 60,
+    isHorizontal ? height - 60 : width - 16,
+    isHorizontal ? width / 2 - 16 : height - 110,
     150,
   )
   const safeSize = Math.max(60, size)
@@ -908,54 +924,65 @@ function BudgetDonutWidget({ data }) {
   const r = (safeSize - strokeW) / 2
   const circ = 2 * Math.PI * r
   let offset = 0
-
   const showLegend = (isHorizontal ? width > 220 : height > 180)
 
   return (
-    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 6, height: '100%', minHeight: 0 }}>
-      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Distribución</div>}
-      <div style={{
-        ...fill,
-        flexDirection: isHorizontal ? 'row' : 'column',
-        alignItems: 'center', justifyContent: 'center', gap: 14, minHeight: 0,
-      }}>
-        <svg width={safeSize} height={safeSize} style={{ flexShrink: 0 }}>
-          {entries.map(([key, val], i) => {
-            const pct = val / total
-            const dash = circ * pct
-            const gap = circ - dash
-            const rot = offset
-            offset += pct * 360
-            return (
-              <circle key={key} cx={safeSize / 2} cy={safeSize / 2} r={r}
-                fill="none" stroke={colors[i % colors.length]} strokeWidth={strokeW}
-                strokeDasharray={`${dash} ${gap}`}
-                strokeDashoffset={0}
-                transform={`rotate(${rot - 90} ${safeSize / 2} ${safeSize / 2})`}
-                strokeLinecap="round"
-              />
-            )
-          })}
-          <text x={safeSize / 2} y={safeSize / 2} textAnchor="middle" dominantBaseline="central"
-            fill="var(--text)" fontSize={Math.round(safeSize / 8)} fontWeight={700} fontFamily={FONT_DISPLAY}>
-            €{total.toLocaleString('es')}
-          </text>
-        </svg>
-        {showLegend && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title="Distribución de presupuesto"
+        icon={DollarSign}
+        accent={PURPLE}
+        description="Cómo se reparte tu gasto por estado de campaña."
+        loading={isLoading}
+        empty={isEmpty ? {
+          illustration: <IllustrationNoData accent={PURPLE} size={52} />,
+          title: 'Sin datos de presupuesto',
+          description: 'Cuando tengas campañas pagadas verás aquí el desglose.',
+        } : null}
+      >
+        <div style={{
+          ...fill,
+          flexDirection: isHorizontal ? 'row' : 'column',
+          alignItems: 'center', justifyContent: 'center', gap: 14, minHeight: 0,
+        }}>
+          <svg width={safeSize} height={safeSize} style={{ flexShrink: 0 }}>
             {entries.map(([key, val], i) => {
-              const label = STATUS_CFG[key]?.label || key
+              const pct = val / total
+              const dash = circ * pct
+              const gap = circ - dash
+              const rot = offset
+              offset += pct * 360
               return (
-                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: 2, background: colors[i % colors.length], flexShrink: 0 }} />
-                  <span style={{ fontSize: 11, color: 'var(--muted)' }}>{label}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)' }}>€{val}</span>
-                </div>
+                <circle key={key} cx={safeSize / 2} cy={safeSize / 2} r={r}
+                  fill="none" stroke={colors[i % colors.length]} strokeWidth={strokeW}
+                  strokeDasharray={`${dash} ${gap}`}
+                  strokeDashoffset={0}
+                  transform={`rotate(${rot - 90} ${safeSize / 2} ${safeSize / 2})`}
+                  strokeLinecap="round"
+                />
               )
             })}
-          </div>
-        )}
-      </div>
+            <text x={safeSize / 2} y={safeSize / 2} textAnchor="middle" dominantBaseline="central"
+              fill="var(--text)" fontSize={Math.round(safeSize / 8)} fontWeight={700} fontFamily={FONT_DISPLAY}>
+              €{total.toLocaleString('es')}
+            </text>
+          </svg>
+          {showLegend && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+              {entries.map(([key, val], i) => {
+                const label = STATUS_CFG[key]?.label || key
+                return (
+                  <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: 2, background: colors[i % colors.length], flexShrink: 0 }} />
+                    <span style={{ fontSize: 11, color: 'var(--muted)' }}>{label}</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)' }}>€{val}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </WidgetFrame>
     </div>
   )
 }
@@ -974,24 +1001,28 @@ function NotesWidget({ widgetId }) {
     setText(val)
     try { localStorage.setItem(storageKey, val) } catch {}
   }
-  const headerH = height > 90 ? 22 : 0
-
   return (
-    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 6, minHeight: 0 }}>
-      {headerH > 0 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Notas</div>}
-      <textarea
-        value={text}
-        onChange={e => save(e.target.value)}
-        placeholder="Escribe tus notas aquí..."
-        style={{
-          flex: 1, width: '100%', resize: 'none', border: '1px solid var(--border)',
-          borderRadius: 10, padding: 10, fontSize: 13, fontFamily: FONT_BODY,
-          background: 'var(--bg2)', color: 'var(--text)', outline: 'none',
-          lineHeight: 1.5, minHeight: 0,
-        }}
-        onFocus={e => e.currentTarget.style.borderColor = PURPLE}
-        onBlur={e => e.currentTarget.style.borderColor = 'var(--border)'}
-      />
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title="Notas"
+        icon={StickyNote}
+        accent={PURPLE}
+        description="Bloc de notas personal — se guarda automáticamente en este navegador."
+      >
+        <textarea
+          value={text}
+          onChange={e => save(e.target.value)}
+          placeholder="Escribe tus notas aquí..."
+          style={{
+            flex: 1, width: '100%', resize: 'none', border: '1px solid var(--border)',
+            borderRadius: 10, padding: 10, fontSize: 13, fontFamily: FONT_BODY,
+            background: 'var(--bg2)', color: 'var(--text)', outline: 'none',
+            lineHeight: 1.5, minHeight: 0,
+          }}
+          onFocus={e => e.currentTarget.style.borderColor = PURPLE}
+          onBlur={e => e.currentTarget.style.borderColor = 'var(--border)'}
+        />
+      </WidgetFrame>
     </div>
   )
 }
@@ -1034,68 +1065,71 @@ function CampaignCalendarWidget({ data, variant }) {
       return d
     })
     return (
-      <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 6, height: '100%', minHeight: 0 }}>
-        {height > 90 && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>Esta semana</div>}
-        <div style={{ ...fill, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
-          {weekDays.map((d, i) => {
-            const isToday = d.toDateString() === now.toDateString()
-            const hasCampaign = campaigns.some(c => {
-              const cd = new Date(c.createdAt || c.startDate)
-              return cd.toDateString() === d.toDateString()
-            })
-            return (
-              <div key={i} style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
-                padding: 6, borderRadius: 8,
-                background: isToday ? pa(0.1) : 'transparent',
-                border: isToday ? `1px solid ${pa(0.3)}` : '1px solid transparent',
-              }}>
-                <span style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 500 }}>{dayNames[i]}</span>
-                <span style={{ fontSize: 14, fontWeight: isToday ? 700 : 500, color: isToday ? PURPLE : 'var(--text)' }}>{d.getDate()}</span>
-                {hasCampaign && <div style={{ width: 5, height: 5, borderRadius: 3, background: PURPLE }} />}
-              </div>
-            )
-          })}
-        </div>
+      <div ref={ref} style={{ height: '100%' }}>
+        <WidgetFrame title="Esta semana" icon={CalendarDays} accent={PURPLE}
+          description="Vista de los próximos 7 días con tus campañas programadas.">
+          <div style={{ ...fill, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
+            {weekDays.map((d, i) => {
+              const isToday = d.toDateString() === now.toDateString()
+              const hasCampaign = campaigns.some(c => {
+                const cd = new Date(c.createdAt || c.startDate)
+                return cd.toDateString() === d.toDateString()
+              })
+              return (
+                <div key={i} style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
+                  padding: 6, borderRadius: 8,
+                  background: isToday ? pa(0.1) : 'transparent',
+                  border: isToday ? `1px solid ${pa(0.3)}` : '1px solid transparent',
+                }}>
+                  <span style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 500 }}>{dayNames[i]}</span>
+                  <span style={{ fontSize: 14, fontWeight: isToday ? 700 : 500, color: isToday ? PURPLE : 'var(--text)' }}>{d.getDate()}</span>
+                  {hasCampaign && <div style={{ width: 5, height: 5, borderRadius: 3, background: PURPLE }} />}
+                </div>
+              )
+            })}
+          </div>
+        </WidgetFrame>
       </div>
     )
   }
 
   return (
-    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: 6, height: '100%', minHeight: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <button onClick={() => setMonthOffset(o => o - 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 4 }}>
-          <ChevronLeft size={16} />
-        </button>
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: FONT_DISPLAY }}>
-          {monthNames[month]} {year}
-        </span>
-        <button onClick={() => setMonthOffset(o => o + 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 4 }}>
-          <ChevronRight size={16} />
-        </button>
-      </div>
-      <div style={{ ...fill, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridAutoRows: '1fr', gap: 2 }}>
-        {dayNames.map(d => (
-          <div key={d} style={{ fontSize: 10, fontWeight: 600, color: 'var(--muted)', textAlign: 'center', padding: '4px 0' }}>{d}</div>
-        ))}
-        {Array.from({ length: adjustedFirst }).map((_, i) => <div key={`e-${i}`} />)}
-        {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
-          const isToday = day === now.getDate() && month === now.getMonth() && year === now.getFullYear()
-          const hasCampaign = !!campaignDates[day]
-          return (
-            <div key={day} style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              borderRadius: 6, position: 'relative',
-              background: isToday ? pa(0.15) : 'transparent',
-              cursor: hasCampaign ? 'pointer' : 'default',
-              minWidth: 0,
-            }}>
-              <span style={{ fontSize: 11, fontWeight: isToday ? 700 : 400, color: isToday ? PURPLE : 'var(--text)' }}>{day}</span>
-              {hasCampaign && <div style={{ width: 4, height: 4, borderRadius: 2, background: PURPLE, marginTop: 1 }} />}
-            </div>
-          )
-        })}
-      </div>
+    <div ref={ref} style={{ height: '100%' }}>
+      <WidgetFrame
+        title={`${monthNames[month]} ${year}`}
+        icon={CalendarDays}
+        accent={PURPLE}
+        description="Calendario mensual con marcadores en los días que tienen campañas programadas."
+        menuActions={[
+          { label: 'Mes anterior', icon: ChevronLeft, onClick: () => setMonthOffset(o => o - 1) },
+          { label: 'Mes siguiente', icon: ChevronRight, onClick: () => setMonthOffset(o => o + 1) },
+          { label: 'Hoy', icon: CalendarDays, onClick: () => setMonthOffset(0) },
+        ]}
+      >
+        <div style={{ ...fill, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridAutoRows: '1fr', gap: 2 }}>
+          {dayNames.map(d => (
+            <div key={d} style={{ fontSize: 10, fontWeight: 600, color: 'var(--muted)', textAlign: 'center', padding: '4px 0' }}>{d}</div>
+          ))}
+          {Array.from({ length: adjustedFirst }).map((_, i) => <div key={`e-${i}`} />)}
+          {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
+            const isToday = day === now.getDate() && month === now.getMonth() && year === now.getFullYear()
+            const hasCampaign = !!campaignDates[day]
+            return (
+              <div key={day} style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                borderRadius: 6, position: 'relative',
+                background: isToday ? pa(0.15) : 'transparent',
+                cursor: hasCampaign ? 'pointer' : 'default',
+                minWidth: 0,
+              }}>
+                <span style={{ fontSize: 11, fontWeight: isToday ? 700 : 400, color: isToday ? PURPLE : 'var(--text)' }}>{day}</span>
+                {hasCampaign && <div style={{ width: 4, height: 4, borderRadius: 2, background: PURPLE, marginTop: 1 }} />}
+              </div>
+            )
+          })}
+        </div>
+      </WidgetFrame>
     </div>
   )
 }
