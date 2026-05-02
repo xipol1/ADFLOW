@@ -9,10 +9,12 @@ import {
 } from 'lucide-react'
 import { WIDGET_TYPES } from './WidgetRegistry'
 import useWidgetSize, { rowsThatFit } from './useWidgetSize'
+import useSinceLastVisit from '../../../../hooks/useSinceLastVisit'
 import SmartInsights from '../../../../components/SmartInsights'
 import WidgetFrame, {
   IllustrationNoCampaigns, IllustrationNoData, IllustrationAllClear, IllustrationInbox,
 } from '../../../../components/WidgetFrame'
+import CampaignDetailModal from '../../../../components/CampaignDetailModal'
 import { FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE } from '../../../../theme/tokens'
 
 const PURPLE = 'var(--accent, #8B5CF6)'
@@ -397,12 +399,14 @@ const STATUS_CFG = {
   CANCELLED:  { color: ERR,  label: 'Cancelada' },
 }
 
-function CampaignsTableWidget({ data, variant }) {
+function CampaignsTableWidget({ data, variant, widgetId }) {
   const navigate = useNavigate()
+  const [drillDown, setDrillDown] = useState(null)
   const { ref, width, height } = useWidgetSize()
   const campaigns = data.campaigns || []
   const isLoading = data.loading && campaigns.length === 0
   const isEmpty = !isLoading && campaigns.length === 0
+  const { newCount } = useSinceLastVisit(widgetId, campaigns, (c) => c.createdAt)
 
   return (
     <div ref={ref} style={{ height: '100%' }}>
@@ -410,7 +414,8 @@ function CampaignsTableWidget({ data, variant }) {
         title={variant === 'compact' ? 'Campañas' : 'Campañas recientes'}
         icon={Megaphone}
         accent={PURPLE}
-        description="Tus campañas más recientes con vistas, CTR, gasto y estado."
+        description="Tus campañas más recientes con vistas, CTR, gasto y estado. Click en una fila abre el detalle sin salir del dashboard."
+        badge={{ count: newCount, label: newCount === 1 ? 'nueva' : 'nuevas' }}
         loading={isLoading}
         empty={isEmpty ? {
           illustration: <IllustrationNoCampaigns accent={PURPLE} size={52} />,
@@ -423,13 +428,18 @@ function CampaignsTableWidget({ data, variant }) {
         } : null}
         compact={height < 130}
       >
-        <CampaignsTableBody campaigns={campaigns} variant={variant} width={width} height={height} navigate={navigate} />
+        <CampaignsTableBody campaigns={campaigns} variant={variant} width={width} height={height}
+          onRowClick={(c) => setDrillDown(c)} navigate={navigate} />
       </WidgetFrame>
+      {drillDown && (
+        <CampaignDetailModal campaign={drillDown} onClose={() => setDrillDown(null)} navigate={navigate} />
+      )}
     </div>
   )
 }
 
-function CampaignsTableBody({ campaigns, variant, width, height, navigate }) {
+function CampaignsTableBody({ campaigns, variant, width, height, navigate, onRowClick }) {
+  const handleClick = onRowClick || (() => navigate('/advertiser/campaigns'))
   // ── Cards variant ──────────────────────────────────────────────────────────
   if (variant === 'cards') {
     const cardH = 76
@@ -448,7 +458,7 @@ function CampaignsTableBody({ campaigns, variant, width, height, navigate }) {
             const views = ad.tracking?.impressions || ad.views || 0
             return (
               <div key={ad.id || ad._id}
-                onClick={() => navigate('/advertiser/campaigns')}
+                onClick={() => handleClick(ad)}
                 style={{
                   background: 'var(--bg2)', borderRadius: 10, padding: 12, cursor: 'pointer',
                   border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6, minHeight: 0,
@@ -489,7 +499,7 @@ function CampaignsTableBody({ campaigns, variant, width, height, navigate }) {
           const st = STATUS_CFG[ad.status] || { color: '#94a3b8', label: ad.status }
           return (
             <div key={ad.id || ad._id}
-              onClick={() => navigate('/advertiser/campaigns')}
+              onClick={() => handleClick(ad)}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                 padding: '7px 0', borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none',
@@ -536,7 +546,7 @@ function CampaignsTableBody({ campaigns, variant, width, height, navigate }) {
         const spent = ad.price || ad.spent || ad.budget || 0
         return (
           <div key={ad.id || ad._id}
-            onClick={() => navigate('/advertiser/campaigns')}
+            onClick={() => handleClick(ad)}
             style={{
               display: 'grid',
               gridTemplateColumns: showAllCols ? '1fr 60px 50px 60px 70px' : showCols ? '1fr 60px 70px' : '1fr 70px',
@@ -776,7 +786,7 @@ function QuickActionsWidget({ variant }) {
 // ACTIVITY FEED WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function ActivityFeedWidget({ data }) {
+function ActivityFeedWidget({ data, widgetId }) {
   const { ref, height } = useWidgetSize()
   const campaigns = data.campaigns || []
   const activities = campaigns.map(c => {
@@ -795,6 +805,7 @@ function ActivityFeedWidget({ data }) {
     }
   })
 
+  const { newCount } = useSinceLastVisit(widgetId, activities, (a) => a.time)
   const isLoading = data.loading && activities.length === 0
   const isEmpty = !isLoading && activities.length === 0
   const rowH = 44
@@ -806,7 +817,8 @@ function ActivityFeedWidget({ data }) {
         title="Actividad reciente"
         icon={Clock}
         accent={BLUE}
-        description="Timeline de cambios en tus campañas: nuevas, publicadas, completadas, canceladas."
+        description="Timeline de cambios en tus campañas. El badge te avisa de cuántos eventos son posteriores a tu última visita."
+        badge={{ count: newCount }}
         loading={isLoading}
         empty={isEmpty ? {
           illustration: <IllustrationNoData accent={BLUE} size={52} />,

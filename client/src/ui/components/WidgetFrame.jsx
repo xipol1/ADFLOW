@@ -39,6 +39,9 @@ import { FONT_BODY, FONT_DISPLAY } from '../theme/tokens'
  *   children      widget body
  *   compact       reduces header height (default false)
  *   hideHeader    true → no header at all (compact KPI cards) (default false)
+ *   badge         { count, label?, tone? } — small pill rendered next to the
+ *                 title, e.g. { count: 3, label: 'nuevos', tone: 'accent' }
+ *                 The count is the source of truth; nothing renders if 0.
  */
 export default function WidgetFrame({
   title,
@@ -54,6 +57,7 @@ export default function WidgetFrame({
   children,
   compact = false,
   hideHeader = false,
+  badge,
 }) {
   const [tooltipOpen, setTooltipOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -104,10 +108,31 @@ export default function WidgetFrame({
             letterSpacing: '-0.02em',
             margin: 0,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            minWidth: 0, flex: 1,
+            minWidth: 0,
+            flex: badge?.count > 0 ? '0 1 auto' : 1,
           }}>
             {title}
           </h3>
+
+          {/* "+N nuevos" pill — Hootsuite-beating "since last visit" baseline */}
+          {badge?.count > 0 && (
+            <span style={{
+              flexShrink: 0,
+              fontSize: compact ? 10 : 10.5,
+              fontWeight: 700,
+              color: '#fff',
+              background: accent,
+              borderRadius: 20,
+              padding: compact ? '1px 7px' : '2px 8px',
+              letterSpacing: '0.02em',
+              animation: 'wfBadgePop .25s ease',
+              boxShadow: `0 1px 4px ${accent}55`,
+            }}>
+              <style>{`@keyframes wfBadgePop { from { opacity:0; transform: scale(0.7) } to { opacity:1; transform: scale(1) } }`}</style>
+              +{badge.count} {badge.label || 'nuevos'}
+            </span>
+          )}
+          {badge?.count > 0 && <div style={{ flex: 1, minWidth: 0 }} />}
 
           {/* `i` info tooltip — Grafana/Datadog convention */}
           {description && (

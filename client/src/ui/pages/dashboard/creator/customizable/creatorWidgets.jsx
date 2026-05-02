@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { WIDGET_TYPES } from './CreatorWidgetRegistry'
 import useWidgetSize, { rowsThatFit } from '../../advertiser/customizable/useWidgetSize'
+import useSinceLastVisit from '../../../../hooks/useSinceLastVisit'
 import WidgetFrame, {
   IllustrationNoChannels, IllustrationNoCampaigns, IllustrationNoData,
   IllustrationAllClear, IllustrationInbox,
@@ -269,10 +270,11 @@ const STATUS_CFG = {
   DRAFT:      { color: WARN, label: 'Borrador'   },
 }
 
-function RequestsTableWidget({ data, variant }) {
+function RequestsTableWidget({ data, variant, widgetId }) {
   const navigate = useNavigate()
   const { ref, height } = useWidgetSize()
   const requests = data.requests || []
+  const { newCount } = useSinceLastVisit(widgetId, requests, (r) => r.createdAt || r.updatedAt)
   const isLoading = data.loading && requests.length === 0
   const isEmpty = !isLoading && requests.length === 0
   const rowH = 38
@@ -285,7 +287,8 @@ function RequestsTableWidget({ data, variant }) {
         title="Solicitudes recientes"
         icon={Inbox}
         accent={WARN}
-        description="Propuestas de anunciantes esperando tu respuesta."
+        description="Propuestas de anunciantes esperando tu respuesta. El badge cuenta las nuevas desde tu última visita."
+        badge={{ count: newCount, label: newCount === 1 ? 'nueva' : 'nuevas' }}
         loading={isLoading}
         empty={isEmpty ? {
           illustration: <IllustrationInbox accent={WARN} size={52} />,
@@ -520,7 +523,7 @@ function ActionItemsWidget({ data, variant }) {
   )
 }
 
-function ActivityFeedWidget({ data }) {
+function ActivityFeedWidget({ data, widgetId }) {
   const { ref, height } = useWidgetSize()
   const campaigns = data.creatorCampaigns || []
   const activities = campaigns.map(c => ({
@@ -529,6 +532,7 @@ function ActivityFeedWidget({ data }) {
     time: c.updatedAt || c.createdAt,
     color: (STATUS_CFG[c.status] || {}).color || '#94a3b8',
   }))
+  const { newCount } = useSinceLastVisit(widgetId, activities, (a) => a.time)
   const isLoading = data.loading && activities.length === 0
   const isEmpty = !isLoading && activities.length === 0
   const rowH = 44
@@ -540,7 +544,8 @@ function ActivityFeedWidget({ data }) {
         title="Actividad reciente"
         icon={Clock}
         accent={BLUE}
-        description="Timeline de campañas activas en tus canales y pagos liberados."
+        description="Timeline de campañas activas en tus canales y pagos liberados. El badge muestra los eventos posteriores a tu última visita."
+        badge={{ count: newCount }}
         loading={isLoading}
         empty={isEmpty ? {
           illustration: <IllustrationNoData accent={BLUE} size={52} />,
