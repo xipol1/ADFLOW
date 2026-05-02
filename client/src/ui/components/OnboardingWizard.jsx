@@ -3,11 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import {
   Zap, Search, Radio, Wallet, CheckCircle, ArrowRight,
   ArrowLeft, X, Megaphone, BarChart3, Users, Inbox,
+  Building2, FileSpreadsheet, Briefcase, FileText,
 } from 'lucide-react'
 import { PURPLE, purpleAlpha, GREEN, greenAlpha, FONT_BODY, FONT_DISPLAY } from '../theme/tokens'
 
-// ── Step definitions per role ─────────────────────────────────────────────────
+// ── Step definitions per audience ─────────────────────────────────────────────
+//
+// Audience key is composed as `${role}:${tipoPerfil}` if tipoPerfil is known,
+// falling back to plain `${role}`. This lets us tailor copy and CTAs to e.g.
+// agencies (multi-client billing, bulk launcher) vs individual advertisers
+// (auto-buy, single campaign flow), or future creator subtypes.
 const STEPS = {
+  // Default advertiser flow (used when tipoPerfil is missing or "individual")
   advertiser: [
     {
       title: 'Bienvenido a ChannelAd',
@@ -40,6 +47,43 @@ const STEPS = {
       desc: 'Tu cuenta esta configurada. Explora el marketplace y lanza tu primera campana. Estamos aqui para ayudarte.',
       icon: CheckCircle,
       tip: 'Usa Cmd+K para navegar rapidamente',
+    },
+  ],
+  // Agency advertiser flow — focus on multi-client and bulk operations
+  'advertiser:agencia': [
+    {
+      title: 'Bienvenida, agencia',
+      desc: 'ChannelAd está pensado para agencias: gestiona campañas de varios clientes desde un mismo panel, con facturación consolidada y reportes para cada uno.',
+      icon: Building2,
+      tip: 'Una cuenta, todos tus clientes',
+    },
+    {
+      title: 'Lanza campañas en bulk',
+      desc: 'Sube un CSV o duplica una plantilla para crear decenas de campañas a la vez en distintos canales y categorías. Ahorra horas en operación.',
+      icon: FileSpreadsheet,
+      tip: 'Bulk Launcher reduce trabajo repetitivo',
+      action: { label: 'Probar Bulk Launcher', path: '/advertiser/campaigns/bulk' },
+    },
+    {
+      title: 'Compara y elige los mejores canales',
+      desc: 'Usa Comparar canales, Lookalike y Watchlist para encontrar canales por categoría, audiencia y CPM. Auditoría bulk te valida hasta 100 a la vez.',
+      icon: Search,
+      tip: 'Auditoría bulk te ahorra trabajo manual',
+      action: { label: 'Comparar canales', path: '/advertiser/analyze/compare' },
+    },
+    {
+      title: 'Reportes por cliente',
+      desc: 'Configura vistas de dashboard y plantillas de reporte por cliente. Exporta resultados para enviar mensualmente. Toda factura contra tu razón social.',
+      icon: FileText,
+      tip: 'Una vista de dashboard por cliente',
+      action: { label: 'Configurar dashboards', path: '/advertiser' },
+    },
+    {
+      title: 'Listo para escalar',
+      desc: 'Tu cuenta de agencia está activa. Lanza tu primera campaña multi-canal o configura tracking de conversiones para medir ROI real.',
+      icon: CheckCircle,
+      tip: 'Configura tracking de conversiones para reporting cerrado',
+      action: { label: 'Configurar tracking', path: '/advertiser/tracking-setup' },
     },
   ],
   creator: [
@@ -75,24 +119,66 @@ const STEPS = {
       tip: 'Usa Cmd+K para navegar rapidamente',
     },
   ],
+  // Agency creator flow — managing channels of multiple clients
+  'creator:agencia': [
+    {
+      title: 'Bienvenida, agencia de creadores',
+      desc: 'Gestiona los canales de varios creadores desde un único panel. Recibe propuestas, negocia precios y centraliza los pagos a tu razón social.',
+      icon: Briefcase,
+      tip: 'Multi-cliente, una sola cuenta',
+    },
+    {
+      title: 'Registra los canales de tus clientes',
+      desc: 'Da de alta los canales que gestionas. Cada uno con su propia disponibilidad, precio y categoría — pero todo bajo tu cuenta.',
+      icon: Radio,
+      tip: 'Configura precios diferenciados por cliente',
+      action: { label: 'Registrar canal', path: '/creator/channels/new' },
+    },
+    {
+      title: 'Optimiza precios con datos',
+      desc: 'Pricing Optimizer analiza canales similares al tuyo y sugiere precios CPM óptimos. Especialmente útil cuando gestionas un portafolio amplio.',
+      icon: BarChart3,
+      tip: 'Re-evalúa precios cada mes',
+      action: { label: 'Ver Pricing Optimizer', path: '/creator/pricing' },
+    },
+    {
+      title: 'Cobra y reparte de forma segura',
+      desc: 'Todos los pagos pasan por escrow. Recibes los fondos en tu cuenta y luego liquidas a tus clientes según tu acuerdo. Facturación consolidada.',
+      icon: Wallet,
+      tip: 'Escrow protege todas las partes',
+    },
+    {
+      title: 'Listo para gestionar tu portafolio',
+      desc: 'Tu cuenta de agencia está activa. Empieza registrando los canales de tu cliente más activo.',
+      icon: CheckCircle,
+      tip: 'Usa Cmd+K para navegar rapidamente',
+    },
+  ],
 }
 
-function getStorageKey(role) {
-  return `channelad-onboarding-${role}-done`
+function getAudienceKey(role, tipoPerfil) {
+  const subtype = tipoPerfil === 'agencia' ? ':agencia' : ''
+  return `${role}${subtype}`
+}
+
+function getStorageKey(role, tipoPerfil) {
+  return `channelad-onboarding-${getAudienceKey(role, tipoPerfil)}-done`
 }
 
 /**
  * OnboardingWizard — Full-screen onboarding modal for new users.
  *
  * Props:
- *   role     — 'advertiser' | 'creator'
- *   onClose  — callback when wizard is dismissed
+ *   role         — 'advertiser' | 'creator'
+ *   tipoPerfil   — 'individual' | 'agencia' (optional, picks the agency flow)
+ *   onClose      — callback when wizard is dismissed
  */
-export default function OnboardingWizard({ role = 'advertiser', onClose }) {
+export default function OnboardingWizard({ role = 'advertiser', tipoPerfil, onClose }) {
   const [step, setStep] = useState(0)
   const navigate = useNavigate()
 
-  const steps = STEPS[role] || STEPS.advertiser
+  const audienceKey = getAudienceKey(role, tipoPerfil)
+  const steps = STEPS[audienceKey] || STEPS[role] || STEPS.advertiser
   const accent = role === 'creator' ? GREEN : PURPLE
   const alpha = role === 'creator' ? greenAlpha : purpleAlpha
   const current = steps[step]
@@ -100,12 +186,12 @@ export default function OnboardingWizard({ role = 'advertiser', onClose }) {
   const Icon = current.icon
 
   const handleFinish = () => {
-    localStorage.setItem(getStorageKey(role), 'true')
+    localStorage.setItem(getStorageKey(role, tipoPerfil), 'true')
     onClose?.()
   }
 
   const handleSkip = () => {
-    localStorage.setItem(getStorageKey(role), 'true')
+    localStorage.setItem(getStorageKey(role, tipoPerfil), 'true')
     onClose?.()
   }
 
@@ -298,11 +384,11 @@ export default function OnboardingWizard({ role = 'advertiser', onClose }) {
 }
 
 /** Helper to check if onboarding should show */
-export function shouldShowOnboarding(role) {
-  return !localStorage.getItem(getStorageKey(role))
+export function shouldShowOnboarding(role, tipoPerfil) {
+  return !localStorage.getItem(getStorageKey(role, tipoPerfil))
 }
 
 /** Helper to clear the dismissal so the wizard reopens. */
-export function resetOnboarding(role) {
-  localStorage.removeItem(getStorageKey(role))
+export function resetOnboarding(role, tipoPerfil) {
+  localStorage.removeItem(getStorageKey(role, tipoPerfil))
 }

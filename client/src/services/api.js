@@ -1364,6 +1364,17 @@ class ApiService {
     });
   }
 
+  async getAttributionSettings() {
+    return this.request('/dashboard/attribution');
+  }
+
+  async setAttributionSettings(payload) {
+    return this.request('/dashboard/attribution', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
   // ==========================================
   // INBOX (unified action center)
   // ==========================================

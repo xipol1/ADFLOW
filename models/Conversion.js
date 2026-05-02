@@ -57,6 +57,22 @@ const ConversionSchema = new mongoose.Schema(
     userAgent: { type: String, default: '' },
     referer:   { type: String, default: '' },
 
+    // Visitor uid copied from the click that triggered this conversion.
+    // The attribution service fans the value across other clicks of this
+    // same uid in the lookback window when computing multi-touch ROI.
+    uid: { type: String, default: null, index: true, sparse: true },
+
+    // Cached multi-touch attribution result (filled by attributionService
+    // on first ROI computation, recomputed when model changes).
+    //   model      'last_touch' | 'linear' | 'time_decay'
+    //   touches    [{ clickId, campaignId, weight, ts }]   sums to 1.0
+    //   computedAt Date the attribution was last calculated
+    attribution: {
+      model:      { type: String, enum: ['last_touch', 'linear', 'time_decay'], default: 'last_touch' },
+      touches:    { type: [{ clickId: String, campaignId: mongoose.Schema.Types.ObjectId, weight: Number, ts: Date }], default: [] },
+      computedAt: { type: Date, default: null },
+    },
+
     // Free-form metadata: product names, customer email hash, etc.
     metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
 

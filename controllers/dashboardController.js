@@ -166,9 +166,66 @@ const setActiveView = async (req, res) => {
   }
 };
 
+// ─── PUT attribution settings (multi-touch model + lookback) ─────────────────
+const VALID_MODELS = ['last_touch', 'linear', 'time_decay'];
+const setAttributionSettings = async (req, res) => {
+  try {
+    if (!database.estaConectado()) await database.conectar();
+    const { model, lookbackDays } = req.body || {};
+    const user = await Usuario.findById(req.usuario.id);
+    if (!user) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+
+    if (model !== undefined) {
+      if (!VALID_MODELS.includes(model)) {
+        return res.status(400).json({ success: false, message: `model debe ser uno de ${VALID_MODELS.join(', ')}` });
+      }
+      user.attributionModel = model;
+    }
+    if (lookbackDays !== undefined) {
+      const n = Number(lookbackDays);
+      if (!Number.isFinite(n) || n < 1 || n > 90) {
+        return res.status(400).json({ success: false, message: 'lookbackDays debe estar entre 1 y 90' });
+      }
+      user.attributionLookbackDays = n;
+    }
+
+    await user.save();
+    return res.json({
+      success: true,
+      data: {
+        attributionModel: user.attributionModel,
+        attributionLookbackDays: user.attributionLookbackDays,
+      },
+    });
+  } catch (e) {
+    console.error('dashboardController.setAttributionSettings failed:', e);
+    return res.status(500).json({ success: false, message: 'Error interno' });
+  }
+};
+
+const getAttributionSettings = async (req, res) => {
+  try {
+    if (!database.estaConectado()) await database.conectar();
+    const user = await Usuario.findById(req.usuario.id).select('attributionModel attributionLookbackDays');
+    if (!user) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    return res.json({
+      success: true,
+      data: {
+        attributionModel: user.attributionModel || 'last_touch',
+        attributionLookbackDays: user.attributionLookbackDays || 30,
+      },
+    });
+  } catch (e) {
+    console.error('dashboardController.getAttributionSettings failed:', e);
+    return res.status(500).json({ success: false, message: 'Error interno' });
+  }
+};
+
 module.exports = {
   getViews,
   saveViews,
   updateView,
   setActiveView,
+  setAttributionSettings,
+  getAttributionSettings,
 };

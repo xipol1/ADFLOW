@@ -93,11 +93,10 @@ async function computeAdvertiserROI(advertiserId, options = {}) {
   const filter = { advertiser: aId, status: 'confirmed' };
   if (sinceDays) filter.createdAt = { $gte: new Date(Date.now() - sinceDays * 86400000) };
 
-  const [agg, refundsAgg, campaigns] = await Promise.all([
-    Conversion.aggregate([
-      { $match: filter },
-      { $group: { _id: '$campaign', revenue: { $sum: '$value' }, count: { $sum: 1 } } },
-    ]),
+  const Usuario = require('../models/Usuario');
+
+  const [conversions, refundsAgg, campaigns, user] = await Promise.all([
+    Conversion.find(filter).select('campaign value uid').lean(),
     Conversion.aggregate([
       { $match: { advertiser: aId, status: 'refunded' } },
       { $group: { _id: null, total: { $sum: '$refundedValue' } } },
@@ -105,10 +104,27 @@ async function computeAdvertiserROI(advertiserId, options = {}) {
     Campaign.find({ advertiser: advertiserId, status: { $nin: ['DRAFT', 'CANCELLED'] } })
       .select('price status')
       .lean(),
+    Usuario.findById(advertiserId).select('attributionModel attributionLookbackDays').lean(),
   ]);
 
-  const totalRevenue = agg.reduce((s, x) => s + (x.revenue || 0), 0) - (refundsAgg[0]?.total || 0);
-  const totalConversions = agg.reduce((s, x) => s + (x.count || 0), 0);
+  const model = user?.attributionModel || 'last_touch';
+  const lookbackDays = user?.attributionLookbackDays || 30;
+
+  // For non-last-touch models, fan revenue across all clicks of the same uid.
+  let totalRevenue = 0;
+  if (model === 'last_touch') {
+    totalRevenue = conversions.reduce((s, c) => s + (c.value || 0), 0);
+  } else {
+    const attributionService = require('./attributionService');
+    const credits = await attributionService.attributeConversions({
+      conversions, advertiserId, model, lookbackDays,
+    });
+    // credits is a Map<campaignId, attributedRevenue>; sum to advertiser total
+    for (const v of credits.values()) totalRevenue += v;
+  }
+  totalRevenue -= (refundsAgg[0]?.total || 0);
+
+  const totalConversions = conversions.length;
   const totalSpend = campaigns.reduce((s, c) => s + (c.price || 0), 0);
 
   const roi = totalSpend > 0 ? ((totalRevenue - totalSpend) / totalSpend) * 100 : 0;
@@ -122,6 +138,8 @@ async function computeAdvertiserROI(advertiserId, options = {}) {
     roi: Number(roi.toFixed(2)),
     roas: Number(roas.toFixed(2)),
     hasRealData: totalConversions > 0,
+    attributionModel: model,
+    attributionLookbackDays: lookbackDays,
   };
 }
 

@@ -146,6 +146,19 @@ const UsuarioSchema = new mongoose.Schema(
       default: [],
     },
     dashboardActiveViewId: { type: String, default: null },
+
+    // Multi-touch attribution preference. Drives roiService when computing
+    // revenue per campaign:
+    //   last_touch — 100% credit to the click immediately before conversion (default)
+    //   linear     — equal credit across every click in the lookback window
+    //   time_decay — exponentially weight recent clicks higher
+    attributionModel: {
+      type: String,
+      enum: ['last_touch', 'linear', 'time_decay'],
+      default: 'last_touch',
+    },
+    // Lookback window in days for multi-touch fan-out (default 30).
+    attributionLookbackDays: { type: Number, default: 30, min: 1, max: 90 },
   },
   { timestamps: true }
 );

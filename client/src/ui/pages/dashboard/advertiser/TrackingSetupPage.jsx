@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
-import { Code, Copy, Check, Server, Image as ImageIcon, Info, Zap, AlertCircle } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Code, Copy, Check, Server, Image as ImageIcon, Info, Zap, AlertCircle, GitBranch } from 'lucide-react'
+import apiService from '../../../../services/api'
 import { FONT_BODY, FONT_DISPLAY, OK, WARN, BLUE, PURPLE, purpleAlpha } from '../../../theme/tokens'
 
 function CodeBlock({ code, language = 'html' }) {
@@ -32,6 +33,92 @@ function Section({ icon: Icon, title, children }) {
         <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: 17, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em', margin: 0 }}>{title}</h2>
       </div>
       {children}
+    </div>
+  )
+}
+
+function AttributionSettings() {
+  const [model, setModel] = useState('last_touch')
+  const [lookback, setLookback] = useState(30)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [savedAt, setSavedAt] = useState(null)
+
+  useEffect(() => {
+    let mounted = true
+    apiService.getAttributionSettings?.().then(res => {
+      if (!mounted || !res?.success) return
+      setModel(res.data.attributionModel || 'last_touch')
+      setLookback(res.data.attributionLookbackDays || 30)
+    }).finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
+  }, [])
+
+  const save = async (next) => {
+    setSaving(true)
+    const payload = next || { model, lookbackDays: lookback }
+    const res = await apiService.setAttributionSettings(payload).catch(() => null)
+    if (res?.success) { setSavedAt(new Date()); if (next?.model) setModel(next.model); if (next?.lookbackDays) setLookback(next.lookbackDays) }
+    setSaving(false)
+  }
+
+  if (loading) return <div style={{ fontSize: 12, color: 'var(--muted)' }}>Cargando configuración...</div>
+
+  const models = [
+    { key: 'last_touch', label: 'Last touch',  desc: '100% del crédito al click justo antes de la conversión. Lo más simple.' },
+    { key: 'linear',     label: 'Linear',      desc: 'Reparte el crédito por igual entre todos los clicks de la misma persona en la ventana.' },
+    { key: 'time_decay', label: 'Time decay',  desc: 'Los clicks más recientes pesan más (half-life: 7 días). Útil para ciclos de compra largos.' },
+  ]
+
+  return (
+    <div>
+      <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 0, marginBottom: 14, lineHeight: 1.6 }}>
+        Cuando un usuario hace click en varios anuncios tuyos antes de convertir, ¿cómo repartimos el crédito? Cambia el modelo y verás el ROI recalculado en tiempo real.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {models.map(m => {
+          const sel = model === m.key
+          return (
+            <div key={m.key} onClick={() => save({ model: m.key, lookbackDays: lookback })}
+              style={{
+                display: 'flex', alignItems: 'flex-start', gap: 12, padding: 12, borderRadius: 10,
+                background: sel ? purpleAlpha(0.08) : 'var(--bg2)',
+                border: `1.5px solid ${sel ? purpleAlpha(0.4) : 'var(--border)'}`,
+                cursor: 'pointer', transition: 'all .15s',
+              }}>
+              <div style={{
+                width: 18, height: 18, borderRadius: 9, flexShrink: 0, marginTop: 1,
+                border: `2px solid ${sel ? PURPLE : 'var(--border-med, var(--border))'}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {sel && <div style={{ width: 9, height: 9, borderRadius: 5, background: PURPLE }} />}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>{m.label}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.5 }}>{m.desc}</div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <div style={{ marginTop: 16, padding: 12, background: 'var(--bg2)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Ventana de atribución</div>
+          <div style={{ fontSize: 11, color: 'var(--muted)' }}>Días hacia atrás considerados al fan-out de clicks</div>
+        </div>
+        <select
+          value={lookback}
+          onChange={e => save({ model, lookbackDays: Number(e.target.value) })}
+          style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontSize: 13, fontFamily: FONT_BODY }}
+        >
+          {[7, 14, 30, 60, 90].map(d => <option key={d} value={d}>{d} días</option>)}
+        </select>
+      </div>
+      {(saving || savedAt) && (
+        <div style={{ marginTop: 8, fontSize: 11, color: saving ? 'var(--muted)' : OK, textAlign: 'right' }}>
+          {saving ? 'Guardando...' : <><Check size={11} style={{ display: 'inline', verticalAlign: 'middle' }} /> Guardado</>}
+        </div>
+      )}
     </div>
   )
 }
@@ -152,6 +239,11 @@ app.post('/checkout/success', async (req, res) => {
             </tbody>
           </table>
         </div>
+      </Section>
+
+      {/* Multi-touch attribution settings */}
+      <Section icon={GitBranch} title="Modelo de atribución multi-touch">
+        <AttributionSettings />
       </Section>
 
       {/* Verification */}

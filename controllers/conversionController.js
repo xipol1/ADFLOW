@@ -9,23 +9,30 @@ const VALID_TYPES = ['purchase', 'signup', 'lead', 'subscription', 'install', 'c
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
- * Resolve a clickId to its campaign + advertiser. Returns null if not found.
+ * Resolve a clickId to its campaign + advertiser + visitor uid.
  *
  * The clickId lives inside TrackingLink.clicks[].clickId — we use a
  * single MongoDB query against that nested array, then look up the
- * campaign that owns that link.
+ * campaign that owns that link. We also pull the click's `uid` so the
+ * conversion can carry it forward for multi-touch attribution.
  */
 async function resolveClickId(clickId) {
   if (!clickId || typeof clickId !== 'string') return null;
   const link = await TrackingLink.findOne(
     { 'clicks.clickId': clickId },
-    { campaign: 1, createdBy: 1 },
+    { campaign: 1, createdBy: 1, 'clicks.$': 1 },
   ).lean();
   if (!link?.campaign) return null;
 
   const campaign = await Campaign.findById(link.campaign).select('advertiser status').lean();
   if (!campaign) return null;
-  return { campaignId: link.campaign, advertiserId: campaign.advertiser, status: campaign.status };
+  const matchedClick = link.clicks?.[0];
+  return {
+    campaignId: link.campaign,
+    advertiserId: campaign.advertiser,
+    status: campaign.status,
+    uid: matchedClick?.uid || null,
+  };
 }
 
 function clientIp(req) {
@@ -75,6 +82,7 @@ const recordConversion = async (req, res) => {
 
     const doc = await Conversion.create({
       clickId: clickId || null,
+      uid: resolved.uid || req.cookies?._chad_uid || null,
       campaign: campaignId,
       advertiser: advertiserId,
       type: conversionType,
@@ -133,6 +141,7 @@ const recordConversionPixel = async (req, res) => {
       if (canCreate) {
         await Conversion.create({
           clickId: String(clickId),
+          uid: resolved.uid || req.cookies?._chad_uid || null,
           campaign: resolved.campaignId,
           advertiser: resolved.advertiserId,
           type,

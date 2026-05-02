@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import apiService from '../../../../../services/api'
-import { getDefaultLayout } from './WidgetRegistry'
+import { getDefaultLayout as advertiserDefaultLayout } from './WidgetRegistry'
 
-const STORAGE_KEY = 'channelad-dashboard-views-v1'
+const DEFAULT_STORAGE_KEY = 'channelad-dashboard-views-v1'
 const SAVE_DEBOUNCE_MS = 800
 
 const newId = () => 'view_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
@@ -75,19 +75,22 @@ export const PRESETS = {
   },
 }
 
-// ─── localStorage fallback helpers ────────────────────────────────────────────
-function loadFromLocal() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw)
-    if (!parsed || !Array.isArray(parsed.views)) return null
-    return parsed
-  } catch { return null }
-}
-
-function saveToLocal(views, activeViewId) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ views, activeViewId })) } catch {}
+// ─── localStorage fallback helpers (storage key parametrised per role) ──────
+function makeLocalHelpers(storageKey) {
+  return {
+    load: () => {
+      try {
+        const raw = localStorage.getItem(storageKey)
+        if (!raw) return null
+        const parsed = JSON.parse(raw)
+        if (!parsed || !Array.isArray(parsed.views)) return null
+        return parsed
+      } catch { return null }
+    },
+    save: (views, activeViewId) => {
+      try { localStorage.setItem(storageKey, JSON.stringify({ views, activeViewId })) } catch {}
+    },
+  }
 }
 
 // ─── Migrate legacy single-layout key into a default view ─────────────────────
@@ -110,7 +113,22 @@ function migrateLegacyLayout() {
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
-export default function useDashboardViews() {
+//
+// Options:
+//   storageKey       — localStorage key (default: advertiser key)
+//   getDefaultLayout — () => layout array used when bootstrapping a new user
+//                      (default: advertiser layout)
+//   syncBackend      — when true (default), syncs to /api/dashboard/views;
+//                      pass false for roles that don't have backend sync yet
+export default function useDashboardViews(options = {}) {
+  const {
+    storageKey = DEFAULT_STORAGE_KEY,
+    getDefaultLayout = advertiserDefaultLayout,
+    syncBackend = true,
+  } = options
+  const local = makeLocalHelpers(storageKey)
+  const loadFromLocal = local.load
+  const saveToLocal = local.save
   const [views, setViews] = useState([])
   const [activeViewId, setActiveViewIdState] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -124,7 +142,7 @@ export default function useDashboardViews() {
     let mounted = true
     const load = async () => {
       try {
-        const res = await apiService.getDashboardViews().catch(() => null)
+        const res = syncBackend ? await apiService.getDashboardViews().catch(() => null) : null
         if (!mounted) return
 
         if (res?.success && Array.isArray(res.data?.views) && res.data.views.length > 0) {
@@ -133,8 +151,8 @@ export default function useDashboardViews() {
           setActiveViewIdState(res.data.activeViewId || res.data.views[0].id)
           saveToLocal(res.data.views, res.data.activeViewId)
         } else {
-          // Backend empty — try local cache or migrate legacy layout
-          const local = loadFromLocal() || migrateLegacyLayout()
+          // Backend empty (or sync disabled) — try local cache or migrate legacy
+          const local = loadFromLocal() || (syncBackend ? migrateLegacyLayout() : null)
           if (local && local.views.length > 0) {
             skipNextSaveRef.current = true
             setViews(local.views)
@@ -176,6 +194,9 @@ export default function useDashboardViews() {
       skipNextSaveRef.current = false
       return
     }
+
+    // Local-only mode: persistence done above, no backend hop.
+    if (!syncBackend) return
 
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(async () => {

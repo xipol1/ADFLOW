@@ -1,12 +1,26 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { X, Search, Check, Plus } from 'lucide-react'
-import { WIDGET_CATALOG, WIDGET_CATEGORIES } from './WidgetRegistry'
+import {
+  WIDGET_CATALOG as DEFAULT_CATALOG,
+  WIDGET_CATEGORIES as DEFAULT_CATEGORIES,
+} from './WidgetRegistry'
 import { FONT_BODY, FONT_DISPLAY } from '../../../../theme/tokens'
 
 const PURPLE = 'var(--accent, #8B5CF6)'
 const pa = (o) => `rgba(139,92,246,${o})`
 
-export default function WidgetPicker({ open, onClose, onAdd, existingTypes = [] }) {
+export default function WidgetPicker({
+  open,
+  onClose,
+  onAdd,
+  existingTypes = [],
+  widgetCatalog = DEFAULT_CATALOG,
+  widgetCategories = DEFAULT_CATEGORIES,
+  accentColor = PURPLE,
+  accentAlpha = pa,
+}) {
+  const WIDGET_CATALOG = widgetCatalog
+  const WIDGET_CATEGORIES = widgetCategories
   const [search, setSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('ALL')
   const [hoveredWidget, setHoveredWidget] = useState(null)

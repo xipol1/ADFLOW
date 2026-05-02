@@ -5,13 +5,15 @@ import {
   ChevronDown, GripVertical, Layout,
 } from 'lucide-react'
 import {
-  WIDGET_CATALOG, getDefaultLayout, generateWidgetId,
+  WIDGET_CATALOG as ADVERTISER_CATALOG,
+  getDefaultLayout as advertiserDefaultLayout,
+  generateWidgetId as advertiserGenerateId,
 } from './WidgetRegistry'
-import WidgetRenderer from './widgets'
+import advertiserWidgetRenderer from './widgets'
 import WidgetPicker from './WidgetPicker'
 import ViewTabs from './ViewTabs'
 import { NewViewModal, ExportViewModal, ImportViewModal } from './ViewModals'
-import useDashboardViews from './useDashboardViews'
+import useDashboardViewsHook, { PRESETS as ADVERTISER_PRESETS } from './useDashboardViews'
 import { FONT_BODY, FONT_DISPLAY } from '../../../../theme/tokens'
 
 const PURPLE = 'var(--accent, #8B5CF6)'
@@ -165,10 +167,10 @@ const GRID_STYLES = `
 `
 
 // ─── Widget Card (wrapper around each widget) ─────────────────────────────────
-function WidgetCard({ widget, data, editing, onRemove, onChangeVariant }) {
+function WidgetCard({ widget, data, editing, onRemove, onChangeVariant, widgetCatalog, WidgetRenderer }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
-  const cfg = WIDGET_CATALOG[widget.type]
+  const cfg = widgetCatalog[widget.type]
 
   useEffect(() => {
     if (!menuOpen) return
@@ -342,7 +344,37 @@ function EmptyDashboard({ onAdd, onReset }) {
 }
 
 // ─── Main component ──────────────────────────────────────────────────────────
-export default function CustomizableDashboard({ data }) {
+/**
+ * CustomizableDashboard — role-agnostic grid dashboard.
+ *
+ * Defaults to the advertiser registry / widgets / hook. Pass overrides to
+ * reuse the infrastructure for creators (or any future role).
+ *
+ * Props:
+ *   data              — the data context passed to every widget renderer
+ *   widgetCatalog     — { [type]: { name, variants, ... } }   (default: advertiser)
+ *   WidgetRenderer    — React component ({ type, variant, data, widgetId }) => JSX
+ *   getDefaultLayout  — () => initial items array for new users
+ *   generateWidgetId  — () => string  (unique id for new widget instances)
+ *   useViewsHook      — hook returning { views, activeView, ... } — defaults to
+ *                       advertiser hook (backend-synced); creator passes a
+ *                       local-only variant
+ *   accentColor       — CSS color token used for highlights/badges
+ *   accentAlpha       — fn(opacity) => "rgba(R,G,B,opacity)"
+ *   widgetCategories  — optional category overrides for the picker
+ */
+export default function CustomizableDashboard({
+  data,
+  widgetCatalog = ADVERTISER_CATALOG,
+  WidgetRenderer = advertiserWidgetRenderer,
+  getDefaultLayout = advertiserDefaultLayout,
+  generateWidgetId = advertiserGenerateId,
+  useViewsHook = useDashboardViewsHook,
+  accentColor = PURPLE,
+  accentAlpha = pa,
+  widgetCategories,
+}) {
+  const WIDGET_CATALOG = widgetCatalog
   const [editing, setEditing] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [newViewOpen, setNewViewOpen] = useState(false)
@@ -354,7 +386,7 @@ export default function CustomizableDashboard({ data }) {
     views, activeView, activeViewId, loading, syncing, syncError,
     updateActiveItems, createView, renameView, deleteView,
     duplicateView, setActiveView, setAsDefault, exportView, importView,
-  } = useDashboardViews()
+  } = useViewsHook()
 
   const items = activeView?.items || []
 
@@ -577,6 +609,8 @@ export default function CustomizableDashboard({ data }) {
                 editing={editing}
                 onRemove={() => handleRemoveWidget(it.i)}
                 onChangeVariant={(v) => handleChangeVariant(it.i, v)}
+                widgetCatalog={widgetCatalog}
+                WidgetRenderer={WidgetRenderer}
               />
             </div>
           ))}
@@ -605,6 +639,10 @@ export default function CustomizableDashboard({ data }) {
         onClose={() => setPickerOpen(false)}
         onAdd={(type, variant) => { handleAddWidget(type, variant); setPickerOpen(false) }}
         existingTypes={existingTypes}
+        widgetCatalog={widgetCatalog}
+        widgetCategories={widgetCategories}
+        accentColor={accentColor}
+        accentAlpha={accentAlpha}
       />
       <NewViewModal
         open={newViewOpen}

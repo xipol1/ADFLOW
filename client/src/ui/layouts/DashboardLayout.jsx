@@ -665,7 +665,7 @@ export default function DashboardLayout({ role = 'advertiser' }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [pendingCount, setPendingCount] = useState(0)
-  const [showOnboarding, setShowOnboarding] = useState(() => shouldShowOnboarding(role))
+  const [showOnboarding, setShowOnboarding] = useState(() => shouldShowOnboarding(role, user?.tipoPerfil))
 
   // Fetch notifications (polling)
   useEffect(() => {
@@ -1126,6 +1126,7 @@ export default function DashboardLayout({ role = 'advertiser' }) {
       {showOnboarding && (
         <OnboardingWizard
           role={role}
+          tipoPerfil={user?.tipoPerfil}
           onClose={() => setShowOnboarding(false)}
         />
       )}

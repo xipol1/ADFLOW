@@ -35,4 +35,19 @@ router.patch('/views/:viewId', autenticar, dashboardController.updateView);
  */
 router.put('/active-view', autenticar, dashboardController.setActiveView);
 
+/**
+ * @route   GET /api/dashboard/attribution
+ * @desc    Devuelve el modelo de atribución actual del usuario
+ * @access  Privado
+ */
+router.get('/attribution', autenticar, dashboardController.getAttributionSettings);
+
+/**
+ * @route   PUT /api/dashboard/attribution
+ * @desc    Cambia el modelo de atribución multi-touch
+ * @access  Privado
+ * @body    { model: 'last_touch' | 'linear' | 'time_decay', lookbackDays: 1-90 }
+ */
+router.put('/attribution', autenticar, dashboardController.setAttributionSettings);
+
 module.exports = router;

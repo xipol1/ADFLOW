@@ -7,7 +7,14 @@ const ClickSchema = new mongoose.Schema({
   // the destination URL. The advertiser sends this back when posting a
   // conversion (POST /api/conversions or pixel) so we can join the
   // resulting Conversion document to the click that produced it.
-  clickId: { type: String, default: '', index: true, sparse: true },
+  clickId: { type: String, default: undefined, index: true, sparse: true },
+
+  // Persistent visitor identifier (`_chad_uid` cookie, 90 days). Lets us
+  // attribute a conversion to ALL the clicks the same browser/device made
+  // in the lookback window — not just the most recent one. This is the
+  // input for multi-touch attribution models (linear / time-decay).
+  // Hashed-for-display so logs/exports never carry the raw cookie value.
+  uid: { type: String, default: undefined, index: true, sparse: true },
 
   ip: { type: String, default: '' },
   userAgent: { type: String, default: '' },

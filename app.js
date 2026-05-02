@@ -310,6 +310,14 @@ const trackingRedirectHandler = async (req, res) => {
     const cryptoSync = require('crypto');
     const clickId = cryptoSync.randomBytes(8).toString('hex');
 
+    // ── Reuse or mint a persistent visitor uid (multi-touch attribution) ──
+    // Same browser hitting different campaigns gets the same uid, so the
+    // attribution service can fan a conversion out across multiple clicks.
+    let uid = req.cookies?._chad_uid;
+    if (!uid || typeof uid !== 'string' || !/^[a-f0-9]{32}$/.test(uid)) {
+      uid = cryptoSync.randomBytes(16).toString('hex');
+    }
+
     // ── Record click (fire-and-forget) ──
     setImmediate(async () => {
       try {
@@ -350,7 +358,7 @@ const trackingRedirectHandler = async (req, res) => {
         // Add click record (keep last 500)
         if (link.clicks.length >= 500) link.clicks.shift();
         link.clicks.push({
-          clickId,
+          clickId, uid,
           ip, userAgent: ua, referer, country, device, os, browser, language,
           utmSource, utmMedium, utmCampaign, timestamp: new Date(),
         });
@@ -411,19 +419,22 @@ const trackingRedirectHandler = async (req, res) => {
       targetUrl = url.toString();
     } catch { /* use original URL */ }
 
-    // Also drop a first-party cookie (90-day window) so the pixel endpoint
-    // can recover the click ID even if the advertiser strips the query param.
-    // SameSite=None + Secure required for cross-site cookies (the cookie is
+    // Also drop two first-party cookies (90-day window):
+    //  - _chad_cid: the just-generated clickId (last-touch attribution)
+    //  - _chad_uid: persistent visitor id (multi-touch attribution)
+    // SameSite=None + Secure required for cross-site cookies (cookies are
     // set on our channelad.io domain but read by the pixel embedded on the
     // advertiser's site → cross-site).
     try {
-      res.cookie('_chad_cid', clickId, {
+      const cookieOpts = {
         maxAge: 90 * 24 * 60 * 60 * 1000,
-        httpOnly: false,                // pixel JS needs to read it
+        httpOnly: false,                // pixel JS needs to read these
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
-      });
+      };
+      res.cookie('_chad_cid', clickId, cookieOpts);
+      res.cookie('_chad_uid', uid, cookieOpts);
     } catch { /* ignore — redirect is more important than the cookie */ }
 
     return res.redirect(302, targetUrl);
