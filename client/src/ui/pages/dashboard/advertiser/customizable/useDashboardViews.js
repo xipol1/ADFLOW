@@ -13,7 +13,7 @@ export const PRESETS = {
     name: 'Recomendada',
     icon: '⭐',
     description: 'Diseño optimizado: KPIs accionables arriba, alertas + tendencia, tabla de campañas y top canales',
-    items: () => getDefaultLayout(),
+    items: () => advertiserDefaultLayout(),
   },
   marketing: {
     name: 'Marketing',
