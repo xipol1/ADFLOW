@@ -60,6 +60,12 @@ import RegisterChannelPage  from '../ui/pages/dashboard/creator/RegisterChannelP
 import CreatorReferralsPage from '../ui/pages/dashboard/creator/CreatorReferralsPage'
 import CreatorAnalyticsPage from '../ui/pages/dashboard/creator/CreatorAnalyticsPage'
 import PricingOptimizerPage from '../ui/pages/dashboard/creator/PricingOptimizerPage'
+import CreatorReportsPage   from '../ui/pages/dashboard/creator/CreatorReportsPage'
+import CreatorABTestPage    from '../ui/pages/dashboard/creator/CreatorABTestPage'
+import CreatorAudiencePage  from '../ui/pages/dashboard/creator/CreatorAudiencePage'
+import CreatorComparePage   from '../ui/pages/dashboard/creator/CreatorComparePage'
+import CreatorProfilePage   from '../ui/pages/dashboard/creator/CreatorProfilePage'
+import CreatorInboxPage     from '../ui/pages/dashboard/creator/CreatorInboxPage'
 
 // Admin dashboard suite
 import AdminLayout          from '../ui/pages/dashboard/admin/AdminLayout'
@@ -235,6 +241,12 @@ export default function AppRoutes() {
         <Route path="earnings" element={<FullAccessOnly feature="Ganancias"><CreatorEarningsPage /></FullAccessOnly>} />
         <Route path="analytics" element={<FullAccessOnly feature="Analytics"><CreatorAnalyticsPage /></FullAccessOnly>} />
         <Route path="pricing" element={<FullAccessOnly feature="Pricing Optimizer"><PricingOptimizerPage /></FullAccessOnly>} />
+        <Route path="reports" element={<FullAccessOnly feature="Reports Studio"><CreatorReportsPage /></FullAccessOnly>} />
+        <Route path="abtest" element={<FullAccessOnly feature="A/B Testing"><CreatorABTestPage /></FullAccessOnly>} />
+        <Route path="audience" element={<FullAccessOnly feature="Audience Insights"><CreatorAudiencePage /></FullAccessOnly>} />
+        <Route path="compare" element={<FullAccessOnly feature="Comparativa"><CreatorComparePage /></FullAccessOnly>} />
+        <Route path="profile" element={<CreatorProfilePage />} />
+        <Route path="inbox" element={<FullAccessOnly feature="Inbox"><CreatorInboxPage /></FullAccessOnly>} />
         <Route path="referrals" element={<CreatorReferralsPage />} />
         <Route path="disputes" element={<FullAccessOnly feature="Disputas"><DisputesPage /></FullAccessOnly>} />
         <Route path="notifications" element={<NotificationsPage />} />

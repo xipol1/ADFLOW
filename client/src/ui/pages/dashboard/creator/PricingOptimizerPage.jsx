@@ -390,6 +390,9 @@ export default function PricingOptimizerPage() {
         </div>
       )}
 
+      {/* Smart pricing suggestions panel — IA-driven, channel-by-channel  */}
+      {!loading && channels.length > 0 && <SmartPricingSuggestions channels={channels} navigate={navigate} />}
+
       {/* Channel cards */}
       {!loading && channels.length > 0 && (
         <div style={{
@@ -412,6 +415,129 @@ export default function PricingOptimizerPage() {
           El precio sugerido se calcula como <strong style={{ color: 'var(--text)' }}>(seguidores × 0.30 alcance / 1000) × CPM_plataforma × multiplicador_CAS</strong>.
           Es una guía de mercado; ajusta según tu posicionamiento, calidad de contenido y demanda específica.
         </span>
+      </div>
+    </div>
+  )
+}
+
+// ─── Smart Pricing Suggestions ──────────────────────────────────────────────
+// Rule-based recommendations: identifies underpriced channels with high
+// engagement, suggests safe price-up steps, flags pricing risk.
+
+function SmartPricingSuggestions({ channels, navigate }) {
+  const suggestions = useMemo(() => {
+    const out = []
+    for (const c of channels) {
+      const cas = c.CAS ?? c.scoring?.CAS ?? 50
+      const sug = suggestedPrice({
+        cas, plataforma: c.plataforma, seguidores: c.audiencia ?? c.seguidores ?? 0,
+      })
+      const cur = c.precio ?? c.CPMDinamico ?? 0
+      const id = c._id || c.id
+      const name = c.nombreCanal || c.nombre || 'Canal'
+
+      if (sug > cur && (sug - cur) >= 5 && cas >= 60) {
+        out.push({
+          id: `up-${id}`,
+          icon: TrendingUp, color: OK, priority: 1,
+          title: `Sube ${name} de €${cur} a €${sug}`,
+          body: `CAS ${Math.round(cas)} y audiencia engaged. Subida segura — el mercado pagará. +€${sug - cur} por publicación.`,
+          cta: 'Aplicar',
+          onClick: () => navigate(`/creator/channels?highlight=${id}`),
+        })
+      } else if (cur > sug * 1.2 && cas < 60) {
+        out.push({
+          id: `down-${id}`,
+          icon: TrendingDown, color: WARN, priority: 3,
+          title: `${name} está por encima del mercado`,
+          body: `Precio €${cur}, sugerido €${sug}. CAS ${Math.round(cas)} no justifica premium. Riesgo de cero bookings.`,
+          cta: 'Revisar',
+          onClick: () => navigate(`/creator/channels?highlight=${id}`),
+        })
+      } else if (cur === 0 || cur == null) {
+        out.push({
+          id: `no-${id}`,
+          icon: AlertTriangle, color: ERR, priority: 0,
+          title: `${name} sin precio establecido`,
+          body: `Sin precio no aparecerás en explore. Sugerido para empezar: €${sug}.`,
+          cta: 'Establecer',
+          onClick: () => navigate(`/creator/channels?highlight=${id}`),
+        })
+      }
+
+      if (cas >= 80 && (c.estadisticas?.engagement || 0) >= 0.05) {
+        out.push({
+          id: `tier-${id}`,
+          icon: Sparkles, color: '#8B5CF6', priority: 2,
+          title: `Considera tier premium en ${name}`,
+          body: `Engagement ${((c.estadisticas?.engagement || 0) * 100).toFixed(1)}% + CAS ${Math.round(cas)}. Crea bundle "Premium +€${Math.round(sug * 0.4)}" con menciones extra.`,
+          cta: 'Ir a A/B Test',
+          onClick: () => navigate('/creator/abtest'),
+        })
+      }
+    }
+    return out.sort((a, b) => a.priority - b.priority).slice(0, 5)
+  }, [channels, navigate])
+
+  if (suggestions.length === 0) return null
+
+  return (
+    <div style={{
+      background: 'var(--surface)', border: `1px solid ${accentAlpha(0.25)}`,
+      borderRadius: 14, padding: 18,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <div style={{
+          width: 32, height: 32, borderRadius: 9, background: accentAlpha(0.15),
+          border: `1px solid ${accentAlpha(0.3)}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Sparkles size={15} color={ACCENT} />
+        </div>
+        <div>
+          <div style={{ fontFamily: FONT_DISPLAY, fontSize: 15, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em' }}>
+            Recomendaciones inteligentes
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--muted)' }}>
+            Sugerencias por canal basadas en CAS, engagement y mercado.
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {suggestions.map(s => {
+          const Icon = s.icon
+          return (
+            <div key={s.id} onClick={s.onClick} style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              background: `${s.color}08`, border: `1px solid ${s.color}25`,
+              borderRadius: 10, padding: '10px 12px', cursor: 'pointer',
+              transition: 'background .12s, border-color .12s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.background = `${s.color}14`; e.currentTarget.style.borderColor = `${s.color}44` }}
+              onMouseLeave={e => { e.currentTarget.style.background = `${s.color}08`; e.currentTarget.style.borderColor = `${s.color}25` }}
+            >
+              <div style={{
+                width: 30, height: 30, borderRadius: 8,
+                background: `${s.color}15`, border: `1px solid ${s.color}30`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <Icon size={13} color={s.color} strokeWidth={2.2} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>
+                  {s.title}
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.4 }}>
+                  {s.body}
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 3, color: s.color, fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+                {s.cta} <ArrowRight size={11} />
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

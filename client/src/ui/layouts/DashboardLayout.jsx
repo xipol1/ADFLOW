@@ -12,7 +12,7 @@ import {
   Shield, Database, DollarSign, FileText, HelpCircle, Plus,
   Columns3, Map, Calculator, Target, ClipboardList, Calendar,
   Activity, Filter, Bookmark, Layers, FlaskConical,
-  Rocket, Hash, PieChart,
+  Rocket, Hash, PieChart, GitCompare, User as UserIcon, MessageSquare,
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../services/api'
@@ -92,6 +92,7 @@ const ROLE_CONFIG = {
       { group: null, items: [
         { path: '',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
         { path: '/channels', icon: Radio,           label: 'Mis Canales'             },
+        { path: '/inbox',    icon: MessageSquare,   label: 'Inbox',        badge: true, fullOnly: true },
       ]},
       { group: 'WhatsApp', items: [
         { path: '/channels/link-whatsapp', icon: Radio,       label: 'Vincular canal'     },
@@ -99,8 +100,15 @@ const ROLE_CONFIG = {
       ]},
       { group: 'Análisis', items: [
         { path: '/analytics',icon: BarChart3,       label: 'Analytics',    fullOnly: true },
+        { path: '/audience', icon: Users,           label: 'Audiencia',    fullOnly: true },
+        { path: '/compare',  icon: GitCompare,      label: 'Comparar',     fullOnly: true },
         { path: '/earnings', icon: Wallet,          label: 'Ganancias',    fullOnly: true },
         { path: '/pricing',  icon: DollarSign,      label: 'Pricing Optimizer', fullOnly: true },
+        { path: '/abtest',   icon: FlaskConical,    label: 'A/B Testing',  fullOnly: true },
+        { path: '/reports',  icon: FileText,        label: 'Reports Studio', fullOnly: true },
+      ]},
+      { group: 'Marca', items: [
+        { path: '/profile',  icon: UserIcon,        label: 'Perfil público' },
       ]},
       { group: 'Gestión', items: [
         { path: '/requests', icon: Inbox,           label: 'Solicitudes',  badge: true, fullOnly: true },

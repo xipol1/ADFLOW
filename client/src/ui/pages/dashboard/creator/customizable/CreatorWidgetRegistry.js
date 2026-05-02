@@ -1,7 +1,8 @@
 import {
   Wallet, Inbox, Star, Radio, TrendingUp, BarChart3, Table2,
   Users, CalendarDays, Sparkles, MessageSquare, Clock,
-  StickyNote, Zap, Target, AlertTriangle,
+  StickyNote, Zap, Target, AlertTriangle, Activity, ShieldCheck,
+  LineChart,
 } from 'lucide-react'
 
 // Categories shared with the advertiser registry — same picker UI handles both.
@@ -10,6 +11,7 @@ export const WIDGET_CATEGORIES = {
   CHARTS:  { id: 'CHARTS',  label: 'Gráficos', icon: BarChart3 },
   TABLES:  { id: 'TABLES',  label: 'Tablas',   icon: Table2 },
   TOOLS:   { id: 'TOOLS',   label: 'Herramientas', icon: Zap },
+  AI:      { id: 'AI',      label: 'Inteligencia', icon: Sparkles },
 }
 
 // Creator-specific widget types. Disjoint from the advertiser set so they
@@ -23,6 +25,7 @@ export const WIDGET_TYPES = {
   KPI_CHANNELS:      'KPI_CHANNELS',
   KPI_COMPLETED:     'KPI_COMPLETED',
   KPI_CAS_AVG:       'KPI_CAS_AVG',
+  KPI_CAS_HERO:      'KPI_CAS_HERO',
   EARNINGS_CHART:    'EARNINGS_CHART',
   REQUESTS_TABLE:    'REQUESTS_TABLE',
   CHANNELS_TABLE:    'CHANNELS_TABLE',
@@ -32,6 +35,11 @@ export const WIDGET_TYPES = {
   ACTION_ITEMS:      'ACTION_ITEMS',
   NOTES:             'NOTES',
   CAMPAIGN_CALENDAR: 'CAMPAIGN_CALENDAR',
+  BALANCE_CARD:      'BALANCE_CARD',
+  SMART_INSIGHTS:    'SMART_INSIGHTS',
+  REVENUE_FORECAST:  'REVENUE_FORECAST',
+  CHANNEL_HEALTH:    'CHANNEL_HEALTH',
+  REALTIME_MONITOR:  'REALTIME_MONITOR',
 }
 
 // Small DRY helper — most KPIs use the same compact/standard variants.
@@ -112,6 +120,19 @@ export const WIDGET_CATALOG = {
     category: 'METRICS',
     variants: kpiVariants,
     defaultVariant: 'compact',
+  },
+
+  [WIDGET_TYPES.KPI_CAS_HERO]: {
+    type: WIDGET_TYPES.KPI_CAS_HERO,
+    name: 'CAS Hero',
+    description: 'Tu canal estrella con CAS gauge, 5 factores y badges de confianza',
+    icon: Target,
+    category: 'METRICS',
+    variants: [
+      { id: 'standard', name: 'Estándar', defaultW: 12, defaultH: 3, minW: 8, minH: 3, maxW: 12, maxH: 4 },
+      { id: 'compact',  name: 'Compacto', defaultW: 6,  defaultH: 3, minW: 5, minH: 3, maxW: 8,  maxH: 4 },
+    ],
+    defaultVariant: 'standard',
   },
 
   [WIDGET_TYPES.EARNINGS_CHART]: {
@@ -232,30 +253,109 @@ export const WIDGET_CATALOG = {
     ],
     defaultVariant: 'standard',
   },
+
+  [WIDGET_TYPES.BALANCE_CARD]: {
+    type: WIDGET_TYPES.BALANCE_CARD,
+    name: 'Saldo disponible',
+    description: 'Saldo total acumulado con CTA de retiro',
+    icon: Wallet,
+    category: 'METRICS',
+    variants: [
+      { id: 'standard', name: 'Estándar', defaultW: 6, defaultH: 3, minW: 4, minH: 3, maxW: 12, maxH: 4 },
+      { id: 'compact',  name: 'Compacto', defaultW: 4, defaultH: 2, minW: 3, minH: 2, maxW: 6,  maxH: 3 },
+    ],
+    defaultVariant: 'standard',
+  },
+
+  [WIDGET_TYPES.SMART_INSIGHTS]: {
+    type: WIDGET_TYPES.SMART_INSIGHTS,
+    name: 'Insights inteligentes',
+    description: 'Recomendaciones IA: solicitudes urgentes, oportunidades de pricing, canales sin verificar',
+    icon: Sparkles,
+    category: 'AI',
+    variants: [
+      { id: 'standard', name: 'Estándar', defaultW: 6, defaultH: 5, minW: 4, minH: 3, maxW: 12, maxH: 8 },
+      { id: 'compact',  name: 'Compacto', defaultW: 4, defaultH: 4, minW: 3, minH: 3, maxW: 8,  maxH: 6 },
+    ],
+    defaultVariant: 'standard',
+  },
+
+  [WIDGET_TYPES.REVENUE_FORECAST]: {
+    type: WIDGET_TYPES.REVENUE_FORECAST,
+    name: 'Forecast de ingresos',
+    description: 'Predicción de ingresos próximos 90 días basada en histórico y pipeline',
+    icon: LineChart,
+    category: 'AI',
+    variants: [
+      { id: 'standard', name: 'Estándar', defaultW: 6, defaultH: 4, minW: 4, minH: 3, maxW: 12, maxH: 6 },
+      { id: 'compact',  name: 'Compacto', defaultW: 4, defaultH: 3, minW: 3, minH: 3, maxW: 8,  maxH: 4 },
+    ],
+    defaultVariant: 'standard',
+  },
+
+  [WIDGET_TYPES.CHANNEL_HEALTH]: {
+    type: WIDGET_TYPES.CHANNEL_HEALTH,
+    name: 'Salud de canales',
+    description: 'Monitor de cada canal: engagement, alertas, recomendaciones',
+    icon: ShieldCheck,
+    category: 'AI',
+    variants: [
+      { id: 'standard', name: 'Estándar', defaultW: 6, defaultH: 4, minW: 4, minH: 3, maxW: 12, maxH: 6 },
+      { id: 'compact',  name: 'Compacto', defaultW: 4, defaultH: 3, minW: 3, minH: 3, maxW: 8,  maxH: 5 },
+    ],
+    defaultVariant: 'standard',
+  },
+
+  [WIDGET_TYPES.REALTIME_MONITOR]: {
+    type: WIDGET_TYPES.REALTIME_MONITOR,
+    name: 'Monitor en tiempo real',
+    description: 'Status live de tus campañas activas y métricas en streaming',
+    icon: Activity,
+    category: 'AI',
+    variants: [
+      { id: 'standard', name: 'Estándar', defaultW: 6, defaultH: 4, minW: 4, minH: 3, maxW: 12, maxH: 6 },
+      { id: 'compact',  name: 'Compacto', defaultW: 4, defaultH: 3, minW: 3, minH: 2, maxW: 8,  maxH: 4 },
+    ],
+    defaultVariant: 'standard',
+  },
 }
 
 // Recommended starting layout for new creators. Channel + earnings + requests
 // are the three things a creator cares about most, so they're at the top.
+// Now includes CAS Hero, Smart Insights and Balance Card by default — the
+// refinements ported from the deleted classic overview.
 export function getDefaultLayout() {
   return [
-    { i: 'cw-welcome',  type: WIDGET_TYPES.WELCOME,         variant: 'standard', x: 0, y: 0, w: 12, h: 2 },
+    { i: 'cw-welcome',  type: WIDGET_TYPES.WELCOME,         variant: 'standard', x: 0, y: 0,  w: 12, h: 2 },
 
     // Row 2 — 4 KPIs side by side
-    { i: 'cw-earn',     type: WIDGET_TYPES.KPI_EARNINGS,    variant: 'compact',  x: 0, y: 2, w: 3, h: 2 },
-    { i: 'cw-pending',  type: WIDGET_TYPES.KPI_PENDING_REQ, variant: 'compact',  x: 3, y: 2, w: 3, h: 2 },
-    { i: 'cw-channels', type: WIDGET_TYPES.KPI_CHANNELS,    variant: 'compact',  x: 6, y: 2, w: 3, h: 2 },
-    { i: 'cw-rating',   type: WIDGET_TYPES.KPI_RATING,      variant: 'compact',  x: 9, y: 2, w: 3, h: 2 },
+    { i: 'cw-earn',     type: WIDGET_TYPES.KPI_EARNINGS,    variant: 'compact',  x: 0, y: 2,  w: 3, h: 2 },
+    { i: 'cw-pending',  type: WIDGET_TYPES.KPI_PENDING_REQ, variant: 'compact',  x: 3, y: 2,  w: 3, h: 2 },
+    { i: 'cw-channels', type: WIDGET_TYPES.KPI_CHANNELS,    variant: 'compact',  x: 6, y: 2,  w: 3, h: 2 },
+    { i: 'cw-rating',   type: WIDGET_TYPES.KPI_RATING,      variant: 'compact',  x: 9, y: 2,  w: 3, h: 2 },
 
-    // Row 4-6 — what needs attention next to the earnings trend
-    { i: 'cw-actions',  type: WIDGET_TYPES.ACTION_ITEMS,    variant: 'cards',    x: 0, y: 4, w: 5, h: 3 },
-    { i: 'cw-chart',    type: WIDGET_TYPES.EARNINGS_CHART,  variant: 'line',     x: 5, y: 4, w: 7, h: 3 },
+    // Row 4-6 — CAS Hero (full width) — el panel que estaba en classic
+    { i: 'cw-cashero',  type: WIDGET_TYPES.KPI_CAS_HERO,    variant: 'standard', x: 0, y: 4,  w: 12, h: 3 },
 
-    // Row 7-10 — drill-down: requests + top advertisers
-    { i: 'cw-requests', type: WIDGET_TYPES.REQUESTS_TABLE,  variant: 'full',     x: 0, y: 7, w: 7, h: 4 },
-    { i: 'cw-topadv',   type: WIDGET_TYPES.TOP_ADVERTISERS, variant: 'standard', x: 7, y: 7, w: 5, h: 4 },
+    // Row 7-11 — Smart Insights + Earnings chart side-by-side
+    { i: 'cw-insights', type: WIDGET_TYPES.SMART_INSIGHTS,  variant: 'standard', x: 0, y: 7,  w: 5, h: 4 },
+    { i: 'cw-chart',    type: WIDGET_TYPES.EARNINGS_CHART,  variant: 'line',     x: 5, y: 7,  w: 7, h: 4 },
 
-    // Row 11+ — channels overview
-    { i: 'cw-mychan',   type: WIDGET_TYPES.CHANNELS_TABLE,  variant: 'full',     x: 0, y: 11, w: 12, h: 4 },
+    // Row 11-14 — Action items + Balance card
+    { i: 'cw-actions',  type: WIDGET_TYPES.ACTION_ITEMS,    variant: 'cards',    x: 0, y: 11, w: 5, h: 3 },
+    { i: 'cw-balance',  type: WIDGET_TYPES.BALANCE_CARD,    variant: 'standard', x: 5, y: 11, w: 7, h: 3 },
+
+    // Row 14-17 — Forecast + Channel health
+    { i: 'cw-forecast', type: WIDGET_TYPES.REVENUE_FORECAST, variant: 'standard', x: 0, y: 14, w: 6, h: 4 },
+    { i: 'cw-health',   type: WIDGET_TYPES.CHANNEL_HEALTH,   variant: 'standard', x: 6, y: 14, w: 6, h: 4 },
+
+    // Row 18-21 — Requests + top advertisers
+    { i: 'cw-requests', type: WIDGET_TYPES.REQUESTS_TABLE,  variant: 'full',     x: 0, y: 18, w: 7, h: 4 },
+    { i: 'cw-topadv',   type: WIDGET_TYPES.TOP_ADVERTISERS, variant: 'standard', x: 7, y: 18, w: 5, h: 4 },
+
+    // Row 22+ — channels + realtime monitor
+    { i: 'cw-mychan',   type: WIDGET_TYPES.CHANNELS_TABLE,  variant: 'full',     x: 0, y: 22, w: 7, h: 4 },
+    { i: 'cw-realtime', type: WIDGET_TYPES.REALTIME_MONITOR, variant: 'standard', x: 7, y: 22, w: 5, h: 4 },
   ]
 }
 

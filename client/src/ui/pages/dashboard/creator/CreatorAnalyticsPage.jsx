@@ -1083,6 +1083,10 @@ export default function CreatorAnalyticsPage() {
   const [scoreData, setScoreData] = useState(null)
   const [scoreLoading, setScoreLoading] = useState(false)
   const [connectForm, setConnectForm] = useState({})
+  const [activeTab, setActiveTab] = useState(() => {
+    const u = new URLSearchParams(window.location.search)
+    return u.get('tab') || 'resumen'
+  })
 
   // 1. Load channels list
   useEffect(() => {
@@ -1352,46 +1356,169 @@ export default function CreatorAnalyticsPage() {
         />
       )}
 
-      {/* Score Overview */}
-      <ScoreOverviewSection
-        channel={selectedChannel}
-        scores={scores}
-        scoreData={scoreData}
-        onRecalculate={handleRecalculate}
-        loading={scoreLoading}
-      />
+      {/* Tabs navigation */}
+      <TabsNav activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      {/* CAS Evolution */}
-      <CASEvolutionSection
-        historial={historial}
-        period={period}
-        onPeriodChange={setPeriod}
-        campaignDates={campaigns}
-      />
+      {activeTab === 'resumen' && (
+        <ScoreOverviewSection
+          channel={selectedChannel}
+          scores={scores}
+          scoreData={scoreData}
+          onRecalculate={handleRecalculate}
+          loading={scoreLoading}
+        />
+      )}
 
-      {/* Score Decomposition */}
-      <ScoreDecompositionSection scores={scores} historial={historial} />
+      {activeTab === 'cas' && (
+        <>
+          <CASEvolutionSection
+            historial={historial}
+            period={period}
+            onPeriodChange={setPeriod}
+            campaignDates={campaigns}
+          />
+          <ScoreDecompositionSection scores={scores} historial={historial} />
+          <PlatformConnectionSection
+            channel={selectedChannel}
+            connectForm={connectForm}
+            setConnectForm={setConnectForm}
+          />
+        </>
+      )}
 
-      {/* Platform Connection */}
-      <PlatformConnectionSection
-        channel={selectedChannel}
-        connectForm={connectForm}
-        setConnectForm={setConnectForm}
-      />
+      {activeTab === 'mercado' && (
+        <>
+          <BenchmarkMatrixSection
+            scores={scores}
+            benchmark={benchmark}
+            plataforma={plataforma}
+          />
+          <CPMSimulatorSection
+            currentCAS={scores?.CAS}
+            currentCPM={scores?.CPMDinamico}
+            plataforma={plataforma}
+          />
+        </>
+      )}
 
-      {/* Benchmark */}
-      <BenchmarkMatrixSection
-        scores={scores}
-        benchmark={benchmark}
-        plataforma={plataforma}
-      />
+      {activeTab === 'forecast' && (
+        <ForecastTab channel={selectedChannel} historial={historial} campaigns={campaigns} />
+      )}
+    </div>
+  )
+}
 
-      {/* CPM Simulator */}
-      <CPMSimulatorSection
-        currentCAS={scores?.CAS}
-        currentCPM={scores?.CPMDinamico}
-        plataforma={plataforma}
-      />
+// ─── Tabs ────────────────────────────────────────────────────────────────────
+function TabsNav({ activeTab, setActiveTab }) {
+  const tabs = [
+    { id: 'resumen',  label: 'Resumen' },
+    { id: 'cas',      label: 'CAS & Evolución' },
+    { id: 'mercado',  label: 'Mercado & Pricing' },
+    { id: 'forecast', label: 'Forecast' },
+  ]
+  const onClick = (id) => {
+    setActiveTab(id)
+    const u = new URLSearchParams(window.location.search)
+    u.set('tab', id)
+    window.history.replaceState({}, '', `${window.location.pathname}?${u.toString()}`)
+  }
+  return (
+    <div style={{
+      display: 'flex', gap: 4, borderBottom: '1px solid var(--border)',
+      paddingBottom: 0, fontFamily: F, flexWrap: 'wrap',
+    }}>
+      {tabs.map(t => {
+        const active = activeTab === t.id
+        return (
+          <button key={t.id} onClick={() => onClick(t.id)}
+            style={{
+              background: 'transparent',
+              border: 'none', borderBottom: `2px solid ${active ? 'var(--accent)' : 'transparent'}`,
+              color: active ? 'var(--text)' : 'var(--muted)',
+              fontSize: 13, fontWeight: active ? 700 : 500,
+              padding: '10px 16px', cursor: 'pointer', fontFamily: F,
+              transition: 'color .15s, border-color .15s',
+              marginBottom: -1,
+            }}>
+            {t.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── Forecast tab — pipeline-driven prediction ───────────────────────────────
+function ForecastTab({ channel, historial, campaigns }) {
+  const past = (historial || []).filter(h => h.CAS != null).slice(-12)
+  const trend = past.length >= 2
+    ? (past[past.length - 1].CAS - past[0].CAS) / Math.max(past.length - 1, 1)
+    : 0
+  const currentCAS = channel?.CAS || past[past.length - 1]?.CAS || 0
+  const projections = [30, 60, 90].map(d => {
+    const months = d / 30
+    const projectedCAS = Math.min(100, Math.max(0, currentCAS + trend * months))
+    const cpm = channel?.CPMDinamico || 0
+    const projectedCPM = cpm * (1 + (projectedCAS - currentCAS) / 100 * 0.5)
+    return { days: d, cas: projectedCAS, cpm: projectedCPM }
+  })
+
+  return (
+    <div style={{
+      background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
+      padding: 24, fontFamily: F,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+        <h3 style={{ fontFamily: D, fontSize: 18, fontWeight: 700, color: 'var(--text)', margin: 0 }}>
+          Forecast 90 días
+        </h3>
+        <span style={{
+          background: 'rgba(34,197,94,0.12)', color: 'var(--accent, #22c55e)',
+          border: '1px solid rgba(34,197,94,0.3)', borderRadius: 20,
+          padding: '2px 8px', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em',
+        }}>BETA</span>
+      </div>
+      <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 18 }}>
+        Proyección de CAS y CPM basada en tu tendencia histórica. La predicción mejora con más datos.
+      </p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+        {projections.map(p => (
+          <div key={p.days} style={{
+            background: 'var(--bg2)', border: '1px solid var(--border)',
+            borderRadius: 12, padding: 16,
+          }}>
+            <div style={{
+              fontSize: 11, color: 'var(--muted)', fontWeight: 600,
+              textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8,
+            }}>
+              Próximos {p.days} días
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+              <span style={{ fontSize: 12, color: 'var(--muted)' }}>CAS proyectado</span>
+              <span style={{ fontFamily: D, fontSize: 22, fontWeight: 800, color: 'var(--text)' }}>
+                {Math.round(p.cas)}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span style={{ fontSize: 12, color: 'var(--muted)' }}>CPM estimado</span>
+              <span style={{ fontFamily: D, fontSize: 16, fontWeight: 700, color: 'var(--accent, #22c55e)' }}>
+                €{p.cpm.toFixed(2)}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{
+        marginTop: 18, padding: '12px 14px',
+        background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.2)',
+        borderRadius: 10, fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.5,
+      }}>
+        💡 Si tu CAS actual es <strong style={{ color: 'var(--text)' }}>{Math.round(currentCAS)}</strong> y la tendencia es de <strong style={{ color: trend >= 0 ? 'var(--accent, #22c55e)' : '#ef4444' }}>
+          {trend >= 0 ? '+' : ''}{trend.toFixed(2)} pts/mes
+        </strong>, conectar OAuth y publicar más campañas con buen rating acelerará la subida.
+      </div>
     </div>
   )
 }
