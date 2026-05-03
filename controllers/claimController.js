@@ -7,6 +7,7 @@
 const { v4: uuidv4 } = require('uuid');
 const Canal = require('../models/Canal');
 const { ensureDb } = require('../lib/ensureDb');
+const { maybeElevateFounderTier } = require('../services/founderTierElevation');
 
 const CLAIM_PREFIX = 'channelad-verify-';
 
@@ -126,14 +127,21 @@ const verifyClaim = async (req, res) => {
       });
     }
 
-    // Verified — claim the channel
+    // Verified — claim the channel. MTProto description match is the
+    // strongest proof we can obtain (only an admin can edit the description
+    // and we read it directly from Telegram's MTProto layer).
     canal.claimed = true;
     canal.claimedBy = userId;
     canal.claimedAt = new Date();
     canal.claimToken = null;
     canal.propietario = userId;
     canal.estado = 'activo';
+    canal.verificado = true;
+    canal.verificacion = canal.verificacion || {};
+    canal.verificacion.tipoAcceso = 'admin_directo';
+    canal.verificacion.confianzaScore = 95;
     await canal.save();
+    await maybeElevateFounderTier(canal);
 
     return res.json({
       success: true,

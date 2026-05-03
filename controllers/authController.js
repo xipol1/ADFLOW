@@ -227,7 +227,16 @@ const registro = async (req, res) => {
       emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
     };
 
-    // ── Bot token validation (founder benefits) ──
+    // ── Bot token validation (founder *candidate*, not founder yet) ──
+    //
+    // The Telegram bot collects channelUsername/channelTier from a chat
+    // conversation — it does NOT verify that the Telegram user is actually
+    // an admin of the channel they declared. So at this point we mark the
+    // user as botVerified and credit the welcome bonus (low-value, requires
+    // valid email + bot API key), but `founderTier` stays false. Real
+    // founder benefits (lower commission, priority matching) are unlocked
+    // by the post-save hook on Canal once the user passes a strong channel
+    // verification (OAuth, bot-admin, MTProto claim) for the same channel.
     const botToken = String(req.body?.botToken || '').trim();
     let founderApplied = false;
     if (botToken) {
@@ -239,7 +248,7 @@ const registro = async (req, res) => {
       });
       if (tokenDoc && tokenDoc.email.toLowerCase() === email) {
         userData.botVerified = true;
-        userData.founderTier = true;
+        userData.founderTier = false; // unlocked later by founderTierElevation
         userData.telegramUserId = tokenDoc.telegramUserId;
         userData.channelUsername = tokenDoc.channelUsername;
         userData.channelTier = tokenDoc.channelTier;
@@ -249,7 +258,7 @@ const registro = async (req, res) => {
         tokenDoc.used = true;
         tokenDoc.usedAt = new Date();
         await tokenDoc.save();
-        logDev('REGISTER: bot token validated, founder benefits applied', { email, channel: tokenDoc.channelUsername });
+        logDev('REGISTER: bot token validated (founder candidate)', { email, channel: tokenDoc.channelUsername });
       } else {
         logDev('REGISTER: bot token invalid or email mismatch', { botToken: botToken.slice(0, 8) + '...', email });
       }
@@ -328,7 +337,7 @@ const registro = async (req, res) => {
       founderApplied,
       referralApplied,
       message: founderApplied
-        ? 'Cuenta creada como Canal Fundador. €10 de bono acreditados.'
+        ? 'Cuenta creada. €10 de bono acreditados — verifica tu canal para activar el tier de Fundador.'
         : referralApplied
           ? 'Cuenta creada. Has recibido 10€ en creditos de campana por tu codigo de referido. Revisa tu email para verificar tu cuenta.'
           : 'Cuenta creada. Revisa tu email para verificar tu cuenta.',

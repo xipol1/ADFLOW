@@ -88,6 +88,18 @@ class WhatsAppAPI {
     return res.data;
   }
 
+  // Verifies a Meta access token has *ownership* of the phone number, not
+  // just read access. Two-step check:
+  //
+  //   1. GET /{phoneNumberId}?fields=...,whatsapp_business_account
+  //      Meta only populates `whatsapp_business_account` when the caller's
+  //      token has admin scope on the parent WABA — a token that can read
+  //      a phone's `verified_name` but not its WABA edge is suspicious.
+  //   2. GET /{wabaId}?fields=id  — confirms the token can actually reach
+  //      the parent WABA. If 403, ownership cross-check fails.
+  //
+  // This makes a stolen/leaked read-only token insufficient to claim the
+  // channel, raising the bar above "API call returns 200".
   async verifyAccess(accessToken, phoneNumberId) {
     try {
       const token = accessToken || this.accessToken;
@@ -95,15 +107,36 @@ class WhatsAppAPI {
       if (!token || !id) {
         return { valid: false, error: 'Credenciales incompletas' };
       }
-      const url = `https://graph.facebook.com/v17.0/${id}?fields=verified_name,quality_rating`;
-      const res = await axios.get(url, {
-        headers: { Authorization: `Bearer ${token}` },
-        timeout: this.timeout,
-      });
-      if (res.data && res.data.verified_name) {
-        return { valid: true, phoneInfo: res.data };
+      const headers = { Authorization: `Bearer ${token}` };
+
+      // Step 1: phone fields including parent WABA
+      const phoneUrl = `https://graph.facebook.com/v17.0/${id}?fields=verified_name,quality_rating,display_phone_number,whatsapp_business_account`;
+      const phoneRes = await axios.get(phoneUrl, { headers, timeout: this.timeout });
+      if (!phoneRes.data?.verified_name) {
+        return { valid: false, error: 'No se pudo verificar el acceso al número' };
       }
-      return { valid: false, error: 'No se pudo verificar el acceso' };
+
+      // Step 2: WABA cross-check (ownership signal)
+      const wabaId = phoneRes.data?.whatsapp_business_account?.id;
+      if (!wabaId) {
+        return {
+          valid: false,
+          error: 'Token sin acceso a la WABA del número (no se puede verificar ownership)',
+        };
+      }
+      try {
+        await axios.get(
+          `https://graph.facebook.com/v17.0/${wabaId}?fields=id`,
+          { headers, timeout: this.timeout },
+        );
+      } catch (wabaErr) {
+        return {
+          valid: false,
+          error: 'El token no administra la WABA propietaria del número.',
+        };
+      }
+
+      return { valid: true, phoneInfo: phoneRes.data, wabaId };
     } catch (err) {
       return { valid: false, error: err.message };
     }

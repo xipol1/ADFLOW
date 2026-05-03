@@ -184,6 +184,20 @@ CanalSchema.index({ estado: 1, nivel: 1 });
 
 CanalSchema.index({ plataforma: 1, identificadorCanal: 1 }, { unique: false });
 
+// Partial unique index: only one strongly-verified canal can exist per
+// (plataforma, identificadorCanal). Multiple "declared" canals can coexist
+// (different users prospecting the same public channel) but as soon as one
+// passes a real verification flow (OAuth, bot-admin, MTProto claim) all
+// other declarations get blocked from being elevated to verificado:true.
+//
+// Migration note: if duplicate verified canals exist when this index is
+// first synced, MongoDB will refuse to create it — operators must manually
+// resolve the duplicates (typically: keep the oldest claimed/verified one).
+CanalSchema.index(
+  { plataforma: 1, identificadorCanal: 1 },
+  { unique: true, partialFilterExpression: { verificado: true } }
+);
+
 // Channel Explorer: filter by category + sort by CAS
 CanalSchema.index({ categoria: 1, CAS: 1 });
 

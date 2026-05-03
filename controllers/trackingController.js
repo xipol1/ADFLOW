@@ -148,7 +148,19 @@ const checkVerificationStatus = async (req, res, next) => {
     const ok = await ensureDb();
     if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
 
+    const userId = req.usuario?.id;
+    if (!userId) return next(httpError(401, 'No autorizado'));
+
     const { channelId } = req.params;
+
+    // Only the channel owner can poll its verification status. Otherwise any
+    // authenticated user could enumerate channelIds and trigger the soft-verify
+    // side-effect on Canals they don't own.
+    const canal = await Canal.findById(channelId).select('propietario').lean();
+    if (!canal) return next(httpError(404, 'Canal no encontrado'));
+    if (canal.propietario?.toString() !== String(userId)) {
+      return next(httpError(403, 'No autorizado'));
+    }
 
     const link = await TrackingLink.findOne({
       channel: channelId,
@@ -165,17 +177,21 @@ const checkVerificationStatus = async (req, res, next) => {
       await link.save();
     }
 
-    // Check if verification threshold reached
+    // Check if click threshold reached. This is a SOFT signal only:
+    // tracking-URL clicks prove the user has *somewhere* to publish a link,
+    // not that they own the channel. We mark the link's verification as
+    // verified and bump the channel's confianzaScore, but never flip the
+    // binary `verificado` flag (reserved for oauth_graph / admin_directo).
+    // See the same pattern in app.js trackingRedirectHandler.
     const isVerified = link.stats.uniqueClicks >= link.verification.minClicks;
     if (isVerified && link.verification.status !== 'verified') {
       link.verification.status = 'verified';
       link.verification.verifiedAt = new Date();
       await link.save();
 
-      // Update channel status
       await Canal.findByIdAndUpdate(channelId, {
-        estado: 'activo',
-        verificado: true,
+        'verificacion.tipoAcceso': 'tracking_url',
+        'verificacion.confianzaScore': 30,
         'estadisticas.ultimaActualizacion': new Date(),
       });
     }

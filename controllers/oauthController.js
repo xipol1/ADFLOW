@@ -8,6 +8,7 @@ const { ensureDb } = require('../lib/ensureDb');
 const { encrypt } = require('../lib/encryption');
 const metaOAuth = require('../services/metaOAuthService');
 const linkedinOAuth = require('../services/linkedinOAuthService');
+const { maybeElevateFounderTier } = require('./../services/founderTierElevation');
 const config = require('../config/config');
 
 const OAUTH_STATE_TTL = '5m'; // state token lives 5 minutes
@@ -251,6 +252,7 @@ const connectAccounts = async (req, res, next) => {
             scopes: (config.meta.scopes || '').split(','),
             oauthConnectedAt: new Date(),
           },
+          verificacion: { tipoAcceso: 'oauth_graph', confianzaScore: 90 },
           foto: page.picture || '',
         });
         created.push(canal);
@@ -278,6 +280,7 @@ const connectAccounts = async (req, res, next) => {
             scopes: (config.meta.scopes || '').split(','),
             oauthConnectedAt: new Date(),
           },
+          verificacion: { tipoAcceso: 'oauth_graph', confianzaScore: 90 },
           foto: page.instagram.profilePicture || '',
         });
         created.push(canal);
@@ -308,10 +311,15 @@ const connectAccounts = async (req, res, next) => {
             scopes: (config.meta.scopes || '').split(','),
             oauthConnectedAt: new Date(),
           },
+          verificacion: { tipoAcceso: 'oauth_graph', confianzaScore: 90 },
         });
         created.push(canal);
       }
     }
+
+    // Run founder-tier elevation for any newly verified canals (no-op for
+    // users who didn't come through the bot funnel).
+    await Promise.all(created.map((c) => maybeElevateFounderTier(c)));
 
     return res.status(201).json({
       success: true,
@@ -589,6 +597,7 @@ const connectLinkedinAccounts = async (req, res, next) => {
             scopes: (config.linkedin.scopes || '').split(','),
             oauthConnectedAt: new Date(),
           },
+          verificacion: { tipoAcceso: 'oauth_graph', confianzaScore: 90 },
           foto: sessionData.linkedinPicture || '',
         });
         created.push(canal);
@@ -620,11 +629,14 @@ const connectLinkedinAccounts = async (req, res, next) => {
             scopes: (config.linkedin.scopes || '').split(','),
             oauthConnectedAt: new Date(),
           },
+          verificacion: { tipoAcceso: 'oauth_graph', confianzaScore: 90 },
           foto: org.logoUrl || '',
         });
         created.push(canal);
       }
     }
+
+    await Promise.all(created.map((c) => maybeElevateFounderTier(c)));
 
     return res.status(201).json({
       success: true,

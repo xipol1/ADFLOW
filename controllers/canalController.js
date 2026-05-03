@@ -25,6 +25,25 @@ const crearCanal = async (req, res, next) => {
       return next(httpError(400, 'plataforma e identificadorCanal son requeridos'));
     }
 
+    // If someone has already strongly verified this channel (oauth_graph or
+    // admin_directo + verificado:true), refuse the declaration. This stops
+    // the squat-then-claim workflow where attacker A creates a "declared"
+    // canal pointing at @durov hoping to later weaponize it. Note: the
+    // partial unique index in models/Canal.js enforces this at the DB level
+    // too — this controller-side check just produces a friendlier error.
+    const existingVerified = await Canal.findOne({
+      plataforma,
+      identificadorCanal,
+      verificado: true,
+    }).select('_id propietario').lean();
+    if (existingVerified) {
+      return next(httpError(409, 'Ese canal ya ha sido verificado por otro usuario.'));
+    }
+
+    // Manually declared canals are unverified by definition. The binary
+    // `verificado` flag stays false and confianzaScore is near-zero — only
+    // a real platform verification flow (OAuth, bot-admin, MTProto claim)
+    // can promote this canal.
     const canal = await Canal.create({
       propietario: userId,
       plataforma,
@@ -32,11 +51,18 @@ const crearCanal = async (req, res, next) => {
       nombreCanal,
       categoria,
       descripcion,
-      estado: 'pendiente_verificacion'
+      estado: 'pendiente_verificacion',
+      verificado: false,
+      verificacion: { tipoAcceso: 'declarado', confianzaScore: 10 },
     });
 
     return res.status(201).json({ success: true, data: canal });
   } catch (error) {
+    // Surface duplicate-key errors from the partial unique index as 409s
+    // so the API contract stays clean instead of leaking the Mongo code.
+    if (error?.code === 11000) {
+      return next(httpError(409, 'Ese canal ya ha sido verificado por otro usuario.'));
+    }
     next(error);
   }
 };

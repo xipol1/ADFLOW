@@ -302,14 +302,68 @@ class TelegramBot {
     return { ok: true, result };
   }
 
+  // Verifies the bot has admin posting rights in the target chat.
+  //
+  // Telegram's `getChat` succeeds for any *public* channel by @username
+  // regardless of bot membership, so it cannot be used as a trust signal.
+  // We additionally call `getChatMember(bot_id)` and require the bot to be
+  // an administrator/creator with `can_post_messages !== false`.
   async verifyBotAccess(chatId) {
     try {
       this._ensureConfigured();
-      const chatInfo = await this.getChatInfo(chatId);
-      if (!chatInfo) {
-        return { valid: false, error: 'No se pudo obtener info del chat' };
+
+      // 1. Identify the bot itself
+      let me;
+      try {
+        me = await this.getMe();
+      } catch (err) {
+        return { valid: false, error: `Bot token inválido: ${err.message}` };
       }
-      return { valid: true, chat: chatInfo };
+
+      // 2. Confirm the bot is in the chat AND is an admin/creator
+      let member;
+      try {
+        member = await this._req('getChatMember', {
+          chat_id: chatId,
+          user_id: me.id,
+        });
+      } catch (err) {
+        // Bot is not a member of the chat (private), OR chat does not exist,
+        // OR token doesn't match. Telegram returns "Bad Request: user not found"
+        // or "chat not found" for these cases.
+        return {
+          valid: false,
+          error: 'El bot no es miembro del canal. Añádelo como administrador antes de verificar.',
+        };
+      }
+
+      const isAdmin = ['administrator', 'creator'].includes(member?.status);
+      if (!isAdmin) {
+        return {
+          valid: false,
+          error: 'El bot está en el canal pero no tiene rol de administrador. Promuévelo a admin.',
+        };
+      }
+
+      const canPostMessages = member?.can_post_messages !== false;
+      if (!canPostMessages) {
+        return {
+          valid: false,
+          error: 'El bot es admin pero no tiene permiso para publicar mensajes.',
+        };
+      }
+
+      // 3. Now it's safe to fetch chat metadata to return to caller
+      const chatInfo = await this.getChatInfo(chatId);
+      return {
+        valid: true,
+        chat: chatInfo,
+        isAdmin: true,
+        canPostMessages: true,
+        status: member.status,
+        botId: me.id,
+        botUsername: me.username,
+      };
     } catch (err) {
       return { valid: false, error: err.message };
     }

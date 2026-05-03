@@ -252,24 +252,59 @@ class DiscordBot {
     return guild.approximate_member_count || 0;
   }
 
-  // Legacy: verifyBotAccess returns {valid, guild} format
+  // Verifies the bot is in the guild AND has the permissions it will need
+  // later to publish ad campaigns. `getGuild` already requires bot membership
+  // (Discord rejects with 403 otherwise) so the membership half is enforced
+  // at the API layer; on top of that we read the bot's effective permission
+  // bitfield via `verifyBotAccessNew` and require `VIEW_CHANNEL` and
+  // `SEND_MESSAGES`. Without these the channel would pass verification but
+  // fail silently the first time we try to publish a campaign.
   async verifyBotAccess(guildId) {
     try {
       const guild = await this.getGuild(guildId);
       if (!guild || guild.code) {
         return { valid: false, error: guild?.message || 'No se pudo acceder al servidor' };
       }
-      // Also include new fields for the new SocialSyncService
-      const newAccess = await this.verifyBotAccessNew(guildId).catch(() => ({}));
+
+      const access = await this.verifyBotAccessNew(guildId).catch((err) => ({
+        isPresent: false,
+        error: err.message,
+      }));
+
+      if (!access.isPresent) {
+        return {
+          valid: false,
+          isPresent: false,
+          error: access.error || 'El bot no es miembro del servidor.',
+        };
+      }
+      if (!access.canViewChannels) {
+        return {
+          valid: false,
+          isPresent: true,
+          error: 'El bot no tiene permiso VIEW_CHANNEL en el servidor.',
+          canSendMessages: !!access.canSendMessages,
+          canViewChannels: false,
+        };
+      }
+      if (!access.canSendMessages) {
+        return {
+          valid: false,
+          isPresent: true,
+          error: 'El bot no tiene permiso SEND_MESSAGES — no podra publicar campañas.',
+          canSendMessages: false,
+          canViewChannels: true,
+        };
+      }
+
       return {
         valid: true,
         guild: { name: guild.name, id: guild.id, memberCount: guild.approximate_member_count },
-        // New fields
         isPresent: true,
-        canViewChannels: newAccess.canViewChannels ?? true,
-        canReadHistory: newAccess.canReadHistory ?? true,
-        canSendMessages: newAccess.canSendMessages ?? true,
-        canAddReactions: newAccess.canAddReactions ?? true,
+        canViewChannels: true,
+        canReadHistory: !!access.canReadHistory,
+        canSendMessages: true,
+        canAddReactions: !!access.canAddReactions,
       };
     } catch (err) {
       return { valid: false, isPresent: false, error: err.message };
