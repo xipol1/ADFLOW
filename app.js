@@ -511,6 +511,7 @@ const enabledRoutes = [
   ['/api/inbox',     './routes/inbox'],
   ['/api/conversions', './routes/conversions'],
   ['/api/track',     './routes/trackPixel'],
+  ['/api/swaps',     './routes/swaps'],
 ];
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));

@@ -1403,6 +1403,51 @@ class ApiService {
   async getCampaignConversions(campaignId, limit = 50) {
     return this.request(`/conversions/campaigns/${encodeURIComponent(campaignId)}/list?limit=${limit}`);
   }
+
+  // ── Channel Swaps (intercambio de menciones entre creators) ────────────────
+  async discoverSwapPartners(canalId) {
+    return this.request(`/swaps/discover?canalId=${encodeURIComponent(canalId)}`);
+  }
+
+  async listMySwaps(role = 'all') {
+    return this.request(`/swaps/mine?role=${encodeURIComponent(role)}`);
+  }
+
+  async getSwap(id) {
+    return this.request(`/swaps/${encodeURIComponent(id)}`);
+  }
+
+  async createSwap(payload) {
+    return this.request('/swaps', { method: 'POST', body: JSON.stringify(payload) });
+  }
+
+  async acceptSwap(id) {
+    return this.request(`/swaps/${encodeURIComponent(id)}/accept`, { method: 'POST' });
+  }
+
+  async rejectSwap(id, motivo = '') {
+    return this.request(`/swaps/${encodeURIComponent(id)}/reject`, {
+      method: 'POST', body: JSON.stringify({ motivo }),
+    });
+  }
+
+  async cancelSwap(id, motivo = '') {
+    return this.request(`/swaps/${encodeURIComponent(id)}/cancel`, {
+      method: 'POST', body: JSON.stringify({ motivo }),
+    });
+  }
+
+  async markSwapPublished(id, payload = {}) {
+    return this.request(`/swaps/${encodeURIComponent(id)}/mark-published`, {
+      method: 'POST', body: JSON.stringify(payload),
+    });
+  }
+
+  async rateSwap(id, rating, comentario = '') {
+    return this.request(`/swaps/${encodeURIComponent(id)}/rate`, {
+      method: 'POST', body: JSON.stringify({ rating, comentario }),
+    });
+  }
 }
 
 // Crear instancia única del servicio

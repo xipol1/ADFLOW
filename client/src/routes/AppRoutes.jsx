@@ -74,6 +74,7 @@ import CreatorContentStudioPage from '../ui/pages/dashboard/creator/CreatorConte
 import CreatorToolsPage        from '../ui/pages/dashboard/creator/CreatorToolsPage'
 import CreatorActivityPage     from '../ui/pages/dashboard/creator/CreatorActivityPage'
 import CreatorBillingPage      from '../ui/pages/dashboard/creator/CreatorBillingPage'
+import CreatorSwapsPage        from '../ui/pages/dashboard/creator/CreatorSwapsPage'
 import PublicCreatorProfilePage from '../ui/pages/public/PublicCreatorProfilePage'
 
 // Admin dashboard suite
@@ -265,6 +266,7 @@ export default function AppRoutes() {
         <Route path="tools"    element={<FullAccessOnly feature="Tools"><CreatorToolsPage /></FullAccessOnly>} />
         <Route path="activity" element={<FullAccessOnly feature="Actividad"><CreatorActivityPage /></FullAccessOnly>} />
         <Route path="billing"  element={<FullAccessOnly feature="Billing"><CreatorBillingPage /></FullAccessOnly>} />
+        <Route path="swaps"    element={<FullAccessOnly feature="Colaboraciones"><CreatorSwapsPage /></FullAccessOnly>} />
         <Route path="referrals" element={<CreatorReferralsPage />} />
         <Route path="disputes" element={<FullAccessOnly feature="Disputas"><DisputesPage /></FullAccessOnly>} />
         <Route path="notifications" element={<NotificationsPage />} />

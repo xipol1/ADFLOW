@@ -13,7 +13,7 @@ import {
   Columns3, Map, Calculator, Target, ClipboardList, Calendar,
   Activity, Filter, Bookmark, Layers, FlaskConical,
   Rocket, Hash, PieChart, GitCompare, User as UserIcon, MessageSquare,
-  Compass, Building2, Wrench, Receipt, Sparkles, BellRing,
+  Compass, Building2, Wrench, Receipt, Sparkles, BellRing, Repeat,
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../services/api'
@@ -107,6 +107,7 @@ const ROLE_CONFIG = {
       { group: 'Crecer', items: [
         { path: '/analytics', icon: BarChart3,       label: 'Analíticas',        fullOnly: true },
         { path: '/audience',  icon: Users,           label: 'Audiencia',         fullOnly: true },
+        { path: '/swaps',     icon: Repeat,          label: 'Colaboraciones',    fullOnly: true },
         { path: '/compare',   icon: GitCompare,      label: 'Comparar',          fullOnly: true },
         { path: '/profile',   icon: UserIcon,        label: 'Perfil público' },
       ]},
