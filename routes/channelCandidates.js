@@ -12,7 +12,13 @@ const express = require('express');
 const mongoose = require('mongoose');
 // Lazy-loaded to avoid bundling axios/cheerio into every Vercel function invocation
 const loadTgstat = () => require('../services/tgstatScraperService');
-const { autenticar } = require('../middleware/auth');
+const { autenticar, autorizarRoles } = require('../middleware/auth');
+
+// All admin-only candidate endpoints share this guard. Approving a candidate
+// creates a Canal that gets linked to the caller as `propietario` — letting any
+// authenticated user hit it would let them appropriate scraped public channels
+// (e.g. @nasa, @bbcnews) discovered by the TGStat cron.
+const requireAdmin = [autenticar, autorizarRoles('admin')];
 
 const router = express.Router();
 
@@ -90,7 +96,7 @@ router.get('/:jobId/status', requireCronSecret, async (req, res) => {
 });
 
 // ── Admin: List candidates ──────────────────────────────────────────────
-router.get('/candidates', autenticar, async (req, res) => {
+router.get('/candidates', requireAdmin, async (req, res) => {
   try {
     const { ChannelCandidate } = getModels();
     const { status, source, page = 1, limit = 50 } = req.query;
@@ -127,7 +133,7 @@ router.get('/candidates', autenticar, async (req, res) => {
 });
 
 // ── Admin: Approve candidate ────────────────────────────────────────────
-router.post('/candidates/:id/approve', autenticar, async (req, res) => {
+router.post('/candidates/:id/approve', requireAdmin, async (req, res) => {
   try {
     const { ChannelCandidate, Canal } = getModels();
     const { id } = req.params;
@@ -247,7 +253,7 @@ router.post('/candidates/:id/approve', autenticar, async (req, res) => {
 });
 
 // ── Admin: Reject candidate ─────────────────────────────────────────────
-router.post('/candidates/:id/reject', autenticar, async (req, res) => {
+router.post('/candidates/:id/reject', requireAdmin, async (req, res) => {
   try {
     const { ChannelCandidate } = getModels();
     const { id } = req.params;
