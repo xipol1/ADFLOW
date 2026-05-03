@@ -2,6 +2,17 @@ const express = require('express');
 const router = express.Router();
 const onboarding = require('../controllers/onboardingController');
 const { autenticar: authenticate, requiereEmailVerificado } = require('../middleware/auth');
+const { limitarIntentos } = require('../middleware/rateLimiter');
+
+// Rate limit for WhatsApp verification polling. Frontend hits this on a timer
+// while the user is on the verification screen — typical session does ~30
+// polls (5s interval × 2-3 minutes). Cap at 60/min per IP to prevent abuse
+// while leaving comfortable headroom for legitimate flows.
+const limitarWhatsAppPoll = limitarIntentos({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, error: 'Demasiadas comprobaciones. Espera unos segundos antes de reintentar.' },
+});
 
 // ─── Telegram ───────────────────────────────────────────────────────────────
 router.post('/telegram/instrucciones', authenticate, (req, res) => onboarding.telegramGetInstructions(req, res));
@@ -24,6 +35,7 @@ router.post('/whatsapp/verificar',     authenticate, requiereEmailVerificado, (r
 // ─── WhatsApp Admin Client (whatsapp-web.js — VPS only) ─────────────────────
 router.post('/whatsapp/iniciar',             authenticate, requiereEmailVerificado, (req, res) => onboarding.whatsappAdminIniciar(req, res));
 router.post('/whatsapp/verificar-admin',     authenticate, requiereEmailVerificado, (req, res) => onboarding.whatsappAdminVerificar(req, res));
+router.post('/whatsapp/poll',                authenticate, limitarWhatsAppPoll, (req, res) => onboarding.whatsappAdminPoll(req, res));
 router.get('/whatsapp/admin-estado/:canalId', authenticate, (req, res) => onboarding.whatsappAdminEstado(req, res));
 router.post('/whatsapp/publicar/:campaignMetricsId', authenticate, (req, res) => onboarding.whatsappPublicar(req, res));
 

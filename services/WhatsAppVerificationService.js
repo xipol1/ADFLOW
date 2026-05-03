@@ -3,10 +3,18 @@
  *
  * Flujo de verificación de canales de WhatsApp vía admin client.
  *
- * 1. startVerification: genera código, inicia polling en background
- * 2. checkAdminAccess: verifica que ChannelAd es admin del canal
- * 3. completeVerification: activa canal, publica confirmación
- * 4. getChannelSnapshot: obtiene datos iniciales del canal
+ * 1. startVerification: genera código y guarda estado de verificación
+ * 2. pollForCode:        chequea on-demand si el código apareció en posts
+ *                        (lo llama el frontend mientras el usuario espera)
+ * 3. checkAdminAccess:   verifica que ChannelAd es admin del canal
+ * 4. completeVerification: activa canal, publica confirmación
+ * 5. getChannelSnapshot: obtiene datos iniciales del canal
+ *
+ * Nota: anteriormente había un setInterval que pollaba en background.
+ * No funciona en Vercel serverless (las funciones mueren al responder)
+ * y el WhatsApp admin client en este despliegue corre como servicio
+ * remoto vía API, así que polling local nunca tendría acceso real.
+ * Frontend-driven polling es la única opción confiable.
  */
 
 'use strict';
@@ -18,19 +26,18 @@ const { getRedisClient } = require('../config/redis');
 
 // In-memory fallback when Redis is unavailable
 const memoryStore = new Map();
-const activePolls = new Map();
 
 const VERIFICATION_TTL = 1800; // 30 minutes
-const POLL_INTERVAL = 30000;   // 30 seconds
 const REDIS_PREFIX = 'wa:verify:';
 
 class WhatsAppVerificationService {
 
   /**
-   * Phase 1: Start verification — generate code, begin polling.
+   * Phase 1: Start verification — generate code and store it.
    *
-   * The canal owner must publish the code in their WhatsApp channel.
-   * We poll every 30s looking for it. When found → auto-complete.
+   * The canal owner must publish the code in their WhatsApp channel and
+   * keep the verification UI open. The frontend polls `pollForCode` every
+   * few seconds; when the code is detected we complete the verification.
    */
   async startVerification(canalId, channelId) {
     const code = crypto.randomInt(100000, 999999).toString();
@@ -57,9 +64,6 @@ class WhatsAppVerificationService {
       });
     }
 
-    // Start background polling
-    this._startPolling(canalId, channelId, code);
-
     return {
       code,
       channelId,
@@ -68,13 +72,105 @@ class WhatsAppVerificationService {
         pasos: [
           'Abre tu canal de WhatsApp',
           `Publica un mensaje con este código exacto: ${code}`,
-          'ChannelAd lo detectará automáticamente (máx. 30 minutos)',
-          'Si quieres acelerar, pulsa "Verificar admin" después de añadir el número como admin',
+          'Mantén esta pantalla abierta — comprobaremos cada pocos segundos',
+          'Asegúrate de añadir el número de ChannelAd como administrador del canal',
         ],
         numeroChannelAd: process.env.WHATSAPP_CHANNELAD_NUMBER || '+34600000000',
         nota: 'Para completar la verificación, el número de ChannelAd debe ser admin de tu canal.',
         tiempoEstimado: '3 minutos',
       },
+    };
+  }
+
+  /**
+   * Phase 2 (frontend-driven): single on-demand check for the verification
+   * code in the channel's recent posts. Frontend calls this on a timer
+   * (rate-limited at the route layer). Resolves to one of:
+   *
+   *   { active: false, reason: 'expired' | 'none' }
+   *   { active: true, found: false, expiresIn }
+   *   { active: true, found: true, completed: true, canal }
+   *   { active: true, found: true, completed: false, error, instrucciones }
+   *
+   * The "found:true, completed:false" case is informative (e.g. user posted
+   * the code but hasn't granted admin yet); the frontend can keep showing
+   * the "make admin" instructions without re-issuing a new code.
+   */
+  async pollForCode(canalId, channelId) {
+    const stored = await this._readStoredVerification(channelId);
+    if (!stored) {
+      return { active: false, reason: 'none', message: 'No hay verificación activa o ha expirado' };
+    }
+    if (stored.canalId && stored.canalId !== canalId) {
+      // Defensive: the stored entry belongs to another canalId. Treat as inactive.
+      return { active: false, reason: 'mismatch' };
+    }
+
+    if (!whatsappAdmin.ready) {
+      return { active: true, found: false, expiresIn: stored.expiresIn, adminClientReady: false };
+    }
+
+    let posts;
+    try {
+      posts = await whatsappAdmin.getRecentPosts(channelId, 5);
+    } catch (err) {
+      // Read failure (no admin yet, network issue, etc.) — treat as not-found
+      // so the frontend keeps polling. We don't abort the verification.
+      return {
+        active: true,
+        found: false,
+        expiresIn: stored.expiresIn,
+        adminClientReady: true,
+        readError: err.message,
+      };
+    }
+
+    const found = (posts || []).some((p) => p?.body && p.body.includes(stored.code));
+    if (!found) {
+      return { active: true, found: false, expiresIn: stored.expiresIn, adminClientReady: true };
+    }
+
+    // Code detected — try to complete (requires admin access).
+    try {
+      const result = await this.completeVerification(canalId, channelId);
+      return { active: true, found: true, completed: true, canal: result.canal, tier: result.tier };
+    } catch (err) {
+      return {
+        active: true,
+        found: true,
+        completed: false,
+        error: err.message,
+        instrucciones: err.instrucciones,
+      };
+    }
+  }
+
+  // Read+normalize the stored verification entry from Redis or memory.
+  // Returns null if absent or expired.
+  async _readStoredVerification(channelId) {
+    const redis = await getRedisClient();
+    if (redis) {
+      const raw = await redis.get(`${REDIS_PREFIX}${channelId}`);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      return {
+        code: data.code,
+        canalId: data.canalId,
+        startedAt: data.startedAt,
+        expiresIn: Math.max(0, VERIFICATION_TTL - Math.floor((Date.now() - data.startedAt) / 1000)),
+      };
+    }
+
+    const data = memoryStore.get(channelId);
+    if (!data || data.expiresAt < Date.now()) {
+      memoryStore.delete(channelId);
+      return null;
+    }
+    return {
+      code: data.code,
+      canalId: data.canalId,
+      startedAt: data.startedAt,
+      expiresIn: Math.max(0, Math.floor((data.expiresAt - Date.now()) / 1000)),
     };
   }
 
@@ -121,7 +217,9 @@ class WhatsAppVerificationService {
     // 2. Get channel snapshot
     const snapshot = await this.getChannelSnapshot(channelId);
 
-    // 3. Update Canal in MongoDB
+    // 3. Update Canal in MongoDB. Admin-client check + code-in-post is
+    // strong proof of channel ownership (only admins can post in WhatsApp
+    // channels and only admins can grant admin access to the bot number).
     const updateData = {
       'botConfig.whatsapp.adminNumber': process.env.WHATSAPP_CHANNELAD_NUMBER,
       'botConfig.whatsapp.channelId': channelId,
@@ -134,9 +232,20 @@ class WhatsAppVerificationService {
       'estadisticas.ultimaActualizacion': new Date(),
       'nivelVerificacion': 'oro',
       estado: 'activo',
+      verificado: true,
+      'verificacion.tipoAcceso': 'bot_miembro',
+      'verificacion.confianzaScore': 85,
     };
 
     const canal = await Canal.findByIdAndUpdate(canalId, { $set: updateData }, { new: true });
+
+    // Founder-tier elevation: post-save hook can't fire on findByIdAndUpdate,
+    // so call the helper explicitly. No-op unless the user came through the
+    // bot funnel and the channel matches what they declared.
+    try {
+      const { maybeElevateFounderTier } = require('./founderTierElevation');
+      await maybeElevateFounderTier(canal);
+    } catch { /* non-fatal */ }
 
     // 4. Publish confirmation message in channel
     try {
@@ -152,8 +261,7 @@ class WhatsAppVerificationService {
       console.warn('[wa-verify] Could not publish confirmation:', pubErr.message);
     }
 
-    // 5. Clean up polling and Redis
-    this._stopPolling(channelId);
+    // 5. Clean up the stored verification entry
     await this._clearVerification(channelId);
 
     return {
@@ -189,97 +297,21 @@ class WhatsAppVerificationService {
   }
 
   /**
-   * Get verification status for a channel.
+   * Get verification status for a channel — read-only view of the stored
+   * code/expiration. Used by the admin-estado endpoint to show the user
+   * the current verification state without triggering a check against the
+   * WhatsApp admin client. Use `pollForCode` for the active check.
    */
   async getVerificationStatus(channelId) {
-    const redis = await getRedisClient();
-
-    if (redis) {
-      const raw = await redis.get(`${REDIS_PREFIX}${channelId}`);
-      if (!raw) return { active: false };
-      const data = JSON.parse(raw);
-      return {
-        active: true,
-        code: data.code,
-        channelId: data.channelId,
-        startedAt: data.startedAt,
-        expiresIn: Math.max(0, VERIFICATION_TTL - Math.floor((Date.now() - data.startedAt) / 1000)),
-        polling: activePolls.has(channelId),
-      };
-    }
-
-    const data = memoryStore.get(channelId);
-    if (!data || data.expiresAt < Date.now()) {
-      memoryStore.delete(channelId);
-      return { active: false };
-    }
-
+    const stored = await this._readStoredVerification(channelId);
+    if (!stored) return { active: false };
     return {
       active: true,
-      code: data.code,
-      channelId: data.channelId,
-      startedAt: data.startedAt,
-      expiresIn: Math.max(0, Math.floor((data.expiresAt - Date.now()) / 1000)),
-      polling: activePolls.has(channelId),
+      code: stored.code,
+      channelId,
+      startedAt: stored.startedAt,
+      expiresIn: stored.expiresIn,
     };
-  }
-
-  // ─── Background Polling ───────────────────────────────────────────────────
-
-  _startPolling(canalId, channelId, code) {
-    // Stop any existing poll for this channel
-    this._stopPolling(channelId);
-
-    const maxPolls = Math.floor((VERIFICATION_TTL * 1000) / POLL_INTERVAL);
-    let pollCount = 0;
-
-    const interval = setInterval(async () => {
-      pollCount++;
-
-      if (pollCount >= maxPolls) {
-        console.log(`[wa-verify] Polling expired for ${channelId}`);
-        this._stopPolling(channelId);
-        return;
-      }
-
-      if (!whatsappAdmin.ready) return;
-
-      try {
-        const posts = await whatsappAdmin.getRecentPosts(channelId, 5);
-
-        const found = posts.some(post =>
-          post.body && post.body.includes(code)
-        );
-
-        if (found) {
-          console.log(`[wa-verify] Code ${code} found in channel ${channelId} — auto-completing`);
-          this._stopPolling(channelId);
-
-          try {
-            await this.completeVerification(canalId, channelId);
-            console.log(`[wa-verify] Auto-verification completed for ${channelId}`);
-          } catch (err) {
-            console.error(`[wa-verify] Auto-complete failed for ${channelId}:`, err.message);
-          }
-        }
-      } catch (err) {
-        // Silent — might not have access yet, that's expected
-        if (pollCount % 10 === 0) {
-          console.log(`[wa-verify] Poll #${pollCount} for ${channelId}: ${err.message}`);
-        }
-      }
-    }, POLL_INTERVAL);
-
-    activePolls.set(channelId, interval);
-    console.log(`[wa-verify] Polling started for ${channelId} (code: ${code})`);
-  }
-
-  _stopPolling(channelId) {
-    const interval = activePolls.get(channelId);
-    if (interval) {
-      clearInterval(interval);
-      activePolls.delete(channelId);
-    }
   }
 
   async _clearVerification(channelId) {

@@ -491,6 +491,40 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
             </div>
           </Section>
 
+          {/* WhatsApp admin-client verification (only for WA channels not yet
+              strongly verified). Talks to /onboarding/whatsapp/{iniciar,poll}
+              via the standalone VerifyWhatsAppAdminPage. */}
+          {String(channel.plataforma || '').toLowerCase() === 'whatsapp' && !channel.verificado && (
+            <Section icon={CheckCircle} title="Verificación admin (WhatsApp)" subtitle="Otorga acceso admin a ChannelAd para leer métricas en tiempo real">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: 240 }}>
+                  <div style={{ fontSize: '13px', color: 'var(--text)', lineHeight: 1.5 }}>
+                    Te daremos un código que tendrás que publicar en tu canal,
+                    y un número que añadir como administrador. La verificación
+                    se completa en cuanto detectemos ambas cosas.
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
+                    Necesario para nivel de verificación <strong>Oro</strong>.
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate(`/creator/channels/${channel._id || channel.id}/verify-wa-admin`)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    background: A, color: '#fff', border: 'none', borderRadius: '10px',
+                    padding: '10px 18px', fontSize: '13px', fontWeight: 700,
+                    cursor: 'pointer', fontFamily: F, flexShrink: 0,
+                    boxShadow: `0 4px 12px ${AG(0.3)}`, transition: 'background .15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#7c3aed' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = A }}
+                >
+                  <CheckCircle size={14} /> Iniciar verificación
+                </button>
+              </div>
+            </Section>
+          )}
+
           {/* Danger zone: delete channel */}
           <Section icon={AlertCircle} title="Zona de peligro" subtitle="Acciones irreversibles">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>

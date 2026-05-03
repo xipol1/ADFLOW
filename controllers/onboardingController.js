@@ -750,6 +750,51 @@ class OnboardingController {
   }
 
   /**
+   * POST /api/onboarding/whatsapp/poll
+   * Frontend-driven polling endpoint. The user keeps this view open while
+   * they post the verification code in their WhatsApp channel; the client
+   * calls this every few seconds (rate-limited) and we return the current
+   * state. When the code is detected we attempt to complete verification
+   * and return the resulting canal.
+   *
+   * Replaces the in-memory setInterval polling that didn't survive
+   * Vercel function lifecycles.
+   */
+  async whatsappAdminPoll(req, res) {
+    try {
+      const userId = req.usuario?.id;
+      if (!userId) return res.status(401).json({ success: false, error: 'No autorizado' });
+
+      const { canalId, channelId } = req.body || {};
+      if (!canalId || !channelId) {
+        return res.status(400).json({ success: false, error: 'canalId y channelId requeridos' });
+      }
+
+      // Ownership check — never poll on behalf of someone else
+      const canal = await Canal.findById(canalId).select('propietario plataforma').lean();
+      if (!canal) return res.status(404).json({ success: false, error: 'Canal no encontrado' });
+      if (canal.propietario?.toString() !== String(userId)) {
+        return res.status(403).json({ success: false, error: 'No autorizado' });
+      }
+      if (canal.plataforma !== 'whatsapp') {
+        return res.status(400).json({ success: false, error: 'El canal no es de WhatsApp' });
+      }
+
+      let verificationService;
+      try {
+        verificationService = require('../services/WhatsAppVerificationService');
+      } catch (e) {
+        return res.status(503).json({ success: false, error: 'Service not available' });
+      }
+
+      const result = await verificationService.pollForCode(canalId, channelId);
+      return res.json({ success: true, ...result });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  }
+
+  /**
    * POST /api/onboarding/whatsapp/verificar-admin
    * Verifica acceso admin y completa la activación del canal.
    */
