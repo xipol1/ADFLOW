@@ -487,7 +487,7 @@ export default function CustomizableDashboard({
   }
 
   return (
-    <div ref={containerRef} style={{ fontFamily: FONT_BODY, maxWidth: 1400, margin: '0 auto' }}>
+    <div ref={containerRef} style={{ fontFamily: FONT_BODY, width: '100%', maxWidth: 1400, margin: '0 auto' }}>
       <style>{GRID_STYLES}</style>
 
       {/* ── Top toolbar ── */}
