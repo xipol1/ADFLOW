@@ -1,14 +1,14 @@
 /**
  * TDirectory Scraper Service — Telegram channel discovery via tdirectory.me.
  *
- * Indexes millions of channels, groups, bots, and stickers with community
- * moderation. Has explicit Spanish-language category sections.
+ * Indexes channels, groups, and bots. The previous category structure
+ * (/category/{name}.dhtml) is gone — the site now exposes flat listings:
+ *   /channels.html  — top channels
+ *   /groups.html    — top groups
+ * Each item links to /channel/{username}.dhtml (or /group/{slug}.dhtml).
  *
- * URL patterns:
- *   /category/{name}.dhtml  — category page
- *
- * May return 403 with basic headers — uses full browser-like headers and
- * cookie handling for best compatibility.
+ * The username in the path is the Telegram t.me/{username}, except invite
+ * hashes that start with "+" — those are private invites we skip.
  *
  * Rate limiting: 4s between requests.
  */
@@ -21,17 +21,9 @@ const RATE_LIMIT_MS = 4000;
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36';
 
-const CATEGORIES = [
-  { slug: 'spanish-crypto-groups', label: 'cripto' },
-  { slug: 'spanish-finance', label: 'finanzas' },
-  { slug: 'spanish-business', label: 'negocios' },
-  { slug: 'spanish-marketing', label: 'marketing' },
-  { slug: 'spanish-news', label: 'noticias' },
-  { slug: 'spanish-education', label: 'educacion' },
-  { slug: 'spanish-technology', label: 'tecnologia' },
-  { slug: 'crypto', label: 'cripto_global' },
-  { slug: 'finance', label: 'finanzas_global' },
-  { slug: 'marketing', label: 'marketing_global' },
+const PAGES = [
+  { path: '/channels.html', kind: 'channel', label: 'channels' },
+  { path: '/groups.html', kind: 'group', label: 'groups' },
 ];
 
 function sleep(ms) {
@@ -54,7 +46,9 @@ function extractUsername(href) {
   // Match t.me/username or /channel/@username or /channel/username
   let m = href.match(/t\.me\/([\w]+)/i);
   if (m) return m[1].toLowerCase();
-  m = href.match(/\/channel\/@?([\w]+)/i);
+  m = href.match(/\/(?:channel|group|bot)\/@?([\w+]+)\.dhtml/i);
+  if (m) return m[1].toLowerCase();
+  m = href.match(/\/(?:channel|group)\/@?([\w]+)/i);
   if (m) return m[1].toLowerCase();
   return null;
 }
@@ -85,45 +79,55 @@ async function fetchHtml(url) {
 }
 
 /**
- * Scrape a single category page.
+ * Scrape a single listing page (e.g. /channels.html or /groups.html).
+ *
+ * Each item is rendered as `<a href="/channel/X.dhtml" title="X title">`
+ * with subscriber count and description in nearby siblings/parent.
  */
-async function scrapeCategory(categorySlug) {
-  const url = `${BASE_URL}/category/${categorySlug}.dhtml`;
+async function scrapeListing(pagePath, kind = 'channel') {
+  const url = `${BASE_URL}${pagePath}`;
   try {
     const html = await fetchHtml(url);
     const $ = cheerio.load(html);
     const channels = [];
 
-    // Strategy 1: look for t.me links inside structured containers
-    $('a[href*="t.me/"]').each((_, el) => {
-      const href = $(el).attr('href') || '';
+    // Anchors that point to /channel/X.dhtml or /group/X.dhtml
+    const linkSelector = kind === 'group'
+      ? 'a[href*="/group/"][href*=".dhtml"]'
+      : 'a[href*="/channel/"][href*=".dhtml"]';
+
+    $(linkSelector).each((_, el) => {
+      const $a = $(el);
+      const href = $a.attr('href') || '';
       const username = extractUsername(href);
-      if (!username || username.length < 4) return;
+      if (!username || username.length < 3) return;
+      // Skip private invite hashes (start with +)
+      if (username.startsWith('+')) return;
       if (/joinchat|share|addstickers|proxy/i.test(username)) return;
 
-      const container = $(el).closest('div, li, article, tr, .card, .item, .channel');
       const title =
-        container.find('h2, h3, h4, h5, .title, .name, strong').first().text().trim() ||
-        $(el).text().trim() ||
+        $a.attr('title')?.trim() ||
+        $a.text().trim() ||
         username;
 
-      // Look for subscriber count in nearby text
+      // Walk up to find the card/row holding metrics
+      const container = $a.closest('div, li, article, tr, td, .card, .item');
       const containerText = container.text().replace(/\s+/g, ' ');
       const subsMatch = containerText.match(/([\d,.]+\s*[KkMm]?)\s*(?:members?|subscribers?|subs?)/i);
       const subscribers = subsMatch ? parseCount(subsMatch[1]) : 0;
 
-      // Description
-      const desc = container.find('p, .description, .desc, .text').first().text().trim();
+      const desc = container.find('p, .description, .desc, .text, small').first().text().trim();
 
       channels.push({
         username,
         title: title.slice(0, 120),
         subscribers,
         description: (desc || '').slice(0, 400),
+        kind,
       });
     });
 
-    // Dedupe
+    // Dedupe within this page
     const seen = new Map();
     for (const ch of channels) {
       if (!seen.has(ch.username)) seen.set(ch.username, ch);
@@ -133,37 +137,35 @@ async function scrapeCategory(categorySlug) {
   } catch (err) {
     const status = err.response?.status;
     if (status === 403) {
-      console.warn(`[TDirectory] 403 on ${categorySlug} — site may require browser JS`);
+      console.warn(`[TDirectory] 403 on ${pagePath} — site may require browser JS`);
     } else if (status === 404) {
-      console.warn(`[TDirectory] 404 on ${categorySlug} — category may not exist`);
+      console.warn(`[TDirectory] 404 on ${pagePath} — page may not exist`);
     } else {
-      console.warn(`[TDirectory] Failed ${categorySlug}: ${err.message}`);
+      console.warn(`[TDirectory] Failed ${pagePath}: ${err.message}`);
     }
     return [];
   }
 }
 
 /**
- * Scrape all configured categories.
+ * Scrape all configured pages.
  * @returns {{ results: Array, errors: string[] }}
  */
 async function scrapeAllCategories() {
   const seen = new Map();
   const errors = [];
 
-  for (const cat of CATEGORIES) {
+  for (const page of PAGES) {
     try {
-      const channels = await scrapeCategory(cat.slug);
+      const channels = await scrapeListing(page.path, page.kind);
       for (const ch of channels) {
         if (!seen.has(ch.username)) {
-          seen.set(ch.username, { ...ch, category: cat.label });
+          seen.set(ch.username, { ...ch, category: page.label });
         }
       }
-      if (channels.length > 0) {
-        console.log(`[TDirectory] ${cat.slug}: ${channels.length} channels`);
-      }
+      console.log(`[TDirectory] ${page.label}: ${channels.length} items`);
     } catch (err) {
-      errors.push(`TDirectory ${cat.slug}: ${err.message}`);
+      errors.push(`TDirectory ${page.label}: ${err.message}`);
     }
     await sleep(RATE_LIMIT_MS);
   }
@@ -172,9 +174,9 @@ async function scrapeAllCategories() {
 }
 
 module.exports = {
-  scrapeCategory,
+  scrapeListing,
   scrapeAllCategories,
-  CATEGORIES,
+  PAGES,
   parseCount,
   extractUsername,
 };

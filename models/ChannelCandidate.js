@@ -51,6 +51,7 @@ const ChannelCandidateSchema = new mongoose.Schema(
         'telegram_crypto_groups',
         // Discord sources
         'disboard',
+        'top_gg',
         'igrupos_discord',
         // WhatsApp sources
         'wachannelsfinder',

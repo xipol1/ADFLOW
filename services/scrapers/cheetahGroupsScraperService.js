@@ -1,15 +1,18 @@
 /**
- * CheetahGroups Scraper — WhatsApp channel discovery via cheetahgroups.com.
+ * CheetahGroups Scraper — WhatsApp group discovery via cheetahgroups.com.
  *
- * WordPress-based directory with 1,000+ WhatsApp Channels (the newer
- * Channels feature). Organized by categories (News, Sports, Business, etc.).
+ * Site moved from per-category landing pages (e.g. /whatsapp-channel-links-business/,
+ * deprecated and 404) to a 2-level WordPress structure:
+ *   /category/{slug}/                              — index of articles
+ *   /{topic}-whatsapp-group-links/                 — article with the actual links
  *
- * URL patterns:
- *   /whatsapp-channels-links/                      — main listing
- *   /whatsapp-channel-links-{category}/            — category pages
- *   /whatsapp-channels-links/page/{n}/             — pagination
+ * Article pages render a <table class="cheetah-tables"> where each row has:
+ *   td.grp-name        — group name
+ *   a[href*="chat.whatsapp.com"] — invite link (followed by tracking #fragment)
  *
- * May return 403 — uses full browser-like headers.
+ * Note: despite the original code expecting whatsapp.com/channel/ (Channels),
+ * this site lists chat.whatsapp.com/ (Groups). source = 'cheetah_groups'.
+ *
  * Rate limiting: 4s between requests.
  */
 
@@ -18,175 +21,199 @@ const cheerio = require('cheerio');
 
 const BASE_URL = 'https://cheetahgroups.com';
 const RATE_LIMIT_MS = 4000;
-const MAX_PAGES = 5;
+const MAX_ARTICLES_PER_CATEGORY = 8;
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36';
 
-const PAGES_TO_SCRAPE = [
-  { path: '/whatsapp-channels-links/', label: 'main' },
-  { path: '/whatsapp-channel-links-business/', label: 'business' },
-  { path: '/whatsapp-channel-links-news/', label: 'news' },
-  { path: '/whatsapp-channel-links-technology/', label: 'technology' },
-  { path: '/whatsapp-channel-links-education/', label: 'education' },
-  { path: '/whatsapp-channel-links-sports/', label: 'sports' },
-  { path: '/whatsapp-channel-links-entertainment/', label: 'entertainment' },
-  { path: '/whatsapp-channel-links-finance/', label: 'finance' },
-  { path: '/whatsapp-channel-links-crypto/', label: 'crypto' },
+const CATEGORIES = [
+  { slug: 'business', label: 'business' },
+  { slug: 'entertainment', label: 'entertainment' },
+  { slug: 'sports', label: 'sports' },
+  { slug: 'education', label: 'education' },
+  { slug: 'gaming', label: 'gaming' },
+  { slug: 'creativity', label: 'creativity' },
+  { slug: 'literature', label: 'literature' },
+  { slug: 'religious', label: 'religious' },
+  { slug: 'politics', label: 'politics' },
+  { slug: 'blogs', label: 'blogs' },
 ];
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function parseFollowers(text) {
-  if (!text) return 0;
-  const clean = text.replace(/\s/g, '').replace(/,/g, '');
-  const m = clean.match(/([\d.]+)\s*([KkMm])?/);
-  if (!m) return 0;
-  let n = parseFloat(m[1]);
-  if (m[2] === 'K' || m[2] === 'k') n *= 1000;
-  if (m[2] === 'M' || m[2] === 'm') n *= 1000000;
-  return Math.round(n);
-}
+const HEADERS = {
+  'User-Agent': USER_AGENT,
+  Accept:
+    'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+  'Accept-Language': 'es-ES,es;q=0.9,en-US;q=0.8,en;q=0.7',
+  'Accept-Encoding': 'gzip, deflate, br',
+  'Sec-Fetch-Dest': 'document',
+  'Sec-Fetch-Mode': 'navigate',
+  'Sec-Fetch-Site': 'none',
+  'Sec-Fetch-User': '?1',
+  'Upgrade-Insecure-Requests': '1',
+  Referer: BASE_URL,
+};
 
 /**
- * Extract WhatsApp channel invite code from a whatsapp.com/channel link.
+ * Extract WhatsApp invite code from a chat.whatsapp.com link.
+ * Strips the tracking fragment cheetah appends (#CopiedFrom...).
  */
-function extractChannelCode(href) {
+function extractInviteCode(href) {
   if (!href) return null;
-  // https://whatsapp.com/channel/XXXXXX
-  const m = href.match(/whatsapp\.com\/channel\/([\w-]+)/i);
+  const m = href.match(/chat\.whatsapp\.com\/(?:invite\/)?([\w-]+)/i);
   return m ? m[1] : null;
 }
 
 /**
- * Scrape a single page.
+ * Step 1 — fetch a category index, return the article URLs that hold groups.
+ * Filters out non-article links (menu items, share buttons, ads).
  */
-async function scrapePage(url) {
+async function scrapeCategoryIndex(categorySlug) {
+  const url = `${BASE_URL}/category/${categorySlug}/`;
   try {
     const { data: html } = await axios.get(url, {
-      timeout: 15000,
-      headers: {
-        'User-Agent': USER_AGENT,
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'es-ES,es;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-        'Upgrade-Insecure-Requests': '1',
-        Referer: BASE_URL,
-      },
+      timeout: 20000,
+      headers: HEADERS,
       maxRedirects: 3,
     });
 
     const $ = cheerio.load(html);
-    const channels = [];
+    const articles = [];
+    const seen = new Set();
 
-    // Strategy 1: WhatsApp channel invite links
-    $('a[href*="whatsapp.com/channel/"]').each((_, el) => {
-      const $a = $(el);
-      const href = $a.attr('href') || '';
-      const channelCode = extractChannelCode(href);
-      if (!channelCode) return;
+    // Article cards expose .entry-title > a as the canonical post link
+    $('.entry-title a, h2.entry-title a, article a').each((_, el) => {
+      const href = $(el).attr('href') || '';
+      // Article slugs always end in "-whatsapp-group-links" or "-whatsapp-channel-links"
+      if (!/whatsapp-(?:group|channel)-links\/?$/.test(href)) return;
+      if (seen.has(href)) return;
+      seen.add(href);
 
-      const container = $a.closest('div, li, article, tr, p, td');
+      const title = $(el).text().trim();
+      articles.push({ url: href, title: title.slice(0, 120) });
+    });
+
+    return articles;
+  } catch (err) {
+    const status = err.response?.status;
+    if (status !== 404) {
+      console.warn(`[CheetahGroups] Index ${categorySlug} failed: ${err.message}`);
+    }
+    return [];
+  }
+}
+
+/**
+ * Step 2 — fetch an article, extract the WhatsApp group rows from the table.
+ */
+async function scrapeArticle(articleUrl, categoryLabel) {
+  try {
+    const { data: html } = await axios.get(articleUrl, {
+      timeout: 20000,
+      headers: HEADERS,
+      maxRedirects: 3,
+    });
+
+    const $ = cheerio.load(html);
+    const groups = [];
+    const seen = new Set();
+
+    // Modern table layout
+    $('table.cheetah-tables tr').each((_, row) => {
+      const $row = $(row);
+      const link = $row.find('a[href*="chat.whatsapp.com"]').first();
+      if (!link.length) return;
+
+      const href = link.attr('href') || '';
+      const inviteCode = extractInviteCode(href);
+      if (!inviteCode) return;
+      if (seen.has(inviteCode)) return;
+      seen.add(inviteCode);
+
       const name =
-        container.find('h2, h3, h4, h5, strong, b').first().text().trim() ||
-        $a.text().trim();
+        $row.find('td.grp-name').text().trim() ||
+        $row.find('td').eq(1).text().trim() ||
+        '';
       if (!name || name.length < 2) return;
 
-      const containerText = container.text().replace(/\s+/g, ' ');
-      const followersMatch = containerText.match(/([\d,.]+[KkMm]?)\s*(?:followers?|members?|seguidores?)/i);
-
-      const description = container.find('p, .description, .excerpt').first().text().trim();
-
-      channels.push({
-        channelCode,
+      groups.push({
+        channelCode: inviteCode,
         name: name.slice(0, 120),
-        followers: followersMatch ? parseFollowers(followersMatch[1]) : 0,
-        description: (description || '').slice(0, 400),
-        inviteLink: href,
+        followers: 0,
+        description: '',
+        inviteLink: href.split('#')[0],
+        category: categoryLabel,
       });
     });
 
-    // Strategy 2: WordPress article entries with WA links
-    if (channels.length === 0) {
-      $('article, .entry-content li, .wp-block-list li, .post-content li').each((_, el) => {
-        const $item = $(el);
-        const link = $item.find('a[href*="whatsapp.com/channel/"]').first();
-        if (!link.length) return;
+    // Fallback: any chat.whatsapp.com link inside the article body
+    if (groups.length === 0) {
+      $('article a[href*="chat.whatsapp.com"], .entry-content a[href*="chat.whatsapp.com"]').each((_, el) => {
+        const $a = $(el);
+        const href = $a.attr('href') || '';
+        const inviteCode = extractInviteCode(href);
+        if (!inviteCode || seen.has(inviteCode)) return;
+        seen.add(inviteCode);
 
-        const href = link.attr('href') || '';
-        const channelCode = extractChannelCode(href);
-        if (!channelCode) return;
-
-        const name = link.text().trim() || $item.find('strong, b, h3, h4').first().text().trim();
+        const container = $a.closest('tr, li, p, div');
+        const name =
+          container.find('strong, b, td').first().text().trim() ||
+          $a.text().trim() ||
+          '';
         if (!name || name.length < 2) return;
 
-        channels.push({
-          channelCode,
+        groups.push({
+          channelCode: inviteCode,
           name: name.slice(0, 120),
           followers: 0,
           description: '',
-          inviteLink: href,
+          inviteLink: href.split('#')[0],
+          category: categoryLabel,
         });
       });
     }
 
-    const hasMore = $('a.next, a[rel="next"], .nav-next a').length > 0;
-    return { channels, hasMore };
+    return groups;
   } catch (err) {
-    const status = err.response?.status;
-    if (status === 403) {
-      console.warn(`[CheetahGroups] 403 on ${url} — may require browser JS`);
-    } else if (status !== 404) {
-      console.warn(`[CheetahGroups] Failed ${url}: ${err.message}`);
+    if (err.response?.status !== 404) {
+      console.warn(`[CheetahGroups] Article ${articleUrl}: ${err.message}`);
     }
-    return { channels: [], hasMore: false };
+    return [];
   }
 }
 
 /**
- * Scrape a section with pagination.
- */
-async function scrapeSection(basePath, maxPages = MAX_PAGES) {
-  const results = [];
-  for (let page = 1; page <= maxPages; page++) {
-    const url = page > 1
-      ? `${BASE_URL}${basePath}page/${page}/`
-      : `${BASE_URL}${basePath}`;
-
-    const { channels, hasMore } = await scrapePage(url);
-    results.push(...channels);
-    if (!hasMore || channels.length === 0) break;
-    await sleep(RATE_LIMIT_MS);
-  }
-  return results;
-}
-
-/**
- * Scrape all configured pages.
+ * Run the full 2-level scrape across all categories.
  * @returns {{ results: Array, errors: string[] }}
  */
 async function scrapeAll() {
   const seen = new Map();
   const errors = [];
 
-  for (const page of PAGES_TO_SCRAPE) {
+  for (const cat of CATEGORIES) {
     try {
-      const channels = await scrapeSection(page.path);
-      for (const ch of channels) {
-        if (!seen.has(ch.channelCode)) {
-          seen.set(ch.channelCode, { ...ch, category: page.label });
+      const articles = await scrapeCategoryIndex(cat.slug);
+      const trimmed = articles.slice(0, MAX_ARTICLES_PER_CATEGORY);
+      console.log(`[CheetahGroups] ${cat.slug}: ${articles.length} articles found, scraping ${trimmed.length}`);
+
+      let catGroups = 0;
+      for (const article of trimmed) {
+        await sleep(RATE_LIMIT_MS);
+        const groups = await scrapeArticle(article.url, cat.label);
+        for (const g of groups) {
+          if (!seen.has(g.channelCode)) {
+            seen.set(g.channelCode, g);
+            catGroups++;
+          }
         }
       }
-      if (channels.length > 0) {
-        console.log(`[CheetahGroups] ${page.label}: ${channels.length} channels`);
+      if (catGroups > 0) {
+        console.log(`[CheetahGroups] ${cat.slug}: +${catGroups} groups`);
       }
     } catch (err) {
-      errors.push(`CheetahGroups ${page.label}: ${err.message}`);
+      errors.push(`CheetahGroups ${cat.slug}: ${err.message}`);
     }
     await sleep(RATE_LIMIT_MS);
   }
@@ -195,10 +222,9 @@ async function scrapeAll() {
 }
 
 module.exports = {
-  scrapePage,
-  scrapeSection,
+  scrapeCategoryIndex,
+  scrapeArticle,
   scrapeAll,
-  PAGES_TO_SCRAPE,
-  parseFollowers,
-  extractChannelCode,
+  CATEGORIES,
+  extractInviteCode,
 };
