@@ -92,45 +92,34 @@ const ROLE_CONFIG = {
     nav: [
       { group: null, items: [
         { path: '',           icon: LayoutDashboard, label: 'Dashboard',    end: true },
-        { path: '/inbox',     icon: MessageSquare,   label: 'Inbox',        badge: true, fullOnly: true },
+        { path: '/inbox',     icon: MessageSquare,   label: 'Bandeja',      badge: true, fullOnly: true },
       ]},
-      { group: 'Trabajar', items: [
-        { path: '/discover',  icon: Compass,         label: 'Discover',     fullOnly: true },
-        { path: '/requests',  icon: Inbox,           label: 'Solicitudes',  badge: true, fullOnly: true },
-        { path: '/calendar',  icon: Calendar,        label: 'Calendario',   fullOnly: true },
+      { group: 'Canales', items: [
+        { path: '/channels',  icon: Radio,           label: 'Mis canales'        },
+        { path: '/discover',  icon: Compass,         label: 'Explorar briefs',   fullOnly: true },
+        { path: '/calendar',  icon: Calendar,        label: 'Calendario',        fullOnly: true },
       ]},
-      { group: 'Mis canales', items: [
-        { path: '/channels',                icon: Radio,       label: 'Mis canales'        },
-        { path: '/channels/link-whatsapp',  icon: Radio,       label: 'Vincular WhatsApp'  },
-        { path: '/whatsapp-audit',          icon: ShieldAlert, label: 'Registro WhatsApp'  },
+      { group: 'Monetizar', items: [
+        { path: '/earnings',  icon: Wallet,          label: 'Ganancias',         fullOnly: true },
+        { path: '/pricing',   icon: DollarSign,      label: 'Optimizar precios', fullOnly: true },
+        { path: '/billing',   icon: Receipt,         label: 'Facturación',       fullOnly: true },
       ]},
       { group: 'Crecer', items: [
-        { path: '/analytics', icon: BarChart3,       label: 'Analytics',    fullOnly: true },
-        { path: '/audience',  icon: Users,           label: 'Audiencia',    fullOnly: true },
-        { path: '/compare',   icon: GitCompare,      label: 'Comparar',     fullOnly: true },
-        { path: '/abtest',    icon: FlaskConical,    label: 'A/B Testing',  fullOnly: true },
-      ]},
-      { group: 'Ingresos', items: [
-        { path: '/earnings',  icon: Wallet,          label: 'Ganancias',    fullOnly: true },
-        { path: '/pricing',   icon: DollarSign,      label: 'Pricing Optimizer', fullOnly: true },
-        { path: '/reports',   icon: FileText,        label: 'Reports',      fullOnly: true },
-        { path: '/billing',   icon: Receipt,         label: 'Billing',      fullOnly: true },
-      ]},
-      { group: 'Mi marca', items: [
+        { path: '/analytics', icon: BarChart3,       label: 'Analíticas',        fullOnly: true },
+        { path: '/audience',  icon: Users,           label: 'Audiencia',         fullOnly: true },
+        { path: '/compare',   icon: GitCompare,      label: 'Comparar',          fullOnly: true },
         { path: '/profile',   icon: UserIcon,        label: 'Perfil público' },
-        { path: '/brands',    icon: Building2,       label: 'Brands CRM',   fullOnly: true },
-        { path: '/content',   icon: Sparkles,        label: 'Content Studio', fullOnly: true },
       ]},
-      { group: 'Más', items: [
-        { path: '/notifications', icon: BellRing,    label: 'Notificaciones' },
-        { path: '/activity',  icon: ClipboardCheck,  label: 'Actividad',    fullOnly: true },
-        { path: '/tools',     icon: Wrench,          label: 'Tools',        fullOnly: true },
+      { group: 'Herramientas', items: [
+        { path: '/content',   icon: Sparkles,        label: 'Estudio de contenido', fullOnly: true },
+        { path: '/tools',     icon: Wrench,          label: 'Herramientas',      fullOnly: true },
+        { path: '/brands',    icon: Building2,       label: 'Mis marcas',        fullOnly: true },
         { path: '/referrals', icon: Users,           label: 'Referidos'              },
-        { path: '/disputes',  icon: ShieldAlert,     label: 'Disputas',     fullOnly: true },
       ]},
     ],
     bottomNav: [
-      { path: '/settings', icon: Settings, label: 'Configuración', fullOnly: true },
+      { path: '/notifications', icon: BellRing,  label: 'Notificaciones' },
+      { path: '/settings',      icon: Settings,  label: 'Configuración', fullOnly: true },
     ],
   },
   admin: {

@@ -28,6 +28,10 @@ export default function FiscalDataBanner() {
   if (user.emailVerificado === false) return null
   if (user.datosFacturacion?.completado === true) return null
 
+  // Para creators, este recordatorio ya está incluido como paso 8 del
+  // onboarding checklist en el dashboard — no duplicar.
+  if (user.role === 'creator') return null
+
   // Si ya están en settings, no mostrar el banner para no estorbar.
   if (/\/(advertiser|creator)\/settings/.test(location.pathname)) return null
 

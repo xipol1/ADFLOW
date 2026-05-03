@@ -83,7 +83,7 @@ export default function CreatorOnboardingChecklist({
 
 // ─── Banner variant — wide horizontal at top of Dashboard ───────────────────
 function BannerVariant({ steps, pct, completedCount, total, navigate, dismiss }) {
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(false)
   const nextStep = steps.find(s => !s.complete)
 
   return (
