@@ -71,6 +71,11 @@ skills-lock.json
 
 # ── Sibling projects kept in this folder for convenience ──────────────────────
 channelad-pitch-video/
+channelad-ad-flow/
+channelad-advertiser-tour/
+
+# ── One-off scripts (investor deck, etc.) ─────────────────────────────────────
+scripts/create_burn_slide.py
 
 # ── Project local settings ────────────────────────────────────────────────────
 settings.local.json
