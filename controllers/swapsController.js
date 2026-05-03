@@ -1,13 +1,42 @@
+const crypto = require('crypto');
 const ChannelSwap = require('../models/ChannelSwap');
 const Canal = require('../models/Canal');
 const Usuario = require('../models/Usuario');
+const TrackingLink = require('../models/TrackingLink');
 const { ensureDb } = require('../lib/ensureDb');
+
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'https://channelad.io';
 
 const httpError = (status, message) => {
   const err = new Error(message);
   err.status = status;
   return err;
 };
+
+// Build a TrackingLink that, when clicked, redirects to the destination
+// channel's public page on channelad.io. The recipient of these clicks is
+// the destination channel — every click is a "view" attributable to the
+// other party's mention.
+async function createSwapTrackingLink({ swap, posterUserId, destinationChannel }) {
+  const code = 's' + crypto.randomBytes(4).toString('hex'); // 's' prefix for swap
+  const targetUrl = `${PUBLIC_BASE_URL}/channel/${destinationChannel._id}`;
+  await TrackingLink.create({
+    code,
+    targetUrl,
+    createdBy: posterUserId,
+    type: 'swap',
+    swap: swap._id,
+    channel: destinationChannel._id,
+    active: true,
+    stats: { totalClicks: 0, uniqueClicks: 0 },
+    verification: {
+      // For swaps, "verified" means the post got at least N real clicks.
+      // The closing cron uses this threshold.
+      minClicks: 3,
+    },
+  });
+  return `${PUBLIC_BASE_URL}/t/${code}`;
+}
 
 // Helper: ¿este userId es propietario de este canal? (acepta ObjectId o string)
 const userOwnsChannel = (canal, userId) =>
@@ -250,6 +279,33 @@ const acceptSwap = async (req, res, next) => {
     }
     if (swap.status !== 'propuesto') {
       return next(httpError(400, `No se puede aceptar un swap en estado ${swap.status}`));
+    }
+
+    // Generate two tracking links (one for each creator's post). Each link
+    // points to the OTHER channel — clicks measure conversion driven by the
+    // mention. If link creation fails, we still accept the swap but the
+    // tracking URLs will be empty (creator can publish raw URLs as fallback).
+    try {
+      const [requesterChannel, recipientChannel] = await Promise.all([
+        Canal.findById(swap.requesterChannel).lean(),
+        Canal.findById(swap.recipientChannel).lean(),
+      ]);
+      if (requesterChannel && recipientChannel) {
+        const [urlForRequesterPost, urlForRecipientPost] = await Promise.all([
+          // Requester posts a link → leads to recipient channel
+          createSwapTrackingLink({
+            swap, posterUserId: swap.requester, destinationChannel: recipientChannel,
+          }),
+          // Recipient posts a link → leads to requester channel
+          createSwapTrackingLink({
+            swap, posterUserId: swap.recipient, destinationChannel: requesterChannel,
+          }),
+        ]);
+        swap.contenidoRequester.trackingUrl = urlForRequesterPost;
+        swap.contenidoRecipient.trackingUrl = urlForRecipientPost;
+      }
+    } catch (trackErr) {
+      console.error('[swap.accept] tracking link creation failed:', trackErr?.message);
     }
 
     swap.status = 'aceptado';

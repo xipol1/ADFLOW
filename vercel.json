@@ -36,6 +36,10 @@
     {
       "path": "/api/jobs/multiplatform-intel",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/jobs/swaps-maintenance",
+      "schedule": "15 4 * * *"
     }
   ],
   "headers": [

@@ -512,6 +512,7 @@ const enabledRoutes = [
   ['/api/conversions', './routes/conversions'],
   ['/api/track',     './routes/trackPixel'],
   ['/api/swaps',     './routes/swaps'],
+  ['/api/jobs',      './routes/swapsCron'],
 ];
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));

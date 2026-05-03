@@ -42,10 +42,10 @@ const TrackingLinkSchema = new mongoose.Schema(
     // Who created this link
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', index: true },
 
-    // Context: campaign tracking OR channel verification
+    // Context: campaign tracking OR channel verification OR swap
     type: {
       type: String,
-      enum: ['campaign', 'verification', 'custom'],
+      enum: ['campaign', 'verification', 'custom', 'swap'],
       default: 'campaign',
       index: true,
     },
@@ -53,8 +53,13 @@ const TrackingLinkSchema = new mongoose.Schema(
     // Associated campaign (for campaign links)
     campaign: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign', default: null, index: true },
 
-    // Associated channel (for verification links)
+    // Associated channel (for verification links — for swap links this is
+    // the DESTINATION channel that should gain followers from this link)
     channel: { type: mongoose.Schema.Types.ObjectId, ref: 'Canal', default: null, index: true },
+
+    // Associated swap (for swap links). Lets us aggregate click counts
+    // back into ChannelSwap.resultados when the closing cron runs.
+    swap: { type: mongoose.Schema.Types.ObjectId, ref: 'ChannelSwap', default: null, index: true },
 
     // Aggregated stats (updated on each click, avoids counting array)
     stats: {

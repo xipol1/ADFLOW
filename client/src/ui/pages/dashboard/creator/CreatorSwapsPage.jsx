@@ -2,9 +2,10 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import {
   Repeat, Search, Inbox, Send, Activity, CheckCircle2, X,
   Users, Radio, ArrowRight, Clock, Star, Sparkles, AlertCircle,
-  ChevronRight, Calendar, MessageSquare,
+  ChevronRight, Calendar, MessageSquare, Copy, Check, Link2,
 } from 'lucide-react'
 import apiService from '../../../../services/api'
+import { useAuth } from '../../../../auth/AuthContext'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, WARN, ERR, BLUE } from '../../../theme/tokens'
 
 const ACCENT = GREEN
@@ -42,6 +43,8 @@ const STATUS_LABEL = {
  *  - Histórico: completados, rechazados, expirados
  */
 export default function CreatorSwapsPage() {
+  const { user } = useAuth()
+  const currentUserId = String(user?._id || user?.id || '')
   const [tab, setTab] = useState('descubrir')
   const [channels, setChannels] = useState([])
   const [selectedChannelId, setSelectedChannelId] = useState('')
@@ -133,6 +136,19 @@ export default function CreatorSwapsPage() {
     } catch { showToast('Error de conexión', false) }
   }
 
+  const handleMarkPublished = async (id, messageId) => {
+    try {
+      const res = await apiService.markSwapPublished(id, { messageId: messageId || '' })
+      if (res?.success) {
+        showToast('Marcado como publicado')
+        loadSwaps()
+        // Refetch the open swap so the modal shows the new state
+        const fresh = await apiService.getSwap(id)
+        if (fresh?.success) setDetail(fresh.data)
+      } else showToast(res?.message || 'Error', false)
+    } catch { showToast('Error de conexión', false) }
+  }
+
   // ── Empty state when no channels ──
   if (!loading && !channels.length) {
     return (
@@ -209,7 +225,12 @@ export default function CreatorSwapsPage() {
         <ProposeModal partner={proposeTo} onClose={() => setProposeTo(null)} onConfirm={handlePropose} />
       )}
       {detail && (
-        <SwapDetailModal swap={detail} onClose={() => setDetail(null)} />
+        <SwapDetailModal
+          swap={detail}
+          currentUserId={currentUserId}
+          onClose={() => setDetail(null)}
+          onMarkPublished={handleMarkPublished}
+        />
       )}
 
       {/* Toast */}
@@ -525,8 +546,24 @@ function ProposeModal({ partner, onClose, onConfirm }) {
 }
 
 // ─── Detail modal ──────────────────────────────────────────────────────────
-function SwapDetailModal({ swap, onClose }) {
+function SwapDetailModal({ swap, currentUserId, onClose, onMarkPublished }) {
   const status = STATUS_LABEL[swap.status] || { label: swap.status, color: 'var(--muted)' }
+  const requesterId = String(swap.requester?._id || swap.requester || '')
+  const recipientId = String(swap.recipient?._id || swap.recipient || '')
+  const iAmRequester = currentUserId === requesterId
+  const iAmRecipient = currentUserId === recipientId
+
+  // The TrackingUrl I should publish (the link in MY post drives traffic to the OTHER channel)
+  const myContent     = iAmRequester ? swap.contenidoRequester : iAmRecipient ? swap.contenidoRecipient : null
+  const partnerContent = iAmRequester ? swap.contenidoRecipient : iAmRecipient ? swap.contenidoRequester : null
+  const myTrackingUrl   = myContent?.trackingUrl
+  const myPublishedAt   = myContent?.publicadoEn
+  const partnerPublishedAt = partnerContent?.publicadoEn
+  const otherChannel = iAmRequester ? swap.recipientChannel : swap.requesterChannel
+
+  const showTrackingFlow = ['aceptado', 'publicado_a', 'publicado_b'].includes(swap.status)
+  const [messageId, setMessageId] = useState('')
+
   return (
     <ModalShell onClose={onClose} title="Detalle del intercambio" icon={Repeat}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
@@ -560,10 +597,74 @@ function SwapDetailModal({ swap, onClose }) {
         </div>
       )}
 
+      {/* Tracking URL + publish flow */}
+      {showTrackingFlow && myTrackingUrl && (
+        <div style={{
+          background: ga(0.06), border: `1px solid ${ga(0.25)}`, borderRadius: 12,
+          padding: 14, marginBottom: 14,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <Link2 size={14} color={ACCENT} />
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)' }}>
+              Tu link para publicar
+            </div>
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.5, marginBottom: 10 }}>
+            Copia este enlace y publícalo en tu canal junto a una mención de <strong style={{ color: 'var(--text)' }}>{otherChannel?.nombreCanal}</strong>.
+            Cada click cuenta como conversión real.
+          </div>
+          <CopyableUrl url={myTrackingUrl} />
+
+          {!myPublishedAt && (
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${ga(0.2)}` }}>
+              <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
+                Cuando publiques, márcalo aquí:
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input
+                  type="text"
+                  value={messageId}
+                  onChange={e => setMessageId(e.target.value)}
+                  placeholder="ID del mensaje (opcional)"
+                  style={{
+                    flex: 1, background: 'var(--bg)', color: 'var(--text)',
+                    border: '1px solid var(--border)', borderRadius: 8,
+                    padding: '7px 10px', fontSize: 12, fontFamily: F,
+                  }}
+                />
+                <button onClick={() => onMarkPublished(swap._id, messageId)} style={btnPrimary}>
+                  <CheckCircle2 size={13} /> Marcar publicado
+                </button>
+              </div>
+            </div>
+          )}
+
+          {myPublishedAt && (
+            <div style={{
+              marginTop: 12, paddingTop: 12, borderTop: `1px solid ${ga(0.2)}`,
+              display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: OK, fontWeight: 600,
+            }}>
+              <CheckCircle2 size={13} /> Publicado el {new Date(myPublishedAt).toLocaleString('es')}
+              {!partnerPublishedAt && (
+                <span style={{ color: 'var(--muted)', fontWeight: 500, marginLeft: 6 }}>
+                  · Esperando que la otra parte publique
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {(swap.resultados?.clicksRequester > 0 || swap.resultados?.clicksRecipient > 0) && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-          <Stat label="Clicks (Solicitante)" value={swap.resultados.clicksRequester} />
-          <Stat label="Clicks (Destinatario)" value={swap.resultados.clicksRecipient} />
+          <Stat
+            label={iAmRequester ? 'Clicks que diste' : 'Clicks recibidos'}
+            value={swap.resultados.clicksRequester}
+          />
+          <Stat
+            label={iAmRecipient ? 'Clicks que diste' : 'Clicks recibidos'}
+            value={swap.resultados.clicksRecipient}
+          />
         </div>
       )}
 
@@ -571,6 +672,33 @@ function SwapDetailModal({ swap, onClose }) {
         <button onClick={onClose} style={btnGhost}>Cerrar</button>
       </div>
     </ModalShell>
+  )
+}
+
+function CopyableUrl({ url }) {
+  const [copied, setCopied] = useState(false)
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1500) } catch {}
+  }
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 6,
+      background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 9,
+      padding: '7px 10px',
+    }}>
+      <code style={{
+        flex: 1, fontSize: 12, color: 'var(--text)', fontFamily: 'ui-monospace, monospace',
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}>
+        {url}
+      </code>
+      <button onClick={copy} title="Copiar" style={{
+        background: 'transparent', border: 'none', cursor: 'pointer', padding: 4,
+        color: copied ? OK : 'var(--muted)', display: 'flex',
+      }}>
+        {copied ? <Check size={14} /> : <Copy size={14} />}
+      </button>
+    </div>
   )
 }
 

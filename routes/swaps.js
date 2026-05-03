@@ -3,8 +3,42 @@ const { body, param, query } = require('express-validator');
 const { autenticar } = require('../middleware/auth');
 const { validarCampos } = require('../middleware/validarCampos');
 const swapsController = require('../controllers/swapsController');
+// Lazy-loaded so the cron job dependency tree isn't pulled into every
+// authenticated swap request.
+const loadMaintenanceJob = () => require('../jobs/swapsMaintenanceJob');
 
 const router = express.Router();
+
+// ── Cron: maintenance (expiration + closing). Mounted under /api/swaps so
+// it shares the route file but uses its own auth (CRON_SECRET, not JWT).
+function requireCronSecret(req, res, next) {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return res.status(503).json({ success: false, message: 'CRON_SECRET not configured' });
+  if (req.headers.authorization !== `Bearer ${secret}`) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+  return next();
+}
+
+async function handleMaintenance(req, res) {
+  try {
+    const { runSwapsMaintenanceJob } = loadMaintenanceJob();
+    const result = await runSwapsMaintenanceJob();
+    return res.json({ success: true, ...result });
+  } catch (err) {
+    console.error('Swaps maintenance cron error:', err?.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Swaps maintenance failed',
+      error: err?.message,
+    });
+  }
+}
+
+// Mounted both at /api/swaps/maintenance AND /api/jobs/swaps-maintenance
+// (see app.js). GET for Vercel Cron, POST for manual trigger.
+router.get('/maintenance', requireCronSecret, handleMaintenance);
+router.post('/maintenance', requireCronSecret, handleMaintenance);
 
 // GET /api/swaps/discover?canalId=xxx
 router.get(
