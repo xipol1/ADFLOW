@@ -220,8 +220,11 @@ export default function SupportChat() {
         aria-label="Abrir chat de soporte"
         whileHover={{ scale: 1.06 }}
         whileTap={{ scale: 0.94 }}
+        className="support-chat-btn"
         style={{
-          position: 'fixed', bottom: 24, right: 24,
+          position: 'fixed',
+          bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
+          right: 'calc(24px + env(safe-area-inset-right, 0px))',
           width: 56, height: 56, borderRadius: '50%',
           background: 'linear-gradient(135deg, #7C3AED, #A855F7)',
           border: 'none',
@@ -256,6 +259,15 @@ export default function SupportChat() {
           </>
         )}
       </motion.button>
+
+      <style>{`
+        /* Lift chat button above the mobile bottom CTA */
+        @media (max-width: 720px) and (pointer: coarse), (max-width: 480px) {
+          .support-chat-btn {
+            bottom: calc(86px + env(safe-area-inset-bottom, 0px)) !important;
+          }
+        }
+      `}</style>
     </>
   )
 }

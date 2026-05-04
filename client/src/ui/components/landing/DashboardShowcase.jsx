@@ -161,7 +161,7 @@ export default function DashboardShowcase() {
         </div>
 
         {/* Category tabs */}
-        <div style={{
+        <div className="showcase-tabs" style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           gap: '8px', flexWrap: 'wrap',
           marginBottom: 'clamp(28px, 4vw, 40px)',
@@ -244,6 +244,21 @@ export default function DashboardShowcase() {
         }
         @media (max-width: 520px) {
           .showcase-grid { grid-template-columns: 1fr !important; }
+          .showcase-tabs {
+            flex-wrap: nowrap !important;
+            justify-content: flex-start !important;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            margin-left: -16px;
+            margin-right: -16px;
+            padding: 4px 16px 12px;
+            mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+          }
+          .showcase-tabs::-webkit-scrollbar { display: none; }
+          .showcase-tabs button { scroll-snap-align: center; flex-shrink: 0; }
         }
       `}</style>
     </section>

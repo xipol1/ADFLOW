@@ -22,6 +22,7 @@ const LandingFooter = lazy(() => import('../../components/landing/LandingFooter'
 const ExitIntentModal = lazy(() => import('../../components/landing/ExitIntentModal'))
 const SupportChat = lazy(() => import('../../components/landing/SupportChat'))
 const CustomCursor = lazy(() => import('../../components/landing/CustomCursor'))
+const MobileBottomBar = lazy(() => import('../../components/landing/MobileBottomBar'))
 
 function SectionFallback() {
   return <div style={{ minHeight: '200px' }} />
@@ -50,15 +51,22 @@ function HeroFallback() {
   )
 }
 
-// Defers mounting until browser idle to avoid blocking initial render
+// Defers mounting until browser idle to avoid blocking initial render.
+// Always falls back to setTimeout so it works in environments where
+// requestIdleCallback never fires (some headless browsers).
 function DeferredMount({ children, delay = 0 }) {
   const [ready, setReady] = useState(false)
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const ric = window.requestIdleCallback || ((cb) => setTimeout(cb, 1))
-    const cancel = window.cancelIdleCallback || clearTimeout
-    const id = ric(() => setReady(true), { timeout: 2000 + delay })
-    return () => cancel(id)
+    const fallback = setTimeout(() => setReady(true), Math.max(delay, 100))
+    let ricId
+    if (window.requestIdleCallback) {
+      ricId = window.requestIdleCallback(() => setReady(true), { timeout: 1500 })
+    }
+    return () => {
+      clearTimeout(fallback)
+      if (ricId && window.cancelIdleCallback) window.cancelIdleCallback(ricId)
+    }
   }, [delay])
   return ready ? children : null
 }
@@ -127,6 +135,12 @@ export default function LandingPage() {
       <Suspense fallback={<SectionFallback />}>
         <LandingFooter />
       </Suspense>
+
+      <DeferredMount delay={300}>
+        <Suspense fallback={<NullFallback />}>
+          <MobileBottomBar />
+        </Suspense>
+      </DeferredMount>
 
       <DeferredMount delay={500}>
         <Suspense fallback={<NullFallback />}>

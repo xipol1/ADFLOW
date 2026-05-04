@@ -193,8 +193,44 @@ export default function EscrowFlowAnimation() {
           .escrow-steps { grid-template-columns: repeat(3, 1fr) !important; row-gap: 32px; }
           .escrow-track, .escrow-track-fill, .escrow-coin { display: none !important; }
         }
+        /* Mobile: vertical timeline with connecting line on the left */
         @media (max-width: 480px) {
-          .escrow-steps { grid-template-columns: repeat(2, 1fr) !important; }
+          .escrow-steps {
+            grid-template-columns: 1fr !important;
+            row-gap: 18px !important;
+            padding-left: 28px;
+            position: relative;
+          }
+          .escrow-steps::before {
+            content: '';
+            position: absolute;
+            left: 27px; top: 8px; bottom: 8px;
+            width: 2px;
+            background: linear-gradient(to bottom, #3b82f6, #7C3AED, #f59e0b, #22c55e, #10b981);
+            border-radius: 1px;
+            opacity: 0.4;
+          }
+          .escrow-steps > div {
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 16px !important;
+            text-align: left !important;
+            position: relative;
+          }
+          .escrow-steps > div > div:first-child {
+            width: 44px !important; height: 44px !important;
+            margin-left: -28px;
+            flex-shrink: 0;
+            border-width: 3px !important;
+            box-shadow: 0 0 0 4px var(--bg, #fff) !important;
+          }
+          .escrow-steps > div > div:first-child svg {
+            width: 18px !important; height: 18px !important;
+          }
+          .escrow-steps .escrow-step-text {
+            min-height: auto !important;
+            text-align: left !important;
+          }
         }
       `}</style>
     </section>

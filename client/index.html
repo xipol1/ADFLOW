@@ -127,6 +127,31 @@
       }
     }
     </script>
+    <!-- Mobile-first global polish: tap highlight, safe-area, smooth scroll, no zoom on input -->
+    <style>
+      :root {
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-top: env(safe-area-inset-top, 0px);
+      }
+      html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+      body { -webkit-tap-highlight-color: rgba(124,58,237,0.15); }
+      /* Iconos lucide y svg no recibe el highlight tap */
+      svg { -webkit-tap-highlight-color: transparent; }
+      /* iOS: input >= 16px evita zoom automático */
+      @media (max-width: 480px) {
+        input[type="email"], input[type="text"], input[type="search"], input[type="tel"], textarea {
+          font-size: 16px !important;
+        }
+      }
+      /* Hover effects only on hover-capable devices */
+      @media (hover: none) {
+        .no-hover-on-touch:hover { transform: none !important; }
+      }
+      /* Tighter section padding on small screens */
+      @media (max-width: 640px) {
+        section { padding-top: clamp(48px, 10vw, 72px) !important; padding-bottom: clamp(48px, 10vw, 72px) !important; }
+      }
+    </style>
   </head>
   <body>
     <!-- Google Tag Manager (noscript) -->
