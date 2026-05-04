@@ -87,9 +87,15 @@ const ChannelSwapSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// No permitir dos swaps activos entre el mismo par de canales
+// No permitir dos swaps activos entre el mismo par de canales (en la misma
+// dirección). El índice excluye `status` de la clave a propósito: la versión
+// anterior incluía `status` y por tanto sólo prevenía duplicados del MISMO
+// estado, dejando coexistir un `propuesto` y un `aceptado` para el mismo par
+// — exactamente lo que queríamos prohibir. La validación a nivel aplicación
+// en swapsController.createSwap también verifica esto, pero el índice es la
+// red de seguridad ante carreras concurrentes.
 ChannelSwapSchema.index(
-  { requesterChannel: 1, recipientChannel: 1, status: 1 },
+  { requesterChannel: 1, recipientChannel: 1 },
   {
     unique: true,
     partialFilterExpression: {

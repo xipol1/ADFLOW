@@ -827,11 +827,22 @@ const createCampaignSuggestion = async (req, res, next) => {
       return next(httpError(400, `No se puede proponer cambios en estado ${campaign.status}`));
     }
 
-    // Optional comment goes through the same moderation as a regular message
+    // Run moderation on BOTH the proposed ad text and the optional comment.
+    // The proposedContent is what could become live ad copy on accept — must
+    // pass the same bar as a freshly-written campaign content. Comment is
+    // chat-grade.
+    const proposedMod = moderateMessage(proposedContent);
+    if (proposedMod.blocked) {
+      return res.status(422).json({
+        success: false,
+        blocked: true,
+        message: `El texto propuesto fue bloqueado: ${proposedMod.reason}`,
+      });
+    }
     if (comment) {
-      const modResult = moderateMessage(comment);
-      if (modResult.blocked) {
-        return res.status(422).json({ success: false, blocked: true, message: modResult.reason });
+      const commentMod = moderateMessage(comment);
+      if (commentMod.blocked) {
+        return res.status(422).json({ success: false, blocked: true, message: commentMod.reason });
       }
     }
 

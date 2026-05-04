@@ -42,8 +42,9 @@ router.get(
       }
 
       // Owner-or-admin only.
-      const isOwner = canal.propietario?.toString() === req.usuario?._id?.toString();
-      const isAdmin = req.usuario?.rol === 'admin';
+      const userId = req.usuario?.id || req.usuario?._id;
+      const isOwner = canal.propietario?.toString() === userId?.toString();
+      const isAdmin = req.usuario?.rol === 'admin' || req.usuario?.role === 'admin';
       if (!isOwner && !isAdmin) {
         return res.status(403).json({ success: false, message: 'No autorizado' });
       }
@@ -95,9 +96,9 @@ router.get(
         return res.status(404).json({ success: false, message: 'Canal no encontrado' });
       }
 
-      const userId = req.usuario?._id?.toString() || req.usuario?.id?.toString();
+      const userId = (req.usuario?.id || req.usuario?._id)?.toString();
       const isOwner = canal.propietario?.toString() === userId;
-      const isAdmin = req.usuario?.rol === 'admin';
+      const isAdmin = req.usuario?.rol === 'admin' || req.usuario?.role === 'admin';
 
       // Advertisers who have an active campaign with this channel can also
       // read benchmarks — so they can use them while drafting/negotiating.

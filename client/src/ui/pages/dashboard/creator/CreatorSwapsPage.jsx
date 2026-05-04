@@ -113,14 +113,19 @@ export default function CreatorSwapsPage() {
   useEffect(() => { loadSwaps() }, [loadSwaps])
 
   // ── Counts per tab ──
+  // recibidos = pending proposals where I am the recipient (someone sent it to me)
+  // enviados  = pending proposals where I am the requester (I sent them)
+  // The previous version compared swap.recipient (a userId) against
+  // selectedChannelId (a channelId), so the counts were always wrong.
   const counts = useMemo(() => {
-    const me = (selectedChannelId || '').toString()
+    const recipientIs = (s) => String(s.recipient?._id || s.recipient) === currentUserId
+    const requesterIs = (s) => String(s.requester?._id || s.requester) === currentUserId
     return {
-      recibidos: swaps.filter(s => s.status === 'propuesto' && String(s.recipient?._id || s.recipient) !== me).length,
-      enviados:  swaps.filter(s => s.status === 'propuesto').length,
+      recibidos: swaps.filter(s => s.status === 'propuesto' && recipientIs(s)).length,
+      enviados:  swaps.filter(s => s.status === 'propuesto' && requesterIs(s)).length,
       activos:   swaps.filter(s => ['aceptado', 'publicado_a', 'publicado_b', 'publicado_ambos'].includes(s.status)).length,
     }
-  }, [swaps, selectedChannelId])
+  }, [swaps, currentUserId])
 
   // ── Actions ──
   const handlePropose = async (mensaje) => {
@@ -299,7 +304,10 @@ export default function CreatorSwapsPage() {
       {tab === 'recibidos' && (
         <div role="tabpanel" id="swap-panel-recibidos" aria-labelledby="swap-tab-recibidos">
           <SwapsList
-            swaps={swaps.filter(s => s.status === 'propuesto')}
+            swaps={swaps.filter(s =>
+              s.status === 'propuesto'
+              && String(s.recipient?._id || s.recipient) === currentUserId
+            )}
             role="incoming"
             onAccept={handleAccept}
             onReject={handleReject}
@@ -310,7 +318,10 @@ export default function CreatorSwapsPage() {
       {tab === 'enviados' && (
         <div role="tabpanel" id="swap-panel-enviados" aria-labelledby="swap-tab-enviados">
           <SwapsList
-            swaps={swaps.filter(s => s.status === 'propuesto')}
+            swaps={swaps.filter(s =>
+              s.status === 'propuesto'
+              && String(s.requester?._id || s.requester) === currentUserId
+            )}
             role="outgoing"
             onView={setDetail}
           />
