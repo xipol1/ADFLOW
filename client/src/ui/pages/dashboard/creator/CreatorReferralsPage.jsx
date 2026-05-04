@@ -147,7 +147,7 @@ export default function CreatorReferralsPage() {
         setConvertMsg({ type: 'error', text: res?.message || 'Error al convertir' })
       }
     } catch {
-      setConvertMsg({ type: 'error', text: 'Error de conexion' })
+      setConvertMsg({ type: 'error', text: 'Error de conexión' })
     } finally {
       setConverting(false)
     }

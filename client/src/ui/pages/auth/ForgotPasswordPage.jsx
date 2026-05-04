@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
         setError(data.message || 'No pudimos procesar tu solicitud. Intenta de nuevo.')
       }
     } catch {
-      setError('Error de conexion. Intenta de nuevo.')
+      setError('Error de conexión. Intenta de nuevo.')
     } finally {
       setLoading(false)
     }

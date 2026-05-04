@@ -62,6 +62,20 @@ export default function CreatorOnboardingChecklist({
     saveDismissed(true)
     setDismissed(true)
     onDismiss?.()
+    // Best-effort sync to backend so the dismissal persists across devices.
+    // We don't await: localStorage already gives instant feedback, this is a
+    // cross-device convenience.
+    try {
+      // Lazy-import to avoid pulling apiService into a presentational component's
+      // critical path if it's not needed.
+      import('../../services/api').then(mod => {
+        const apiService = mod.default || mod
+        apiService.request?.('/auth/perfil', {
+          method: 'PUT',
+          body: JSON.stringify({ perfilCreador: { onboardingDismissedAt: new Date().toISOString() } }),
+        }).catch(() => {})
+      }).catch(() => {})
+    } catch {}
   }
 
   const markGraduated = () => {

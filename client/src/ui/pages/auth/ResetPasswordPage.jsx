@@ -35,7 +35,7 @@ export default function ResetPasswordPage() {
         setError(data.message || 'No pudimos restablecer tu contrasena. Intenta de nuevo.')
       }
     } catch {
-      setError('Error de conexion. Intenta de nuevo.')
+      setError('Error de conexión. Intenta de nuevo.')
     } finally {
       setLoading(false)
     }

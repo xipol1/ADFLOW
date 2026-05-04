@@ -185,7 +185,7 @@ function InnerLayout() {
 
       {/* Footer */}
       <p style={{ marginTop: 'auto', paddingTop: '40px', fontSize: '11px', color: 'var(--muted2)' }}>
-        &copy; 2026 Channelad
+        &copy; {new Date().getFullYear()} Channelad
       </p>
     </div>
   )

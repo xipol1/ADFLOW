@@ -66,7 +66,7 @@ export default function ChannelStep() {
         setError(res?.message || 'Error al crear el canal')
       }
     } catch (err) {
-      setError('Error de conexion. Intenta de nuevo.')
+      setError('Error de conexión. Intenta de nuevo.')
     }
     setLoading(false)
   }
