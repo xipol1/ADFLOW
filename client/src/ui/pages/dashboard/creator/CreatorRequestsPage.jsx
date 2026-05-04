@@ -1,7 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { Sparkles, X } from 'lucide-react'
 import { ErrorBanner, useConfirm } from '../shared/DashComponents'
 import apiService from '../../../../services/api'
 import DeliveryBadge from '../../../components/DeliveryBadge'
+import SuggestionCard from '../../../components/SuggestionCard'
+import CopyAnalyzerCompact from '../../../components/CopyAnalyzerCompact'
+import { analyzeCopy } from '../../../lib/copyAnalyzer'
+import { useAuth } from '../../../../auth/AuthContext'
 import { FONT_BODY, FONT_DISPLAY, OK as _OK, BLUE as _BLUE, WARN, ERR } from '../../../theme/tokens'
 
 /* ── Design tokens ─────────────────────────────────────────────────────────── */
@@ -113,14 +118,62 @@ const Av = ({ name, color = V, size = 28 }) => (
 )
 
 /* ── Pro Chat ──────────────────────────────────────────────────────────────── */
-const ChatPanel = ({ campaign, onSent }) => {
+const ChatPanel = ({ campaign, onSent, onCampaignUpdate }) => {
+  const { user } = useAuth()
+  const currentUserId = String(user?._id || user?.id || '')
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
   const [showTpl, setShowTpl] = useState(false)
   const [msgs, setMsgs] = useState([])
   const [chatError, setChatError] = useState('')
+  const [proposeOpen, setProposeOpen] = useState(false)
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
+
+  // Editable in DRAFT or PAID; locked once published
+  const canPropose = ['DRAFT', 'PAID'].includes(campaign?.status)
+
+  const refetchMsgs = useCallback(async () => {
+    if (!campaign?._id) return
+    try {
+      const r = await apiService.getCampaignMessages(campaign._id)
+      if (r?.success) setMsgs(r.data || [])
+    } catch {}
+  }, [campaign?._id])
+
+  const handleResolveSuggestion = async (msgId, action) => {
+    try {
+      const r = await apiService.resolveCampaignSuggestion(campaign._id, msgId, action)
+      if (r?.success) {
+        await refetchMsgs()
+        if (r.data?.campaign && onCampaignUpdate) onCampaignUpdate(r.data.campaign)
+      } else {
+        setChatError(r?.message || 'Error al resolver la propuesta')
+      }
+    } catch {
+      setChatError('Error de conexión')
+    }
+  }
+
+  const handlePropose = async ({ proposedContent, comment, scoreBefore, scoreAfter }) => {
+    try {
+      const r = await apiService.createCampaignSuggestion(campaign._id, {
+        proposedContent,
+        baseContent: campaign.content || '',
+        comment,
+        scoreBefore,
+        scoreAfter,
+      })
+      if (r?.success) {
+        setProposeOpen(false)
+        await refetchMsgs()
+      } else {
+        setChatError(r?.message || 'Error al enviar la propuesta')
+      }
+    } catch {
+      setChatError('Error de conexión')
+    }
+  }
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
@@ -193,6 +246,22 @@ const ChatPanel = ({ campaign, onSent }) => {
             </div>
           </div>
         ) : msgs.map((m, i) => {
+          // Suggestions get their own card (full width, not a chat bubble)
+          if (m.type === 'suggestion') {
+            return (
+              <div key={m._id || i} style={{ animation: 'adf-in .2s ease', marginTop: 4 }}>
+                <div style={{ fontSize: 10.5, color: 'var(--muted2)', marginBottom: 4, paddingLeft: 4 }}>
+                  {m.senderName || m.senderRole} · {fmtFull(m.createdAt)}
+                </div>
+                <SuggestionCard
+                  msg={m}
+                  currentUserId={currentUserId}
+                  currentContent={campaign?.content || ''}
+                  onResolve={(action) => handleResolveSuggestion(m._id, action)}
+                />
+              </div>
+            )
+          }
           const isMe = m.senderRole === 'creator'
           const prev = msgs[i - 1]
           const showAv = !prev || prev.senderRole !== m.senderRole
@@ -264,6 +333,18 @@ const ChatPanel = ({ campaign, onSent }) => {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', flexShrink: 0, transition: 'all .15s', fontSize: '16px',
         }}>⚡</button>
+        {/* Propose change toggle (only if editing is allowed) */}
+        {canPropose && (
+          <button onClick={() => setProposeOpen(true)} title="Proponer cambio en el texto" style={{
+            width: '40px', height: '40px', borderRadius: '12px',
+            background: 'var(--bg)', border: '1px solid var(--border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', flexShrink: 0, transition: 'all .15s',
+            color: '#8B5CF6',
+          }}>
+            <Sparkles size={16} />
+          </button>
+        )}
         <div style={{ flex: 1, position: 'relative' }}>
           <textarea ref={inputRef} value={draft} onChange={e => { setDraft(e.target.value); if (chatError) setChatError('') }}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
@@ -284,6 +365,150 @@ const ChatPanel = ({ campaign, onSent }) => {
         }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={draft.trim() ? '#fff' : 'var(--muted2)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
         </button>
+      </div>
+
+      {proposeOpen && (
+        <ProposeChangeModal
+          campaign={campaign}
+          onClose={() => setProposeOpen(false)}
+          onSubmit={handlePropose}
+        />
+      )}
+    </div>
+  )
+}
+
+/* ── Propose change modal ──────────────────────────────────────────────────── */
+const ProposeChangeModal = ({ campaign, onClose, onSubmit }) => {
+  const channelId = campaign?.channel?._id || campaign?.channel
+  const [proposed, setProposed] = useState(campaign?.content || '')
+  const [comment, setComment] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  // We need a baseline score (current content) and a proposed score for the
+  // diff badge. Both via analyzeCopy — but the analyzer is wrapped inside
+  // CopyAnalyzerCompact below, so for the score persisting we recompute.
+  const baseScore = useMemo(() => analyzeCopy(campaign?.content || '').score, [campaign?.content])
+  const proposedScore = useMemo(() => analyzeCopy(proposed).score, [proposed])
+
+  const isUnchanged = proposed.trim() === (campaign?.content || '').trim()
+  const tooLong = proposed.length > 5000
+
+  const handleSubmit = async () => {
+    if (submitting || isUnchanged || tooLong || !proposed.trim()) return
+    setSubmitting(true)
+    await onSubmit({
+      proposedContent: proposed.trim(),
+      comment: comment.trim() || null,
+      scoreBefore: baseScore,
+      scoreAfter: proposedScore,
+    })
+    setSubmitting(false)
+  }
+
+  return (
+    <div onClick={e => { if (e.target === e.currentTarget) onClose() }} style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1100,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+      backdropFilter: 'blur(6px)',
+    }}>
+      <div style={{
+        background: 'var(--surface)', borderRadius: 18, width: '100%', maxWidth: 620,
+        maxHeight: '90vh', overflow: 'auto', padding: 22, fontFamily: F,
+        boxShadow: '0 32px 80px rgba(0,0,0,0.35)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: 9,
+            background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.35)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Sparkles size={15} color="#8B5CF6" />
+          </div>
+          <h2 style={{ fontFamily: D, fontSize: 17, fontWeight: 800, color: 'var(--text)', margin: 0, flex: 1 }}>
+            Proponer cambio en el texto
+          </h2>
+          <button onClick={onClose} style={{
+            background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--muted)',
+          }}>
+            <X size={18} />
+          </button>
+        </div>
+
+        <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.5, marginBottom: 14 }}>
+          Edita el texto del anuncio. La otra parte podrá aceptar o rechazar tu propuesta.
+          El score se actualiza en tiempo real con datos de tu canal.
+        </div>
+
+        <label style={{ display: 'block', marginBottom: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Texto propuesto
+          </div>
+          <textarea
+            value={proposed}
+            onChange={e => setProposed(e.target.value)}
+            placeholder="Texto del anuncio..."
+            rows={6}
+            maxLength={5000}
+            style={{
+              width: '100%', boxSizing: 'border-box', background: 'var(--bg)',
+              border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px',
+              fontSize: 13, color: 'var(--text)', fontFamily: F, resize: 'vertical', lineHeight: 1.5,
+            }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
+            <span>{proposed.length}/5000 chars</span>
+            {baseScore != null && proposedScore != null && (
+              <span>
+                Score: {baseScore} → <strong style={{
+                  color: proposedScore >= baseScore ? OK : RED,
+                }}>{proposedScore}</strong>
+              </span>
+            )}
+          </div>
+          <CopyAnalyzerCompact text={proposed} channelId={channelId} />
+        </label>
+
+        <label style={{ display: 'block', marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Comentario (opcional)
+          </div>
+          <textarea
+            value={comment}
+            onChange={e => setComment(e.target.value)}
+            placeholder="¿Por qué propones este cambio?"
+            rows={2}
+            maxLength={2000}
+            style={{
+              width: '100%', boxSizing: 'border-box', background: 'var(--bg)',
+              border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px',
+              fontSize: 12.5, color: 'var(--text)', fontFamily: F, resize: 'vertical',
+            }}
+          />
+        </label>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={onClose} style={{
+            background: 'var(--bg2)', color: 'var(--text)', border: '1px solid var(--border)',
+            borderRadius: 9, padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: F,
+          }}>
+            Cancelar
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || isUnchanged || tooLong || !proposed.trim()}
+            style={{
+              background: '#8B5CF6', color: '#fff', border: 'none',
+              borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700,
+              cursor: (submitting || isUnchanged || tooLong || !proposed.trim()) ? 'default' : 'pointer',
+              fontFamily: F,
+              opacity: (isUnchanged || tooLong || !proposed.trim()) ? 0.5 : 1,
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+            }}>
+            <Sparkles size={13} />
+            {submitting ? 'Enviando...' : isUnchanged ? 'Sin cambios' : 'Enviar propuesta'}
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -469,7 +694,7 @@ const DetailModal = ({ campaign: c, onClose, onConfirm, onComplete, onDecline, o
           )}
 
           {/* Chat */}
-          <ChatPanel campaign={c} onSent={onChat} />
+          <ChatPanel campaign={c} onSent={onChat} onCampaignUpdate={onChat} />
 
           {/* Actions */}
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>

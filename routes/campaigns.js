@@ -133,4 +133,37 @@ router.post(
   campaignController.sendCampaignMessage
 );
 
+// ── Content suggestions (collaborative ad-text editing) ──
+// Same per-campaign rate limits as messages (burst + hourly).
+router.post(
+  '/:id/suggestions',
+  autenticar,
+  limitarChatBurst,
+  limitarChatHora,
+  [
+    param('id').isMongoId().withMessage('ID inválido'),
+    body('proposedContent').isString().notEmpty().trim().isLength({ min: 1, max: 5000 })
+      .withMessage('proposedContent requerido (1-5000 caracteres)'),
+    body('baseContent').optional().isString().isLength({ max: 5000 }),
+    body('comment').optional().isString().trim().isLength({ max: 2000 }),
+    body('scoreBefore').optional({ nullable: true }).isFloat({ min: 0, max: 100 }),
+    body('scoreAfter').optional({ nullable: true }).isFloat({ min: 0, max: 100 }),
+  ],
+  validarCampos,
+  campaignController.createCampaignSuggestion
+);
+
+router.post(
+  '/:id/suggestions/:msgId/resolve',
+  autenticar,
+  [
+    param('id').isMongoId().withMessage('ID inválido'),
+    param('msgId').isMongoId().withMessage('msgId inválido'),
+    body('action').isIn(['accept', 'reject']).withMessage('action debe ser accept o reject'),
+    body('note').optional().isString().trim().isLength({ max: 500 }),
+  ],
+  validarCampos,
+  campaignController.resolveCampaignSuggestion
+);
+
 module.exports = router;

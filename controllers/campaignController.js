@@ -786,6 +786,201 @@ const sendCampaignMessage = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+// ─────────────────────────────────────────────────────────────────────────
+// Content suggestions — collaborative ad-text editing inside the chat
+// ─────────────────────────────────────────────────────────────────────────
+
+// POST /api/campaigns/:id/suggestions
+// Either party (advertiser or creator) proposes a replacement for the
+// campaign's `content` field. The other party accepts/rejects via
+// /suggestions/:msgId/resolve.
+const createCampaignSuggestion = async (req, res, next) => {
+  try {
+    const ok = await ensureDb();
+    if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
+
+    const userId = req.usuario?.id;
+    if (!userId) return next(httpError(401, 'No autorizado'));
+
+    const proposedContent = String(req.body?.proposedContent || '').trim();
+    const baseContent = String(req.body?.baseContent || '').trim();
+    const comment = String(req.body?.comment || '').trim();
+    const scoreBefore = Number.isFinite(+req.body?.scoreBefore) ? +req.body.scoreBefore : null;
+    const scoreAfter = Number.isFinite(+req.body?.scoreAfter) ? +req.body.scoreAfter : null;
+
+    if (!proposedContent) return next(httpError(400, 'proposedContent es requerido'));
+    if (proposedContent.length > 5000) return next(httpError(400, 'proposedContent demasiado largo (max 5000 chars)'));
+
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return next(httpError(404, 'Campaign no encontrada'));
+
+    const allowed = await canAccessCampaign(campaign, userId);
+    if (!allowed) return next(httpError(403, 'No autorizado'));
+
+    // Don't allow proposing the same text — no-op
+    if (proposedContent === campaign.content) {
+      return next(httpError(400, 'La propuesta es idéntica al contenido actual'));
+    }
+
+    // Don't allow editing after publication
+    if (!['DRAFT', 'PAID'].includes(campaign.status)) {
+      return next(httpError(400, `No se puede proponer cambios en estado ${campaign.status}`));
+    }
+
+    // Optional comment goes through the same moderation as a regular message
+    if (comment) {
+      const modResult = moderateMessage(comment);
+      if (modResult.blocked) {
+        return res.status(422).json({ success: false, blocked: true, message: modResult.reason });
+      }
+    }
+
+    const isAdvertiser = campaign.advertiser?.toString() === String(userId);
+    const senderRole = isAdvertiser ? 'advertiser' : 'creator';
+
+    // Auto-supersede any prior pending suggestion from the same user — one
+    // active proposal per author at a time.
+    await CampaignMessage.updateMany(
+      {
+        campaign: campaign._id,
+        type: 'suggestion',
+        sender: userId,
+        'suggestion.status': 'pending',
+      },
+      {
+        $set: {
+          'suggestion.status': 'superseded',
+          'suggestion.resolvedAt': new Date(),
+          'suggestion.resolutionNote': 'Reemplazada por una nueva propuesta del mismo autor',
+        },
+      }
+    );
+
+    const msg = await CampaignMessage.create({
+      campaign: campaign._id,
+      sender: userId,
+      senderRole,
+      text: comment || `Ha propuesto un cambio en el texto del anuncio`,
+      type: 'suggestion',
+      suggestion: {
+        proposedContent,
+        baseContent: baseContent || campaign.content || '',
+        score: { before: scoreBefore, after: scoreAfter },
+        status: 'pending',
+      },
+    });
+
+    // Notify the other party
+    const channelDoc = await Canal.findById(campaign.channel).select('propietario').lean();
+    const recipientId = isAdvertiser ? channelDoc?.propietario : campaign.advertiser;
+    if (recipientId) {
+      notifySafe({
+        usuarioId: recipientId,
+        tipo: 'campana.mensaje',
+        titulo: 'Nueva propuesta de cambio',
+        mensaje: `${isAdvertiser ? 'El anunciante' : 'El creador'} ha propuesto un cambio en el texto del anuncio`,
+        datos: { campaignId: campaign._id, suggestionId: msg._id },
+        canales: ['database', 'realtime'],
+        prioridad: 'normal',
+      });
+    }
+
+    return res.status(201).json({ success: true, data: msg });
+  } catch (error) { next(error); }
+};
+
+// POST /api/campaigns/:id/suggestions/:msgId/resolve
+// Body: { action: 'accept' | 'reject', note? }
+//
+// Only a party OTHER than the suggestion's author can resolve it. On accept
+// we update Campaign.content and mark every other pending suggestion as
+// superseded — the new content invalidates them.
+const resolveCampaignSuggestion = async (req, res, next) => {
+  try {
+    const ok = await ensureDb();
+    if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
+
+    const userId = req.usuario?.id;
+    if (!userId) return next(httpError(401, 'No autorizado'));
+
+    const action = String(req.body?.action || '').toLowerCase();
+    if (!['accept', 'reject'].includes(action)) {
+      return next(httpError(400, 'action debe ser "accept" o "reject"'));
+    }
+    const note = String(req.body?.note || '').slice(0, 500);
+
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return next(httpError(404, 'Campaign no encontrada'));
+
+    const allowed = await canAccessCampaign(campaign, userId);
+    if (!allowed) return next(httpError(403, 'No autorizado'));
+
+    if (!['DRAFT', 'PAID'].includes(campaign.status)) {
+      return next(httpError(400, `No se puede resolver en estado ${campaign.status}`));
+    }
+
+    const msg = await CampaignMessage.findById(req.params.msgId);
+    if (!msg || msg.type !== 'suggestion' || !msg.suggestion) {
+      return next(httpError(404, 'Sugerencia no encontrada'));
+    }
+    if (String(msg.campaign) !== String(campaign._id)) {
+      return next(httpError(400, 'La sugerencia no pertenece a esta campaña'));
+    }
+    if (msg.suggestion.status !== 'pending') {
+      return next(httpError(400, `Ya resuelta (${msg.suggestion.status})`));
+    }
+    if (String(msg.sender) === String(userId)) {
+      return next(httpError(403, 'No puedes resolver tu propia propuesta'));
+    }
+
+    msg.suggestion.status = action === 'accept' ? 'accepted' : 'rejected';
+    msg.suggestion.resolvedBy = userId;
+    msg.suggestion.resolvedAt = new Date();
+    msg.suggestion.resolutionNote = note;
+
+    if (action === 'accept') {
+      campaign.content = msg.suggestion.proposedContent;
+      await campaign.save();
+
+      // Supersede every OTHER pending suggestion — the content moved on.
+      await CampaignMessage.updateMany(
+        {
+          _id: { $ne: msg._id },
+          campaign: campaign._id,
+          type: 'suggestion',
+          'suggestion.status': 'pending',
+        },
+        {
+          $set: {
+            'suggestion.status': 'superseded',
+            'suggestion.resolvedAt': new Date(),
+            'suggestion.resolutionNote': 'El contenido del anuncio cambió tras aceptar otra propuesta',
+          },
+        }
+      );
+    }
+    await msg.save();
+
+    // Notify the author of the suggestion
+    const authorId = msg.sender;
+    if (authorId && String(authorId) !== String(userId)) {
+      notifySafe({
+        usuarioId: authorId,
+        tipo: 'campana.mensaje',
+        titulo: action === 'accept' ? 'Tu propuesta fue aceptada' : 'Tu propuesta fue rechazada',
+        mensaje: action === 'accept'
+          ? 'Se ha aplicado tu propuesta de cambio al texto del anuncio'
+          : `Tu propuesta fue rechazada${note ? `: ${note}` : ''}`,
+        datos: { campaignId: campaign._id, suggestionId: msg._id },
+        canales: ['database', 'realtime'],
+        prioridad: 'normal',
+      });
+    }
+
+    return res.json({ success: true, data: { message: msg, campaign } });
+  } catch (error) { next(error); }
+};
+
 // POST /api/campaigns/launch-auto — Auto-buy: select channels + create campaigns in batch
 const launchAutoCampaign = async (req, res, next) => {
   try {
@@ -956,5 +1151,7 @@ module.exports = {
   cancelCampaign,
   getCampaignMessages,
   sendCampaignMessage,
+  createCampaignSuggestion,
+  resolveCampaignSuggestion,
   launchAutoCampaign,
 };
