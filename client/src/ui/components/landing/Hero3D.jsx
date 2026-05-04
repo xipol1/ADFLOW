@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, useScroll, useTransform, useMotionValue, useSpring, AnimatePresence } from 'framer-motion'
 import {
   ArrowRight, Search, BarChart3, Send, Shield, Zap, Users, TrendingUp,
@@ -383,11 +384,13 @@ function PhantomCursor({ targetIndex, gridRef, onArrive }) {
 }
 
 /* ── Dashboard mockup ─────────────────────────────────────────── */
-function DashboardMockup() {
+function DashboardMockup({ externalGridRef, externalContainerRef }) {
   const [hoveredModule, setHoveredModule] = useState(null)
   const [cursorTarget, setCursorTarget] = useState(null)
-  const gridRef = useRef(null)
-  const containerRef = useRef(null)
+  const localGridRef = useRef(null)
+  const localContainerRef = useRef(null)
+  const gridRef = externalGridRef || localGridRef
+  const containerRef = externalContainerRef || localContainerRef
 
   // Mouse parallax
   const mx = useMotionValue(0)
@@ -1000,34 +1003,53 @@ function QuickOnboarding() {
         ))}
       </div>
 
-      {/* Hidden video modal mount */}
-      {showVideo && (
+      {/* Demo video modal — rendered via portal to escape transformed ancestors */}
+      {showVideo && typeof document !== 'undefined' && createPortal(
         <div
           onClick={() => setShowVideo(false)}
           style={{
-            position: 'fixed', inset: 0, zIndex: 150,
-            background: 'rgba(15,23,42,0.85)', backdropFilter: 'blur(8px)',
+            position: 'fixed', top: 0, left: 0,
+            width: '100vw', height: '100vh',
+            zIndex: 150,
+            background: 'rgba(15,23,42,0.88)', backdropFilter: 'blur(8px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 20,
+            padding: 20, boxSizing: 'border-box',
           }}
         >
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              width: '100%', maxWidth: 880, aspectRatio: '16/9',
+              position: 'relative',
+              width: '100%', maxWidth: 960, aspectRatio: '16/9',
               background: '#000', borderRadius: 16, overflow: 'hidden',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', textAlign: 'center', padding: 40,
               boxShadow: '0 40px 80px rgba(0,0,0,0.5)',
             }}
           >
-            <div>
-              <PlayCircle size={48} style={{ marginBottom: 12, opacity: 0.7 }} />
-              <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 6 }}>Demo en preparacion</div>
-              <div style={{ fontSize: 14, opacity: 0.7 }}>El video estara listo muy pronto.</div>
-            </div>
+            <button
+              onClick={() => setShowVideo(false)}
+              aria-label="Cerrar video"
+              style={{
+                position: 'absolute', top: -44, right: 0,
+                background: 'rgba(255,255,255,0.15)',
+                border: 'none', borderRadius: 8,
+                width: 36, height: 36,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff', cursor: 'pointer',
+                fontSize: 14, fontWeight: 600,
+              }}
+            >×</button>
+            <video
+              src="/demo.mp4"
+              poster="/demo-poster.webp"
+              autoPlay
+              controls
+              playsInline
+              preload="none"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Hint to keep accent badge visible */}
@@ -1042,20 +1064,45 @@ function QuickOnboarding() {
   )
 }
 
-/* ── Single scroll-narrative label (hooks must be at top level) ── */
-function ScrollLabel({ progress, phase }) {
+/* ── Single scroll-narrative label, anchored to a real card ───── */
+function ScrollLabel({ progress, phase, anchorRef, containerRef }) {
   const opacity = useTransform(
     progress,
     [phase.range[0] - 0.05, phase.range[0], phase.range[1], phase.range[1] + 0.05],
     [0, 1, 1, 0]
   )
-  const y = useTransform(progress, [phase.range[0], phase.range[1]], [10, -10])
+  const yOffset = useTransform(progress, [phase.range[0], phase.range[1]], [10, -10])
+  const [pos, setPos] = useState({ left: '50%', top: '50%', visible: false })
+
+  useEffect(() => {
+    if (!anchorRef?.current || !containerRef?.current) return
+    const update = () => {
+      const c = containerRef.current
+      const a = anchorRef.current
+      if (!c || !a) return
+      const cr = c.getBoundingClientRect()
+      const ar = a.getBoundingClientRect()
+      // Position label centered above the card, with a small offset
+      const left = ar.left - cr.left + ar.width / 2
+      const top = ar.top - cr.top - 14
+      setPos({ left, top, visible: cr.width > 700 })
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(containerRef.current)
+    window.addEventListener('scroll', update, { passive: true })
+    return () => { ro.disconnect(); window.removeEventListener('scroll', update) }
+  }, [anchorRef, containerRef])
+
+  if (!pos.visible) return null
+
   return (
     <motion.div
       style={{
         position: 'absolute',
-        left: phase.x, top: phase.y,
-        opacity, y,
+        left: pos.left, top: pos.top,
+        opacity, y: yOffset,
+        translateX: '-50%', translateY: '-100%',
         pointerEvents: 'none',
         zIndex: 12,
       }}
@@ -1069,6 +1116,7 @@ function ScrollLabel({ progress, phase }) {
         boxShadow: `0 12px 28px ${phase.color}25, 0 0 0 1px ${phase.color}10`,
         display: 'flex', alignItems: 'center', gap: 10,
         minWidth: 160,
+        whiteSpace: 'nowrap',
       }}>
         <div style={{
           width: 8, height: 8, borderRadius: '50%',
@@ -1088,17 +1136,33 @@ function ScrollLabel({ progress, phase }) {
   )
 }
 
+// Phases anchored to specific module indices (1=Marketplace, 4=ROI Forecast, 2=Analytics)
 const NARRATIVE_PHASES = [
-  { label: 'Marketplace', sub: 'Encuentra el canal ideal', x: '20%', y: '30%', range: [0, 0.33], color: '#3b82f6' },
-  { label: 'Campana',     sub: 'Lanza con escrow seguro',  x: '50%', y: '20%', range: [0.33, 0.66], color: '#7C3AED' },
-  { label: 'Resultados',  sub: 'Mide en tiempo real',       x: '78%', y: '32%', range: [0.66, 1], color: '#10b981' },
+  { label: 'Marketplace', sub: 'Encuentra el canal ideal', cardIndex: 1, range: [0, 0.33], color: '#3b82f6' },
+  { label: 'Campana',     sub: 'Lanza con escrow seguro',  cardIndex: 4, range: [0.33, 0.66], color: '#7C3AED' },
+  { label: 'Resultados',  sub: 'Mide en tiempo real',      cardIndex: 2, range: [0.66, 1],   color: '#10b981' },
 ]
 
-function ScrollNarrative({ progress }) {
+function ScrollNarrative({ progress, gridRef, containerRef }) {
+  const [refs, setRefs] = useState([null, null, null])
+
+  useEffect(() => {
+    if (!gridRef?.current) return
+    const cards = gridRef.current.querySelectorAll('[data-card]')
+    const newRefs = NARRATIVE_PHASES.map(p => ({ current: cards[p.cardIndex] || null }))
+    setRefs(newRefs)
+  }, [gridRef])
+
   return (
     <>
       {NARRATIVE_PHASES.map((p, i) => (
-        <ScrollLabel key={i} progress={progress} phase={p} />
+        <ScrollLabel
+          key={i}
+          progress={progress}
+          phase={p}
+          anchorRef={refs[i]}
+          containerRef={containerRef}
+        />
       ))}
     </>
   )
@@ -1107,6 +1171,8 @@ function ScrollNarrative({ progress }) {
 /* ── Hero ──────────────────────────────────────────────────────── */
 export default function Hero3D() {
   const sectionRef = useRef(null)
+  const sharedGridRef = useRef(null)
+  const sharedContainerRef = useRef(null)
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end start'] })
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 200])
 
@@ -1201,8 +1267,12 @@ export default function Hero3D() {
 
         {/* 3D Dashboard Mockup */}
         <div style={{ position: 'relative', maxWidth: MAX_W, margin: '0 auto', padding: '0 20px' }}>
-          <DashboardMockup />
-          <ScrollNarrative progress={scrollYProgress} />
+          <DashboardMockup externalGridRef={sharedGridRef} externalContainerRef={sharedContainerRef} />
+          <ScrollNarrative
+            progress={scrollYProgress}
+            gridRef={sharedGridRef}
+            containerRef={sharedContainerRef}
+          />
         </div>
       </motion.div>
 
