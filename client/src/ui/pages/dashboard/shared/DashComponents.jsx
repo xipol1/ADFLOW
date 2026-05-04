@@ -1438,3 +1438,179 @@ export function Tooltip({ text, children }) {
     </span>
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ConfirmDialog — accessible styled replacement for window.confirm()
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Usage with the useConfirm hook (recommended):
+//
+//   const { confirm, dialog } = useConfirm()
+//   ...
+//   const ok = await confirm({
+//     title: 'Eliminar canal',
+//     message: '¿Seguro que deseas eliminar "Crypto Daily"? No se puede deshacer.',
+//     confirmLabel: 'Eliminar',
+//     tone: 'danger',
+//   })
+//   if (!ok) return
+//   ...
+//   return <>{dialog}{/* rest of UI */}</>
+//
+// Or render <ConfirmDialog open onConfirm onCancel ...> directly if you
+// prefer to control visibility imperatively.
+
+export function ConfirmDialog({
+  open,
+  title = '¿Estás seguro?',
+  message,
+  confirmLabel = 'Confirmar',
+  cancelLabel = 'Cancelar',
+  tone = 'default', // 'default' | 'danger' | 'warning'
+  onConfirm,
+  onCancel,
+}) {
+  const dialogRef = useRef(null);
+  const previouslyFocused = useRef(null);
+  const titleId = `confirm-title-${React.useId ? React.useId() : Math.random().toString(36).slice(2, 9)}`;
+
+  useEffect(() => {
+    if (!open) return undefined;
+    previouslyFocused.current = document.activeElement;
+    const onKey = (e) => {
+      if (e.key === 'Escape') { e.stopPropagation(); onCancel?.(); }
+      if (e.key === 'Enter' && document.activeElement?.tagName !== 'BUTTON') {
+        // Don't auto-submit on Enter unless focus is on a button (user choice).
+      }
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusables = dialogRef.current.querySelectorAll('button:not([disabled])');
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    // Focus the cancel button by default (safer for destructive dialogs).
+    setTimeout(() => {
+      const cancel = dialogRef.current?.querySelector('[data-confirm-cancel="true"]');
+      cancel?.focus();
+    }, 0);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      previouslyFocused.current?.focus?.();
+    };
+  }, [open, onCancel]);
+
+  if (!open) return null;
+
+  const accent =
+    tone === 'danger'  ? ERR :
+    tone === 'warning' ? WARN :
+                         A;
+
+  return (
+    <div
+      onClick={onCancel}
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 10000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+        animation: '_dash_backdropIn 0.18s ease both',
+      }}
+    >
+      <div
+        ref={dialogRef}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
+          maxWidth: 440, width: '100%', padding: 22, fontFamily: FONT_BODY,
+          boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+          animation: '_dash_slideUp 0.22s cubic-bezier(.22,1,.36,1) both',
+        }}
+      >
+        <h2
+          id={titleId}
+          style={{
+            fontFamily: FONT_DISPLAY, fontSize: 18, fontWeight: 800,
+            color: 'var(--text)', margin: '0 0 8px', letterSpacing: '-0.02em',
+          }}
+        >
+          {title}
+        </h2>
+        {message && (
+          <p style={{
+            fontSize: 14, color: 'var(--muted)', margin: '0 0 20px', lineHeight: 1.5, whiteSpace: 'pre-wrap',
+          }}>
+            {message}
+          </p>
+        )}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button
+            data-confirm-cancel="true"
+            onClick={onCancel}
+            style={{
+              background: 'transparent', color: 'var(--text)',
+              border: '1px solid var(--border)', borderRadius: 9,
+              padding: '9px 16px', fontSize: 13, fontWeight: 600,
+              cursor: 'pointer', fontFamily: FONT_BODY,
+            }}
+          >
+            {cancelLabel}
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{
+              background: accent, color: '#fff', border: 'none', borderRadius: 9,
+              padding: '9px 16px', fontSize: 13, fontWeight: 700,
+              cursor: 'pointer', fontFamily: FONT_BODY,
+              boxShadow: tone === 'danger' ? `0 4px 14px ${ERR}55` : 'none',
+            }}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// useConfirm — returns { confirm, dialog }. confirm(opts) returns Promise<boolean>.
+// Render {dialog} once near the root of your component.
+export function useConfirm() {
+  const [state, setState] = useState({ open: false, opts: null, resolver: null });
+
+  const confirm = useCallback((opts = {}) => {
+    return new Promise((resolve) => {
+      setState({ open: true, opts, resolver: resolve });
+    });
+  }, []);
+
+  const handleConfirm = useCallback(() => {
+    state.resolver?.(true);
+    setState({ open: false, opts: null, resolver: null });
+  }, [state]);
+
+  const handleCancel = useCallback(() => {
+    state.resolver?.(false);
+    setState({ open: false, opts: null, resolver: null });
+  }, [state]);
+
+  const dialog = (
+    <ConfirmDialog
+      open={state.open}
+      title={state.opts?.title}
+      message={state.opts?.message}
+      confirmLabel={state.opts?.confirmLabel}
+      cancelLabel={state.opts?.cancelLabel}
+      tone={state.opts?.tone}
+      onConfirm={handleConfirm}
+      onCancel={handleCancel}
+    />
+  );
+
+  return { confirm, dialog };
+}
