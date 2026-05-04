@@ -1,8 +1,14 @@
 import React from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 
-export default function VideoDemoModal({ open, onClose, src }) {
+export default function VideoDemoModal({ open, onClose, src = '/demo.mp4', poster = '/demo-poster.webp' }) {
+  if (typeof document === 'undefined') return null
+  return createPortal(<VideoModalInner open={open} onClose={onClose} src={src} poster={poster} />, document.body)
+}
+
+function VideoModalInner({ open, onClose, src, poster }) {
   return (
     <AnimatePresence>
       {open && (
@@ -49,27 +55,15 @@ export default function VideoDemoModal({ open, onClose, src }) {
               }}
             ><X size={18} /></button>
 
-            {src ? (
-              <video
-                src={src}
-                autoPlay
-                controls
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            ) : (
-              <div style={{
-                width: '100%', height: '100%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontFamily: 'system-ui',
-                background: 'radial-gradient(circle at center, rgba(124,58,237,0.3) 0%, transparent 70%)',
-                textAlign: 'center', padding: 40,
-              }}>
-                <div>
-                  <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Demo en preparacion</div>
-                  <div style={{ fontSize: 14, opacity: 0.7 }}>El video del dashboard estara disponible muy pronto.</div>
-                </div>
-              </div>
-            )}
+            <video
+              src={src}
+              poster={poster}
+              autoPlay
+              controls
+              playsInline
+              preload="none"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
           </motion.div>
         </motion.div>
       )}
