@@ -1458,6 +1458,25 @@ class ApiService {
       method: 'POST', body: JSON.stringify({ rating, comentario }),
     });
   }
+
+  // ── Channel-aware copy benchmarks ──────────────────────────────────────
+  async getChannelCopyBenchmarks(channelId, { force = false } = {}) {
+    const qs = force ? '?refresh=true' : '';
+    return this.request(`/channels/${encodeURIComponent(channelId)}/copy-benchmarks${qs}`);
+  }
+
+  // ── Campaign content suggestions (collaborative editing) ───────────────
+  async createCampaignSuggestion(campaignId, payload) {
+    return this.request(`/campaigns/${encodeURIComponent(campaignId)}/suggestions`, {
+      method: 'POST', body: JSON.stringify(payload),
+    });
+  }
+
+  async resolveCampaignSuggestion(campaignId, messageId, action, note = '') {
+    return this.request(`/campaigns/${encodeURIComponent(campaignId)}/suggestions/${encodeURIComponent(messageId)}/resolve`, {
+      method: 'POST', body: JSON.stringify({ action, note }),
+    });
+  }
 }
 
 // Crear instancia única del servicio

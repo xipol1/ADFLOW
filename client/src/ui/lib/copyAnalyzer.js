@@ -37,8 +37,35 @@ const SPAMMY_MARKERS = [
 
 const URL_REGEX = /https?:\/\/\S+|www\.\S+/i
 
+// Mirror of backend detectHook in copyBenchmarksService — must stay in sync.
+const EMOJI_RE = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u
+function detectDominantHook(text) {
+  if (!text) return null
+  const t = text.trim()
+  if (!t) return null
+  const first = t.slice(0, 50).toLowerCase()
+  if (/^[¿?]/.test(t)) return 'question'
+  if (/^[¡!]/.test(t)) return 'exclamation'
+  if (EMOJI_RE.test(t.slice(0, 3))) return 'emoji'
+  if (/^\d/.test(t)) return 'number'
+  if (/^(yo|hoy|llevo|acabo de|llevo años|este|esta|aquí está)/.test(first)) return 'personal'
+  if (/^(nuevo|atención|importante|breaking|noticia)/.test(first)) return 'announcement'
+  return 'other'
+}
 
-export function analyzeCopy(text) {
+
+/**
+ * Analyze ad copy.
+ *
+ * @param {string} text — the ad copy
+ * @param {object} [channelContext] — optional channel-specific benchmarks
+ *   payload returned by GET /api/channels/:id/copy-benchmarks. When
+ *   provided, the analyzer adds channel-specific checks ("in this channel
+ *   posts of 90-150 chars get 2.3× CTR") on top of the generic ones.
+ *   Shape: { sampleSize, plataforma, categoria, overall, topQuartile }
+ *   See services/copyBenchmarksService.js.
+ */
+export function analyzeCopy(text, channelContext = null) {
   const raw = (text || '').trim()
   const checks = []
   let score = 50  // start neutral
@@ -150,13 +177,117 @@ export function analyzeCopy(text) {
     score += 5
   }
 
+  // ── Channel-specific checks (only when we have benchmark data) ────────
+  // These reward copies that match what's worked in this specific channel.
+  // When the channel has too few samples (sampleSize < 5) we skip — generic
+  // rules above are more reliable than 1-2 outliers.
+  const hasBench = channelContext
+    && channelContext.sampleSize >= 5
+    && channelContext.topQuartile
+    && channelContext.topQuartile.count >= 1
+
+  if (hasBench && raw.length > 0) {
+    const tq = channelContext.topQuartile
+    // Length match against top-quartile range
+    if (Array.isArray(tq.lengthRange) && tq.lengthRange.length === 2) {
+      const [lo, hi] = tq.lengthRange
+      const inRange = len >= lo && len <= hi
+      if (inRange) {
+        checks.push({
+          id: 'channel_length',
+          label: 'Longitud para este canal',
+          status: 'ok',
+          detail: `En tu canal los posts top tienen ${lo}-${hi} chars. El tuyo: ${len}. ✓`,
+          impact: 8,
+        })
+        score += 8
+      } else {
+        const diff = len < lo ? `corto (faltan ${lo - len})` : `largo (sobran ${len - hi})`
+        checks.push({
+          id: 'channel_length',
+          label: 'Longitud para este canal',
+          status: 'warn',
+          detail: `Posts top en tu canal: ${lo}-${hi} chars. El tuyo (${len}) está ${diff}.`,
+          impact: -4,
+        })
+        score -= 4
+      }
+    }
+
+    // Emoji density vs top-quartile median
+    if (Number.isFinite(tq.emojisMedian)) {
+      const emojiCount = (raw.match(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu) || []).length
+      const target = tq.emojisMedian
+      const diff = Math.abs(emojiCount - target)
+      if (diff <= 1) {
+        checks.push({
+          id: 'channel_emojis',
+          label: 'Emojis para este canal',
+          status: 'ok',
+          detail: `Posts top usan ~${target} emojis. El tuyo: ${emojiCount}. ✓`,
+          impact: 4,
+        })
+        score += 4
+      } else if (emojiCount > target + 2) {
+        checks.push({
+          id: 'channel_emojis',
+          label: 'Emojis para este canal',
+          status: 'warn',
+          detail: `Posts top en tu canal usan ~${target} emojis. El tuyo: ${emojiCount} (demasiados).`,
+          impact: -3,
+        })
+        score -= 3
+      }
+    }
+
+    // Dominant hook pattern
+    if (tq.dominantHook && tq.dominantHook !== 'other') {
+      const hookHints = {
+        question: '¿pregunta inicial?',
+        exclamation: '¡exclamación inicial!',
+        emoji: 'emoji al inicio',
+        number: 'empezar con un dato/número',
+        personal: 'tono personal ("yo", "llevo años…")',
+        announcement: 'tono de anuncio ("nuevo", "atención…")',
+      }
+      const detected = detectDominantHook(raw)
+      const matches = detected === tq.dominantHook
+      if (matches) {
+        checks.push({
+          id: 'channel_hook',
+          label: 'Hook para este canal',
+          status: 'ok',
+          detail: `Posts top en tu canal abren con ${hookHints[tq.dominantHook]}. ✓`,
+          impact: 5,
+        })
+        score += 5
+      } else {
+        checks.push({
+          id: 'channel_hook',
+          label: 'Hook para este canal',
+          status: 'warn',
+          detail: `Posts top en tu canal suelen abrir con ${hookHints[tq.dominantHook]}. Considera adaptarlo.`,
+          impact: 0,
+        })
+      }
+    }
+  }
+
   // ── Clamp and finalize ─────────────────────────────────────────────────
   score = Math.max(0, Math.min(100, score))
 
   // ── Predicted CTR (very rough heuristic) ───────────────────────────────
-  // Base 1.8% CTR; +/- adjusted by score offset from 50
-  const baseCtr = 1.8
-  const predictedCtr = raw.length === 0 ? null : Math.max(0.3, baseCtr + (score - 50) * 0.04)
+  // Base = the channel's avg CTR if we have it, else generic 1.8%. Adjust
+  // by the score offset from 50. When we have the channel's top-quartile
+  // CTR, score 75+ asymptotes toward that ceiling.
+  const channelAvgCtr = hasBench ? channelContext.overall?.avgCtr : null
+  const channelTopCtr = hasBench ? channelContext.topQuartile?.avgCtr : null
+  const baseCtr = Number.isFinite(channelAvgCtr) && channelAvgCtr > 0 ? channelAvgCtr : 1.8
+  let predictedCtr = raw.length === 0 ? null : Math.max(0.3, baseCtr + (score - 50) * 0.04)
+  // When we know what the top of the channel looks like, cap optimism
+  if (predictedCtr != null && Number.isFinite(channelTopCtr) && channelTopCtr > 0) {
+    predictedCtr = Math.min(predictedCtr, channelTopCtr)
+  }
 
   // ── Verdict ─────────────────────────────────────────────────────────────
   let verdict = 'review'
@@ -183,6 +314,7 @@ export function analyzeCopy(text) {
     suggestions,
     predictedCtr,
     stats: { length: len, words },
+    channelAware: hasBench,
   }
 }
 

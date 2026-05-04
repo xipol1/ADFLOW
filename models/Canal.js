@@ -187,6 +187,13 @@ const CanalSchema = new mongoose.Schema(
       // Last error if a refresh failed; cleared on a successful fetch.
       lastError: { type: String, default: '' },
     },
+
+    // ── Cached ad-copy benchmarks (24h TTL) ──
+    // Aggregated stats over the last N completed campaigns on this channel —
+    // overall length/word/emoji distribution and what the top-quartile-by-CTR
+    // posts look like. Powers the channel-aware copy analyzer. See
+    // services/copyBenchmarksService.js for the payload shape.
+    copyBenchmarksCache: { type: mongoose.Schema.Types.Mixed, default: null },
   },
   { timestamps: true, strict: true }
 );

@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react'
-import { CheckCircle2, AlertTriangle, XCircle, TrendingUp, Lightbulb } from 'lucide-react'
+import React, { useMemo, useEffect, useState } from 'react'
+import { CheckCircle2, AlertTriangle, XCircle, TrendingUp, Lightbulb, Sparkles } from 'lucide-react'
 import { analyzeCopy } from '../lib/copyAnalyzer'
+import apiService from '../../services/api'
 import { FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE } from '../theme/tokens'
 
 const PURPLE = 'var(--accent, #8B5CF6)'
@@ -25,9 +26,28 @@ const VERDICT_LABEL = {
 /**
  * Compact inline analyzer — designed to live below a copy textarea.
  * Shows score gauge, top 3 issues, predicted CTR, and 1-2 suggestions.
+ *
+ * Pass `channelId` to enable channel-aware analysis: the component fetches
+ * the channel's benchmarks once and feeds them to analyzeCopy() so the
+ * checks reflect what's worked on THIS channel ("posts top en tu canal
+ * tienen 90-150 chars"). Falls back to generic analysis when the channel
+ * has < 5 historical posts.
  */
-export default function CopyAnalyzerCompact({ text }) {
-  const r = useMemo(() => analyzeCopy(text), [text])
+export default function CopyAnalyzerCompact({ text, channelId }) {
+  const [benchmarks, setBenchmarks] = useState(null)
+
+  useEffect(() => {
+    if (!channelId) { setBenchmarks(null); return }
+    let mounted = true
+    apiService.getChannelCopyBenchmarks(channelId)
+      .then(res => {
+        if (mounted && res?.success) setBenchmarks(res.data)
+      })
+      .catch(() => { /* graceful fallback to generic analysis */ })
+    return () => { mounted = false }
+  }, [channelId])
+
+  const r = useMemo(() => analyzeCopy(text, benchmarks), [text, benchmarks])
 
   if (!text || r.verdict === 'empty') return null
 
@@ -70,6 +90,18 @@ export default function CopyAnalyzerCompact({ text }) {
           }}>
             <TrendingUp size={11} />
             CTR estimado: <strong style={{ color: 'var(--text)' }}>{r.predictedCtr.toFixed(2)}%</strong>
+          </div>
+        )}
+        {r.channelAware && (
+          <div title={`Análisis basado en ${benchmarks?.sampleSize || 0} posts pasados de este canal`}
+               style={{
+            display: 'flex', alignItems: 'center', gap: 4,
+            fontSize: 10.5, color: BLUE, fontWeight: 700,
+            background: `${BLUE}14`, border: `1px solid ${BLUE}30`,
+            borderRadius: 20, padding: '2px 8px',
+          }}>
+            <Sparkles size={10} />
+            Adaptado a tu canal
           </div>
         )}
       </div>
