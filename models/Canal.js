@@ -175,6 +175,18 @@ const CanalSchema = new mongoose.Schema(
       ultimaActualizacion: { type: Date, default: null },
       urlPublica: { type: String, default: '' },        // whatsapp.com/channel/... or t.me/...
     },
+
+    // ── Demographics cache (populated by demographicsService when OAuth-connected) ──
+    // We keep this server-side to avoid hammering platform APIs on every page
+    // view. TTL is enforced at read time in demographicsService.
+    demographicsCache: {
+      source: { type: String, default: '', enum: ['', 'instagram', 'linkedin_org', 'linkedin_creator', 'meta_page'] },
+      fetchedAt: { type: Date, default: null },
+      // Normalised payload — see demographicsService for the contract.
+      data: { type: mongoose.Schema.Types.Mixed, default: null },
+      // Last error if a refresh failed; cleared on a successful fetch.
+      lastError: { type: String, default: '' },
+    },
   },
   { timestamps: true, strict: true }
 );

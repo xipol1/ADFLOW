@@ -207,12 +207,64 @@ function getCallbackUrl() {
   return `${backendUrl}${config.meta.oauthCallbackPath}`;
 }
 
+/**
+ * Fetch audience demographics for an Instagram Business account.
+ *
+ * Instagram Graph requires the `instagram_manage_insights` scope. Returns:
+ *   - audience_gender_age: { 'F.18-24': n, 'M.25-34': n, ... }
+ *   - audience_country: { ES: n, MX: n, ... }
+ *   - audience_city: { 'Madrid, Spain': n, ... }
+ *   - audience_locale: { 'es_ES': n, 'en_US': n, ... }
+ *
+ * Demographic insights only return data for accounts with ≥100 followers, so
+ * smaller accounts will return 200 with empty results — we surface that as
+ * `insufficientFollowers: true` rather than an error.
+ *
+ * @param {string} igBusinessId
+ * @param {string} pageAccessToken
+ * @returns {Promise<{ok: boolean, demographics?: object, insufficientFollowers?: boolean, error?: string}>}
+ */
+async function fetchInstagramAudienceDemographics(igBusinessId, pageAccessToken) {
+  if (!igBusinessId || !pageAccessToken) {
+    return { ok: false, error: 'missing igBusinessId or pageAccessToken' };
+  }
+  try {
+    const res = await axios.get(`${GRAPH_BASE}/${igBusinessId}/insights`, {
+      params: {
+        metric: 'audience_gender_age,audience_country,audience_city,audience_locale',
+        period: 'lifetime',
+        access_token: pageAccessToken,
+      },
+      timeout: TIMEOUT,
+      validateStatus: () => true,
+    });
+
+    if (res.status === 400 && /follower/i.test(JSON.stringify(res.data || {}))) {
+      // Instagram returns 400 for accounts under the 100-follower minimum.
+      return { ok: true, insufficientFollowers: true, demographics: null };
+    }
+    if (res.status >= 400) {
+      return { ok: false, error: `IG insights HTTP ${res.status}: ${res.data?.error?.message || ''}` };
+    }
+
+    const out = {};
+    for (const item of res.data?.data || []) {
+      const value = item.values?.[0]?.value || {};
+      out[item.name] = value;
+    }
+    return { ok: true, demographics: out };
+  } catch (err) {
+    return { ok: false, error: err?.message || 'IG insights fetch failed' };
+  }
+}
+
 module.exports = {
   getAuthorizationUrl,
   exchangeCodeForToken,
   exchangeForLongLivedToken,
   fetchUserPages,
   fetchInstagramBusinessAccount,
+  fetchInstagramAudienceDemographics,
   fetchWhatsAppBusinessAccounts,
   fetchUserProfile,
   refreshLongLivedToken,

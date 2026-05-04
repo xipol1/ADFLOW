@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Users, Globe, Heart, Clock, Shield, ShieldCheck, ShieldAlert,
@@ -9,6 +9,7 @@ import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, WARN, ERR, BLUE, PLAT_COLORS } from '../../../theme/tokens'
 import { CASBadge } from '../../../components/scoring'
+import { ErrorBanner } from '../shared/DashComponents'
 
 const ACCENT = GREEN
 const ga = greenAlpha
@@ -34,10 +35,14 @@ export default function CreatorAudiencePage() {
   const [selectedId, setSelectedId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('demografia')
+  const [loadError, setLoadError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let mounted = true
     const load = async () => {
+      setLoading(true)
+      setLoadError(false)
       try {
         const res = await apiService.getMyChannels()
         if (!mounted) return
@@ -51,18 +56,91 @@ export default function CreatorAudiencePage() {
               || items.slice().sort((a, b) => (b.CAS || 0) - (a.CAS || 0))[0]
             setSelectedId(initial._id || initial.id)
           }
+        } else {
+          setLoadError(true)
         }
-      } catch (e) { console.error(e) }
+      } catch (e) { setLoadError(true) }
       if (mounted) setLoading(false)
     }
     load()
     return () => { mounted = false }
-  }, [])
+  }, [retryKey])
 
   const channel = channels.find(c => (c._id || c.id) === selectedId)
-  const insights = useMemo(() => channel ? deriveAudience(channel) : null, [channel])
+  const estimated = useMemo(() => channel ? deriveAudience(channel) : null, [channel])
+
+  // Real demographics from connected OAuth (Instagram, LinkedIn org).
+  // Falls back to client-side estimates if the channel has no OAuth or the
+  // platform doesn't expose demographics.
+  const [realDemo, setRealDemo] = useState(null)
+  const [demoLoading, setDemoLoading] = useState(false)
+  const [demoError, setDemoError] = useState('')
+  const fetchedForRef = useRef(null)
+
+  useEffect(() => {
+    if (!selectedId) return undefined
+    if (fetchedForRef.current === selectedId) return undefined
+    fetchedForRef.current = selectedId
+    let cancelled = false
+    setDemoLoading(true)
+    setDemoError('')
+    apiService.getChannelDemographics(selectedId)
+      .then(res => {
+        if (cancelled) return
+        if (res?.success) {
+          setRealDemo(res.data || null)
+        } else {
+          setRealDemo(null)
+          setDemoError(res?.message || '')
+        }
+      })
+      .catch(() => { if (!cancelled) { setRealDemo(null); setDemoError('No se pudo conectar con el servicio de demografía.') } })
+      .finally(() => { if (!cancelled) setDemoLoading(false) })
+    return () => { cancelled = true }
+  }, [selectedId])
+
+  const refetchDemo = () => {
+    if (!selectedId) return
+    setDemoLoading(true)
+    apiService.getChannelDemographics(selectedId, { refresh: true })
+      .then(res => {
+        if (res?.success) setRealDemo(res.data || null)
+      })
+      .finally(() => setDemoLoading(false))
+  }
+
+  // Merge real data over the estimated baseline so the UI always has values
+  // for every section, but real data takes precedence where available.
+  const insights = useMemo(() => {
+    if (!estimated) return null
+    if (!realDemo || !realDemo.source) return estimated
+    return {
+      ...estimated,
+      gender:    realDemo.gender    || estimated.gender,
+      age:       realDemo.age       || estimated.age,
+      countries: realDemo.countries || estimated.countries,
+      cities:    realDemo.cities    || estimated.cities,
+      languages: realDemo.languages || estimated.languages,
+      industries: realDemo.industries || null,
+      seniority:  realDemo.seniority  || null,
+      functions:  realDemo.functions  || null,
+      dataSource: 'verified',
+      _realSource: realDemo.source,
+      _realFetchedAt: realDemo.fetchedAt,
+    }
+  }, [estimated, realDemo])
 
   if (loading) return <PageSkeleton />
+  if (loadError) {
+    return (
+      <div style={{ fontFamily: F, maxWidth: 1100 }}>
+        <ErrorBanner
+          message="No se pudieron cargar tus canales. Verifica tu conexión."
+          onRetry={() => setRetryKey(k => k + 1)}
+        />
+      </div>
+    )
+  }
   if (channels.length === 0) return <NoChannelsCTA navigate={navigate} />
   if (!channel || !insights) return null
 
@@ -84,6 +162,16 @@ export default function CreatorAudiencePage() {
         {/* Channel selector */}
         <ChannelSelector channels={channels} value={selectedId} onChange={setSelectedId} />
       </div>
+
+      {/* Data source banner — verified from OAuth vs estimated */}
+      <DataSourceBanner
+        realDemo={realDemo}
+        demoLoading={demoLoading}
+        demoError={demoError}
+        onRefresh={refetchDemo}
+        channel={channel}
+        navigate={navigate}
+      />
 
       {/* Quality hero */}
       <AudienceQualityHero channel={channel} insights={insights} />
@@ -577,6 +665,92 @@ function SourceBadge({ kind }) {
 }
 
 // ─── Channel selector ───────────────────────────────────────────────────────
+// ─── Data-source banner ─────────────────────────────────────────────────────
+// Shows whether demographics come from real OAuth data or client-side
+// estimates, and prompts the creator to connect OAuth when they haven't.
+const SOURCE_LABELS = {
+  instagram:        'Instagram Business',
+  linkedin_org:     'LinkedIn Company Page',
+  linkedin_creator: 'LinkedIn (creator profile)',
+  meta_page:        'Meta Page',
+}
+const REASON_LABELS = {
+  no_oauth_connected:   { headline: 'Datos estimados', tone: 'estimated', cta: 'Conectar plataforma' },
+  insufficient_followers: { headline: 'Demografía no disponible', detail: 'Instagram solo expone datos demográficos a cuentas con ≥100 seguidores.' },
+  scope_missing:        { headline: 'Permiso OAuth insuficiente', detail: 'Vuelve a conectar concediendo el permiso de analytics.', cta: 'Reconectar' },
+  not_an_organization:  { headline: 'Datos estimados', detail: 'LinkedIn solo expone demografía para Company Pages, no para perfiles personales.' },
+  no_token:             { headline: 'Sesión OAuth caducada', cta: 'Reconectar' },
+  not_found:            { headline: 'Canal no encontrado' },
+}
+
+function DataSourceBanner({ realDemo, demoLoading, demoError, onRefresh, channel, navigate }) {
+  if (demoLoading && !realDemo) {
+    return (
+      <div style={{
+        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
+        padding: '10px 14px', fontSize: 12.5, color: 'var(--muted)',
+        display: 'flex', alignItems: 'center', gap: 8,
+      }}>
+        <Activity size={13} className="anim-spin" /> Consultando demografía conectada…
+      </div>
+    )
+  }
+  // Real, verified data
+  if (realDemo?.source) {
+    const label = SOURCE_LABELS[realDemo.source] || realDemo.source
+    const fetchedAt = realDemo.fetchedAt ? new Date(realDemo.fetchedAt).toLocaleString('es') : null
+    return (
+      <div style={{
+        background: `${OK}10`, border: `1px solid ${OK}35`, borderRadius: 12,
+        padding: '10px 14px', fontSize: 13,
+        display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+      }}>
+        <ShieldCheck size={14} color={OK} />
+        <span style={{ flex: 1, minWidth: 200 }}>
+          <strong>Datos verificados</strong> desde {label}.
+          {fetchedAt && <span style={{ color: 'var(--muted)', marginLeft: 6 }}>Actualizado: {fetchedAt}</span>}
+        </span>
+        <button onClick={onRefresh} disabled={demoLoading} aria-label="Refrescar demografía"
+          style={{ background: 'transparent', border: `1px solid ${OK}40`, color: OK, borderRadius: 7, padding: '5px 10px', fontSize: 11.5, fontWeight: 700, cursor: demoLoading ? 'not-allowed' : 'pointer', fontFamily: F }}>
+          ↻ {demoLoading ? 'Refrescando…' : 'Refrescar'}
+        </button>
+      </div>
+    )
+  }
+  // No real data — explain why and CTA to connect
+  const reason = realDemo?.reason || 'no_oauth_connected'
+  const meta = REASON_LABELS[reason] || REASON_LABELS.no_oauth_connected
+  const detail = meta.detail || realDemo?.message || demoError || ''
+  const isOauthIssue = ['no_oauth_connected', 'scope_missing', 'no_token'].includes(reason)
+  const ctaPath = `/creator/analytics?channel=${channel?._id || channel?.id}`
+  return (
+    <div style={{
+      background: `${WARN}0a`, border: `1px solid ${WARN}30`, borderRadius: 12,
+      padding: '10px 14px', fontSize: 13,
+      display: 'flex', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap',
+    }}>
+      <ShieldAlert size={14} color={WARN} style={{ marginTop: 2 }} />
+      <div style={{ flex: 1, minWidth: 200 }}>
+        <div style={{ fontWeight: 700 }}>{meta.headline}</div>
+        {detail && <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{detail}</div>}
+        {!detail && reason === 'no_oauth_connected' && (
+          <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
+            Conecta tu cuenta vía OAuth para ver datos reales en lugar de estimaciones.
+          </div>
+        )}
+      </div>
+      {isOauthIssue && meta.cta && (
+        <button onClick={() => navigate(ctaPath)} style={{
+          background: WARN, color: '#fff', border: 'none', borderRadius: 7,
+          padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: F,
+        }}>
+          {meta.cta}
+        </button>
+      )}
+    </div>
+  )
+}
+
 function ChannelSelector({ channels, value, onChange }) {
   const selected = channels.find(c => (c._id || c.id) === value)
   const [open, setOpen] = useState(false)

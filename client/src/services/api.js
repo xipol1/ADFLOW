@@ -247,6 +247,16 @@ class ApiService {
     return this.request(`/channels/${id}/intelligence`, { auth: false });
   }
 
+  /**
+   * Real audience demographics for a channel pulled from connected OAuth
+   * (Instagram Business, LinkedIn Org). Returns `{ source: null, reason }`
+   * when no real data is available — caller falls back to estimates.
+   */
+  async getChannelDemographics(id, { refresh = false } = {}) {
+    const qs = refresh ? '?refresh=true' : '';
+    return this.request(`/channels/${id}/demographics${qs}`);
+  }
+
   async getChannelSnapshots(id, days = 30) {
     return this.request(`/channels/${id}/snapshots?days=${days}`, { auth: false });
   }

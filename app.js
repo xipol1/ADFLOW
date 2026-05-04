@@ -38,6 +38,7 @@ try { _routes['./routes/adminScoring']   = require('./routes/adminScoring');   }
 try { _routes['./routes/adminMetrics']   = require('./routes/adminMetrics');   } catch (e) { _routes['./routes/adminMetrics']   = e; }
 try { _routes['./routes/adminDashboard'] = require('./routes/adminDashboard'); } catch (e) { _routes['./routes/adminDashboard'] = e; }
 try { _routes['./routes/channelIntelligence'] = require('./routes/channelIntelligence'); } catch (e) { _routes['./routes/channelIntelligence'] = e; }
+try { _routes['./routes/channelDemographics'] = require('./routes/channelDemographics'); } catch (e) { _routes['./routes/channelDemographics'] = e; }
 try { _routes['./routes/nicheIntelligence']   = require('./routes/nicheIntelligence');   } catch (e) { _routes['./routes/nicheIntelligence']   = e; }
 try { _routes['./routes/telegramIntel']       = require('./routes/telegramIntel');       } catch (e) { _routes['./routes/telegramIntel']       = e; }
 try { _routes['./routes/multiplatformIntel']  = require('./routes/multiplatformIntel');  } catch (e) { _routes['./routes/multiplatformIntel']  = e; }
@@ -500,6 +501,7 @@ const enabledRoutes = [
   ['/api/admin/metrics', './routes/adminMetrics'],
   ['/api/admin/dashboard', './routes/adminDashboard'],
   ['/api/channels', './routes/channelIntelligence'],
+  ['/api/channels', './routes/channelDemographics'],
   ['/api/niche',    './routes/nicheIntelligence'],
   ['/api/jobs',     './routes/telegramIntel'],
   ['/api/jobs',     './routes/multiplatformIntel'],
