@@ -10,6 +10,7 @@ import { PLATFORM_COLORS } from './mockDataCreator'
 import apiService from '../../../../services/api'
 import { FONT_BODY, FONT_DISPLAY, OK as _OK, WARN, ERR, BLUE } from '../../../theme/tokens'
 import ChannelCard from '../../../components/ChannelCard'
+import { ErrorBanner, useConfirm } from '../shared/DashComponents'
 
 // Map the creator-side channel payload to the canonical shape the
 // scoring ChannelCard expects. Fields that don't exist in the API
@@ -157,6 +158,9 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
   const [schedFrom, setSchedFrom] = useState(dispo.horarioPreferido?.desde || '09:00')
   const [schedTo, setSchedTo] = useState(dispo.horarioPreferido?.hasta || '18:00')
   const [blockedDates, setBlockedDates] = useState(dispo.diasBloqueados || [])
+  const [blockForm, setBlockForm] = useState({ start: '', end: '', reason: '', recurring: false })
+
+  const { confirm, dialog: confirmDialog } = useConfirm()
 
   // ── Insights state ──
   const [insights, setInsights] = useState(() => {
@@ -186,6 +190,17 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
       const today = new Date(); today.setHours(0,0,0,0)
       const isPast = date < today
       const blocked = blockedDates.some(b => {
+        if (b.recurring) {
+          // Compare month-day only; the original year is just the seed.
+          const s = new Date(b.start)
+          const e = b.end ? new Date(b.end) : s
+          const md = (dt) => dt.getMonth() * 100 + dt.getDate()
+          const dMd = md(date)
+          const sMd = md(s)
+          const eMd = md(e)
+          // Handle wrap-around (e.g. Dec 30 → Jan 2)
+          return sMd <= eMd ? (dMd >= sMd && dMd <= eMd) : (dMd >= sMd || dMd <= eMd)
+        }
         const s = new Date(b.start); s.setHours(0,0,0,0)
         const e = b.end ? new Date(b.end) : s; e.setHours(23,59,59)
         return date >= s && date <= e
@@ -227,32 +242,61 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
       })
       if (res?.success) { showToast('Perfil guardado'); onUpdated?.() }
       else showToast('Error: ' + (res?.message || 'No se pudo guardar'), false)
-    } catch { showToast('Error de conexion', false) }
+    } catch { showToast('Error de conexión', false) }
     finally { setSaving(false) }
   }
 
   // ── Save availability ──
+  const buildAvailabilityPayload = () => ({
+    maxPublicacionesMes: maxPub,
+    diasSemana: Array.from(enabledDays),
+    preciosPorDia: Object.entries(dayPricing).map(([day, v]) => ({
+      day: Number(day), price: v.price, enabled: v.enabled,
+    })),
+    diasBloqueados: blockedDates,
+    horarioPreferido: { desde: schedFrom, hasta: schedTo },
+    antelacionMinima: minAdvance,
+    antelacionMaxima: maxAdvance,
+    aceptaUrgentes: acceptUrgent,
+    precioUrgente: urgentPrice,
+    allowPacks,
+  })
+
   const saveAvailability = async () => {
     setSaving(true)
     try {
-      const preciosPorDia = Object.entries(dayPricing).map(([day, v]) => ({
-        day: Number(day), price: v.price, enabled: v.enabled,
-      }))
-      const res = await apiService.updateChannelAvailability(channel._id || channel.id, {
-        maxPublicacionesMes: maxPub,
-        diasSemana: Array.from(enabledDays),
-        preciosPorDia,
-        diasBloqueados: blockedDates,
-        horarioPreferido: { desde: schedFrom, hasta: schedTo },
-        antelacionMinima: minAdvance,
-        antelacionMaxima: maxAdvance,
-        aceptaUrgentes: acceptUrgent,
-        precioUrgente: urgentPrice,
-        allowPacks,
-      })
+      const res = await apiService.updateChannelAvailability(channel._id || channel.id, buildAvailabilityPayload())
       if (res?.success) { showToast('Disponibilidad guardada'); onUpdated?.() }
       else showToast('Error: ' + (res?.message || 'No se pudo guardar'), false)
-    } catch { showToast('Error de conexion', false) }
+    } catch { showToast('Error de conexión', false) }
+    finally { setSaving(false) }
+  }
+
+  const applyAvailabilityToAll = async () => {
+    const ok = await confirm({
+      title: 'Aplicar a todos los canales',
+      message: 'Esta disponibilidad (días, horarios, precios por día, fechas bloqueadas) se copiará a todos tus demás canales sobrescribiendo su configuración actual. ¿Continuar?',
+      confirmLabel: 'Aplicar a todos',
+      tone: 'warning',
+    })
+    if (!ok) return
+    setSaving(true)
+    try {
+      const all = await apiService.getMyChannels()
+      const others = (all?.success ? (Array.isArray(all.data) ? all.data : all.data?.items || []) : [])
+        .filter(c => (c._id || c.id) !== (channel._id || channel.id))
+      if (others.length === 0) { showToast('No tienes otros canales para aplicar.'); setSaving(false); return }
+      const payload = buildAvailabilityPayload()
+      let success = 0, fail = 0
+      for (const c of others) {
+        try {
+          const r = await apiService.updateChannelAvailability(c._id || c.id, payload)
+          if (r?.success) success++; else fail++
+        } catch { fail++ }
+      }
+      showToast(fail === 0 ? `Aplicado a ${success} canales.` : `${success} ok · ${fail} fallaron.`, fail === 0)
+      onUpdated?.()
+    } catch { showToast('Error de conexión', false) }
     finally { setSaving(false) }
   }
 
@@ -263,7 +307,7 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
       const res = await apiService.updateChannelInsights(channel._id || channel.id, { insightsDias: insights })
       if (res?.success) { showToast('Insights guardados'); onUpdated?.() }
       else showToast('Error al guardar insights', false)
-    } catch { showToast('Error de conexion', false) }
+    } catch { showToast('Error de conexión', false) }
     finally { setSaving(false) }
   }
 
@@ -307,6 +351,7 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
 
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: '0', maxWidth: '900px', animation: 'cc-in .25s ease' }}>
+      {confirmDialog}
       <style>{`
         @keyframes cc-in { from { opacity:0; transform:translateX(8px) } to { opacity:1; transform:none } }
         @keyframes toast-in { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:none } }
@@ -345,6 +390,33 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>{channel.categoria} · {fmtK(channel.estadisticas?.seguidores || 0)} seguidores · €{channel.precio}/post</div>
               </div>
+              {/* Clone shortcut: pre-fills the registration form with this channel's settings */}
+              <button
+                type="button"
+                onClick={() => {
+                  const clone = {
+                    nombreCanal: `${channel.nombreCanal} (copia)`,
+                    descripcion: channel.descripcion,
+                    categoria: channel.categoria,
+                    precio: channel.precio,
+                    plataforma: channel.plataforma,
+                    perfil: channel.perfil,
+                    disponibilidad: channel.disponibilidad,
+                  }
+                  try { sessionStorage.setItem('channelad-clone-template', JSON.stringify(clone)) } catch {}
+                  navigate('/creator/channels/new?clone=1')
+                }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  background: 'transparent', border: '1px solid var(--border)',
+                  borderRadius: '10px', padding: '8px 14px', fontSize: '12px', fontWeight: 600,
+                  color: 'var(--muted)', cursor: 'pointer', fontFamily: F, flexShrink: 0,
+                  alignSelf: 'flex-start',
+                }}
+                title="Crear un canal nuevo con los mismos ajustes"
+              >
+                <Plus size={12} /> Duplicar
+              </button>
             </div>
 
             {/* KPIs + Analytics link */}
@@ -367,21 +439,33 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
       </div>
 
       {/* ── Tabs ── */}
-      <div style={{ display: 'flex', gap: '4px', marginBottom: '18px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '4px', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+      <div role="tablist" aria-label="Secciones del canal" style={{ display: 'flex', gap: '4px', marginBottom: '18px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '4px', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
         <style>{`.cc-tabs::-webkit-scrollbar { display: none; }`}</style>
-        {TABS.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)} style={{
-            flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '10px 14px', borderRadius: '9px', border: 'none', cursor: 'pointer',
-            background: tab === t.key ? 'var(--surface)' : 'transparent',
-            color: tab === t.key ? A : 'var(--muted)',
-            fontSize: '13px', fontWeight: tab === t.key ? 700 : 500, fontFamily: F,
-            boxShadow: tab === t.key ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-            transition: 'all .15s', whiteSpace: 'nowrap',
-          }}>
-            <t.icon size={14} /> {t.label}
-          </button>
-        ))}
+        {TABS.map(t => {
+          const active = tab === t.key
+          return (
+            <button
+              key={t.key}
+              role="tab"
+              id={`channel-tab-${t.key}`}
+              aria-selected={active}
+              aria-controls={`channel-panel-${t.key}`}
+              tabIndex={active ? 0 : -1}
+              onClick={() => setTab(t.key)}
+              style={{
+                flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                padding: '10px 14px', borderRadius: '9px', border: 'none', cursor: 'pointer',
+                background: active ? 'var(--surface)' : 'transparent',
+                color: active ? A : 'var(--muted)',
+                fontSize: '13px', fontWeight: active ? 700 : 500, fontFamily: F,
+                boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                transition: 'all .15s', whiteSpace: 'nowrap',
+              }}
+            >
+              <t.icon size={14} aria-hidden="true" /> {t.label}
+            </button>
+          )
+        })}
       </div>
 
       {/* Score tab content moved to /creator/analytics */}
@@ -416,13 +500,23 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
               </div>
 
               {/* Category pills */}
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>Categoria</label>
+              <div role="group" aria-label="Categoría del canal">
+                <div id="channel-category-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>Categoría</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                  {CATEGORIES.map(c => (
-                    <button key={c} onClick={() => setProfileForm(p => ({ ...p, categoria: c.toLowerCase() }))}
-                      style={{ background: profileForm.categoria === c.toLowerCase() ? A : 'var(--bg)', border: `1px solid ${profileForm.categoria === c.toLowerCase() ? A : 'var(--border)'}`, borderRadius: '20px', padding: '5px 12px', fontSize: '11px', color: profileForm.categoria === c.toLowerCase() ? '#fff' : 'var(--muted)', cursor: 'pointer', fontFamily: F }}>{c}</button>
-                  ))}
+                  {CATEGORIES.map(c => {
+                    const selected = profileForm.categoria === c.toLowerCase()
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => setProfileForm(p => ({ ...p, categoria: c.toLowerCase() }))}
+                        style={{ background: selected ? A : 'var(--bg)', border: `1px solid ${selected ? A : 'var(--border)'}`, borderRadius: '20px', padding: '5px 12px', fontSize: '11px', color: selected ? '#fff' : 'var(--muted)', cursor: 'pointer', fontFamily: F }}
+                      >
+                        {c}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
@@ -533,12 +627,19 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
                 <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>Se eliminara permanentemente el canal y toda su configuracion. Esta accion no se puede deshacer.</div>
               </div>
               <button onClick={async () => {
-                if (!window.confirm(`¿Seguro que deseas eliminar "${channel.nombreCanal}"? Esta accion no se puede deshacer.`)) return
+                const safeName = String(channel.nombreCanal || 'este canal').replace(/["\r\n]/g, '').slice(0, 60)
+                const ok = await confirm({
+                  title: 'Eliminar canal',
+                  message: `¿Seguro que deseas eliminar "${safeName}"? Se borrará permanentemente el canal y toda su configuración. Esta acción no se puede deshacer.`,
+                  confirmLabel: 'Eliminar canal',
+                  tone: 'danger',
+                })
+                if (!ok) return
                 try {
                   const res = await apiService.deleteChannel(channel._id || channel.id)
                   if (res?.success) { showToast('Canal eliminado'); onBack?.(); onUpdated?.() }
                   else showToast('Error: ' + (res?.message || 'No se pudo eliminar'), false)
-                } catch { showToast('Error de conexion al eliminar', false) }
+                } catch { showToast('Error de conexión al eliminar', false) }
               }} style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 background: 'transparent', border: `1.5px solid ${ER}40`, borderRadius: '10px',
@@ -560,7 +661,16 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Weekly schedule */}
           <Section icon={Calendar} title="Dias de publicacion" subtitle="Configura que dias de la semana aceptas publicaciones"
-            action={<button onClick={saveAvailability} disabled={saving} style={{ background: A, color: '#fff', border: 'none', borderRadius: '10px', padding: '8px 18px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', gap: '6px', opacity: saving ? 0.6 : 1 }}><Save size={13} /> {saving ? 'Guardando...' : 'Guardar'}</button>}>
+            action={
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <button onClick={applyAvailabilityToAll} disabled={saving} title="Copiar a todos mis otros canales" style={{ background: 'transparent', color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: '10px', padding: '8px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', gap: '6px', opacity: saving ? 0.6 : 1 }}>
+                  <Calendar size={12} /> Aplicar a todos
+                </button>
+                <button onClick={saveAvailability} disabled={saving} style={{ background: A, color: '#fff', border: 'none', borderRadius: '10px', padding: '8px 18px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: F, display: 'flex', alignItems: 'center', gap: '6px', opacity: saving ? 0.6 : 1 }}>
+                  <Save size={13} /> {saving ? 'Guardando...' : 'Guardar'}
+                </button>
+              </div>
+            }>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Day toggles */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>
@@ -669,9 +779,14 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
                           {new Date(b.start).toLocaleDateString('es', { day: 'numeric', month: 'short' })}
                           {b.end && b.end !== b.start ? ` — ${new Date(b.end).toLocaleDateString('es', { day: 'numeric', month: 'short' })}` : ''}
                         </span>
+                        {b.recurring && (
+                          <span title="Se repite cada año" style={{ fontSize: '10px', fontWeight: 700, color: A, background: AG(0.12), border: `1px solid ${AG(0.3)}`, borderRadius: 999, padding: '1px 6px' }}>
+                            ↻ Anual
+                          </span>
+                        )}
                         {b.reason && <span style={{ fontSize: '11px', color: 'var(--muted)' }}>({b.reason})</span>}
                       </div>
-                      <button onClick={() => setBlockedDates(prev => prev.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: ER, display: 'flex', padding: '4px' }}>
+                      <button onClick={() => setBlockedDates(prev => prev.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: ER, display: 'flex', padding: '4px' }} aria-label="Quitar fecha bloqueada">
                         <X size={14} />
                       </button>
                     </div>
@@ -682,25 +797,37 @@ const ChannelDetailPanel = ({ channel, onBack, onUpdated }) => {
               <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                 <div>
                   <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Desde</label>
-                  <input className="cc-inp" type="date" id="block-start" style={{ ...inp, width: '150px', padding: '8px 10px', fontSize: '12px' }} />
+                  <input className="cc-inp" type="date" value={blockForm.start} onChange={e => setBlockForm(f => ({ ...f, start: e.target.value }))} style={{ ...inp, width: '150px', padding: '8px 10px', fontSize: '12px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Hasta</label>
-                  <input className="cc-inp" type="date" id="block-end" style={{ ...inp, width: '150px', padding: '8px 10px', fontSize: '12px' }} />
+                  <input className="cc-inp" type="date" value={blockForm.end} onChange={e => setBlockForm(f => ({ ...f, end: e.target.value }))} style={{ ...inp, width: '150px', padding: '8px 10px', fontSize: '12px' }} />
                 </div>
                 <div>
                   <label style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Motivo (opcional)</label>
-                  <input className="cc-inp" type="text" id="block-reason" placeholder="Vacaciones..." style={{ ...inp, width: '160px', padding: '8px 10px', fontSize: '12px' }} />
+                  <input className="cc-inp" type="text" value={blockForm.reason} onChange={e => setBlockForm(f => ({ ...f, reason: e.target.value }))} placeholder="Vacaciones..." style={{ ...inp, width: '160px', padding: '8px 10px', fontSize: '12px' }} />
                 </div>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--muted)', cursor: 'pointer', alignSelf: 'center', height: 36 }}>
+                  <input
+                    type="checkbox"
+                    checked={blockForm.recurring}
+                    onChange={e => setBlockForm(f => ({ ...f, recurring: e.target.checked }))}
+                  />
+                  Cada año
+                </label>
                 <button onClick={() => {
-                  const start = document.getElementById('block-start')?.value
-                  const end = document.getElementById('block-end')?.value
-                  const reason = document.getElementById('block-reason')?.value
-                  if (!start) return
-                  setBlockedDates(prev => [...prev, { start, end: end || start, reason: reason || '' }])
-                  if (document.getElementById('block-start')) document.getElementById('block-start').value = ''
-                  if (document.getElementById('block-end')) document.getElementById('block-end').value = ''
-                  if (document.getElementById('block-reason')) document.getElementById('block-reason').value = ''
+                  if (!blockForm.start) return
+                  if (blockForm.end && blockForm.end < blockForm.start) {
+                    showToast('La fecha "Hasta" no puede ser anterior a "Desde"', false)
+                    return
+                  }
+                  setBlockedDates(prev => [...prev, {
+                    start: blockForm.start,
+                    end: blockForm.end || blockForm.start,
+                    reason: blockForm.reason || '',
+                    recurring: !!blockForm.recurring,
+                  }])
+                  setBlockForm({ start: '', end: '', reason: '', recurring: false })
                 }} style={{ background: ER, color: '#fff', border: 'none', borderRadius: '10px', padding: '8px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: F, whiteSpace: 'nowrap', height: '36px' }}>
                   + Bloquear
                 </button>
@@ -962,15 +1089,20 @@ export default function CreatorChannelsPage() {
   const goToRegister = () => navigate('/creator/channels/new')
   const [selectedChannel, setSelectedChannel] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
 
   const loadChannels = async () => {
+    setLoading(true)
+    setLoadError(false)
     try {
       const res = await apiService.getMyChannels()
       if (res?.success) {
         const items = Array.isArray(res.data) ? res.data : res.data?.items || []
         setChannels(items)
+      } else {
+        setLoadError(true)
       }
-    } catch (err) { console.error('CreatorChannelsPage.loadChannels failed:', err) /* empty state */ }
+    } catch (err) { setLoadError(true) }
     finally { setLoading(false) }
   }
 
@@ -999,6 +1131,13 @@ export default function CreatorChannelsPage() {
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: '22px', maxWidth: '1000px' }}>
       <style>{`@keyframes cc-in { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:none } }`}</style>
 
+      {loadError && (
+        <ErrorBanner
+          message="No se pudieron cargar tus canales. Verifica tu conexión."
+          onRetry={loadChannels}
+        />
+      )}
+
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
         <div>
@@ -1019,15 +1158,37 @@ export default function CreatorChannelsPage() {
 
       {/* Channel cards */}
       {loading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {[1, 2, 3].map(i => (
-            <div key={i} className="animate-pulse" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--bg)' }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ height: 14, width: '40%', background: 'var(--bg)', borderRadius: 6, marginBottom: 8 }} />
-                <div style={{ height: 10, width: '60%', background: 'var(--bg)', borderRadius: 4 }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '14px' }}>
+          <style>{`@keyframes cc-shimmer { 0% { opacity: .55 } 50% { opacity: 1 } 100% { opacity: .55 } }`}</style>
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} style={{
+              background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px',
+              padding: '16px', display: 'flex', flexDirection: 'column', gap: 12,
+              animation: 'cc-shimmer 1.4s ease-in-out infinite',
+            }}>
+              {/* Header row: avatar + title + platform pill */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 42, height: 42, borderRadius: 10, background: 'var(--bg2)', flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ height: 14, width: '70%', background: 'var(--bg2)', borderRadius: 6, marginBottom: 6 }} />
+                  <div style={{ height: 10, width: '40%', background: 'var(--bg2)', borderRadius: 4 }} />
+                </div>
+                <div style={{ width: 56, height: 18, background: 'var(--bg2)', borderRadius: 999 }} />
               </div>
-              <div style={{ width: 60, height: 24, background: 'var(--bg)', borderRadius: 999 }} />
+              {/* Stats row */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, paddingTop: 4 }}>
+                {[0, 1, 2].map(j => (
+                  <div key={j}>
+                    <div style={{ height: 9, width: '60%', background: 'var(--bg2)', borderRadius: 3, marginBottom: 4 }} />
+                    <div style={{ height: 14, width: '80%', background: 'var(--bg2)', borderRadius: 4 }} />
+                  </div>
+                ))}
+              </div>
+              {/* Footer: status + action */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 6, borderTop: '1px solid var(--border)' }}>
+                <div style={{ width: 80, height: 18, background: 'var(--bg2)', borderRadius: 999 }} />
+                <div style={{ width: 70, height: 22, background: 'var(--bg2)', borderRadius: 8 }} />
+              </div>
             </div>
           ))}
         </div>

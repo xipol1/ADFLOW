@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import {
   Repeat, Search, Inbox, Send, Activity, CheckCircle2, X,
   Users, Radio, ArrowRight, Clock, Star, Sparkles, AlertCircle,
@@ -7,6 +7,7 @@ import {
 import apiService from '../../../../services/api'
 import { useAuth } from '../../../../auth/AuthContext'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, WARN, ERR, BLUE } from '../../../theme/tokens'
+import { ErrorBanner, useConfirm } from '../shared/DashComponents'
 
 const ACCENT = GREEN
 const ga = greenAlpha
@@ -54,38 +55,59 @@ export default function CreatorSwapsPage() {
   const [proposeTo, setProposeTo] = useState(null) // partner being proposed to
   const [detail, setDetail] = useState(null)        // swap being viewed
   const [toast, setToast] = useState(null)
+  const [loadError, setLoadError] = useState(false)
+  const [partnersError, setPartnersError] = useState(false)
+  const [swapsError, setSwapsError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
 
   const showToast = (msg, ok = true) => { setToast({ msg, ok }); setTimeout(() => setToast(null), 2500) }
+  const { confirm, dialog: confirmDialog } = useConfirm()
 
   // ── Initial load: my channels ──
   useEffect(() => {
     let mounted = true
+    setLoadError(false)
+    setLoading(true)
     apiService.getMyChannels().then(res => {
       if (!mounted) return
-      const list = res?.success ? (Array.isArray(res.data) ? res.data : res.data?.items || []) : []
-      setChannels(list)
-      if (list.length && !selectedChannelId) setSelectedChannelId(list[0]._id || list[0].id)
+      if (res?.success) {
+        const list = Array.isArray(res.data) ? res.data : res.data?.items || []
+        setChannels(list)
+        if (list.length && !selectedChannelId) setSelectedChannelId(list[0]._id || list[0].id)
+      } else {
+        setLoadError(true)
+      }
       setLoading(false)
-    }).catch(() => { if (mounted) setLoading(false) })
+    }).catch(() => { if (mounted) { setLoadError(true); setLoading(false) } })
     return () => { mounted = false }
-  }, [])
+  }, [retryKey])
 
   // ── Reload partners when channel changes ──
   const loadPartners = useCallback(async () => {
     if (!selectedChannelId) return
+    setPartnersError(false)
     try {
       const res = await apiService.discoverSwapPartners(selectedChannelId)
       if (res?.success) setPartners(Array.isArray(res.data) ? res.data : [])
-    } catch {}
+      else setPartnersError(true)
+    } catch { setPartnersError(true) }
   }, [selectedChannelId])
 
   // ── Reload swaps ──
   const loadSwaps = useCallback(async () => {
+    setSwapsError(false)
     try {
       const res = await apiService.listMySwaps('all')
       if (res?.success) setSwaps(Array.isArray(res.data) ? res.data : [])
-    } catch {}
+      else setSwapsError(true)
+    } catch { setSwapsError(true) }
   }, [])
+
+  const retryAll = () => {
+    setRetryKey(k => k + 1)
+    loadPartners()
+    loadSwaps()
+  }
 
   useEffect(() => { loadPartners() }, [loadPartners])
   useEffect(() => { loadSwaps() }, [loadSwaps])
@@ -127,12 +149,68 @@ export default function CreatorSwapsPage() {
     } catch { showToast('Error de conexión', false) }
   }
 
+  // Track recently-rejected swaps for a 5-minute undo window.
+  // Stored as { [swapId]: { swap, expiresAt } } — swap snapshot is what we
+  // need to re-propose if the creator clicks "Deshacer".
+  const [undoMap, setUndoMap] = useState({})
+  useEffect(() => {
+    if (Object.keys(undoMap).length === 0) return undefined
+    const t = setInterval(() => {
+      const now = Date.now()
+      setUndoMap(prev => {
+        const next = {}
+        let changed = false
+        for (const [k, v] of Object.entries(prev)) {
+          if (v.expiresAt > now) next[k] = v
+          else changed = true
+        }
+        return changed ? next : prev
+      })
+    }, 1000)
+    return () => clearInterval(t)
+  }, [undoMap])
+
+  const handleUndoReject = async (swap) => {
+    if (!swap) return
+    try {
+      const res = await apiService.createSwap({
+        requesterChannel: swap.requesterChannel?._id || swap.requesterChannel,
+        recipientChannel: swap.recipientChannel?._id || swap.recipientChannel,
+        propuesta: swap.propuesta || { mensaje: '', formato: 'post_simple', duracionHoras: 24 },
+      })
+      if (res?.success) {
+        showToast('Propuesta restaurada')
+        setUndoMap(prev => { const n = { ...prev }; delete n[swap._id]; return n })
+        loadSwaps()
+      } else {
+        showToast(res?.message || 'No se pudo deshacer', false)
+      }
+    } catch { showToast('Error de conexión', false) }
+  }
+
   const handleReject = async (id) => {
-    if (!confirm('¿Rechazar esta propuesta?')) return
+    const ok = await confirm({
+      title: 'Rechazar propuesta',
+      message: '¿Rechazar esta propuesta de colaboración? Tendrás 5 minutos para deshacer.',
+      confirmLabel: 'Rechazar',
+      tone: 'danger',
+    })
+    if (!ok) return
+    const swap = swaps.find(s => s._id === id)
     try {
       const res = await apiService.rejectSwap(id)
-      if (res?.success) { showToast('Rechazado'); loadSwaps() }
-      else showToast(res?.message || 'Error', false)
+      if (res?.success) {
+        showToast('Rechazado')
+        if (swap) {
+          setUndoMap(prev => ({
+            ...prev,
+            [id]: { swap, expiresAt: Date.now() + 5 * 60_000 },
+          }))
+        }
+        loadSwaps()
+      } else {
+        showToast(res?.message || 'Error', false)
+      }
     } catch { showToast('Error de conexión', false) }
   }
 
@@ -172,8 +250,24 @@ export default function CreatorSwapsPage() {
 
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 18 }}>
+      {confirmDialog}
       {/* Header */}
       <Header />
+
+      {(loadError || partnersError || swapsError) && (
+        <ErrorBanner
+          message={
+            loadError
+              ? 'No se pudieron cargar tus canales. Verifica tu conexión.'
+              : partnersError && swapsError
+                ? 'No se pudieron cargar partners ni colaboraciones. Verifica tu conexión.'
+                : partnersError
+                  ? 'No se pudieron cargar los partners sugeridos.'
+                  : 'No se pudieron cargar tus colaboraciones.'
+          }
+          onRetry={retryAll}
+        />
+      )}
 
       {/* Channel selector */}
       <ChannelSelector
@@ -185,39 +279,60 @@ export default function CreatorSwapsPage() {
       {/* Tabs */}
       <Tabs tab={tab} onChange={setTab} counts={counts} />
 
+      {/* Undo reject banners */}
+      {Object.entries(undoMap).map(([id, entry]) => (
+        <UndoRejectBanner
+          key={id}
+          swap={entry.swap}
+          expiresAt={entry.expiresAt}
+          onUndo={() => handleUndoReject(entry.swap)}
+          onDismiss={() => setUndoMap(prev => { const n = { ...prev }; delete n[id]; return n })}
+        />
+      ))}
+
       {/* Content */}
       {tab === 'descubrir' && (
-        <DiscoverTab partners={partners} onPropose={setProposeTo} loading={loading} />
+        <div role="tabpanel" id="swap-panel-descubrir" aria-labelledby="swap-tab-descubrir">
+          <DiscoverTab partners={partners} onPropose={setProposeTo} loading={loading} />
+        </div>
       )}
       {tab === 'recibidos' && (
-        <SwapsList
-          swaps={swaps.filter(s => s.status === 'propuesto')}
-          role="incoming"
-          onAccept={handleAccept}
-          onReject={handleReject}
-          onView={setDetail}
-        />
+        <div role="tabpanel" id="swap-panel-recibidos" aria-labelledby="swap-tab-recibidos">
+          <SwapsList
+            swaps={swaps.filter(s => s.status === 'propuesto')}
+            role="incoming"
+            onAccept={handleAccept}
+            onReject={handleReject}
+            onView={setDetail}
+          />
+        </div>
       )}
       {tab === 'enviados' && (
-        <SwapsList
-          swaps={swaps.filter(s => s.status === 'propuesto')}
-          role="outgoing"
-          onView={setDetail}
-        />
+        <div role="tabpanel" id="swap-panel-enviados" aria-labelledby="swap-tab-enviados">
+          <SwapsList
+            swaps={swaps.filter(s => s.status === 'propuesto')}
+            role="outgoing"
+            onView={setDetail}
+          />
+        </div>
       )}
       {tab === 'activos' && (
-        <SwapsList
-          swaps={swaps.filter(s => ['aceptado', 'publicado_a', 'publicado_b', 'publicado_ambos'].includes(s.status))}
-          role="active"
-          onView={setDetail}
-        />
+        <div role="tabpanel" id="swap-panel-activos" aria-labelledby="swap-tab-activos">
+          <SwapsList
+            swaps={swaps.filter(s => ['aceptado', 'publicado_a', 'publicado_b', 'publicado_ambos'].includes(s.status))}
+            role="active"
+            onView={setDetail}
+          />
+        </div>
       )}
       {tab === 'historico' && (
-        <SwapsList
-          swaps={swaps.filter(s => ['completado', 'rechazado', 'expirado', 'cancelado'].includes(s.status))}
-          role="history"
-          onView={setDetail}
-        />
+        <div role="tabpanel" id="swap-panel-historico" aria-labelledby="swap-tab-historico">
+          <SwapsList
+            swaps={swaps.filter(s => ['completado', 'rechazado', 'expirado', 'cancelado'].includes(s.status))}
+            role="history"
+            onView={setDetail}
+          />
+        </div>
       )}
 
       {/* Modals */}
@@ -299,23 +414,34 @@ function Tabs({ tab, onChange, counts }) {
     { id: 'historico', label: 'Histórico', icon: Clock },
   ]
   return (
-    <div style={{
+    <div role="tablist" aria-label="Filtros de colaboraciones" style={{
       display: 'flex', gap: 4, borderBottom: '1px solid var(--border)', overflowX: 'auto',
     }}>
       {items.map(it => {
         const Icon = it.icon
         const active = tab === it.id
+        const countLabel = it.count > 0 ? ` (${it.count})` : ''
         return (
-          <button key={it.id} onClick={() => onChange(it.id)} style={{
-            background: 'transparent', border: 'none', borderBottom: `2px solid ${active ? ACCENT : 'transparent'}`,
-            color: active ? ACCENT : 'var(--muted)',
-            padding: '10px 16px', fontSize: 13, fontWeight: 700, fontFamily: F, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
-            transition: 'color .15s, border-color .15s',
-          }}>
-            <Icon size={14} /> {it.label}
+          <button
+            key={it.id}
+            role="tab"
+            id={`swap-tab-${it.id}`}
+            aria-selected={active}
+            aria-controls={`swap-panel-${it.id}`}
+            tabIndex={active ? 0 : -1}
+            aria-label={`${it.label}${countLabel}`}
+            onClick={() => onChange(it.id)}
+            style={{
+              background: 'transparent', border: 'none', borderBottom: `2px solid ${active ? ACCENT : 'transparent'}`,
+              color: active ? ACCENT : 'var(--muted)',
+              padding: '10px 16px', fontSize: 13, fontWeight: 700, fontFamily: F, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
+              transition: 'color .15s, border-color .15s',
+            }}
+          >
+            <Icon size={14} aria-hidden="true" /> {it.label}
             {it.count > 0 && (
-              <span style={{
+              <span aria-hidden="true" style={{
                 background: ACCENT, color: '#fff', fontSize: 10, fontWeight: 800,
                 borderRadius: 20, padding: '1px 7px', lineHeight: 1.4,
               }}>
@@ -331,6 +457,36 @@ function Tabs({ tab, onChange, counts }) {
 
 // ─── Discover tab ──────────────────────────────────────────────────────────
 function DiscoverTab({ partners, onPropose, loading }) {
+  const [search, setSearch] = useState('')
+  const [platform, setPlatform] = useState('all')
+  const [sortBy, setSortBy] = useState('match') // match | followers | platform | name
+
+  const platforms = useMemo(
+    () => Array.from(new Set(partners.map(p => p.plataforma).filter(Boolean))),
+    [partners],
+  )
+
+  const filtered = useMemo(() => {
+    let list = partners
+    if (platform !== 'all') list = list.filter(p => p.plataforma === platform)
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      list = list.filter(p =>
+        (p.nombreCanal || '').toLowerCase().includes(q) ||
+        (p.categoria || '').toLowerCase().includes(q) ||
+        (p.bio || '').toLowerCase().includes(q)
+      )
+    }
+    const sorted = list.slice()
+    sorted.sort((a, b) => {
+      if (sortBy === 'followers') return (b.seguidores || 0) - (a.seguidores || 0)
+      if (sortBy === 'name')      return (a.nombreCanal || '').localeCompare(b.nombreCanal || '')
+      if (sortBy === 'platform')  return (a.plataforma || '').localeCompare(b.plataforma || '')
+      return (b.matchScore || 0) - (a.matchScore || 0)
+    })
+    return sorted
+  }, [partners, search, platform, sortBy])
+
   if (loading) return <Loading />
   if (!partners.length) {
     return <Empty
@@ -339,11 +495,69 @@ function DiscoverTab({ partners, onPropose, loading }) {
       subtitle="Cuando haya más canales activos en tu nicho los verás aquí ordenados por compatibilidad."
     />
   }
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
-      {partners.map(p => <PartnerCard key={p._id} partner={p} onPropose={() => onPropose(p)} />)}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Filters bar */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+        <div style={{ position: 'relative', flex: '1 1 220px', minWidth: 180 }}>
+          <Search size={13} aria-hidden="true" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', pointerEvents: 'none' }} />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar por canal, nicho o bio…"
+            aria-label="Buscar partners"
+            style={{
+              width: '100%', boxSizing: 'border-box',
+              background: 'var(--bg2)', color: 'var(--text)', border: '1px solid var(--border)',
+              borderRadius: 8, padding: '7px 10px 7px 30px', fontSize: 12.5, fontFamily: F, outline: 'none',
+            }}
+          />
+        </div>
+        {platforms.length > 1 && (
+          <select
+            value={platform}
+            onChange={e => setPlatform(e.target.value)}
+            aria-label="Filtrar por plataforma"
+            style={selectStyle}
+          >
+            <option value="all">Todas las plataformas</option>
+            {platforms.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+        )}
+        <select
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value)}
+          aria-label="Ordenar por"
+          style={selectStyle}
+        >
+          <option value="match">Mejor match</option>
+          <option value="followers">Más seguidores</option>
+          <option value="name">Nombre A-Z</option>
+          <option value="platform">Plataforma</option>
+        </select>
+        <span style={{ fontSize: 11.5, color: 'var(--muted)', marginLeft: 'auto' }}>
+          {filtered.length} de {partners.length}
+        </span>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div style={{ padding: 30, textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>
+          Ningún partner coincide con tus filtros.
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 12 }}>
+          {filtered.map(p => <PartnerCard key={p._id} partner={p} onPropose={() => onPropose(p)} />)}
+        </div>
+      )}
     </div>
   )
+}
+
+const selectStyle = {
+  background: 'var(--bg2)', color: 'var(--text)', border: '1px solid var(--border)',
+  borderRadius: 8, padding: '7px 10px', fontSize: 12.5, fontFamily: 'inherit', outline: 'none',
+  cursor: 'pointer',
 }
 
 function PartnerCard({ partner, onPropose }) {
@@ -388,15 +602,8 @@ function PartnerCard({ partner, onPropose }) {
         </div>
       )}
 
-      {/* Match score */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--bg2)', overflow: 'hidden' }}>
-          <div style={{ width: `${score}%`, height: '100%', background: scoreColor, transition: 'width .4s' }} />
-        </div>
-        <span style={{ fontSize: 11, fontWeight: 700, color: scoreColor, minWidth: 32, textAlign: 'right' }}>
-          {score}% match
-        </span>
-      </div>
+      {/* Match score with breakdown tooltip */}
+      <MatchScoreBar score={score} scoreColor={scoreColor} partner={partner} />
 
       {/* CTA */}
       <button onClick={onPropose} style={{
@@ -727,18 +934,156 @@ function Stat({ label, value }) {
   )
 }
 
+// ─── Undo reject banner ─────────────────────────────────────────────────────
+function UndoRejectBanner({ swap, expiresAt, onUndo, onDismiss }) {
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [])
+  const remaining = Math.max(0, expiresAt - now)
+  if (remaining <= 0) return null
+  const sec = Math.ceil(remaining / 1000)
+  const label = sec >= 60 ? `${Math.ceil(sec / 60)} min` : `${sec}s`
+  const partnerName = swap?.recipientChannel?.nombreCanal || swap?.requesterChannel?.nombreCanal || 'el partner'
+  return (
+    <div role="status" aria-live="polite" style={{
+      background: `${WARN}10`, border: `1px solid ${WARN}40`, color: 'var(--text)',
+      borderRadius: 12, padding: '10px 14px', fontSize: 13,
+      display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+    }}>
+      <AlertCircle size={14} color={WARN} aria-hidden="true" />
+      <span style={{ flex: 1, minWidth: 200 }}>
+        Propuesta con <strong>{partnerName}</strong> rechazada. Puedes deshacer durante {label}.
+      </span>
+      <button onClick={onUndo} style={{
+        background: WARN, color: '#fff', border: 'none', borderRadius: 8,
+        padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: F,
+      }}>Deshacer</button>
+      <button onClick={onDismiss} aria-label="Descartar aviso" style={{
+        background: 'transparent', color: 'var(--muted)', border: 'none', cursor: 'pointer', padding: 4, display: 'flex',
+      }}>
+        <X size={14} />
+      </button>
+    </div>
+  )
+}
+
+// ─── MatchScore bar with explainer tooltip ──────────────────────────────────
+function MatchScoreBar({ score, scoreColor, partner }) {
+  const [hover, setHover] = useState(false)
+
+  // Best-effort breakdown: surface what we can derive from the partner
+  // record. Backend may already expose `matchBreakdown`; fall back to
+  // heuristics so users always see *why* the score is what it is.
+  const breakdown = useMemo(() => {
+    if (Array.isArray(partner?.matchBreakdown) && partner.matchBreakdown.length > 0) {
+      return partner.matchBreakdown
+    }
+    const items = []
+    if (partner?.plataforma) items.push({ label: 'Misma plataforma', weight: '+30' })
+    if (partner?.categoria) items.push({ label: `Mismo nicho (${partner.categoria})`, weight: '+25' })
+    if (partner?.seguidores) {
+      const k = partner.seguidores >= 1000 ? `${Math.round(partner.seguidores / 1000)}K` : partner.seguidores
+      items.push({ label: `Audiencia comparable · ${k}`, weight: '+20' })
+    }
+    if (partner?.verificado) items.push({ label: 'Canal verificado', weight: '+15' })
+    if (partner?.previousSwapsCount) items.push({ label: `${partner.previousSwapsCount} colaboraciones previas`, weight: '+10' })
+    if (items.length === 0) items.push({ label: 'Sin desglose disponible', weight: '—' })
+    return items
+  }, [partner])
+
+  return (
+    <div style={{ position: 'relative' }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
+      tabIndex={0}
+      aria-label={`Match score ${score}%. Pulsa para ver el desglose.`}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--bg2)', overflow: 'hidden' }}>
+          <div style={{ width: `${score}%`, height: '100%', background: scoreColor, transition: 'width .4s' }} />
+        </div>
+        <span style={{ fontSize: 11, fontWeight: 700, color: scoreColor, minWidth: 32, textAlign: 'right' }}>
+          {score}% match
+        </span>
+        <AlertCircle size={11} color="var(--muted2)" aria-hidden="true" />
+      </div>
+      {hover && (
+        <div role="tooltip" style={{
+          position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 30,
+          background: 'rgba(15,15,18,0.96)', color: '#fff', borderRadius: 10,
+          padding: '10px 12px', fontSize: 11.5, lineHeight: 1.4,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+        }}>
+          <div style={{ fontWeight: 800, marginBottom: 6, fontSize: 12 }}>¿Cómo calculamos el match?</div>
+          {breakdown.map((b, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '2px 0' }}>
+              <span style={{ opacity: 0.85 }}>{b.label}</span>
+              <span style={{ color: scoreColor, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{b.weight}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Generic UI ────────────────────────────────────────────────────────────
 function ModalShell({ children, title, icon: Icon, onClose }) {
+  const dialogRef = useRef(null)
+  const previouslyFocused = useRef(null)
+  const titleId = useMemo(() => `modal-title-${Math.random().toString(36).slice(2, 9)}`, [])
+
+  useEffect(() => {
+    previouslyFocused.current = document.activeElement
+    const onKey = (e) => {
+      if (e.key === 'Escape') { e.stopPropagation(); onClose?.() }
+      if (e.key === 'Tab' && dialogRef.current) {
+        // Simple focus trap
+        const focusables = dialogRef.current.querySelectorAll(
+          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+        )
+        if (focusables.length === 0) return
+        const first = focusables[0]
+        const last = focusables[focusables.length - 1]
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    // Move focus into dialog
+    setTimeout(() => {
+      const focusable = dialogRef.current?.querySelector(
+        'button:not([disabled]), input, textarea, select, [tabindex]:not([tabindex="-1"])'
+      )
+      focusable?.focus()
+    }, 0)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      previouslyFocused.current?.focus?.()
+    }
+  }, [onClose])
+
   return (
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 999,
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
     }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16,
-        maxWidth: 540, width: '100%', maxHeight: '90vh', overflow: 'auto',
-        padding: 22, fontFamily: F,
-      }}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16,
+          maxWidth: 540, width: '100%', maxHeight: '90vh', overflow: 'auto',
+          padding: 22, fontFamily: F,
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
           {Icon && (
             <div style={{
@@ -746,16 +1091,20 @@ function ModalShell({ children, title, icon: Icon, onClose }) {
               background: ga(0.15), border: `1px solid ${ga(0.3)}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <Icon size={15} color={ACCENT} />
+              <Icon size={15} color={ACCENT} aria-hidden="true" />
             </div>
           )}
-          <h2 style={{ fontFamily: D, fontSize: 17, fontWeight: 800, color: 'var(--text)', margin: 0, flex: 1 }}>
+          <h2 id={titleId} style={{ fontFamily: D, fontSize: 17, fontWeight: 800, color: 'var(--text)', margin: 0, flex: 1 }}>
             {title}
           </h2>
-          <button onClick={onClose} style={{
-            background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--muted)',
-          }}>
-            <X size={18} />
+          <button
+            onClick={onClose}
+            aria-label="Cerrar diálogo"
+            style={{
+              background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--muted)',
+            }}
+          >
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
         {children}
