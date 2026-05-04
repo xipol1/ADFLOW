@@ -188,6 +188,48 @@ const StepIndicator = ({ current, total, labels }) => (
   </div>
 )
 
+// ─── Credential format validation ────────────────────────────────────────────
+// Light format checks only — backend is authoritative. Surfaces obvious errors
+// before the user clicks "Connect" (saves a round trip + a confusing red banner).
+function validateCredField(key, value) {
+  if (!value) return ''
+  const v = String(value).trim()
+  switch (key) {
+    case 'botToken':
+      // Telegram: <int>:<35-char alphanumeric>. Discord/IG variants are longer base64.
+      if (v.length < 30) return 'El token parece demasiado corto'
+      if (/\s/.test(v)) return 'El token no debe contener espacios'
+      return ''
+    case 'chatId':
+      // Either @username (3-32 chars) or numeric id (negative for groups)
+      if (/^@[A-Za-z0-9_]{3,32}$/.test(v)) return ''
+      if (/^-?\d{5,20}$/.test(v)) return ''
+      return 'Usa @tucanal o un ID numérico (ej. -1001234567890)'
+    case 'serverId':
+      if (!/^\d{10,25}$/.test(v)) return 'El ID del servidor debe ser numérico'
+      return ''
+    case 'phoneNumber': {
+      // E.164: +[1-9][0-9]{6,14}
+      const cleaned = v.replace(/[\s()-]/g, '')
+      if (!/^\+[1-9]\d{6,14}$/.test(cleaned)) return 'Usa formato internacional (+34600...)'
+      return ''
+    }
+    case 'apiKey':
+    case 'accessToken':
+      if (v.length < 16) return 'La clave parece demasiado corta'
+      return ''
+    case 'username':
+      if (!/^@?[A-Za-z0-9_.]{3,32}$/.test(v)) return 'Usuario no válido'
+      return ''
+    case 'url':
+    case 'website':
+      try { new URL(v.startsWith('http') ? v : `https://${v}`); return '' }
+      catch { return 'URL no válida' }
+    default:
+      return ''
+  }
+}
+
 // ─── Copyable code block ─────────────────────────────────────────────────────
 const CopyBlock = ({ text }) => {
   const [copied, setCopied] = useState(false)
@@ -219,16 +261,25 @@ export default function RegisterChannelPage() {
   const [verifyLink, setVerifyLink] = useState(null)
   const [verifyStatus, setVerifyStatus] = useState(null)
   const [pollActive, setPollActive] = useState(false)
+  const [pollAttempts, setPollAttempts] = useState(0)
+  const [pollTimedOut, setPollTimedOut] = useState(false)
+  const [pollRefreshKey, setPollRefreshKey] = useState(0)
   const contentRef = useRef(null)
 
   useEffect(() => {
     contentRef.current?.scrollTo?.({ top: 0, behavior: 'smooth' })
   }, [step])
 
-  // Poll verification status every 5s when on verify step
+  // Poll verification status every 5s when on verify step.
+  // Cap at 60 attempts (5 min total) so we never poll a dead endpoint forever.
+  // After timeout the user gets a clear "Reintentar" CTA instead of a silent spinner.
   useEffect(() => {
     if (step !== 3 || !createdChannel) return
     let active = true
+    let attempts = 0
+    const MAX_ATTEMPTS = 60
+    setPollTimedOut(false)
+    setPollAttempts(0)
     const channelId = createdChannel._id || createdChannel.id
     const poll = async () => {
       try {
@@ -237,17 +288,31 @@ export default function RegisterChannelPage() {
           setVerifyStatus(res.data)
           if (res.data.status === 'verified') {
             setPollActive(false)
-            // Auto-advance after short delay
             setTimeout(() => { if (active) setStep(4) }, 1500)
+            return true
           }
         }
       } catch (err) { console.error('RegisterChannelPage.poll verification failed:', err) }
+      return false
     }
-    poll()
+    poll().then(done => { if (done) setPollActive(false) })
     setPollActive(true)
-    const interval = setInterval(poll, 5000)
+    const interval = setInterval(async () => {
+      attempts++
+      setPollAttempts(attempts)
+      if (attempts >= MAX_ATTEMPTS) {
+        clearInterval(interval)
+        if (active) {
+          setPollActive(false)
+          setPollTimedOut(true)
+        }
+        return
+      }
+      const done = await poll()
+      if (done) clearInterval(interval)
+    }, 5000)
     return () => { active = false; clearInterval(interval) }
-  }, [step, createdChannel])
+  }, [step, createdChannel, pollRefreshKey])
 
   const update = (k, v) => setForm(p => ({ ...p, [k]: v }))
   const updateCred = (k, v) => setCredentials(p => ({ ...p, [k]: v }))
@@ -288,12 +353,12 @@ export default function RegisterChannelPage() {
         }
         setStep(2)
       } else {
-        setError(connectRes?.message || 'No se pudo verificar la conexion. Revisa las credenciales.')
+        setError(connectRes?.message || 'No se pudo verificar la conexión. Revisa las credenciales.')
         // If connection fails, still allow to proceed with estimated data
         setConnectionResult({ connected: false, estimated: true, followers: 0, scores: null })
       }
     } catch (e) {
-      setError('Error de conexion. Intenta de nuevo.')
+      setError('Error de conexión. Intenta de nuevo.')
     }
     setConnecting(false)
   }
@@ -315,7 +380,7 @@ export default function RegisterChannelPage() {
       } else {
         setError(createRes?.message || 'Error al crear el canal')
       }
-    } catch { setError('Error de conexion') }
+    } catch { setError('Error de conexión') }
     setConnecting(false)
   }
 
@@ -345,7 +410,7 @@ export default function RegisterChannelPage() {
       } else {
         setError(res?.message || 'Error al guardar')
       }
-    } catch { setError('Error de conexion') }
+    } catch { setError('Error de conexión') }
     setCreating(false)
   }
 
@@ -538,24 +603,35 @@ export default function RegisterChannelPage() {
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden' }}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Link2 size={14} color={A} />
-              <span style={{ fontFamily: D, fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>Credenciales de conexion</span>
+              <span style={{ fontFamily: D, fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>Credenciales de conexión</span>
             </div>
             <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {platDef.fields.map(f => (
-                <div key={f.key}>
-                  <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}>
-                    {f.label} {f.required && <span style={{ color: ER }}>*</span>}
-                  </label>
-                  <input
-                    className="rcp-inp"
-                    type={f.type}
-                    value={credentials[f.key] || ''}
-                    onChange={e => updateCred(f.key, e.target.value)}
-                    placeholder={f.placeholder}
-                    style={inp}
-                  />
-                </div>
-              ))}
+              {platDef.fields.map(f => {
+                const value = credentials[f.key] || ''
+                const fieldErr = validateCredField(f.key, value)
+                return (
+                  <div key={f.key}>
+                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}>
+                      {f.label} {f.required && <span style={{ color: ER }}>*</span>}
+                    </label>
+                    <input
+                      className="rcp-inp"
+                      type={f.type}
+                      value={value}
+                      onChange={e => updateCred(f.key, e.target.value)}
+                      placeholder={f.placeholder}
+                      aria-invalid={!!fieldErr}
+                      aria-describedby={fieldErr ? `cred-err-${f.key}` : undefined}
+                      style={{ ...inp, borderColor: fieldErr ? ER : (inp.borderColor || 'var(--border)') }}
+                    />
+                    {fieldErr && (
+                      <div id={`cred-err-${f.key}`} role="alert" style={{ fontSize: 11, color: ER, marginTop: 4 }}>
+                        {fieldErr}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
 
@@ -846,8 +922,17 @@ export default function RegisterChannelPage() {
               {pollActive && verifyStatus?.status !== 'verified' && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: OK, animation: 'pulse 1.5s infinite' }} />
-                  <span style={{ fontSize: '11px', color: OK, fontWeight: 600 }}>Monitoreando</span>
+                  <span style={{ fontSize: '11px', color: OK, fontWeight: 600 }}>Monitoreando · {Math.max(0, 60 - pollAttempts) * 5}s</span>
                 </div>
+              )}
+              {pollTimedOut && verifyStatus?.status !== 'verified' && (
+                <button
+                  type="button"
+                  onClick={() => { setPollTimedOut(false); setPollRefreshKey(k => k + 1) }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'transparent', border: `1px solid ${A}40`, color: A, borderRadius: 6, padding: '4px 9px', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: F }}
+                >
+                  ↻ Reintentar
+                </button>
               )}
             </div>
             <div style={{ padding: '20px' }}>

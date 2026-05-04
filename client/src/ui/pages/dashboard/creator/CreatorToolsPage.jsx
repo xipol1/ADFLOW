@@ -37,13 +37,37 @@ export default function CreatorToolsPage() {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 16 }}>
-        <nav style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
+      <style>{`
+        @media (max-width: 720px) {
+          .ct-shell { grid-template-columns: 1fr !important; }
+          .ct-nav { display: none !important; }
+          .ct-mobile-select { display: block !important; }
+        }
+      `}</style>
+
+      {/* Mobile picker */}
+      <select
+        className="ct-mobile-select"
+        value={active}
+        onChange={(e) => setActive(e.target.value)}
+        aria-label="Seleccionar herramienta"
+        style={{
+          display: 'none',
+          width: '100%', padding: '10px 12px', fontSize: 14, fontFamily: F,
+          background: 'var(--surface)', color: 'var(--text)',
+          border: '1px solid var(--border)', borderRadius: 10, outline: 'none',
+        }}
+      >
+        {TOOLS.map(t => <option key={t.id} value={t.id}>{t.title} — {t.desc}</option>)}
+      </select>
+
+      <div className="ct-shell" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 16 }}>
+        <nav className="ct-nav" aria-label="Lista de herramientas" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
           {TOOLS.map(t => {
             const Icon = t.icon
             const isActive = active === t.id
             return (
-              <button key={t.id} onClick={() => setActive(t.id)} style={{
+              <button key={t.id} onClick={() => setActive(t.id)} aria-current={isActive ? 'page' : undefined} style={{
                 width: '100%', textAlign: 'left',
                 background: isActive ? ga(0.08) : 'transparent',
                 border: 'none', borderBottom: '1px solid var(--border)',
@@ -57,7 +81,7 @@ export default function CreatorToolsPage() {
                   border: `1px solid ${isActive ? ga(0.3) : 'var(--border)'}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <Icon size={13} color={isActive ? ACCENT : 'var(--muted)'} strokeWidth={2.2} />
+                  <Icon size={13} color={isActive ? ACCENT : 'var(--muted)'} strokeWidth={2.2} aria-hidden="true" />
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 12.5, fontWeight: isActive ? 800 : 600, color: 'var(--text)' }}>{t.title}</div>
@@ -137,7 +161,15 @@ function UtmBuilder() {
 function QrGenerator() {
   const [url, setUrl] = useState('https://channelad.io')
   const [size, setSize] = useState(256)
+  const [imgError, setImgError] = useState(false)
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}`
+  // Fallback: render via Google Chart API (different infra, same QR spec).
+  // If both fail we still show a clean error rather than a broken image.
+  const fallbackSrc = `https://chart.googleapis.com/chart?cht=qr&chs=${size}x${size}&chl=${encodeURIComponent(url)}&choe=UTF-8`
+
+  useEffect(() => { setImgError(false) }, [url, size])
+
+  const downloadHref = imgError ? fallbackSrc : qrSrc
 
   return (
     <ToolCard title="QR Generator" icon={QrCode} desc="Códigos QR de cualquier URL — útil para stories impresas, eventos, packaging.">
@@ -148,10 +180,24 @@ function QrGenerator() {
         <div style={{ fontSize: 11.5, color: 'var(--muted)', textAlign: 'right' }}>{size} × {size}</div>
       </Field>
       <div style={{ display: 'flex', justifyContent: 'center', padding: 20, background: 'var(--bg2)', borderRadius: 12, marginTop: 6 }}>
-        {url && <img src={qrSrc} alt="QR" width={Math.min(size, 320)} height={Math.min(size, 320)} style={{ borderRadius: 8 }} />}
+        {url && (
+          <img
+            src={imgError ? fallbackSrc : qrSrc}
+            alt={`Código QR para ${url}`}
+            width={Math.min(size, 320)}
+            height={Math.min(size, 320)}
+            style={{ borderRadius: 8 }}
+            onError={() => setImgError(true)}
+          />
+        )}
       </div>
+      {imgError && (
+        <div style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'center', marginTop: 4 }}>
+          Servicio principal no disponible — mostrando QR generado por proveedor alternativo.
+        </div>
+      )}
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
-        <a href={qrSrc} download="qr.png" style={{ ...primaryBtn, textDecoration: 'none' }}>
+        <a href={downloadHref} download="qr.png" style={{ ...primaryBtn, textDecoration: 'none' }}>
           <Download size={12} /> Descargar PNG
         </a>
       </div>
@@ -160,6 +206,21 @@ function QrGenerator() {
 }
 
 // ─── Hashtag Mixer ──────────────────────────────────────────────────────────
+// Each tag has a status flag derived from public reports (Instagram banned
+// list, oversaturation thresholds). This is a curated approximation, not a
+// live trends API — refresh quarterly.
+const HASHTAG_STATUS = {
+  // saturated: too generic, drowned in noise (>10M posts)
+  saturated: new Set(['#fitness', '#tech', '#business', '#lifestyle', '#travel', '#fashion', '#food', '#gaming']),
+  // trending: surfacing well in feeds (last quarter)
+  trending: new Set(['#defi', '#web3', '#nocode', '#ai', '#crossfit', '#mindfulness', '#productivity']),
+}
+const tagStatus = (t) => {
+  if (HASHTAG_STATUS.saturated.has(t)) return 'saturated'
+  if (HASHTAG_STATUS.trending.has(t)) return 'trending'
+  return 'normal'
+}
+
 function HashtagMixer() {
   const [niche, setNiche] = useState('crypto')
   const [count, setCount] = useState(10)
@@ -173,6 +234,7 @@ function HashtagMixer() {
   }
   const tags = (NICHE_TAGS[niche] || []).slice(0, count)
   const text = tags.join(' ')
+  const saturatedCount = tags.filter(t => tagStatus(t) === 'saturated').length
 
   return (
     <ToolCard title="Hashtag Mixer" icon={Hash} desc="Combina hashtags relevantes según tu nicho para maximizar alcance.">
@@ -188,16 +250,39 @@ function HashtagMixer() {
       </Field>
       <div style={{ marginTop: 10, background: 'var(--bg2)', borderRadius: 9, padding: 12 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-          {tags.map(t => (
-            <span key={t} style={{
-              background: ga(0.1), color: ACCENT, border: `1px solid ${ga(0.25)}`,
-              borderRadius: 6, padding: '3px 9px', fontSize: 11.5, fontWeight: 600,
-            }}>{t}</span>
-          ))}
+          {tags.map(t => {
+            const status = tagStatus(t)
+            const colors = status === 'trending'
+              ? { bg: `${OK}15`, fg: OK, border: `${OK}30` }
+              : status === 'saturated'
+                ? { bg: '#f59e0b15', fg: '#f59e0b', border: '#f59e0b40' }
+                : { bg: ga(0.1), fg: ACCENT, border: ga(0.25) }
+            const label = status === 'trending' ? '🔥' : status === 'saturated' ? '⚠️' : null
+            return (
+              <span key={t} title={
+                status === 'trending' ? 'En tendencia este trimestre' :
+                status === 'saturated' ? 'Saturado: difícil destacar' : ''
+              } style={{
+                background: colors.bg, color: colors.fg, border: `1px solid ${colors.border}`,
+                borderRadius: 6, padding: '3px 9px', fontSize: 11.5, fontWeight: 600,
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+              }}>
+                {label && <span aria-hidden="true">{label}</span>}{t}
+              </span>
+            )
+          })}
         </div>
+        {saturatedCount > 0 && (
+          <div style={{ fontSize: 10.5, color: '#f59e0b', marginBottom: 8 }}>
+            ⚠️ {saturatedCount} {saturatedCount === 1 ? 'hashtag está saturado' : 'hashtags están saturados'}: combínalos con otros más nicho para no perderte en el feed.
+          </div>
+        )}
         <button onClick={() => navigator.clipboard.writeText(text)} style={primaryBtn}>
           <Copy size={12} /> Copiar todos
         </button>
+        <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 8, lineHeight: 1.4 }}>
+          Estados aproximados (auditados trimestralmente). Verifica banneos en la plataforma de destino.
+        </div>
       </div>
     </ToolCard>
   )
@@ -262,12 +347,18 @@ function PostMockup() {
 function CpmCalculator() {
   const [reach, setReach] = useState(10000)
   const [price, setPrice] = useState(80)
-  const cpm = reach > 0 ? (price / reach) * 1000 : 0
+  const safeReach = Math.max(0, Number(reach) || 0)
+  const safePrice = Math.max(0, Number(price) || 0)
+  const cpm = safeReach > 0 ? (safePrice / safeReach) * 1000 : 0
+  const inputInvalid = (Number(reach) || 0) < 0 || (Number(price) || 0) < 0
 
   return (
     <ToolCard title="CPM Calculator" icon={Calculator} desc="Calcula tu CPM y compara con benchmarks de mercado.">
-      <Field label="Alcance estimado del post"><input type="number" value={reach} onChange={e => setReach(Number(e.target.value) || 0)} style={inputStyle} /></Field>
-      <Field label="Precio cobrado (€)"><input type="number" value={price} onChange={e => setPrice(Number(e.target.value) || 0)} style={inputStyle} /></Field>
+      <Field label="Alcance estimado del post"><input type="number" min="0" value={reach} onChange={e => setReach(Math.max(0, Number(e.target.value) || 0))} style={inputStyle} /></Field>
+      <Field label="Precio cobrado (€)"><input type="number" min="0" step="0.01" value={price} onChange={e => setPrice(Math.max(0, Number(e.target.value) || 0))} style={inputStyle} /></Field>
+      {inputInvalid && (
+        <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>Los valores no pueden ser negativos.</div>
+      )}
       <div style={{
         marginTop: 14, background: 'var(--bg2)', borderRadius: 12, padding: 18,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap',
@@ -299,22 +390,58 @@ function CpmCalculator() {
 }
 
 // ─── Best Time ──────────────────────────────────────────────────────────────
+// Suggestions are stored as "hour-of-day-in-CET" tuples per platform. We
+// convert to the user's selected timezone so a creator in Mexico City sees
+// "Lun 02:00" instead of "9-10h CET".
+const BEST_TIME_DATA = {
+  telegram:   { peaks: [{ days: 'Lun-Vie', hours: [9, 10] }, { days: 'Mar-Jue', hours: [19, 21] }, { days: 'Dom', hours: [11, 13] }], avoid: 'Sábados tarde, festivos', tip: 'Crypto/finanzas pega más por la mañana. Productividad por la tarde-noche.' },
+  whatsapp:   { peaks: [{ days: 'Lun-Vie', hours: [8, 9] }, { days: 'Lun-Vie', hours: [13, 14] }, { days: 'Sáb', hours: [11, 12] }], avoid: 'Después de 22h', tip: 'Audiencias familiares responden mejor en horario laboral.' },
+  discord:    { peaks: [{ days: 'Vie-Sáb', hours: [18, 22] }, { days: 'Dom', hours: [16, 21] }], avoid: 'Lun-Mié antes de las 16h', tip: 'Audiencia gaming/tech está activa por la noche y fines de semana.' },
+  instagram:  { peaks: [{ days: 'Lun-Vie', hours: [12, 13] }, { days: 'Lun-Vie', hours: [18, 21] }], avoid: 'Madrugada y primeras horas', tip: 'Stories: 9-10h. Reels: 19-21h. Posts: 12h.' },
+  newsletter: { peaks: [{ days: 'Mar y Jue', hours: [8, 9] }, { days: 'Dom', hours: [10, 12] }], avoid: 'Lunes (saturación)', tip: 'Open rates más altos cuando la inbox está vacía.' },
+}
+
+// Common timezones for our user base; UTC offsets in hours assuming standard time.
+const TIMEZONES = [
+  { id: 'Europe/Madrid',     label: 'Madrid (CET)',       offset: 1 },
+  { id: 'Europe/London',     label: 'Londres',            offset: 0 },
+  { id: 'America/Mexico_City', label: 'CDMX',             offset: -6 },
+  { id: 'America/Bogota',    label: 'Bogotá',             offset: -5 },
+  { id: 'America/Argentina/Buenos_Aires', label: 'Buenos Aires', offset: -3 },
+  { id: 'America/New_York',  label: 'Nueva York',         offset: -5 },
+  { id: 'America/Los_Angeles', label: 'Los Ángeles',      offset: -8 },
+]
+const REF_OFFSET = 1 // CET (the data's reference timezone)
+
+function shiftHour(h, fromOffset, toOffset) {
+  return ((h + (toOffset - fromOffset)) % 24 + 24) % 24
+}
+function fmtHour(h) {
+  return `${String(Math.floor(h)).padStart(2, '0')}:00`
+}
+
 function BestTime() {
   const [platform, setPlatform] = useState('telegram')
-  const SUGGESTIONS = {
-    telegram:   { peaks: ['Lun-Vie 9-10h', 'Mar-Jue 19-21h', 'Dom 11-13h'], avoid: 'Sábados tarde, festivos', tip: 'Crypto/finanzas pega más por la mañana. Productividad por la tarde-noche.' },
-    whatsapp:   { peaks: ['Lun-Vie 8-9h y 13-14h', 'Sáb 11-12h'], avoid: 'Después de 22h', tip: 'Audiencias familiares responden mejor en horario laboral.' },
-    discord:    { peaks: ['Vie-Sáb 18-22h', 'Dom 16-21h'], avoid: 'Lun-Mié antes de las 16h', tip: 'Audiencia gaming/tech está activa por la noche y fines de semana.' },
-    instagram:  { peaks: ['Lun-Vie 12-13h', '18-21h'], avoid: 'Madrugada y primeras horas', tip: 'Stories: 9-10h. Reels: 19-21h. Posts: 12h.' },
-    newsletter: { peaks: ['Mar y Jue 8-9h', 'Dom 10-12h'], avoid: 'Lunes (saturación)', tip: 'Open rates más altos cuando la inbox está vacía.' },
-  }
-  const s = SUGGESTIONS[platform]
+  const detectedTz = useMemo(() => {
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone } catch { return 'Europe/Madrid' }
+  }, [])
+  const matchedTz = TIMEZONES.find(t => t.id === detectedTz) || TIMEZONES[0]
+  const [tzId, setTzId] = useState(matchedTz.id)
+  const tz = TIMEZONES.find(t => t.id === tzId) || TIMEZONES[0]
+  const data = BEST_TIME_DATA[platform]
+  const s = useMemo(() => ({
+    ...data,
+    peaks: data.peaks.map(p => ({
+      ...p,
+      label: `${p.days} ${fmtHour(shiftHour(p.hours[0], REF_OFFSET, tz.offset))}–${fmtHour(shiftHour(p.hours[1], REF_OFFSET, tz.offset))}`,
+    })),
+  }), [data, tz])
 
   return (
     <ToolCard title="Mejor hora para publicar" icon={Clock} desc="Recomendaciones por plataforma basadas en patrones de la industria.">
       <Field label="Plataforma">
         <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-          {Object.keys(SUGGESTIONS).map(k => (
+          {Object.keys(BEST_TIME_DATA).map(k => (
             <button key={k} onClick={() => setPlatform(k)} style={{
               background: platform === k ? ga(0.12) : 'var(--bg2)',
               color: platform === k ? ACCENT : 'var(--muted)',
@@ -326,14 +453,23 @@ function BestTime() {
         </div>
       </Field>
 
+      <Field label="Tu zona horaria">
+        <select value={tzId} onChange={e => setTzId(e.target.value)} style={inputStyle}>
+          {TIMEZONES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+        </select>
+        <div style={{ fontSize: 10.5, color: 'var(--muted)', marginTop: 4 }}>
+          Datos calibrados para CET — convertimos a tu zona automáticamente.
+        </div>
+      </Field>
+
       <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ background: ga(0.08), border: `1px solid ${ga(0.25)}`, borderRadius: 10, padding: 14 }}>
           <div style={{ fontSize: 11, color: ACCENT, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
             ✅ Mejores ventanas
           </div>
-          {s.peaks.map(p => (
-            <div key={p} style={{ fontSize: 13, color: 'var(--text)', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Clock size={11} color={ACCENT} /> {p}
+          {s.peaks.map((p, i) => (
+            <div key={i} style={{ fontSize: 13, color: 'var(--text)', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Clock size={11} color={ACCENT} /> {p.label}
             </div>
           ))}
         </div>

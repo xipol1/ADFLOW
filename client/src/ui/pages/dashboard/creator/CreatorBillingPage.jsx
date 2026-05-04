@@ -8,6 +8,7 @@ import {
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, WARN, ERR, BLUE } from '../../../theme/tokens'
+import { ErrorBanner } from '../shared/DashComponents'
 
 const ACCENT = GREEN
 const ga = greenAlpha
@@ -15,6 +16,13 @@ const fmtEur = (n) => `€${Math.round(Number(n) || 0).toLocaleString('es')}`
 const fmtEur2 = (n) => `€${(Number(n) || 0).toLocaleString('es', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 const FISCAL_KEY = 'channelad-creator-fiscal-v1'
 const NOW_YEAR = new Date().getFullYear()
+
+// IVA / VAT rates per country (percentage)
+const IVA_RATES = { ES: 21, MX: 16, AR: 21, other: 0 }
+const ivaRateFor = (country) => {
+  const r = IVA_RATES[country]
+  return typeof r === 'number' ? r : 21
+}
 
 /**
  * CreatorBillingPage — Facturas + datos fiscales + resumen anual.
@@ -31,27 +39,34 @@ export default function CreatorBillingPage() {
   const [view, setView] = useState('invoices') // 'invoices' | 'fiscal' | 'summary'
   const [year, setYear] = useState(NOW_YEAR)
   const [fiscal, setFiscal] = useState(() => loadFiscal(user))
+  const [loadError, setLoadError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let mounted = true
+    setLoading(true)
+    setLoadError(false)
     apiService.getCreatorCampaigns?.().then(res => {
       if (!mounted) return
       if (res?.success && Array.isArray(res.data)) setCampaigns(res.data)
+      else setLoadError(true)
       setLoading(false)
-    }).catch(() => mounted && setLoading(false))
+    }).catch(() => { if (mounted) { setLoadError(true); setLoading(false) } })
     return () => { mounted = false }
-  }, [])
+  }, [retryKey])
 
   const completed = campaigns.filter(c => c.status === 'COMPLETED')
   const yearCampaigns = completed.filter(c => new Date(c.completedAt || c.createdAt).getFullYear() === year)
 
   const summary = useMemo(() => {
+    const ivaPct = ivaRateFor(fiscal.country)
+    const ivaMul = 1 + ivaPct / 100
     const grossYear = yearCampaigns.reduce((s, c) => s + (c.netAmount || c.price || 0), 0)
-    const netYear = grossYear / 1.21 // base imponible
+    const netYear = ivaMul > 0 ? grossYear / ivaMul : grossYear // base imponible
     const ivaYear = grossYear - netYear
     const irpfYear = netYear * (fiscal.irpfRate / 100)
     return {
-      grossYear, netYear, ivaYear, irpfYear,
+      grossYear, netYear, ivaYear, irpfYear, ivaPct,
       campaignsYear: yearCampaigns.length,
       avgPerCampaign: yearCampaigns.length > 0 ? grossYear / yearCampaigns.length : 0,
     }
@@ -78,6 +93,12 @@ export default function CreatorBillingPage() {
 
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 1100 }}>
+      {loadError && (
+        <ErrorBanner
+          message="No se pudieron cargar tus campañas. Verifica tu conexión."
+          onRetry={() => setRetryKey(k => k + 1)}
+        />
+      )}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>
           <h1 style={{ fontFamily: D, fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 6px' }}>
@@ -136,13 +157,14 @@ export default function CreatorBillingPage() {
       )}
 
       {view === 'invoices' && (
-        <InvoicesView campaigns={completed} onGenerate={generateInvoice} loading={loading} fiscalComplete={fiscalComplete} />
+        <InvoicesView campaigns={completed} onGenerate={generateInvoice} loading={loading} fiscalComplete={fiscalComplete} fiscal={fiscal} />
       )}
       {view === 'fiscal' && (
         <FiscalView fiscal={fiscal} onChange={updateFiscal} />
       )}
       {view === 'summary' && (
         <SummaryView summary={summary} year={year} setYear={setYear} fiscal={fiscal}
+          yearCampaigns={yearCampaigns}
           onDownload={generateAnnualSummary} availableYears={[...new Set(completed.map(c => new Date(c.completedAt || c.createdAt).getFullYear()))].sort((a, b) => b - a)} />
       )}
     </div>
@@ -150,7 +172,7 @@ export default function CreatorBillingPage() {
 }
 
 // ─── Invoices view ──────────────────────────────────────────────────────────
-function InvoicesView({ campaigns, onGenerate, loading, fiscalComplete }) {
+function InvoicesView({ campaigns, onGenerate, loading, fiscalComplete, fiscal }) {
   const sorted = campaigns.slice().sort((a, b) => new Date(b.completedAt || b.createdAt) - new Date(a.completedAt || a.createdAt))
 
   if (loading) return <div style={{ height: 300, background: 'var(--bg2)', borderRadius: 12, animation: 'pulse 1.5s ease infinite' }} />
@@ -164,9 +186,20 @@ function InvoicesView({ campaigns, onGenerate, loading, fiscalComplete }) {
     )
   }
 
+  const ivaPctTable = ivaRateFor(fiscal?.country)
+  const ivaMulTable = 1 + ivaPctTable / 100
+
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-      <div style={{ overflowX: 'auto' }}>
+      <style>{`
+        @media (max-width: 720px) {
+          .cb-table { display: none !important; }
+          .cb-cards { display: flex !important; }
+        }
+      `}</style>
+
+      {/* Desktop / tablet: table */}
+      <div className="cb-table" style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
           <thead>
             <tr style={{ background: 'var(--bg2)' }}>
@@ -178,7 +211,7 @@ function InvoicesView({ campaigns, onGenerate, loading, fiscalComplete }) {
           <tbody>
             {sorted.map((c, i) => {
               const gross = c.netAmount || c.price || 0
-              const base = gross / 1.21
+              const base = ivaMulTable > 0 ? gross / ivaMulTable : gross
               const iva = gross - base
               const num = String(i + 1).padStart(3, '0')
               const date = new Date(c.completedAt || c.createdAt)
@@ -202,7 +235,7 @@ function InvoicesView({ campaigns, onGenerate, loading, fiscalComplete }) {
                         cursor: fiscalComplete ? 'pointer' : 'not-allowed', fontFamily: F,
                         display: 'inline-flex', alignItems: 'center', gap: 4,
                       }}>
-                      <Download size={11} /> PDF
+                      <Download size={11} /> Descargar
                     </button>
                   </td>
                 </tr>
@@ -211,31 +244,121 @@ function InvoicesView({ campaigns, onGenerate, loading, fiscalComplete }) {
           </tbody>
         </table>
       </div>
+
+      {/* Mobile: card list */}
+      <div className="cb-cards" style={{ display: 'none', flexDirection: 'column' }}>
+        {sorted.map((c, i) => {
+          const gross = c.netAmount || c.price || 0
+          const base = ivaMulTable > 0 ? gross / ivaMulTable : gross
+          const iva = gross - base
+          const num = String(i + 1).padStart(3, '0')
+          const date = new Date(c.completedAt || c.createdAt)
+          return (
+            <div key={c._id} style={{ padding: 14, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+                <code style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'JetBrains Mono, monospace' }}>{date.getFullYear()}-{num}</code>
+                <span style={{ fontSize: 11, color: 'var(--muted)' }}>{date.toLocaleDateString('es')}</span>
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{c.advertiserName || 'Anunciante'}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, fontVariantNumeric: 'tabular-nums' }}>
+                <div>
+                  <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bruto</div>
+                  <div style={{ fontFamily: D, fontWeight: 700, fontSize: 13 }}>{fmtEur2(gross)}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>IVA</div>
+                  <div style={{ fontSize: 13, color: 'var(--muted)' }}>{fmtEur2(iva)}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Neto</div>
+                  <div style={{ fontFamily: D, fontWeight: 700, fontSize: 13, color: ACCENT }}>{fmtEur2(base)}</div>
+                </div>
+              </div>
+              <button onClick={() => onGenerate(c)} disabled={!fiscalComplete}
+                style={{
+                  alignSelf: 'flex-start',
+                  background: fiscalComplete ? ga(0.1) : 'var(--bg2)',
+                  color: fiscalComplete ? ACCENT : 'var(--muted2)',
+                  border: `1px solid ${fiscalComplete ? ga(0.3) : 'var(--border)'}`,
+                  borderRadius: 7, padding: '6px 12px', fontSize: 12, fontWeight: 700,
+                  cursor: fiscalComplete ? 'pointer' : 'not-allowed', fontFamily: F,
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                }}>
+                <Download size={12} /> Descargar
+              </button>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
 
 // ─── Fiscal data view ───────────────────────────────────────────────────────
+// NIF spec for Spain (DNI/NIE/CIF). Light validation only.
+const NIF_RE_ES = /^[0-9XYZ][0-9]{7}[A-Z]$/i
+const isValidNIF = (v, country = 'ES') => {
+  if (!v) return false
+  if (country === 'ES') return NIF_RE_ES.test(v.replace(/\s|-/g, ''))
+  return v.trim().length >= 5 // permissive for non-ES
+}
+const isValidEmail = (v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())
+
 function FiscalView({ fiscal, onChange }) {
+  const [touched, setTouched] = useState({})
+  const errors = {
+    businessName: !fiscal.businessName ? 'El nombre fiscal es obligatorio' : '',
+    nif: !fiscal.nif ? 'El NIF es obligatorio' : (!isValidNIF(fiscal.nif, fiscal.country) ? 'Formato NIF inválido (ej: 12345678X)' : ''),
+    address: !fiscal.address ? 'La dirección fiscal es obligatoria' : '',
+    invoiceEmail: !isValidEmail(fiscal.invoiceEmail) ? 'Email no válido' : '',
+  }
+  const markTouched = (k) => setTouched(t => ({ ...t, [k]: true }))
+  const fieldError = (k) => touched[k] ? errors[k] : ''
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 16 }}>
       <Section title="Datos del autónomo" icon={Building2}>
-        <Field label="Nombre fiscal *">
-          <input value={fiscal.businessName || ''} onChange={e => onChange({ businessName: e.target.value })}
-            placeholder="María García López" style={inputStyle} />
+        <Field label="Nombre fiscal *" hint={fieldError('businessName') || undefined}>
+          <input
+            value={fiscal.businessName || ''}
+            onChange={e => onChange({ businessName: e.target.value })}
+            onBlur={() => markTouched('businessName')}
+            aria-invalid={!!fieldError('businessName')}
+            placeholder="María García López"
+            style={{ ...inputStyle, borderColor: fieldError('businessName') ? ERR : 'var(--border-med)' }}
+          />
         </Field>
-        <Field label="NIF / DNI *">
-          <input value={fiscal.nif || ''} onChange={e => onChange({ nif: e.target.value })}
-            placeholder="12345678X" style={{ ...inputStyle, fontFamily: 'JetBrains Mono, monospace' }} />
+        <Field label="NIF / DNI *" hint={fieldError('nif') || undefined}>
+          <input
+            value={fiscal.nif || ''}
+            onChange={e => onChange({ nif: e.target.value.toUpperCase() })}
+            onBlur={() => markTouched('nif')}
+            aria-invalid={!!fieldError('nif')}
+            placeholder="12345678X"
+            style={{ ...inputStyle, fontFamily: 'JetBrains Mono, monospace', borderColor: fieldError('nif') ? ERR : 'var(--border-med)' }}
+          />
         </Field>
-        <Field label="Dirección fiscal *">
-          <textarea value={fiscal.address || ''} onChange={e => onChange({ address: e.target.value })}
-            placeholder="Calle Mayor 1, 2ºA&#10;28001 Madrid&#10;España" rows={3}
-            style={{ ...inputStyle, resize: 'vertical', fontFamily: F }} />
+        <Field label="Dirección fiscal *" hint={fieldError('address') || undefined}>
+          <textarea
+            value={fiscal.address || ''}
+            onChange={e => onChange({ address: e.target.value })}
+            onBlur={() => markTouched('address')}
+            aria-invalid={!!fieldError('address')}
+            placeholder="Calle Mayor 1, 2ºA&#10;28001 Madrid&#10;España"
+            rows={3}
+            style={{ ...inputStyle, resize: 'vertical', fontFamily: F, borderColor: fieldError('address') ? ERR : 'var(--border-med)' }}
+          />
         </Field>
-        <Field label="Email de facturación">
-          <input value={fiscal.invoiceEmail || ''} onChange={e => onChange({ invoiceEmail: e.target.value })}
-            placeholder="facturacion@miweb.com" style={inputStyle} />
+        <Field label="Email de facturación" hint={fieldError('invoiceEmail') || undefined}>
+          <input
+            value={fiscal.invoiceEmail || ''}
+            onChange={e => onChange({ invoiceEmail: e.target.value })}
+            onBlur={() => markTouched('invoiceEmail')}
+            aria-invalid={!!fieldError('invoiceEmail')}
+            type="email"
+            placeholder="facturacion@miweb.com"
+            style={{ ...inputStyle, borderColor: fieldError('invoiceEmail') ? ERR : 'var(--border-med)' }}
+          />
         </Field>
       </Section>
 
@@ -307,7 +430,24 @@ function FiscalView({ fiscal, onChange }) {
 }
 
 // ─── Annual summary view ────────────────────────────────────────────────────
-function SummaryView({ summary, year, setYear, fiscal, onDownload, availableYears }) {
+function SummaryView({ summary, year, setYear, fiscal, onDownload, availableYears, yearCampaigns }) {
+  // Real quarterly breakdown derived from completed campaigns in the active year.
+  const quarterly = useMemo(() => {
+    const ivaPct = ivaRateFor(fiscal.country)
+    const ivaMul = 1 + ivaPct / 100
+    const buckets = [0, 0, 0, 0]
+    ;(yearCampaigns || []).forEach(c => {
+      const d = new Date(c.completedAt || c.createdAt)
+      const q = Math.floor(d.getMonth() / 3) // 0..3
+      buckets[q] += c.netAmount || c.price || 0
+    })
+    return buckets.map((gross) => {
+      const net = ivaMul > 0 ? gross / ivaMul : gross
+      const iva = gross - net
+      const irpf = net * (fiscal.irpfRate / 100)
+      return { gross, net, iva, irpf }
+    })
+  }, [yearCampaigns, fiscal])
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
@@ -342,32 +482,33 @@ function SummaryView({ summary, year, setYear, fiscal, onDownload, availableYear
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
         <BigStat label="Total facturado" value={fmtEur2(summary.grossYear)} accent={ACCENT} />
         <BigStat label="Base imponible"  value={fmtEur2(summary.netYear)}   accent={'var(--text)'} />
-        <BigStat label="IVA repercutido" value={fmtEur2(summary.ivaYear)}   accent={BLUE} sub="21%" />
+        <BigStat label="IVA repercutido" value={fmtEur2(summary.ivaYear)}   accent={BLUE} sub={`${summary.ivaPct ?? 21}%`} />
         <BigStat label="IRPF retenido"   value={fmtEur2(summary.irpfYear)}  accent={WARN} sub={`${fiscal.irpfRate}%`} />
         <BigStat label="Campañas"        value={summary.campaignsYear}       accent={'var(--text)'} />
         <BigStat label="Promedio"        value={fmtEur2(summary.avgPerCampaign)} accent={'var(--text)'} sub="por campaña" />
       </div>
 
-      {/* Quarterly breakdown */}
+      {/* Quarterly breakdown — from real campaign dates */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 18 }}>
         <h3 style={{ fontFamily: D, fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px' }}>
           Por trimestre · {year}
         </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-          {[1, 2, 3, 4].map(q => {
-            const qGross = summary.grossYear / 4 // Simplified — would need actual breakdown
-            return (
-              <div key={q} style={{ background: 'var(--bg2)', borderRadius: 9, padding: 12 }}>
-                <div style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Q{q}</div>
-                <div style={{ fontFamily: D, fontSize: 16, fontWeight: 800, color: 'var(--text)', fontVariantNumeric: 'tabular-nums', marginTop: 3 }}>
-                  {fmtEur2(qGross)}
-                </div>
-                <div style={{ fontSize: 10.5, color: 'var(--muted)', marginTop: 4 }}>
-                  Modelo 303 / 130
-                </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: 10 }}>
+          {quarterly.map((q, i) => (
+            <div key={i} style={{ background: 'var(--bg2)', borderRadius: 9, padding: 12 }}>
+              <div style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Q{i + 1}</div>
+              <div style={{ fontFamily: D, fontSize: 16, fontWeight: 800, color: 'var(--text)', fontVariantNumeric: 'tabular-nums', marginTop: 3 }}>
+                {fmtEur2(q.gross)}
               </div>
-            )
-          })}
+              <div style={{ fontSize: 10.5, color: 'var(--muted)', marginTop: 6, lineHeight: 1.5 }}>
+                <div>IVA: <span style={{ color: BLUE, fontVariantNumeric: 'tabular-nums' }}>{fmtEur2(q.iva)}</span></div>
+                <div>IRPF: <span style={{ color: WARN, fontVariantNumeric: 'tabular-nums' }}>{fmtEur2(q.irpf)}</span></div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 10.5, color: 'var(--muted)', marginTop: 10 }}>
+          Calculado por fecha de cierre de cada campaña. Modelos 303 (IVA) y 130 (IRPF) se presentan trimestralmente en España.
         </div>
       </div>
 
@@ -401,12 +542,18 @@ function Section({ title, icon: Icon, children }) {
   )
 }
 
-function Field({ label, hint, children }) {
+function Field({ label, hint, error, children }) {
+  // Heuristic: if hint contains "obligator", "inválid", "no válid" → treat as error and color it red
+  const isError = !!error || (hint && /(obligator|inválid|no válid|no es válid|incorrec|debe |invalid)/i.test(hint))
   return (
     <div>
       <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: 5 }}>{label}</label>
       {children}
-      {hint && <div style={{ fontSize: 10.5, color: 'var(--muted)', marginTop: 4 }}>{hint}</div>}
+      {hint && (
+        <div role={isError ? 'alert' : undefined} style={{ fontSize: 10.5, color: isError ? ERR : 'var(--muted)', marginTop: 4 }}>
+          {hint}
+        </div>
+      )}
     </div>
   )
 }
@@ -451,7 +598,9 @@ function buildInvoiceText(c, fiscal, user) {
   const date = new Date(c.completedAt || c.createdAt)
   const num = `${date.getFullYear()}-${String(c._id?.toString().slice(-3) || '001').padStart(3, '0')}`
   const gross = c.netAmount || c.price || 0
-  const base = gross / 1.21
+  const ivaPct = ivaRateFor(fiscal.country)
+  const ivaMul = 1 + ivaPct / 100
+  const base = ivaMul > 0 ? gross / ivaMul : gross
   const iva = gross - base
   const irpf = base * (fiscal.irpfRate / 100)
   const total = base + iva - irpf
@@ -478,7 +627,7 @@ function buildInvoiceText(c, fiscal, user) {
     ``,
     `─── DESGLOSE FISCAL ──────────────────────────────────────────`,
     `Base imponible:        ${fmtEur2(base).padStart(12)}`,
-    `IVA (21%):             ${fmtEur2(iva).padStart(12)}`,
+    `IVA (${ivaPct}%):${' '.repeat(Math.max(1, 14 - String(ivaPct).length))}${fmtEur2(iva).padStart(12)}`,
     fiscal.irpfRate > 0 ? `Retención IRPF (${fiscal.irpfRate}%): ${('-' + fmtEur2(irpf)).padStart(12)}` : '',
     `─────────────────────────────────────────────────────────────`,
     `TOTAL A PAGAR:         ${fmtEur2(total).padStart(12)}`,
@@ -504,7 +653,7 @@ function buildAnnualSummary(yearCampaigns, summary, fiscal, user, year) {
     `Campañas completadas:  ${summary.campaignsYear}`,
     `Total facturado:       ${fmtEur2(summary.grossYear).padStart(12)}`,
     `Base imponible:        ${fmtEur2(summary.netYear).padStart(12)}`,
-    `IVA repercutido (21%): ${fmtEur2(summary.ivaYear).padStart(12)}`,
+    `IVA repercutido (${summary.ivaPct ?? 21}%): ${fmtEur2(summary.ivaYear).padStart(12)}`,
     `IRPF retenido (${fiscal.irpfRate}%):  ${fmtEur2(summary.irpfYear).padStart(12)}`,
     ``,
     `─── DETALLE POR CAMPAÑA ──────────────────────────────────────`,

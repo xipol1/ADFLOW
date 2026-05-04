@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import apiService from '../../../../services/api'
 import { FONT_BODY, FONT_DISPLAY, OK, WARN, ERR, BLUE, GREEN, greenAlpha } from '../../../theme/tokens'
+import { ErrorBanner } from '../shared/DashComponents'
 
 // Use creator green accent (matches CreatorLayout role color)
 const ACCENT = GREEN
@@ -197,9 +198,12 @@ export default function PricingOptimizerPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [updateMsg, setUpdateMsg] = useState('')
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let cancelled = false
+    setError('')
+    setLoading(true)
     apiService.getMyChannels().then(res => {
       if (cancelled) return
       if (res?.success) {
@@ -213,17 +217,64 @@ export default function PricingOptimizerPage() {
       if (!cancelled) { setError(e.message || 'Error de conexión'); setLoading(false) }
     })
     return () => { cancelled = true }
-  }, [])
+  }, [retryKey])
 
-  const handleUpdate = (channel, newPrice) => {
-    // Copy suggested price to clipboard + navigate to channel detail to apply it manually.
-    // The price-update endpoint is on the roadmap; until then we route the user to the
-    // existing edit screen with a clear message.
+  const [applying, setApplying] = useState(false)
+
+  const handleUpdate = async (channel, newPrice) => {
     const id = channel._id || channel.id
-    try { navigator.clipboard?.writeText(String(newPrice)) } catch {}
-    setUpdateMsg(`Precio sugerido (€${newPrice}) copiado al portapapeles. Pégalo en la edición del canal.`)
+    if (!id) return
+    setApplying(true)
+    try {
+      const res = await apiService.updateChannel(id, { precio: Number(newPrice) })
+      if (res?.success) {
+        setUpdateMsg(`Precio actualizado a €${newPrice} en "${channel.nombreCanal || 'canal'}"`)
+        setChannels(prev => prev.map(c => ((c._id || c.id) === id ? { ...c, precio: Number(newPrice) } : c)))
+      } else {
+        setUpdateMsg(res?.message || 'No se pudo actualizar el precio')
+      }
+    } catch {
+      setUpdateMsg('Error de conexión al actualizar')
+    }
+    setApplying(false)
     setTimeout(() => setUpdateMsg(''), 5000)
-    navigate(`/creator/channels?highlight=${id}`)
+  }
+
+  const bulkSuggestions = useMemo(() => {
+    return channels.map(c => {
+      const sug = suggestedPrice({
+        cas: c.CAS ?? c.scoring?.CAS ?? 50,
+        plataforma: c.plataforma,
+        seguidores: c.audiencia ?? c.seguidores ?? 0,
+      })
+      const cur = c.precio ?? c.CPMDinamico ?? 0
+      const deltaPct = cur > 0 ? Math.round(((sug - cur) / cur) * 100) : 0
+      return { channel: c, current: cur, suggested: sug, deltaPct }
+    }).filter(x => Math.abs(x.deltaPct) >= 5 && x.suggested > 0)
+  }, [channels])
+
+  const handleApplyAll = async () => {
+    if (bulkSuggestions.length === 0) return
+    setApplying(true)
+    let ok = 0
+    let fail = 0
+    for (const { channel, suggested } of bulkSuggestions) {
+      const id = channel._id || channel.id
+      try {
+        const res = await apiService.updateChannel(id, { precio: Number(suggested) })
+        if (res?.success) {
+          ok++
+          setChannels(prev => prev.map(c => ((c._id || c.id) === id ? { ...c, precio: Number(suggested) } : c)))
+        } else {
+          fail++
+        }
+      } catch { fail++ }
+    }
+    setApplying(false)
+    setUpdateMsg(fail === 0
+      ? `${ok} canales actualizados con su precio sugerido.`
+      : `${ok} actualizados, ${fail} fallaron. Revisa los canales en rojo.`)
+    setTimeout(() => setUpdateMsg(''), 6000)
   }
 
   // Aggregate insights
@@ -284,13 +335,7 @@ export default function PricingOptimizerPage() {
       )}
 
       {error && (
-        <div role="alert" style={{
-          background: `${ERR}10`, border: `1px solid ${ERR}30`, color: ERR,
-          borderRadius: 10, padding: '10px 14px', fontSize: 13,
-          display: 'flex', alignItems: 'center', gap: 8,
-        }}>
-          <AlertTriangle size={14} /> {error}
-        </div>
+        <ErrorBanner message={error} onRetry={() => setRetryKey(k => k + 1)} />
       )}
 
       {/* Summary KPIs */}
@@ -392,6 +437,33 @@ export default function PricingOptimizerPage() {
 
       {/* Smart pricing suggestions panel — IA-driven, channel-by-channel  */}
       {!loading && channels.length > 0 && <SmartPricingSuggestions channels={channels} navigate={navigate} />}
+
+      {/* Bulk apply bar */}
+      {!loading && bulkSuggestions.length > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+          background: accentAlpha(0.08), border: `1px solid ${accentAlpha(0.25)}`,
+          borderRadius: 12, padding: '10px 14px', fontSize: 13,
+        }}>
+          <Sparkles size={14} color={ACCENT} />
+          <span style={{ flex: 1, minWidth: 200, color: 'var(--text)' }}>
+            <strong>{bulkSuggestions.length}</strong> {bulkSuggestions.length === 1 ? 'canal tiene' : 'canales tienen'} un precio sugerido distinto al actual.
+          </span>
+          <button
+            onClick={handleApplyAll}
+            disabled={applying}
+            style={{
+              background: applying ? 'var(--bg2)' : ACCENT,
+              color: applying ? 'var(--muted)' : '#fff',
+              border: 'none', borderRadius: 9, padding: '7px 14px',
+              fontSize: 12, fontWeight: 700, fontFamily: FONT_BODY,
+              cursor: applying ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {applying ? 'Aplicando…' : 'Aplicar todos los sugeridos'}
+          </button>
+        </div>
+      )}
 
       {/* Channel cards */}
       {!loading && channels.length > 0 && (

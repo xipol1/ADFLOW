@@ -2,13 +2,14 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   AlertTriangle, CheckCircle2, MessageSquare, Sparkles, Wallet, Inbox,
-  Radio, Plus, ArrowRight, Compass, User as UserIcon,
+  Radio, Plus, ArrowRight, Compass, User as UserIcon, RefreshCw,
 } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { OK, WARN, BLUE, GREEN, greenAlpha, FONT_BODY, FONT_DISPLAY } from '../../../theme/tokens'
 import CreatorCustomizableDashboard from './customizable/CreatorCustomizableDashboard'
 import CreatorOnboardingChecklist from '../../../components/CreatorOnboardingChecklist'
+import { ErrorBanner } from '../shared/DashComponents'
 
 const ACCENT = 'var(--accent, #22c55e)'
 
@@ -27,30 +28,41 @@ export default function CreatorOverviewPage() {
   const [requests, setRequests] = useState([])
   const [creatorCampaigns, setCreatorCampaigns] = useState([])
   const [loading, setLoading] = useState(true)
+  const [errors, setErrors] = useState({ channels: false, ads: false, campaigns: false })
+  const [retryKey, setRetryKey] = useState(0)
+  const [lastUpdated, setLastUpdated] = useState(null)
 
   useEffect(() => {
     let mounted = true
     const load = async () => {
-      try {
-        const [chRes, adsRes, cmpRes] = await Promise.all([
-          apiService.getMyChannels().catch(() => null),
-          apiService.getAdsForCreator?.().catch(() => null),
-          apiService.getCreatorCampaigns?.().catch(() => null),
-        ])
-        if (!mounted) return
-        if (chRes?.success) {
-          setChannels(Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || [])
-        }
-        if (adsRes?.success && Array.isArray(adsRes.data)) setRequests(adsRes.data)
-        if (cmpRes?.success && Array.isArray(cmpRes.data)) setCreatorCampaigns(cmpRes.data)
-      } catch (err) {
-        console.error('CreatorOverviewPage.load failed:', err)
+      setLoading(true)
+      const next = { channels: false, ads: false, campaigns: false }
+      const [chRes, adsRes, cmpRes] = await Promise.all([
+        apiService.getMyChannels().catch(() => { next.channels = true; return null }),
+        apiService.getAdsForCreator?.().catch(() => { next.ads = true; return null }),
+        apiService.getCreatorCampaigns?.().catch(() => { next.campaigns = true; return null }),
+      ])
+      if (!mounted) return
+      if (chRes?.success) {
+        setChannels(Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || [])
+      } else if (chRes !== null) {
+        next.channels = true
       }
-      if (mounted) setLoading(false)
+      if (adsRes?.success && Array.isArray(adsRes.data)) setRequests(adsRes.data)
+      else if (adsRes !== null && adsRes?.success === false) next.ads = true
+      if (cmpRes?.success && Array.isArray(cmpRes.data)) setCreatorCampaigns(cmpRes.data)
+      else if (cmpRes !== null && cmpRes?.success === false) next.campaigns = true
+      setErrors(next)
+      setLastUpdated(new Date())
+      setLoading(false)
     }
     load()
     return () => { mounted = false }
-  }, [])
+  }, [retryKey])
+
+  const hasError = errors.channels || errors.ads || errors.campaigns
+  const allFailed = errors.channels && errors.ads && errors.campaigns
+  const retry = () => setRetryKey(k => k + 1)
 
   // ─── Build the data context passed to all widgets ────────────────────────────
   const dashboardData = useMemo(() => {
@@ -150,9 +162,9 @@ export default function CreatorOverviewPage() {
     }
   }, [user, channels, requests, creatorCampaigns, loading, navigate])
 
-  // First-run experience: when no channels yet, show a focused welcome
-  // instead of the full customisable dashboard with empty widgets.
-  if (!loading && channels.length === 0) {
+  // First-run experience: when no channels yet AND no error fetching them,
+  // show a focused welcome instead of the customisable dashboard with empty widgets.
+  if (!loading && channels.length === 0 && !errors.channels) {
     return (
       <FirstRunWelcome
         userName={dashboardData.userName}
@@ -166,6 +178,17 @@ export default function CreatorOverviewPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      {hasError && (
+        <ErrorBanner
+          message={
+            allFailed
+              ? 'No se pudieron cargar los datos. Verifica tu conexión.'
+              : 'Algunos datos no se pudieron cargar. La información mostrada puede estar incompleta.'
+          }
+          onRetry={retry}
+        />
+      )}
+      <RefreshBar lastUpdated={lastUpdated} loading={loading} onRefresh={retry} />
       <CreatorOnboardingChecklist
         channels={channels}
         campaigns={creatorCampaigns}
@@ -173,6 +196,51 @@ export default function CreatorOverviewPage() {
         variant="banner"
       />
       <CreatorCustomizableDashboard data={dashboardData} />
+    </div>
+  )
+}
+
+// ─── Refresh bar ─────────────────────────────────────────────────────────────
+function RefreshBar({ lastUpdated, loading, onRefresh }) {
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30_000)
+    return () => clearInterval(t)
+  }, [])
+  const relative = useMemo(() => {
+    if (!lastUpdated) return 'cargando…'
+    const diff = Math.max(0, now - lastUpdated.getTime())
+    const sec = Math.floor(diff / 1000)
+    if (sec < 5) return 'hace un instante'
+    if (sec < 60) return `hace ${sec}s`
+    const min = Math.floor(sec / 60)
+    if (min < 60) return `hace ${min} min`
+    const hr = Math.floor(min / 60)
+    return `hace ${hr}h`
+  }, [lastUpdated, now])
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+      gap: 10, fontSize: 11.5, color: 'var(--muted)', fontFamily: FONT_BODY,
+    }}>
+      <span>Actualizado {relative}</span>
+      <button
+        type="button"
+        onClick={onRefresh}
+        disabled={loading}
+        aria-label="Actualizar datos"
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+          background: 'transparent', border: '1px solid var(--border)',
+          borderRadius: 8, padding: '4px 9px', fontSize: 11.5, fontWeight: 600,
+          color: 'var(--text)', cursor: loading ? 'not-allowed' : 'pointer',
+          opacity: loading ? 0.6 : 1, fontFamily: FONT_BODY,
+        }}
+      >
+        <RefreshCw size={11} aria-hidden="true" style={loading ? { animation: '_dash_spin 1s linear infinite' } : undefined} />
+        Refrescar
+      </button>
     </div>
   )
 }

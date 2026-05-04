@@ -9,6 +9,7 @@ import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, WARN, ERR, BLUE, PLAT_COLORS } from '../../../theme/tokens'
 import { CASBadge, CPMBadge } from '../../../components/scoring'
+import { ErrorBanner } from '../shared/DashComponents'
 
 const ACCENT = GREEN
 const ga = greenAlpha
@@ -33,10 +34,14 @@ export default function CreatorComparePage() {
   const [campaigns, setCampaigns] = useState([])
   const [selectedIds, setSelectedIds] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let mounted = true
     const load = async () => {
+      setLoading(true)
+      setLoadError(false)
       try {
         const [chRes, cmpRes] = await Promise.all([
           apiService.getMyChannels(),
@@ -48,14 +53,16 @@ export default function CreatorComparePage() {
           setChannels(items)
           const sorted = items.slice().sort((a, b) => (b.CAS || 0) - (a.CAS || 0))
           setSelectedIds(sorted.slice(0, Math.min(3, sorted.length)).map(c => c._id || c.id))
+        } else {
+          setLoadError(true)
         }
         if (cmpRes?.success && Array.isArray(cmpRes.data)) setCampaigns(cmpRes.data)
-      } catch (e) { console.error(e) }
+      } catch (e) { if (mounted) setLoadError(true) }
       if (mounted) setLoading(false)
     }
     load()
     return () => { mounted = false }
-  }, [])
+  }, [retryKey])
 
   const selected = useMemo(
     () => selectedIds.map(id => channels.find(c => (c._id || c.id) === id)).filter(Boolean),
@@ -96,13 +103,22 @@ export default function CreatorComparePage() {
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 1200 }}>
 
-      <div>
-        <h1 style={{ fontFamily: D, fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 6px' }}>
-          Comparar canales
-        </h1>
-        <p style={{ fontSize: 14, color: 'var(--muted)', margin: 0 }}>
-          Lado a lado: CAS, CPM, audiencia, ingresos. Detecta dónde subir precio y dónde reasignar esfuerzo.
-        </p>
+      {loadError && (
+        <ErrorBanner
+          message="No se pudieron cargar tus canales. Verifica tu conexión."
+          onRetry={() => setRetryKey(k => k + 1)}
+        />
+      )}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div>
+          <h1 style={{ fontFamily: D, fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 6px' }}>
+            Comparar canales
+          </h1>
+          <p style={{ fontSize: 14, color: 'var(--muted)', margin: 0 }}>
+            Lado a lado: CAS, CPM, audiencia, ingresos. Detecta dónde subir precio y dónde reasignar esfuerzo.
+          </p>
+        </div>
+        <ExportShareButtons enriched={enriched} />
       </div>
 
       {/* Channel chips selector */}
@@ -178,6 +194,71 @@ export default function CreatorComparePage() {
 }
 
 // ─── Channel adder ──────────────────────────────────────────────────────────
+// ─── Export / share buttons ─────────────────────────────────────────────────
+// Native html2canvas isn't bundled; we offer two robust paths:
+//   1. Print-to-PDF (browser native) — keeps colors/layout, user picks PDF or image.
+//   2. Share via Web Share API on mobile if available.
+//   3. CSV export of the comparison data as a fallback.
+function ExportShareButtons({ enriched }) {
+  const [copied, setCopied] = useState(false)
+
+  const exportCsv = () => {
+    if (enriched.length === 0) return
+    const cols = ['Canal', 'Plataforma', 'Audiencia', 'CAS', 'CPM', 'Engagement', 'Precio']
+    const rows = enriched.map(e => [
+      e.channel?.nombreCanal || 'Canal',
+      e.channel?.plataforma || '',
+      e.audiencia ?? e.channel?.seguidores ?? 0,
+      e.cas ?? 0,
+      e.cpm ?? 0,
+      e.engagement ?? 0,
+      e.precio ?? 0,
+    ])
+    const csv = [cols.join(','), ...rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','))].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = `channelad-comparativa-${new Date().toISOString().slice(0, 10)}.csv`
+    link.click()
+    URL.revokeObjectURL(link.href)
+  }
+
+  const print = () => window.print()
+
+  const share = async () => {
+    const url = window.location.href
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Comparativa de canales', url }); return } catch {}
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {}
+  }
+
+  const btn = {
+    background: 'var(--surface)', color: 'var(--text)',
+    border: '1px solid var(--border)', borderRadius: 8,
+    padding: '7px 12px', fontSize: 12, fontWeight: 600,
+    cursor: 'pointer', fontFamily: 'inherit',
+    display: 'inline-flex', alignItems: 'center', gap: 5,
+  }
+  return (
+    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      <button onClick={exportCsv} style={btn} title="Exportar comparativa a CSV">
+        <Download size={12} aria-hidden="true" /> Exportar CSV
+      </button>
+      <button onClick={print} style={btn} title="Imprimir o guardar como PDF/imagen (Ctrl+P)">
+        <Eye size={12} aria-hidden="true" /> Imprimir / PDF
+      </button>
+      <button onClick={share} style={btn} title="Compartir comparativa">
+        <ArrowRight size={12} aria-hidden="true" /> {copied ? '¡Copiado!' : 'Compartir'}
+      </button>
+    </div>
+  )
+}
+
 function ChannelAdder({ remaining, onAdd }) {
   const [open, setOpen] = useState(false)
   return (

@@ -110,11 +110,40 @@ const getPeriodStart = (key) => {
 }
 
 /* ── CSV export helper ───────────────────────────────────────────── */
+const exportLabel = {
+  display: 'flex', alignItems: 'center', gap: 8,
+  fontSize: 12.5, color: 'var(--text)', cursor: 'pointer',
+  padding: '4px 0',
+}
+
 const exportCSV = (rows) => {
   const header = 'Fecha,Descripcion,Tipo,Importe,Estado\n'
   const body = rows.map(r =>
     `"${r.date}","${r.desc}","${r.amount > 0 ? 'Ingreso' : 'Retiro'}","${r.amount}","${r.status}"`
   ).join('\n')
+  const blob = new Blob([header + body], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `channelad-ganancias-${new Date().toISOString().slice(0, 10)}.csv`
+  link.click()
+}
+
+const exportCSVFiltered = (rows, opts) => {
+  const filtered = rows.filter(r => {
+    if (!opts.includeWithdrawals && r.amount < 0) return false
+    if (!opts.includeCancelled && /cancel|rechaz/i.test(r.status || '')) return false
+    return true
+  })
+  const colMap = {
+    fecha:       { header: 'Fecha',       value: r => r.date },
+    descripcion: { header: 'Descripcion', value: r => r.desc },
+    tipo:        { header: 'Tipo',        value: r => r.amount > 0 ? 'Ingreso' : 'Retiro' },
+    importe:     { header: 'Importe',     value: r => r.amount },
+    estado:      { header: 'Estado',      value: r => r.status },
+  }
+  const activeCols = Object.entries(opts.columns).filter(([, on]) => on).map(([k]) => k)
+  const header = activeCols.map(k => colMap[k].header).join(',') + '\n'
+  const body = filtered.map(r => activeCols.map(k => `"${String(colMap[k].value(r) ?? '').replace(/"/g, '""')}"`).join(',')).join('\n')
   const blob = new Blob([header + body], { type: 'text/csv;charset=utf-8;' })
   const link = document.createElement('a')
   link.href = URL.createObjectURL(blob)
@@ -215,7 +244,7 @@ const WithdrawModal = ({ balance, onClose }) => {
         setError(r?.message || 'Error al procesar el retiro.')
       }
     } catch {
-      setError('Error de conexion. Intenta de nuevo.')
+      setError('Error de conexión. Intenta de nuevo.')
     }
     setSubmitting(false)
   }
@@ -331,11 +360,14 @@ export default function CreatorEarningsPage() {
   const [showWithdraw, setShowWithdraw] = useState(false)
   const [selectedTx, setSelectedTx] = useState(null)
   const [period, setPeriod] = useState('all')
+  const [customRange, setCustomRange] = useState({ from: '', to: '' })
   const [campaigns, setCampaigns] = useState([])
   const [channels, setChannels] = useState([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState(null)
   const [retryKey, setRetryKey] = useState(0)
+  const [exportOpts, setExportOpts] = useState({ includeWithdrawals: true, includeCancelled: false, columns: { fecha: true, descripcion: true, tipo: true, importe: true, estado: true } })
+  const [showExportMenu, setShowExportMenu] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -351,7 +383,7 @@ export default function CreatorEarningsPage() {
         setCampaigns(cmpData)
         setChannels(chData)
       } catch (err) {
-        if (mounted) setFetchError('No se pudieron cargar los datos. Verifica tu conexion.')
+        if (mounted) setFetchError('No se pudieron cargar los datos. Verifica tu conexión.')
       }
       if (mounted) setLoading(false)
     }
@@ -359,11 +391,18 @@ export default function CreatorEarningsPage() {
     return () => { mounted = false }
   }, [retryKey])
 
-  // Period filter
-  const periodStart = getPeriodStart(period)
+  // Period filter (handles built-in periods + custom range)
+  const periodStart = period === 'custom' && customRange.from
+    ? new Date(customRange.from)
+    : getPeriodStart(period)
+  const periodEnd = period === 'custom' && customRange.to
+    ? (() => { const d = new Date(customRange.to); d.setHours(23, 59, 59, 999); return d })()
+    : null
   const filteredCampaigns = campaigns.filter(c => {
     const d = new Date(c.completedAt || c.createdAt)
-    return d >= periodStart
+    if (d < periodStart) return false
+    if (periodEnd && d > periodEnd) return false
+    return true
   })
 
   // Compute earnings from real campaign data
@@ -459,18 +498,48 @@ export default function CreatorEarningsPage() {
       {fetchError && <ErrorBanner message={fetchError} onRetry={() => { setFetchError(null); setRetryKey(k => k + 1) }} style={{ marginBottom: '20px' }} />}
 
       {/* Period filter pills */}
-      <div style={{ display: 'flex', gap: '2px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '3px', width: 'fit-content' }}>
-        {PERIODS.map(p => {
-          const active = period === p.key
-          return (
-            <button key={p.key} onClick={() => setPeriod(p.key)} style={{
-              background: active ? WA : 'transparent', color: active ? '#fff' : 'var(--muted)',
-              border: 'none', borderRadius: '9px', padding: '8px 14px', fontSize: '13px',
-              fontWeight: active ? 600 : 400, cursor: 'pointer', fontFamily: F,
-              transition: 'all .18s',
-            }}>{p.label}</button>
-          )
-        })}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '2px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '3px' }}>
+          {PERIODS.map(p => {
+            const active = period === p.key
+            return (
+              <button key={p.key} onClick={() => setPeriod(p.key)} style={{
+                background: active ? WA : 'transparent', color: active ? '#fff' : 'var(--muted)',
+                border: 'none', borderRadius: '9px', padding: '8px 14px', fontSize: '13px',
+                fontWeight: active ? 600 : 400, cursor: 'pointer', fontFamily: F,
+                transition: 'all .18s',
+              }}>{p.label}</button>
+            )
+          })}
+          <button onClick={() => setPeriod('custom')} style={{
+            background: period === 'custom' ? WA : 'transparent', color: period === 'custom' ? '#fff' : 'var(--muted)',
+            border: 'none', borderRadius: '9px', padding: '8px 14px', fontSize: '13px',
+            fontWeight: period === 'custom' ? 600 : 400, cursor: 'pointer', fontFamily: F,
+          }}>Personalizado</button>
+        </div>
+
+        {period === 'custom' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--muted)' }}>
+            <label htmlFor="ce-date-from" style={{ fontWeight: 600 }}>Desde</label>
+            <input
+              id="ce-date-from"
+              type="date"
+              value={customRange.from}
+              max={customRange.to || undefined}
+              onChange={e => setCustomRange(r => ({ ...r, from: e.target.value }))}
+              style={{ background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 8px', fontSize: 12, fontFamily: F }}
+            />
+            <label htmlFor="ce-date-to" style={{ fontWeight: 600 }}>Hasta</label>
+            <input
+              id="ce-date-to"
+              type="date"
+              value={customRange.to}
+              min={customRange.from || undefined}
+              onChange={e => setCustomRange(r => ({ ...r, to: e.target.value }))}
+              style={{ background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 8px', fontSize: 12, fontFamily: F }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Loading state */}
@@ -576,17 +645,54 @@ export default function CreatorEarningsPage() {
                 <h2 style={{ fontFamily: D, fontSize: '15px', fontWeight: 700, color: 'var(--text)', marginBottom: '2px' }}>Historial de movimientos</h2>
                 <p style={{ fontSize: '12px', color: 'var(--muted)' }}>{earningsList.length} movimientos</p>
               </div>
-              <button onClick={() => exportCSV(earningsList)} style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '10px',
-                padding: '8px 14px', fontSize: '12px', fontWeight: 600, color: 'var(--muted)',
-                cursor: 'pointer', fontFamily: F, transition: 'border-color .15s',
-              }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = WAG(0.5)}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-              >
-                <Download size={13} /> Exportar CSV
-              </button>
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setShowExportMenu(s => !s)}
+                  aria-haspopup="menu"
+                  aria-expanded={showExportMenu}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '10px',
+                    padding: '8px 14px', fontSize: '12px', fontWeight: 600, color: 'var(--muted)',
+                    cursor: 'pointer', fontFamily: F, transition: 'border-color .15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = WAG(0.5)}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                >
+                  <Download size={13} /> Exportar CSV
+                </button>
+                {showExportMenu && (
+                  <div role="menu" style={{
+                    position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 20,
+                    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12,
+                    padding: 14, minWidth: 240, boxShadow: '0 8px 30px rgba(0,0,0,0.18)',
+                  }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Filtros</div>
+                    <label style={exportLabel}>
+                      <input type="checkbox" checked={exportOpts.includeWithdrawals}
+                        onChange={e => setExportOpts(o => ({ ...o, includeWithdrawals: e.target.checked }))} />
+                      Incluir retiros
+                    </label>
+                    <label style={exportLabel}>
+                      <input type="checkbox" checked={exportOpts.includeCancelled}
+                        onChange={e => setExportOpts(o => ({ ...o, includeCancelled: e.target.checked }))} />
+                      Incluir cancelados
+                    </label>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '12px 0 8px' }}>Columnas</div>
+                    {Object.keys(exportOpts.columns).map(col => (
+                      <label key={col} style={exportLabel}>
+                        <input type="checkbox" checked={exportOpts.columns[col]}
+                          onChange={e => setExportOpts(o => ({ ...o, columns: { ...o.columns, [col]: e.target.checked } }))} />
+                        {col.charAt(0).toUpperCase() + col.slice(1)}
+                      </label>
+                    ))}
+                    <div style={{ display: 'flex', gap: 6, marginTop: 12, justifyContent: 'flex-end' }}>
+                      <button onClick={() => setShowExportMenu(false)} style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 12px', fontSize: 12, color: 'var(--muted)', cursor: 'pointer', fontFamily: F }}>Cancelar</button>
+                      <button onClick={() => { exportCSVFiltered(earningsList, exportOpts); setShowExportMenu(false) }} style={{ background: WA, color: '#fff', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: F }}>Descargar</button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '520px' }}>

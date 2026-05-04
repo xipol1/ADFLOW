@@ -8,6 +8,7 @@ import {
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, WARN, ERR, BLUE } from '../../../theme/tokens'
+import { ErrorBanner, useConfirm } from '../shared/DashComponents'
 
 const ACCENT = GREEN
 const ga = greenAlpha
@@ -38,22 +39,31 @@ export default function CreatorABTestPage() {
   const [showNew, setShowNew] = useState(false)
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
+  const { confirm, dialog: confirmDialog } = useConfirm()
 
   useEffect(() => {
     let mounted = true
     const load = async () => {
+      setLoading(true)
+      setLoadError(false)
+      let anyOk = false
+      let anyFail = false
       const [chRes, cmpRes] = await Promise.all([
-        apiService.getMyChannels().catch(() => null),
-        apiService.getCreatorCampaigns?.().catch(() => null),
+        apiService.getMyChannels().catch(() => { anyFail = true; return null }),
+        apiService.getCreatorCampaigns?.().catch(() => { anyFail = true; return null }),
       ])
       if (!mounted) return
-      if (chRes?.success) setChannels(Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || [])
-      if (cmpRes?.success && Array.isArray(cmpRes.data)) setCampaigns(cmpRes.data)
+      if (chRes?.success) { setChannels(Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || []); anyOk = true }
+      else if (chRes !== null) anyFail = true
+      if (cmpRes?.success && Array.isArray(cmpRes.data)) { setCampaigns(cmpRes.data); anyOk = true }
+      if (anyFail && !anyOk) setLoadError(true)
       setLoading(false)
     }
     load()
     return () => { mounted = false }
-  }, [])
+  }, [retryKey])
 
   const persist = (next) => {
     setTests(next)
@@ -61,7 +71,19 @@ export default function CreatorABTestPage() {
   }
 
   const addTest = (test) => persist([test, ...tests])
-  const deleteTest = (id) => persist(tests.filter(t => t.id !== id))
+  const deleteTest = async (id) => {
+    const test = tests.find(t => t.id === id)
+    const ok = await confirm({
+      title: 'Eliminar test A/B',
+      message: test?.name
+        ? `¿Eliminar el test "${test.name}"? Se perderán todas sus métricas. No se puede deshacer.`
+        : '¿Eliminar este test? Se perderán todas sus métricas. No se puede deshacer.',
+      confirmLabel: 'Eliminar',
+      tone: 'danger',
+    })
+    if (!ok) return
+    persist(tests.filter(t => t.id !== id))
+  }
   const updateTest = (id, patch) => persist(tests.map(t => t.id === id ? { ...t, ...patch } : t))
 
   const stats = useMemo(() => ({
@@ -74,6 +96,13 @@ export default function CreatorABTestPage() {
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1100 }}>
 
+      {confirmDialog}
+      {loadError && (
+        <ErrorBanner
+          message="No se pudieron cargar tus canales y campañas. Verifica tu conexión."
+          onRetry={() => setRetryKey(k => k + 1)}
+        />
+      )}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
@@ -171,6 +200,11 @@ function NewTestModal({ channels, onClose, onCreate }) {
 
   const handleCreate = () => {
     if (!name || !variantA || !variantB) return
+    if (variantA.trim().toLowerCase() === variantB.trim().toLowerCase()) {
+      // eslint-disable-next-line no-alert
+      alert('Las variantes A y B deben ser diferentes para poder comparar.')
+      return
+    }
     onCreate({
       id: Date.now().toString(),
       name,
@@ -303,7 +337,7 @@ function TestCard({ test, onClick, onDelete, onToggle }) {
               {test.status === 'running' ? <Pause size={13} /> : <Play size={13} />}
             </button>
           )}
-          <button onClick={(e) => { e.stopPropagation(); if (confirm('¿Eliminar este test?')) onDelete() }} style={iconBtn} title="Eliminar">
+          <button onClick={(e) => { e.stopPropagation(); onDelete() }} style={iconBtn} title="Eliminar">
             <Trash2 size={13} />
           </button>
         </div>
@@ -313,6 +347,71 @@ function TestCard({ test, onClick, onDelete, onToggle }) {
 }
 
 // ─── Test detail modal ──────────────────────────────────────────────────────
+function ManualDataInput({ onSimulate, onAdd }) {
+  const [open, setOpen] = useState(false)
+  const [views, setViews] = useState('')
+  const [conv, setConv] = useState('')
+  const [rev, setRev] = useState('')
+
+  const submit = () => {
+    onAdd(views, conv, rev)
+    setViews(''); setConv(''); setRev('')
+  }
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      {!open ? (
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={() => setOpen(true)} style={{
+            flex: 1, background: 'var(--surface)', color: 'var(--text)',
+            border: '1px solid var(--border)', borderRadius: 8,
+            padding: '7px 10px', fontSize: 11.5, fontWeight: 600,
+            cursor: 'pointer', fontFamily: F,
+          }}>
+            + Añadir datos reales
+          </button>
+          <button onClick={onSimulate} title="Simular tráfico aleatorio para pruebas" style={{
+            background: 'var(--surface)', color: 'var(--muted)', border: '1px dashed var(--border)',
+            borderRadius: 8, padding: '7px 10px', fontSize: 11.5, fontWeight: 600,
+            cursor: 'pointer', fontFamily: F,
+          }}>
+            🎲 Simular
+          </button>
+        </div>
+      ) : (
+        <div style={{ background: 'var(--bg2)', borderRadius: 8, padding: 8, border: '1px solid var(--border)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4, marginBottom: 6 }}>
+            <input type="number" min="0" value={views} onChange={e => setViews(e.target.value)} placeholder="+ vistas" aria-label="Añadir vistas"
+              style={mdInput} />
+            <input type="number" min="0" value={conv} onChange={e => setConv(e.target.value)} placeholder="+ conv." aria-label="Añadir conversiones"
+              style={mdInput} />
+            <input type="number" min="0" step="0.01" value={rev} onChange={e => setRev(e.target.value)} placeholder="+ ingresos €" aria-label="Añadir ingresos"
+              style={mdInput} />
+          </div>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <button onClick={submit} disabled={!views && !conv && !rev} style={{
+              flex: 1, background: ACCENT, color: '#fff', border: 'none',
+              borderRadius: 6, padding: '6px 8px', fontSize: 11, fontWeight: 700,
+              cursor: 'pointer', fontFamily: F, opacity: (!views && !conv && !rev) ? 0.5 : 1,
+            }}>Sumar</button>
+            <button onClick={() => setOpen(false)} style={{
+              background: 'transparent', color: 'var(--muted)', border: '1px solid var(--border)',
+              borderRadius: 6, padding: '6px 8px', fontSize: 11, cursor: 'pointer', fontFamily: F,
+            }}>Cancelar</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const mdInput = {
+  background: 'var(--surface)', color: 'var(--text)',
+  border: '1px solid var(--border)', borderRadius: 6,
+  padding: '5px 7px', fontSize: 11, fontFamily: 'inherit',
+  outline: 'none', minWidth: 0, width: '100%', boxSizing: 'border-box',
+}
+
 function TestDetailModal({ test, onClose, onUpdate, onComplete }) {
   const stA = computeRate(test.variantA)
   const stB = computeRate(test.variantB)
@@ -396,14 +495,17 @@ function TestDetailModal({ test, onClose, onUpdate, onComplete }) {
                 </div>
 
                 {test.status === 'running' && (
-                  <button onClick={() => simulate(key)} style={{
-                    marginTop: 10, width: '100%',
-                    background: 'var(--surface)', color: 'var(--muted)', border: '1px dashed var(--border)',
-                    borderRadius: 8, padding: '7px 10px', fontSize: 11.5, fontWeight: 600,
-                    cursor: 'pointer', fontFamily: F,
-                  }}>
-                    + Simular tráfico
-                  </button>
+                  <ManualDataInput
+                    onSimulate={() => simulate(key)}
+                    onAdd={(deltaViews, deltaConv, deltaRev) => onUpdate({
+                      [key]: {
+                        ...v,
+                        views: Math.max(0, v.views + Number(deltaViews || 0)),
+                        conversions: Math.max(0, v.conversions + Number(deltaConv || 0)),
+                        revenue: Math.max(0, v.revenue + Number(deltaRev || 0)),
+                      },
+                    })}
+                  />
                 )}
               </div>
             )

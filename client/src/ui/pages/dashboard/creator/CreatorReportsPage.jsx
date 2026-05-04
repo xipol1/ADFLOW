@@ -7,6 +7,7 @@ import {
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, BLUE } from '../../../theme/tokens'
+import { ErrorBanner } from '../shared/DashComponents'
 
 const ACCENT = GREEN
 const ga = greenAlpha
@@ -81,26 +82,34 @@ export default function CreatorReportsPage() {
     try { return JSON.parse(localStorage.getItem('channelad-reports-history') || '[]') }
     catch { return [] }
   })
+  const [loadError, setLoadError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let mounted = true
     const load = async () => {
+      setLoading(true)
+      setLoadError(false)
       try {
+        let anyOk = false
+        let anyFail = false
         const [chRes, cmpRes] = await Promise.all([
-          apiService.getMyChannels().catch(() => null),
-          apiService.getCreatorCampaigns?.().catch(() => null),
+          apiService.getMyChannels().catch(() => { anyFail = true; return null }),
+          apiService.getCreatorCampaigns?.().catch(() => { anyFail = true; return null }),
         ])
         if (!mounted) return
-        if (chRes?.success) setChannels(Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || [])
-        if (cmpRes?.success && Array.isArray(cmpRes.data)) setCampaigns(cmpRes.data)
+        if (chRes?.success) { setChannels(Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || []); anyOk = true }
+        else if (chRes !== null) anyFail = true
+        if (cmpRes?.success && Array.isArray(cmpRes.data)) { setCampaigns(cmpRes.data); anyOk = true }
+        if (anyFail && !anyOk) setLoadError(true)
       } catch (err) {
-        console.error('CreatorReports.load failed:', err)
+        if (mounted) setLoadError(true)
       }
       if (mounted) setLoading(false)
     }
     load()
     return () => { mounted = false }
-  }, [])
+  }, [retryKey])
 
   const reportConfig = REPORT_TYPES.find(r => r.id === selectedReport)
   const formatConfig = FORMATS.find(f => f.id === format)
@@ -254,6 +263,12 @@ export default function CreatorReportsPage() {
 
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1100 }}>
+      {loadError && (
+        <ErrorBanner
+          message="No se pudieron cargar tus datos. Los reportes pueden estar incompletos."
+          onRetry={() => setRetryKey(k => k + 1)}
+        />
+      )}
       <div>
         <h1 style={{ fontFamily: D, fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', marginBottom: 6 }}>
           Reports Studio

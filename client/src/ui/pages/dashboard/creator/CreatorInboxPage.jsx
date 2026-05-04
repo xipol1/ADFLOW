@@ -9,6 +9,7 @@ import {
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, WARN, ERR, BLUE } from '../../../theme/tokens'
+import { ErrorBanner } from '../shared/DashComponents'
 
 const ACCENT = GREEN
 const ga = greenAlpha
@@ -56,26 +57,35 @@ export default function CreatorInboxPage() {
   const [selectedId, setSelectedId] = useState(null)
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
+  const [dateFilter, setDateFilter] = useState({ from: '', to: '' })
+  const [statusFilter, setStatusFilter] = useState('all')
   const [draft, setDraft] = useState('')
   const [archived, setArchived] = useState(() => loadArchived())
   const [readMap, setReadMap] = useState(() => loadRead())
   const [draftsByThread, setDraftsByThread] = useState(() => loadDrafts())
 
   const messagesEndRef = useRef(null)
+  const [loadError, setLoadError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let mounted = true
+    setLoading(true)
+    setLoadError(false)
+    let anyOk = false
+    let anyFail = false
     Promise.all([
-      apiService.getAdsForCreator?.().catch(() => null),
-      apiService.getCreatorCampaigns?.().catch(() => null),
+      apiService.getAdsForCreator?.().catch(() => { anyFail = true; return null }),
+      apiService.getCreatorCampaigns?.().catch(() => { anyFail = true; return null }),
     ]).then(([adRes, cmpRes]) => {
       if (!mounted) return
-      if (adRes?.success && Array.isArray(adRes.data)) setRequests(adRes.data)
-      if (cmpRes?.success && Array.isArray(cmpRes.data)) setCampaigns(cmpRes.data)
+      if (adRes?.success && Array.isArray(adRes.data)) { setRequests(adRes.data); anyOk = true }
+      if (cmpRes?.success && Array.isArray(cmpRes.data)) { setCampaigns(cmpRes.data); anyOk = true }
+      if (anyFail && !anyOk) setLoadError(true)
       setLoading(false)
-    }).catch(() => mounted && setLoading(false))
+    }).catch(() => mounted && (setLoadError(true), setLoading(false)))
     return () => { mounted = false }
-  }, [])
+  }, [retryKey])
 
   // Build threads from requests + active campaigns
   const threads = useMemo(() => {
@@ -102,8 +112,21 @@ export default function CreatorInboxPage() {
         t.lastMessagePreview.toLowerCase().includes(q),
       )
     }
+    if (statusFilter !== 'all') {
+      list = list.filter(t => t.status === statusFilter)
+    }
+    if (dateFilter.from) {
+      const fromTs = new Date(dateFilter.from).getTime()
+      list = list.filter(t => new Date(t.lastMessageAt).getTime() >= fromTs)
+    }
+    if (dateFilter.to) {
+      const toDate = new Date(dateFilter.to)
+      toDate.setHours(23, 59, 59, 999)
+      const toTs = toDate.getTime()
+      list = list.filter(t => new Date(t.lastMessageAt).getTime() <= toTs)
+    }
     return list
-  }, [threads, filter, search, archived, readMap])
+  }, [threads, filter, search, archived, readMap, statusFilter, dateFilter])
 
   const selected = threads.find(t => t.id === selectedId) || filtered[0]
 
@@ -130,15 +153,39 @@ export default function CreatorInboxPage() {
     }
   }
 
-  const sendReply = () => {
-    if (!draft.trim() || !selected) return
-    // In production this would POST to /api/messages or similar
-    alert(`(Demo) Mensaje a enviar a ${selected.advertiserName}:\n\n${draft}`)
-    const next = { ...draftsByThread }
-    delete next[selected.id]
-    setDraftsByThread(next)
-    saveDrafts(next)
-    setDraft('')
+  const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState('')
+
+  const sendReply = async () => {
+    if (!draft.trim() || !selected || sending) return
+    setSendError('')
+
+    // Resolve the campaign id for the chat endpoint. Threads built from
+    // campaigns expose it directly; threads built from "requests" (Anuncio)
+    // may carry a linked campaignId.
+    const campaignId = selected.campaignId || (selected.kind === 'campaign' ? selected.id : null)
+    if (!campaignId) {
+      setSendError('Aún no puedes enviar mensajes en este hilo hasta que la campaña esté activa.')
+      return
+    }
+
+    setSending(true)
+    try {
+      const res = await apiService.sendCampaignChat(campaignId, draft.trim())
+      if (res?.success) {
+        const next = { ...draftsByThread }
+        delete next[selected.id]
+        setDraftsByThread(next)
+        saveDrafts(next)
+        setDraft('')
+      } else {
+        setSendError(res?.message || 'No se pudo enviar el mensaje')
+      }
+    } catch {
+      setSendError('Error de conexión. Intenta de nuevo.')
+    } finally {
+      setSending(false)
+    }
   }
 
   const useTemplate = (tpl) => {
@@ -159,12 +206,19 @@ export default function CreatorInboxPage() {
   if (loading) return <Skeleton />
 
   return (
-    <div style={{
-      fontFamily: F, height: 'calc(100vh - 160px)',
-      display: 'grid', gridTemplateColumns: '320px 1fr', gap: 0,
-      background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
-      overflow: 'hidden',
-    }} className="creator-inbox-grid">
+    <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 12, height: 'calc(100vh - 160px)' }}>
+      {loadError && (
+        <ErrorBanner
+          message="No se pudieron cargar tus mensajes. Verifica tu conexión."
+          onRetry={() => setRetryKey(k => k + 1)}
+        />
+      )}
+      <div style={{
+        flex: 1, minHeight: 0,
+        display: 'grid', gridTemplateColumns: '320px 1fr', gap: 0,
+        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
+        overflow: 'hidden',
+      }} className="creator-inbox-grid">
       <style>{`
         @media (max-width: 800px) {
           .creator-inbox-grid {
@@ -185,13 +239,21 @@ export default function CreatorInboxPage() {
             <h1 style={{ fontFamily: D, fontSize: 18, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em', margin: 0 }}>
               Inbox
             </h1>
-            <span style={{
-              background: ga(0.12), color: ACCENT, border: `1px solid ${ga(0.25)}`,
-              borderRadius: 20, padding: '2px 8px', fontSize: 10.5, fontWeight: 700,
-              fontVariantNumeric: 'tabular-nums',
-            }}>
-              {threads.filter(t => !readMap[t.id] && !archived[t.id]).length} sin leer
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{
+                background: ga(0.12), color: ACCENT, border: `1px solid ${ga(0.25)}`,
+                borderRadius: 20, padding: '2px 8px', fontSize: 10.5, fontWeight: 700,
+                fontVariantNumeric: 'tabular-nums',
+              }}>
+                {threads.filter(t => !readMap[t.id] && !archived[t.id]).length} sin leer
+              </span>
+              <AdvancedFilters
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                dateFilter={dateFilter}
+                setDateFilter={setDateFilter}
+              />
+            </div>
           </div>
           {/* Search */}
           <div style={{ position: 'relative' }}>
@@ -253,6 +315,7 @@ export default function CreatorInboxPage() {
         ) : (
           <ThreadView thread={selected}
             draft={draft} onDraftChange={updateDraft} onSend={sendReply}
+            sending={sending} sendError={sendError}
             onTemplate={useTemplate} onArchive={() => archive(selected.id)}
             isArchived={!!archived[selected.id]}
             onBack={() => setSelectedId(null)}
@@ -261,6 +324,166 @@ export default function CreatorInboxPage() {
           />
         )}
       </div>
+    </div>
+    </div>
+  )
+}
+
+// ─── Composer toolbar (emoji picker + templates + attach) ───────────────────
+const COMMON_EMOJIS = ['🙌', '🔥', '🎉', '✅', '👀', '📌', '💡', '🚀', '💰', '📈', '👋', '🙏', '😊', '🤝', '⭐', '⚡']
+
+function ComposerToolbar({ onEmoji, onTemplate, onAttach, thread }) {
+  const [emojiOpen, setEmojiOpen] = useState(false)
+  const [tplOpen, setTplOpen] = useState(false)
+  const fileRef = useRef(null)
+
+  return (
+    <div style={{ display: 'flex', gap: 4, position: 'relative' }}>
+      {/* Attach */}
+      <input
+        ref={fileRef}
+        type="file"
+        style={{ display: 'none' }}
+        onChange={e => {
+          const f = e.target.files?.[0]
+          if (f && onAttach) onAttach(f)
+          e.target.value = ''
+        }}
+        aria-label="Adjuntar archivo"
+      />
+      <button
+        type="button"
+        onClick={() => fileRef.current?.click()}
+        aria-label="Adjuntar archivo"
+        title="Adjuntar archivo"
+        style={iconBtn}
+      >
+        <Paperclip size={13} aria-hidden="true" />
+      </button>
+
+      {/* Emoji picker */}
+      <button type="button" onClick={() => { setEmojiOpen(o => !o); setTplOpen(false) }}
+        aria-label="Insertar emoji" aria-expanded={emojiOpen} title="Emoji" style={iconBtn}>
+        <Smile size={13} aria-hidden="true" />
+      </button>
+      {emojiOpen && (
+        <div role="dialog" aria-label="Selector de emoji" style={{
+          position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, zIndex: 30,
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10,
+          padding: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+          display: 'grid', gridTemplateColumns: 'repeat(8, 28px)', gap: 2,
+        }}>
+          {COMMON_EMOJIS.map(em => (
+            <button key={em} onClick={() => { onEmoji(em); setEmojiOpen(false) }} aria-label={`Insertar ${em}`}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 18, padding: 4, borderRadius: 5 }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              {em}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Templates */}
+      <button type="button" onClick={() => { setTplOpen(o => !o); setEmojiOpen(false) }}
+        aria-label="Insertar plantilla" aria-expanded={tplOpen} title="Plantilla" style={iconBtn}>
+        <FileText size={13} aria-hidden="true" />
+      </button>
+      {tplOpen && (
+        <div role="dialog" aria-label="Plantillas rápidas" style={{
+          position: 'absolute', bottom: 'calc(100% + 6px)', left: 60, zIndex: 30,
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10,
+          padding: 6, boxShadow: '0 8px 24px rgba(0,0,0,0.18)', minWidth: 260, maxWidth: 320,
+          maxHeight: 280, overflowY: 'auto',
+        }}>
+          {QUICK_REPLIES.map(tpl => {
+            const text = tpl.text
+              .replace('{hours}', '24')
+              .replace('{price}', String(thread?.price || 80))
+              .replace('{date}', new Date(Date.now() + 7 * 86400000).toLocaleDateString('es', { day: 'numeric', month: 'long' }))
+            return (
+              <button key={tpl.label}
+                onClick={() => { onTemplate(text); setTplOpen(false) }}
+                style={{
+                  width: '100%', textAlign: 'left', background: 'transparent',
+                  border: 'none', borderRadius: 6, padding: '7px 9px', fontSize: 12,
+                  color: 'var(--text)', cursor: 'pointer', fontFamily: F, display: 'block', marginBottom: 2,
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                <div style={{ fontWeight: 700, color: tpl.tone, fontSize: 11, marginBottom: 2 }}>{tpl.label}</div>
+                <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                  {text}
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Advanced filters popover ───────────────────────────────────────────────
+function AdvancedFilters({ statusFilter, setStatusFilter, dateFilter, setDateFilter }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  useEffect(() => {
+    const onDoc = (e) => { if (!ref.current?.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [])
+  const active = statusFilter !== 'all' || dateFilter.from || dateFilter.to
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        title="Filtros avanzados"
+        style={{
+          background: active ? ga(0.12) : 'var(--bg2)',
+          color: active ? ACCENT : 'var(--muted)',
+          border: `1px solid ${active ? ga(0.3) : 'var(--border)'}`,
+          borderRadius: 8, padding: '4px 8px', fontSize: 11, fontWeight: 700,
+          cursor: 'pointer', fontFamily: F, display: 'inline-flex', alignItems: 'center', gap: 4,
+        }}
+      >
+        <Filter size={11} aria-hidden="true" /> Filtros{active ? ' •' : ''}
+      </button>
+      {open && (
+        <div role="dialog" style={{
+          position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 25,
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10,
+          padding: 12, minWidth: 240, boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+        }}>
+          <label style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Estado</label>
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+            style={{ width: '100%', padding: '6px 8px', fontSize: 12, fontFamily: F, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg2)', color: 'var(--text)', marginBottom: 10 }}>
+            <option value="all">Todos</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="aceptada">Aceptada</option>
+            <option value="rechazada">Rechazada</option>
+            <option value="PAID">Pagada</option>
+            <option value="PUBLISHED">Publicada</option>
+            <option value="COMPLETED">Completada</option>
+          </select>
+          <label style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Rango de fechas</label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+            <input type="date" value={dateFilter.from} onChange={e => setDateFilter(d => ({ ...d, from: e.target.value }))}
+              aria-label="Desde" style={{ padding: '6px 8px', fontSize: 11, fontFamily: F, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg2)', color: 'var(--text)' }} />
+            <input type="date" value={dateFilter.to} onChange={e => setDateFilter(d => ({ ...d, to: e.target.value }))}
+              aria-label="Hasta" style={{ padding: '6px 8px', fontSize: 11, fontFamily: F, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg2)', color: 'var(--text)' }} />
+          </div>
+          {(statusFilter !== 'all' || dateFilter.from || dateFilter.to) && (
+            <button onClick={() => { setStatusFilter('all'); setDateFilter({ from: '', to: '' }) }}
+              style={{ marginTop: 10, background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)', borderRadius: 6, padding: '5px 10px', fontSize: 11, cursor: 'pointer', fontFamily: F, width: '100%' }}>
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -322,7 +545,7 @@ function ThreadRow({ thread, active, isRead, isArchived, onClick, hasDraft }) {
 }
 
 // ─── Thread view (right panel) ──────────────────────────────────────────────
-function ThreadView({ thread, draft, onDraftChange, onSend, onTemplate, onArchive, isArchived, onBack, messagesEndRef, navigate }) {
+function ThreadView({ thread, draft, onDraftChange, onSend, sending, sendError, onTemplate, onArchive, isArchived, onBack, messagesEndRef, navigate }) {
   const st = STATUS_CFG[thread.status] || { color: '#94a3b8', label: thread.status }
   const suggestion = useMemo(() => smartReplySuggestion(thread), [thread])
 
@@ -333,12 +556,12 @@ function ThreadView({ thread, draft, onDraftChange, onSend, onTemplate, onArchiv
         padding: '12px 18px', borderBottom: '1px solid var(--border)',
         display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
       }}>
-        <button onClick={onBack} className="ci-back-btn" style={{
+        <button onClick={onBack} className="ci-back-btn" type="button" aria-label="Volver a la lista de mensajes" style={{
           background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8,
           width: 30, height: 30, display: 'none', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', color: 'var(--text)', flexShrink: 0,
         }}>
-          <ChevronLeft size={14} />
+          <ChevronLeft size={14} aria-hidden="true" />
         </button>
         <style>{`@media (max-width: 800px) { .ci-back-btn { display: flex !important; } }`}</style>
 
@@ -364,8 +587,8 @@ function ThreadView({ thread, draft, onDraftChange, onSend, onTemplate, onArchiv
             {thread.subject} {thread.channelName && <>· {thread.channelName}</>}
           </div>
         </div>
-        <button onClick={onArchive} title={isArchived ? 'Desarchivar' : 'Archivar'} style={iconBtn}>
-          <Archive size={13} color={isArchived ? ACCENT : 'var(--muted)'} />
+        <button onClick={onArchive} type="button" aria-label={isArchived ? 'Desarchivar conversación' : 'Archivar conversación'} title={isArchived ? 'Desarchivar' : 'Archivar'} style={iconBtn}>
+          <Archive size={13} color={isArchived ? ACCENT : 'var(--muted)'} aria-hidden="true" />
         </button>
       </div>
 
@@ -453,12 +676,22 @@ function ThreadView({ thread, draft, onDraftChange, onSend, onTemplate, onArchiv
         padding: 14, borderTop: '1px solid var(--border)', flexShrink: 0,
         background: 'var(--bg2)',
       }}>
+        {sendError && (
+          <div role="alert" style={{
+            background: `${ERR}12`, border: `1px solid ${ERR}40`, color: ERR,
+            borderRadius: 8, padding: '8px 11px', fontSize: 12, marginBottom: 8,
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            <AlertTriangle size={13} /> {sendError}
+          </div>
+        )}
         <textarea value={draft} onChange={e => onDraftChange(e.target.value)}
           placeholder={`Escribe a ${thread.advertiserName}…`}
           rows={3}
           onKeyDown={e => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); onSend() }
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); if (!sending) onSend() }
           }}
+          disabled={sending}
           style={{
             width: '100%', boxSizing: 'border-box', resize: 'vertical',
             background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border)',
@@ -466,25 +699,26 @@ function ThreadView({ thread, draft, onDraftChange, onSend, onTemplate, onArchiv
             lineHeight: 1.5, minHeight: 70,
           }} />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-          <div style={{ display: 'flex', gap: 4 }}>
-            <button title="Adjuntar (próximamente)" style={iconBtn}><Paperclip size={13} /></button>
-            <button title="Emoji (próximamente)" style={iconBtn}><Smile size={13} /></button>
-            <button title="Plantilla (próximamente)" style={iconBtn}><FileText size={13} /></button>
-          </div>
+          <ComposerToolbar
+            onEmoji={(em) => onDraftChange((draft || '') + em)}
+            onTemplate={(tplText) => onDraftChange(tplText)}
+            onAttach={(file) => onDraftChange((draft || '') + (draft ? '\n' : '') + `📎 [Archivo adjunto: ${file.name}] (la subida de archivos llegará pronto)`)}
+            thread={thread}
+          />
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 10.5, color: 'var(--muted2)' }}>
               ⌘+Enter para enviar
             </span>
-            <button onClick={onSend} disabled={!draft.trim()} style={{
-              background: draft.trim() ? ACCENT : 'var(--bg2)',
-              color: draft.trim() ? '#fff' : 'var(--muted2)',
-              border: draft.trim() ? 'none' : '1px solid var(--border)',
+            <button onClick={onSend} disabled={!draft.trim() || sending} style={{
+              background: draft.trim() && !sending ? ACCENT : 'var(--bg2)',
+              color: draft.trim() && !sending ? '#fff' : 'var(--muted2)',
+              border: draft.trim() && !sending ? 'none' : '1px solid var(--border)',
               borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700,
-              cursor: draft.trim() ? 'pointer' : 'not-allowed', fontFamily: F,
+              cursor: draft.trim() && !sending ? 'pointer' : 'not-allowed', fontFamily: F,
               display: 'inline-flex', alignItems: 'center', gap: 6,
-              boxShadow: draft.trim() ? `0 4px 14px ${ga(0.35)}` : 'none',
+              boxShadow: draft.trim() && !sending ? `0 4px 14px ${ga(0.35)}` : 'none',
             }}>
-              <Send size={13} /> Enviar
+              <Send size={13} /> {sending ? 'Enviando…' : 'Enviar'}
             </button>
           </div>
         </div>
@@ -637,6 +871,7 @@ function buildThread(item, kind) {
     netAmount: item.netAmount,
     deadline: item.deadline,
     targetUrl: item.targetUrl,
+    campaignId: kind === 'campaign' ? (item._id || item.id) : (item.campaignId || null),
     messages,
     lastMessageAt: messages[messages.length - 1].at || item.updatedAt || item.createdAt,
     lastMessagePreview: (messages[messages.length - 1].text || '').slice(0, 80),

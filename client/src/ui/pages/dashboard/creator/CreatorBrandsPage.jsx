@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import apiService from '../../../../services/api'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, WARN, ERR, BLUE } from '../../../theme/tokens'
+import { ErrorBanner } from '../shared/DashComponents'
 
 const ACCENT = GREEN
 const ga = greenAlpha
@@ -33,20 +34,27 @@ export default function CreatorBrandsPage() {
   const [search, setSearch] = useState('')
   const [segment, setSegment] = useState('all')
   const [selected, setSelected] = useState(null)
+  const [loadError, setLoadError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let mounted = true
+    setLoading(true)
+    setLoadError(false)
+    let anyOk = false
+    let anyFail = false
     Promise.all([
-      apiService.getCreatorCampaigns?.().catch(() => null),
-      apiService.getAdsForCreator?.().catch(() => null),
+      apiService.getCreatorCampaigns?.().catch(() => { anyFail = true; return null }),
+      apiService.getAdsForCreator?.().catch(() => { anyFail = true; return null }),
     ]).then(([cmpRes, adRes]) => {
       if (!mounted) return
-      if (cmpRes?.success && Array.isArray(cmpRes.data)) setCampaigns(cmpRes.data)
-      if (adRes?.success && Array.isArray(adRes.data)) setRequests(adRes.data)
+      if (cmpRes?.success && Array.isArray(cmpRes.data)) { setCampaigns(cmpRes.data); anyOk = true }
+      if (adRes?.success && Array.isArray(adRes.data)) { setRequests(adRes.data); anyOk = true }
+      if (anyFail && !anyOk) setLoadError(true)
       setLoading(false)
-    }).catch(() => mounted && setLoading(false))
+    }).catch(() => mounted && (setLoadError(true), setLoading(false)))
     return () => { mounted = false }
-  }, [])
+  }, [retryKey])
 
   // Aggregate by brand
   const brands = useMemo(() => {
@@ -106,6 +114,12 @@ export default function CreatorBrandsPage() {
 
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 1200 }}>
+      {loadError && (
+        <ErrorBanner
+          message="No se pudieron cargar tus campañas. Verifica tu conexión."
+          onRetry={() => setRetryKey(k => k + 1)}
+        />
+      )}
       <div>
         <h1 style={{ fontFamily: D, fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 6px' }}>
           Brands CRM

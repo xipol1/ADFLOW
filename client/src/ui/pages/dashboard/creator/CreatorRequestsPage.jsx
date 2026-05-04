@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { ErrorBanner } from '../shared/DashComponents'
+import { ErrorBanner, useConfirm } from '../shared/DashComponents'
 import apiService from '../../../../services/api'
 import DeliveryBadge from '../../../components/DeliveryBadge'
 import { FONT_BODY, FONT_DISPLAY, OK as _OK, BLUE as _BLUE, WARN, ERR } from '../../../theme/tokens'
@@ -161,7 +161,7 @@ const ChatPanel = ({ campaign, onSent }) => {
         setChatError(r?.message || 'Error al enviar el mensaje')
       }
     } catch {
-      setChatError('Error de conexion')
+      setChatError('Error de conexión')
     }
     setSending(false)
     inputRef.current?.focus()
@@ -338,7 +338,7 @@ const DetailModal = ({ campaign: c, onClose, onConfirm, onComplete, onDecline, o
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
 
           {/* Financial cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '12px' }}>
             <div style={{
               background: `${OK}08`, border: `1px solid ${OK}20`, borderRadius: '14px', padding: '18px',
               display: 'flex', alignItems: 'center', gap: '14px',
@@ -491,7 +491,7 @@ const DetailModal = ({ campaign: c, onClose, onConfirm, onComplete, onDecline, o
                     </>
                   )}
                 </button>
-                <button onClick={() => { if (window.confirm('¿Seguro que deseas rechazar esta solicitud? El pago sera devuelto al anunciante.')) onDecline(c._id) }} disabled={busy} style={{
+                <button onClick={() => onDecline(c._id)} disabled={busy} style={{
                   background: 'transparent', color: RED, border: `1.5px solid ${RED}40`, borderRadius: '14px',
                   padding: '16px 24px', fontSize: '14px', fontWeight: 600, fontFamily: F,
                   cursor: busy ? 'not-allowed' : 'pointer',
@@ -566,6 +566,7 @@ export default function CreatorRequestsPage() {
   const [busy, setBusy] = useState(false)
   const [fetchError, setFetchError] = useState(null)
   const [retryKey, setRetryKey] = useState(0)
+  const { confirm, dialog: confirmDialog } = useConfirm()
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -573,7 +574,7 @@ export default function CreatorRequestsPage() {
       const r = await apiService.getCreatorCampaigns()
       if (r?.success && Array.isArray(r.data)) setCampaigns(r.data)
     } catch {
-      setFetchError('No se pudieron cargar los datos. Verifica tu conexion.')
+      setFetchError('No se pudieron cargar los datos. Verifica tu conexión.')
     }
     setLoading(false)
   }, [])
@@ -605,14 +606,23 @@ export default function CreatorRequestsPage() {
         setActionError(r?.message || 'Error al procesar la accion')
       }
     } catch {
-      setActionError('Error de conexion. Intenta de nuevo.')
+      setActionError('Error de conexión. Intenta de nuevo.')
     }
     setBusy(false)
   }
 
   const doConfirm = (id) => doAction(id, apiService.confirmCampaign.bind(apiService), 'PUBLISHED')
   const doComplete = (id) => doAction(id, apiService.completeCampaign.bind(apiService), 'COMPLETED')
-  const doDecline = (id) => doAction(id, apiService.cancelCampaign.bind(apiService), 'CANCELLED')
+  const doDecline = async (id) => {
+    const ok = await confirm({
+      title: 'Rechazar solicitud',
+      message: '¿Seguro que deseas rechazar esta solicitud? El pago será devuelto al anunciante y no podrás recuperarla.',
+      confirmLabel: 'Rechazar',
+      tone: 'danger',
+    })
+    if (!ok) return
+    return doAction(id, apiService.cancelCampaign.bind(apiService), 'CANCELLED')
+  }
   const doChat = (updated) => {
     setCampaigns(prev => prev.map(c => c._id === updated._id ? updated : c))
     setSelected(updated)
@@ -625,6 +635,7 @@ export default function CreatorRequestsPage() {
 
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1060px' }}>
+      {confirmDialog}
       <style>{CSS}</style>
 
       {/* Header */}

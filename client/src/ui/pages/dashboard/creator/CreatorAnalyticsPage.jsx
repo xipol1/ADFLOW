@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Clock, TrendingUp, TrendingDown, AlertTriangle, Radio, RefreshCw, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react'
 import {
@@ -44,6 +44,103 @@ const PERIODS = [
 ]
 
 // ─── Reusable section card ───────────────────────────────────────────────────
+function ChannelPicker({ channels, selectedId, onChange }) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const onDoc = (e) => { if (!ref.current?.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [])
+
+  const selected = channels.find(c => (c._id || c.id) === selectedId)
+  const filtered = useMemo(() => {
+    if (!query.trim()) return channels
+    const q = query.toLowerCase()
+    return channels.filter(c =>
+      (c.nombreCanal || '').toLowerCase().includes(q) ||
+      (c.plataforma || '').toLowerCase().includes(q) ||
+      (c.categoria || '').toLowerCase().includes(q)
+    )
+  }, [channels, query])
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        style={{
+          background: 'var(--surface)', color: 'var(--text)',
+          border: '1px solid var(--border)', borderRadius: 10,
+          padding: '8px 14px', fontSize: 13, fontFamily: 'inherit',
+          cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
+        }}
+      >
+        {selected ? `${selected.nombreCanal || 'Canal'} · ${selected.plataforma || ''}` : 'Seleccionar canal'}
+        <span aria-hidden="true" style={{ fontSize: 10, opacity: 0.6 }}>▼</span>
+      </button>
+      {open && (
+        <div role="listbox" style={{
+          position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 30,
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.18)', minWidth: 280, maxWidth: 360,
+          padding: 8,
+        }}>
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Buscar canal…"
+            autoFocus
+            aria-label="Buscar canal"
+            style={{
+              width: '100%', boxSizing: 'border-box',
+              background: 'var(--bg2)', color: 'var(--text)',
+              border: '1px solid var(--border)', borderRadius: 8,
+              padding: '6px 10px', fontSize: 12.5, fontFamily: 'inherit',
+              outline: 'none', marginBottom: 6,
+            }}
+          />
+          <div style={{ maxHeight: 280, overflowY: 'auto' }}>
+            {filtered.length === 0 ? (
+              <div style={{ padding: 14, fontSize: 12, color: 'var(--muted)', textAlign: 'center' }}>
+                Sin resultados
+              </div>
+            ) : filtered.map(c => {
+              const active = (c._id || c.id) === selectedId
+              return (
+                <button
+                  key={c._id || c.id}
+                  type="button"
+                  role="option"
+                  aria-selected={active}
+                  onClick={() => { onChange(c._id || c.id); setOpen(false); setQuery('') }}
+                  style={{
+                    width: '100%', textAlign: 'left',
+                    background: active ? 'var(--bg2)' : 'transparent',
+                    border: 'none', borderRadius: 7, padding: '7px 10px',
+                    fontSize: 12.5, color: 'var(--text)', cursor: 'pointer',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8,
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {c.nombreCanal || 'Canal'}
+                  </span>
+                  <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>{c.plataforma}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function SectionCard({ title, subtitle, children, action }) {
   return (
     <div
@@ -336,7 +433,7 @@ function PlatformConnectionSection({ channel, connectForm, setConnectForm }) {
         setConnectResult({ ok: false, msg: res?.error || 'Error al conectar' })
       }
     } catch (err) {
-      setConnectResult({ ok: false, msg: err.message || 'Error de conexion' })
+      setConnectResult({ ok: false, msg: err.message || 'Error de conexión' })
     } finally {
       setConnecting(false)
     }
@@ -372,7 +469,7 @@ function PlatformConnectionSection({ channel, connectForm, setConnectForm }) {
           : <AlertCircle size={16} color="#f59e0b" />
         }
         <span style={{ fontSize: 13, fontWeight: 600, color: isConnected ? '#10b981' : '#f59e0b' }}>
-          {isConnected ? 'Plataforma conectada' : 'Sin conexion directa'}
+          {isConnected ? 'Plataforma conectada' : 'Sin conexión directa'}
         </span>
       </div>
 
@@ -1322,27 +1419,11 @@ export default function CreatorAnalyticsPage() {
           </div>
         )}
         {channels.length > 1 && (
-          <select
-            value={selectedChannelId || ''}
-            onChange={(e) => setSelectedChannelId(e.target.value)}
-            style={{
-              background: 'var(--surface)',
-              color: 'var(--text)',
-              border: '1px solid var(--border)',
-              borderRadius: 10,
-              padding: '8px 14px',
-              fontSize: 13,
-              fontFamily: F,
-              outline: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            {channels.map((ch) => (
-              <option key={ch._id || ch.id} value={ch._id || ch.id}>
-                {ch.nombreCanal || 'Canal'} · {ch.plataforma || ''}
-              </option>
-            ))}
-          </select>
+          <ChannelPicker
+            channels={channels}
+            selectedId={selectedChannelId}
+            onChange={setSelectedChannelId}
+          />
         )}
       </div>
 

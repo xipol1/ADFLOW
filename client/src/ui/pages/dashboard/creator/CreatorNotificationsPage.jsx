@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import apiService from '../../../../services/api'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, WARN, ERR, BLUE } from '../../../theme/tokens'
+import { ErrorBanner, useConfirm } from '../shared/DashComponents'
 
 const ACCENT = GREEN
 const ga = greenAlpha
@@ -42,22 +43,31 @@ export default function CreatorNotificationsPage() {
   const [filter, setFilter] = useState('all')
   const [readMap, setReadMap] = useState(() => loadJSON(READ_KEY, {}))
   const [dismissed, setDismissed] = useState(() => loadJSON(DISMISSED_KEY, {}))
+  const [loadError, setLoadError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
+  const { confirm, dialog: confirmDialog } = useConfirm()
 
   useEffect(() => {
     let mounted = true
+    setLoading(true)
+    setLoadError(false)
+    let anyOk = false
+    let anyFail = false
     Promise.all([
-      apiService.getCreatorCampaigns?.().catch(() => null),
-      apiService.getAdsForCreator?.().catch(() => null),
-      apiService.getMyChannels(),
+      apiService.getCreatorCampaigns?.().catch(() => { anyFail = true; return null }),
+      apiService.getAdsForCreator?.().catch(() => { anyFail = true; return null }),
+      apiService.getMyChannels().catch(() => { anyFail = true; return null }),
     ]).then(([cmpRes, adRes, chRes]) => {
       if (!mounted) return
-      if (cmpRes?.success && Array.isArray(cmpRes.data)) setCampaigns(cmpRes.data)
-      if (adRes?.success && Array.isArray(adRes.data)) setRequests(adRes.data)
-      if (chRes?.success) setChannels(Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || [])
+      if (cmpRes?.success && Array.isArray(cmpRes.data)) { setCampaigns(cmpRes.data); anyOk = true }
+      if (adRes?.success && Array.isArray(adRes.data)) { setRequests(adRes.data); anyOk = true }
+      if (chRes?.success) { setChannels(Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || []); anyOk = true }
+      else if (chRes !== null) anyFail = true
+      if (anyFail && !anyOk) setLoadError(true)
       setLoading(false)
-    }).catch(() => mounted && setLoading(false))
+    }).catch(() => mounted && (setLoadError(true), setLoading(false)))
     return () => { mounted = false }
-  }, [])
+  }, [retryKey])
 
   const notifications = useMemo(() => synthesizeNotifications({ campaigns, requests, channels }), [campaigns, requests, channels])
   const visible = notifications.filter(n => !dismissed[n.id])
@@ -70,7 +80,19 @@ export default function CreatorNotificationsPage() {
   }, [visible, readMap])
 
   const markAllRead = () => { const next = { ...readMap }; visible.forEach(n => { next[n.id] = true }); setReadMap(next); saveJSON(READ_KEY, next) }
-  const dismissAll = () => { if (!confirm('¿Archivar todas las notificaciones visibles?')) return; const next = { ...dismissed }; filtered.forEach(n => { next[n.id] = true }); setDismissed(next); saveJSON(DISMISSED_KEY, next) }
+  const dismissAll = async () => {
+    const ok = await confirm({
+      title: 'Archivar notificaciones',
+      message: `¿Archivar las ${filtered.length} notificaciones visibles? Podrás seguir viéndolas en el filtro "Archivadas".`,
+      confirmLabel: 'Archivar',
+      tone: 'warning',
+    })
+    if (!ok) return
+    const next = { ...dismissed }
+    filtered.forEach(n => { next[n.id] = true })
+    setDismissed(next)
+    saveJSON(DISMISSED_KEY, next)
+  }
   const onClick = (n) => {
     const next = { ...readMap, [n.id]: true }; setReadMap(next); saveJSON(READ_KEY, next)
     if (n.path) navigate(n.path)
@@ -79,6 +101,13 @@ export default function CreatorNotificationsPage() {
 
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 900 }}>
+      {confirmDialog}
+      {loadError && (
+        <ErrorBanner
+          message="No se pudieron cargar tus notificaciones. Verifica tu conexión."
+          onRetry={() => setRetryKey(k => k + 1)}
+        />
+      )}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>
           <h1 style={{ fontFamily: D, fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 6px' }}>

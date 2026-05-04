@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 import apiService from '../../../../services/api'
 import { FONT_BODY, FONT_DISPLAY, GREEN, greenAlpha, PURPLE, purpleAlpha } from '../../../theme/tokens'
+import { useConfirm } from '../shared/DashComponents'
 
 const POLL_INTERVAL_MS = 2000
 
@@ -45,6 +46,7 @@ export default function LinkWhatsAppPage() {
   const [linking, setLinking] = useState(false)
   const [error, setError] = useState('')
   const pollRef = useRef(null)
+  const { confirm, dialog: confirmDialog } = useConfirm()
 
   // ─── Polling ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -139,7 +141,14 @@ export default function LinkWhatsAppPage() {
 
   const handleRevoke = async () => {
     if (!sessionId) return
-    if (!window.confirm('¿Seguro que quieres cancelar la vinculación?')) return
+    const ok = await confirm({
+      title: 'Cancelar vinculación',
+      message: '¿Seguro que quieres cancelar la vinculación con WhatsApp? Tendrás que volver a escanear el QR para conectar de nuevo.',
+      confirmLabel: 'Cancelar vinculación',
+      cancelLabel: 'Volver',
+      tone: 'danger',
+    })
+    if (!ok) return
     try {
       await apiService.request(`/baileys/sessions/${sessionId}`, { method: 'DELETE' })
     } catch (_) {}
@@ -153,6 +162,7 @@ export default function LinkWhatsAppPage() {
 
   return (
     <div style={{ fontFamily: FONT_BODY, padding: '32px 24px', maxWidth: '880px', margin: '0 auto' }}>
+      {confirmDialog}
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
         <Link to="/creator/channels" style={{ fontSize: '13px', color: 'var(--muted)', textDecoration: 'none' }}>

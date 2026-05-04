@@ -9,6 +9,7 @@ import {
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, WARN, ERR, BLUE, PLAT_COLORS } from '../../../theme/tokens'
+import { ErrorBanner } from '../shared/DashComponents'
 
 const ACCENT = GREEN
 const ga = greenAlpha
@@ -40,25 +41,36 @@ export default function CreatorDiscoverPage() {
   const [applied, setApplied] = useState(() => loadJSON(APPLIED_KEY, {}))
   const [selectedBrief, setSelectedBrief] = useState(null)
   const [view, setView] = useState('all') // all | saved | applied
+  const [channelsError, setChannelsError] = useState(false)
+  const [usingMockBriefs, setUsingMockBriefs] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let mounted = true
+    setLoading(true)
+    setChannelsError(false)
+    setUsingMockBriefs(false)
     Promise.all([
-      apiService.getMyChannels(),
+      apiService.getMyChannels().catch(() => null),
       apiService.getOpenBriefs?.().catch(() => null), // endpoint may not exist yet
     ]).then(([chRes, bRes]) => {
       if (!mounted) return
-      if (chRes?.success) setChannels(Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || [])
-      // Fallback to mock briefs derived from the channels' niches
+      if (chRes?.success) {
+        setChannels(Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || [])
+      } else {
+        setChannelsError(true)
+      }
       if (bRes?.success && Array.isArray(bRes.data)) {
         setBriefs(bRes.data)
       } else {
+        // Fallback to mock briefs derived from the channels' niches.
         setBriefs(generateMockBriefs())
+        setUsingMockBriefs(true)
       }
       setLoading(false)
-    }).catch(() => { if (mounted) { setBriefs(generateMockBriefs()); setLoading(false) } })
+    }).catch(() => { if (mounted) { setBriefs(generateMockBriefs()); setUsingMockBriefs(true); setLoading(false) } })
     return () => { mounted = false }
-  }, [])
+  }, [retryKey])
 
   const enriched = useMemo(() => briefs.map(b => ({
     ...b,
@@ -102,6 +114,22 @@ export default function CreatorDiscoverPage() {
 
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 1200 }}>
+
+      {channelsError && (
+        <ErrorBanner
+          message="No se pudieron cargar tus canales — el fit-score puede ser incompleto."
+          onRetry={() => setRetryKey(k => k + 1)}
+        />
+      )}
+      {usingMockBriefs && !channelsError && (
+        <div style={{
+          background: `${BLUE}10`, border: `1px solid ${BLUE}30`, color: 'var(--text)',
+          borderRadius: 12, padding: '10px 14px', fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <Sparkles size={14} color={BLUE} />
+          <span>Mostrando briefs de ejemplo. Pronto verás briefs reales publicados por advertisers.</span>
+        </div>
+      )}
 
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>
@@ -179,7 +207,7 @@ export default function CreatorDiscoverPage() {
       )}
 
       {selectedBrief && (
-        <BriefDetailModal brief={selectedBrief} onClose={() => setSelectedBrief(null)}
+        <BriefDetailModal brief={selectedBrief} channels={channels} onClose={() => setSelectedBrief(null)}
           onApply={() => { apply(selectedBrief); setSelectedBrief({ ...selectedBrief, applied: true }) }}
           onSave={() => toggleSaved(selectedBrief.id)} />
       )}
@@ -299,7 +327,8 @@ function Tile({ icon: Icon, label, value, accent = 'var(--text)' }) {
 }
 
 // ─── Detail modal ───────────────────────────────────────────────────────────
-function BriefDetailModal({ brief, onClose, onApply, onSave }) {
+function BriefDetailModal({ brief, channels = [], onClose, onApply, onSave }) {
+  const fitBreakdown = useMemo(() => computeFitBreakdown(brief, channels), [brief, channels])
   useEffect(() => {
     const h = (e) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', h)
@@ -399,7 +428,7 @@ function BriefDetailModal({ brief, onClose, onApply, onSave }) {
               background: `${fitColor}10`, border: `1px solid ${fitColor}30`, borderRadius: 10,
               padding: 14,
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                 <div style={{
                   width: 50, height: 50, borderRadius: 14, flexShrink: 0,
                   background: `${fitColor}20`, border: `1px solid ${fitColor}40`,
@@ -412,10 +441,29 @@ function BriefDetailModal({ brief, onClose, onApply, onSave }) {
                     {fit >= 80 ? 'Excelente fit' : fit >= 60 ? 'Buen fit' : fit >= 40 ? 'Fit moderado' : 'Fit bajo'}
                   </div>
                   <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 2 }}>
-                    Calculado por: nicho + plataforma + audience size + presupuesto
+                    Desglose punto por punto:
                   </div>
                 </div>
               </div>
+              <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {fitBreakdown.items.map((it, i) => (
+                  <li key={i} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                    fontSize: 12, padding: '4px 0',
+                    color: it.neutral ? 'var(--muted)' : it.hit ? 'var(--text)' : 'var(--muted)',
+                  }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span aria-hidden="true" style={{
+                        display: 'inline-block', width: 14, color: it.neutral ? 'var(--muted)' : it.hit ? OK : ERR, fontWeight: 800,
+                      }}>{it.neutral ? '·' : it.hit ? '✓' : '✗'}</span>
+                      {it.label}
+                    </span>
+                    <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: it.hit ? OK : 'var(--muted2)' }}>
+                      {it.hit ? `+${it.weight}` : `0/${it.weight}`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </Section>
         </div>
@@ -517,26 +565,68 @@ function Skeleton() {
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
-function computeFit(brief, channels) {
-  if (channels.length === 0) return 50
-  let score = 30 // base
+// Returns the breakdown so the UI can show *why* the fit score is what it is.
+function computeFitBreakdown(brief, channels) {
+  if (channels.length === 0) {
+    return {
+      score: 50,
+      items: [{ label: 'Sin canales registrados — score base', weight: 50, hit: false, neutral: true }],
+    }
+  }
+  const items = []
+  let score = 30
+  items.push({ label: 'Score base', weight: 30, hit: true })
+
   // Platform match
   const myPlatforms = new Set(channels.map(c => (c.plataforma || '').toLowerCase()))
   const briefPlats = (brief.platforms || []).map(p => p.toLowerCase())
-  if (briefPlats.some(p => myPlatforms.has(p))) score += 20
+  const platformHit = briefPlats.some(p => myPlatforms.has(p))
+  if (platformHit) score += 20
+  items.push({
+    label: platformHit ? `Plataforma encaja (${briefPlats.join(', ')})` : `Plataforma no coincide (busca ${briefPlats.join(', ') || '—'})`,
+    weight: 20, hit: platformHit,
+  })
+
   // Niche overlap
   const myTags = channels.flatMap(c => (c.tags || []).map(t => t.toLowerCase()))
   const briefSector = (brief.sector || '').toLowerCase()
-  if (myTags.some(t => briefSector.includes(t) || t.includes(briefSector))) score += 20
-  // Audience size in expected range
+  const nicheHit = briefSector && myTags.some(t => briefSector.includes(t) || t.includes(briefSector))
+  if (nicheHit) score += 20
+  items.push({
+    label: nicheHit ? `Tu nicho encaja con "${brief.sector}"` : `Sin overlap con "${brief.sector || 'sector'}"`,
+    weight: 20, hit: !!nicheHit,
+  })
+
+  // Audience size
   const totalReach = channels.reduce((s, c) => s + (c.estadisticas?.seguidores || 0), 0)
   const minReach = brief.minReach || 1000
-  if (totalReach >= minReach) score += 15
-  if (totalReach >= minReach * 3) score += 5
-  // Budget match (if any of my channels' price ≤ budget × 0.6)
+  const reachHit = totalReach >= minReach
+  if (reachHit) score += 15
+  items.push({
+    label: reachHit
+      ? `Alcance suficiente (${(totalReach >= 1000 ? `${Math.round(totalReach / 1000)}K` : totalReach)} ≥ ${minReach})`
+      : `Alcance insuficiente (necesitan ≥${minReach})`,
+    weight: 15, hit: reachHit,
+  })
+  const reachBonus = totalReach >= minReach * 3
+  if (reachBonus) {
+    score += 5
+    items.push({ label: 'Bonus: alcance 3× sobre el mínimo', weight: 5, hit: true })
+  }
+
+  // Budget match
   const fitsBudget = channels.some(c => (c.precio || 0) > 0 && (c.precio || 0) <= brief.budget * 0.7)
   if (fitsBudget) score += 10
-  return Math.min(100, score)
+  items.push({
+    label: fitsBudget ? 'Tu precio encaja en su presupuesto' : 'Tu precio puede ser alto para su presupuesto',
+    weight: 10, hit: fitsBudget,
+  })
+
+  return { score: Math.min(100, score), items }
+}
+
+function computeFit(brief, channels) {
+  return computeFitBreakdown(brief, channels).score
 }
 
 function generateMockBriefs() {

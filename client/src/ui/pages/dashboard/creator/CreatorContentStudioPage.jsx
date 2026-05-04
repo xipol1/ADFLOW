@@ -2,14 +2,33 @@ import React, { useState, useEffect, useMemo } from 'react'
 import {
   Sparkles, Copy, Check, Plus, Edit3, Trash2, Search,
   FileText, Hash, Link2, Image as ImgIcon, MessageSquare,
-  Wand2, Save, Star, BookmarkCheck,
+  Wand2, Save, Star, BookmarkCheck, Download, Upload as ImportIcon, X,
 } from 'lucide-react'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, BLUE, WARN } from '../../../theme/tokens'
+import { useConfirm } from '../shared/DashComponents'
 
 const ACCENT = GREEN
 const ga = greenAlpha
 const TEMPLATES_KEY = 'channelad-creator-templates-v1'
 const DRAFTS_KEY = 'channelad-creator-drafts-v1'
+
+function exportTemplates(templates) {
+  const payload = templates.map(({ id, ...rest }) => rest)
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `channelad-templates-${new Date().toISOString().slice(0, 10)}.json`
+  link.click()
+  URL.revokeObjectURL(link.href)
+}
+
+const ghostBtn = {
+  display: 'inline-flex', alignItems: 'center', gap: 5,
+  background: 'var(--surface)', color: 'var(--muted)',
+  border: '1px solid var(--border)', borderRadius: 8,
+  padding: '7px 12px', fontSize: 12, fontWeight: 600,
+  cursor: 'pointer', fontFamily: 'inherit',
+}
 
 const DEFAULT_TEMPLATES = [
   { id: 't1', category: 'hook', title: 'Hook curiosidad', text: '🚨 {brand} acaba de lanzar algo que no esperabas. Si te dedicas a {sector}, esto te interesa.' },
@@ -48,6 +67,7 @@ export default function CreatorContentStudioPage() {
   const [drafts, setDrafts] = useState(() => loadJSON(DRAFTS_KEY, []))
   const [editing, setEditing] = useState(null)
   const [copyId, setCopyId] = useState(null)
+  const { confirm, dialog: confirmDialog } = useConfirm()
 
   const filtered = useMemo(() => {
     let list = templates
@@ -71,8 +91,14 @@ export default function CreatorContentStudioPage() {
     const next = t.id ? templates.map(x => x.id === t.id ? t : x) : [...templates, { ...t, id: `t-${Date.now()}` }]
     setTemplates(next); saveJSON(TEMPLATES_KEY, next); setEditing(null)
   }
-  const removeTemplate = (id) => {
-    if (!confirm('¿Eliminar este template?')) return
+  const removeTemplate = async (id) => {
+    const ok = await confirm({
+      title: 'Eliminar template',
+      message: '¿Eliminar este template? No se puede deshacer.',
+      confirmLabel: 'Eliminar',
+      tone: 'danger',
+    })
+    if (!ok) return
     const next = templates.filter(t => t.id !== id)
     setTemplates(next); saveJSON(TEMPLATES_KEY, next)
   }
@@ -92,6 +118,7 @@ export default function CreatorContentStudioPage() {
 
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1100 }}>
+      {confirmDialog}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
@@ -160,6 +187,51 @@ export default function CreatorContentStudioPage() {
             <button onClick={() => setEditing({ category: filter === 'all' ? 'post' : filter, title: '', text: '' })} style={primaryBtn}>
               <Plus size={13} /> Nuevo template
             </button>
+            <button
+              type="button"
+              onClick={() => exportTemplates(templates)}
+              title="Exportar todos los templates a JSON"
+              style={ghostBtn}
+            >
+              <Download size={12} /> Exportar
+            </button>
+            <label style={{ ...ghostBtn, cursor: 'pointer' }}>
+              <ImportIcon size={12} /> Importar
+              <input
+                type="file"
+                accept="application/json,.json"
+                onChange={async e => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  try {
+                    const txt = await file.text()
+                    const parsed = JSON.parse(txt)
+                    if (!Array.isArray(parsed)) throw new Error('JSON inválido')
+                    const incoming = parsed
+                      .filter(t => t && typeof t === 'object' && t.title && t.text)
+                      .map(t => ({
+                        id: `t-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                        category: t.category || 'post',
+                        title: String(t.title).slice(0, 120),
+                        text: String(t.text).slice(0, 5000),
+                      }))
+                    if (incoming.length === 0) {
+                      alert('El archivo no contiene templates válidos.')
+                      return
+                    }
+                    const next = [...templates, ...incoming]
+                    setTemplates(next)
+                    saveJSON(TEMPLATES_KEY, next)
+                    alert(`Importados ${incoming.length} templates.`)
+                  } catch {
+                    alert('No se pudo leer el archivo. Asegúrate de que sea un JSON exportado desde Channelad.')
+                  }
+                  e.target.value = ''
+                }}
+                style={{ display: 'none' }}
+                aria-label="Seleccionar archivo JSON de templates"
+              />
+            </label>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 12 }}>
@@ -238,8 +310,14 @@ function DraftsView({ drafts, onAdd, onUpdate, onRemove }) {
   const current = drafts.find(d => d.id === selected) || drafts[0]
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 14, minHeight: 500 }}>
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, display: 'flex', flexDirection: 'column' }}>
+    <div className="ccs-drafts-shell" style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 14, minHeight: 500 }}>
+      <style>{`
+        @media (max-width: 720px) {
+          .ccs-drafts-shell { grid-template-columns: 1fr !important; min-height: auto !important; }
+          .ccs-drafts-list { max-height: 240px; }
+        }
+      `}</style>
+      <div className="ccs-drafts-list" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: 12, borderBottom: '1px solid var(--border)' }}>
           <button onClick={onAdd} style={{ ...primaryBtn, width: '100%', justifyContent: 'center' }}>
             <Plus size={13} /> Nuevo draft
@@ -296,6 +374,12 @@ function DraftsView({ drafts, onAdd, onUpdate, onRemove }) {
                 borderRadius: 9, padding: 14, fontSize: 13, fontFamily: F, lineHeight: 1.6,
                 outline: 'none', resize: 'none', minHeight: 300,
               }} />
+            {/* Tags editor */}
+            <DraftTagsEditor tags={current.tags || []} onChange={tags => onUpdate(current.id, { tags })} />
+
+            {/* Char limits per platform */}
+            <PlatformLimits text={current.text} />
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, fontSize: 11, color: 'var(--muted)' }}>
               <span>{current.text.length} caracteres · ~{Math.ceil(current.text.length / 5)} palabras</span>
               <button onClick={() => navigator.clipboard.writeText(current.text)} style={{
@@ -309,6 +393,86 @@ function DraftsView({ drafts, onAdd, onUpdate, onRemove }) {
           </>
         )}
       </div>
+    </div>
+  )
+}
+
+// ─── Tags editor for drafts ──────────────────────────────────────────────────
+function DraftTagsEditor({ tags, onChange }) {
+  const [input, setInput] = useState('')
+  const addTag = (raw) => {
+    const t = String(raw || '').trim().toLowerCase().replace(/[^a-z0-9-_áéíóúñ\s]/gi, '')
+    if (!t || tags.includes(t)) return
+    onChange([...tags, t])
+    setInput('')
+  }
+  return (
+    <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+      {tags.map(t => (
+        <span key={t} style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          background: ga(0.1), color: ACCENT, border: `1px solid ${ga(0.3)}`,
+          borderRadius: 999, padding: '3px 4px 3px 9px', fontSize: 11, fontWeight: 600,
+        }}>
+          #{t}
+          <button onClick={() => onChange(tags.filter(x => x !== t))} aria-label={`Quitar etiqueta ${t}`}
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: ACCENT, padding: 0, lineHeight: 0, display: 'flex' }}>
+            <X size={11} />
+          </button>
+        </span>
+      ))}
+      <input
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(input) }
+          if (e.key === 'Backspace' && !input && tags.length > 0) onChange(tags.slice(0, -1))
+        }}
+        placeholder={tags.length === 0 ? 'Añadir etiqueta…' : '+'}
+        aria-label="Añadir etiqueta"
+        style={{
+          background: 'transparent', border: 'none', outline: 'none',
+          fontSize: 11.5, fontFamily: F, color: 'var(--text)', padding: '4px 6px', minWidth: 100,
+        }}
+      />
+    </div>
+  )
+}
+
+// ─── Platform character limits ──────────────────────────────────────────────
+const PLATFORM_LIMITS = [
+  { id: 'telegram',  name: 'Telegram',  max: 4096 },
+  { id: 'whatsapp',  name: 'WhatsApp',  max: 4096 },
+  { id: 'discord',   name: 'Discord',   max: 2000 },
+  { id: 'twitter',   name: 'X / Twitter', max: 280 },
+  { id: 'instagram', name: 'Instagram', max: 2200 },
+  { id: 'linkedin',  name: 'LinkedIn',  max: 3000 },
+]
+function PlatformLimits({ text }) {
+  const len = (text || '').length
+  return (
+    <div style={{
+      display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 6,
+      marginTop: 10, padding: 10, background: 'var(--bg2)', borderRadius: 9,
+    }}>
+      {PLATFORM_LIMITS.map(p => {
+        const pct = Math.min(100, Math.round((len / p.max) * 100))
+        const over = len > p.max
+        const color = over ? ERR_COLOR : pct > 80 ? '#f59e0b' : OK
+        return (
+          <div key={p.id} title={`${len} de ${p.max} caracteres`}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, marginBottom: 3 }}>
+              <span style={{ color: 'var(--muted)', fontWeight: 600 }}>{p.name}</span>
+              <span style={{ color, fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                {over ? `+${len - p.max}` : `${p.max - len}`}
+              </span>
+            </div>
+            <div style={{ height: 3, background: 'var(--bg)', borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', background: color, transition: 'width .2s, background .2s' }} />
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

@@ -11,6 +11,7 @@ import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, WARN, ERR, BLUE, PLAT_COLORS } from '../../../theme/tokens'
 import { CASBadge, CPMBadge, ConfianzaBadge } from '../../../components/scoring'
+import { ErrorBanner } from '../shared/DashComponents'
 
 const ACCENT = GREEN
 const ga = greenAlpha
@@ -41,20 +42,28 @@ export default function CreatorProfilePage() {
   const [profile, setProfile] = useState(() => loadProfile(user))
   const [savedAt, setSavedAt] = useState(null)
   const [copyStatus, setCopyStatus] = useState(null)
+  const [loadError, setLoadError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let mounted = true
+    setLoading(true)
+    setLoadError(false)
+    let anyOk = false
+    let anyFail = false
     Promise.all([
-      apiService.getMyChannels(),
-      apiService.getCreatorCampaigns?.().catch(() => null),
+      apiService.getMyChannels().catch(() => { anyFail = true; return null }),
+      apiService.getCreatorCampaigns?.().catch(() => { anyFail = true; return null }),
     ]).then(([chRes, cmpRes]) => {
       if (!mounted) return
-      if (chRes?.success) setChannels(Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || [])
-      if (cmpRes?.success && Array.isArray(cmpRes.data)) setCampaigns(cmpRes.data)
+      if (chRes?.success) { setChannels(Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || []); anyOk = true }
+      else if (chRes !== null) anyFail = true
+      if (cmpRes?.success && Array.isArray(cmpRes.data)) { setCampaigns(cmpRes.data); anyOk = true }
+      if (anyFail && !anyOk) setLoadError(true)
       setLoading(false)
-    }).catch(() => mounted && setLoading(false))
+    }).catch(() => mounted && (setLoadError(true), setLoading(false)))
     return () => { mounted = false }
-  }, [])
+  }, [retryKey])
 
   const stats = useMemo(() => computeStats(channels, campaigns), [channels, campaigns])
 
@@ -86,6 +95,12 @@ export default function CreatorProfilePage() {
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 1100 }}>
 
+      {loadError && (
+        <ErrorBanner
+          message="No se pudieron cargar tus canales y campañas. Algunos cálculos pueden estar incompletos."
+          onRetry={() => setRetryKey(k => k + 1)}
+        />
+      )}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>
           <h1 style={{ fontFamily: D, fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 6px' }}>
@@ -148,15 +163,37 @@ export default function CreatorProfilePage() {
         </button>
       </div>
 
-      {savedAt && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: OK, marginTop: -10 }}>
-          <CheckCircle2 size={11} /> Guardado automáticamente
-        </div>
-      )}
+      <SaveIndicator savedAt={savedAt} />
+
 
       {view === 'edit'    && <EditorView profile={profile} onChange={updateProfile} stats={stats} />}
       {view === 'preview' && <PreviewView profile={profile} stats={stats} channels={channels} user={user} slug={slug} />}
       {view === 'mediakit' && <MediaKitView profile={profile} stats={stats} channels={channels} user={user} onDownload={downloadMediaKit} />}
+    </div>
+  )
+}
+
+// ─── Save indicator ──────────────────────────────────────────────────────────
+function SaveIndicator({ savedAt }) {
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    if (!savedAt) return undefined
+    const t = setInterval(() => setNow(Date.now()), 5_000)
+    return () => clearInterval(t)
+  }, [savedAt])
+  if (!savedAt) return null
+  const diff = Math.max(0, now - savedAt)
+  const sec = Math.floor(diff / 1000)
+  const label = sec < 5
+    ? 'Guardado'
+    : sec < 60
+      ? `Guardado hace ${sec}s`
+      : sec < 3600
+        ? `Guardado hace ${Math.floor(sec / 60)} min`
+        : `Guardado hace ${Math.floor(sec / 3600)}h`
+  return (
+    <div role="status" aria-live="polite" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: OK, marginTop: -10 }}>
+      <CheckCircle2 size={11} aria-hidden="true" /> {label} · auto-guardado en este dispositivo
     </div>
   )
 }

@@ -8,6 +8,7 @@ import {
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, WARN, ERR, BLUE, PLAT_COLORS } from '../../../theme/tokens'
+import { ErrorBanner } from '../shared/DashComponents'
 
 const ACCENT = GREEN
 const ga = greenAlpha
@@ -41,22 +42,30 @@ export default function CreatorCalendarPage() {
   const [selectedDate, setSelectedDate] = useState(null)
   const [planned, setPlanned] = useState(() => loadPlanned())
   const [filter, setFilter] = useState('all')
+  const [loadError, setLoadError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let mounted = true
+    setLoading(true)
+    setLoadError(false)
+    let anyOk = false
+    let anyFail = false
     Promise.all([
-      apiService.getCreatorCampaigns?.().catch(() => null),
-      apiService.getAdsForCreator?.().catch(() => null),
-      apiService.getMyChannels(),
+      apiService.getCreatorCampaigns?.().catch(() => { anyFail = true; return null }),
+      apiService.getAdsForCreator?.().catch(() => { anyFail = true; return null }),
+      apiService.getMyChannels().catch(() => { anyFail = true; return null }),
     ]).then(([cmpRes, adRes, chRes]) => {
       if (!mounted) return
-      if (cmpRes?.success && Array.isArray(cmpRes.data)) setCampaigns(cmpRes.data)
-      if (adRes?.success && Array.isArray(adRes.data)) setRequests(adRes.data)
-      if (chRes?.success) setChannels(Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || [])
+      if (cmpRes?.success && Array.isArray(cmpRes.data)) { setCampaigns(cmpRes.data); anyOk = true }
+      if (adRes?.success && Array.isArray(adRes.data)) { setRequests(adRes.data); anyOk = true }
+      if (chRes?.success) { setChannels(Array.isArray(chRes.data) ? chRes.data : chRes.data?.items || []); anyOk = true }
+      else if (chRes !== null) anyFail = true
+      if (anyFail && !anyOk) setLoadError(true)
       setLoading(false)
-    }).catch(() => mounted && setLoading(false))
+    }).catch(() => mounted && (setLoadError(true), setLoading(false)))
     return () => { mounted = false }
-  }, [])
+  }, [retryKey])
 
   const events = useMemo(() => {
     const out = []
@@ -123,6 +132,12 @@ export default function CreatorCalendarPage() {
 
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 1200 }}>
+      {loadError && (
+        <ErrorBanner
+          message="No se pudieron cargar tus campañas y canales. Verifica tu conexión."
+          onRetry={() => setRetryKey(k => k + 1)}
+        />
+      )}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>
           <h1 style={{ fontFamily: D, fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 4px' }}>
