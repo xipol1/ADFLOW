@@ -407,7 +407,7 @@ export default function NewCampaignPage() {
                 {content.length}/5000 caracteres
               </div>
             </div>
-            <CopyAnalyzerCompact text={content} />
+            <CopyAnalyzerCompact text={content} channelId={channel?.id || channel?._id} />
 
             {/* Manual advance — content writing is creative, don't interrupt the flow */}
             <div className="flex items-center justify-end mt-3">
