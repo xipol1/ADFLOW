@@ -39,11 +39,12 @@ export default function StickyHeader() {
             boxShadow: '0 1px 3px rgba(15,23,42,0.04)',
           }}
         >
-          <div style={{
+          <div className="sticky-inner" style={{
             maxWidth: '1200px', margin: '0 auto',
             padding: '12px 24px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             gap: 16,
+            flexWrap: 'nowrap',
           }}>
             <a href="/" style={{
               display: 'flex', alignItems: 'center', gap: 10,
@@ -82,6 +83,7 @@ export default function StickyHeader() {
               }}>Iniciar sesion</a>
               <motion.a
                 href="/auth/register"
+                className="sticky-cta"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 style={{
@@ -91,6 +93,7 @@ export default function StickyHeader() {
                   padding: '10px 18px', borderRadius: 10,
                   fontSize: 14, fontWeight: 600,
                   boxShadow: '0 4px 12px rgba(124,58,237,0.25)',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 Empieza gratis
@@ -136,6 +139,14 @@ export default function StickyHeader() {
               .sticky-nav { display: none !important; }
               .sticky-login { display: none !important; }
               .sticky-burger { display: inline-flex !important; }
+            }
+            @media (max-width: 480px) {
+              .sticky-inner { padding: 8px 14px !important; gap: 8px !important; }
+              .sticky-inner > a:first-child span { display: none; }
+              .sticky-cta {
+                padding: 10px 14px !important;
+                font-size: 13px !important;
+              }
             }
           `}</style>
         </motion.header>

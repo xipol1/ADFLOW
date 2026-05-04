@@ -561,7 +561,7 @@ function DashboardMockup({ externalGridRef, externalContainerRef }) {
             </div>
 
             {/* Main content */}
-            <div style={{ flex: 1, padding: '20px', overflow: 'hidden', position: 'relative' }}>
+            <div className="dashboard-mockup-content" style={{ flex: 1, padding: '20px', overflow: 'hidden', position: 'relative' }}>
               {/* Top bar */}
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -816,6 +816,7 @@ function QuickOnboarding() {
       {/* Role toggle */}
       <div
         role="tablist"
+        className="hero-role-toggle"
         style={{
           display: 'inline-flex', position: 'relative',
           background: '#fff',
@@ -868,21 +869,16 @@ function QuickOnboarding() {
       </div>
 
       {/* Quick onboarding form */}
-      <form onSubmit={submit} style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        background: '#fff',
-        border: '1px solid rgba(15,23,42,0.08)',
-        borderRadius: 14,
-        padding: 6,
-        boxShadow: '0 8px 24px rgba(15,23,42,0.06)',
-        maxWidth: 480, margin: '0 auto 14px',
-      }}
+      <form onSubmit={submit}
       className="hero-onboard-form"
       >
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '0 12px', flex: 1, minWidth: 0,
-        }}>
+        <div
+          className="hero-onboard-input-wrap"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '0 12px', flex: 1, minWidth: 0,
+          }}
+        >
           <Mail size={16} style={{ color: 'var(--muted)', flexShrink: 0 }} />
           <input
             type="email"
@@ -921,7 +917,7 @@ function QuickOnboarding() {
       </form>
 
       {/* OAuth + demo */}
-      <div style={{
+      <div className="hero-oauth-row" style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         gap: 10, flexWrap: 'wrap', marginBottom: 16,
       }}>
@@ -966,7 +962,7 @@ function QuickOnboarding() {
           WhatsApp
         </motion.a>
 
-        <span style={{ fontSize: 13, color: 'var(--muted)' }}>o</span>
+        <span className="hero-oauth-or" style={{ fontSize: 13, color: 'var(--muted)' }}>o</span>
 
         <motion.button
           type="button"
@@ -1183,7 +1179,7 @@ export default function Hero3D() {
         position: 'relative', minHeight: '100vh',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden',
-        padding: 'clamp(100px, 16vw, 140px) 20px clamp(80px, 10vw, 120px)',
+        padding: 'clamp(80px, 16vw, 140px) 12px clamp(60px, 10vw, 120px)',
       }}
     >
       <div className="hero-mesh-1" />
@@ -1266,7 +1262,7 @@ export default function Hero3D() {
         </div>
 
         {/* 3D Dashboard Mockup */}
-        <div style={{ position: 'relative', maxWidth: MAX_W, margin: '0 auto', padding: '0 20px' }}>
+        <div className="hero-mockup-wrap" style={{ position: 'relative', maxWidth: MAX_W, margin: '0 auto', padding: '0 8px' }}>
           <DashboardMockup externalGridRef={sharedGridRef} externalContainerRef={sharedContainerRef} />
           <ScrollNarrative
             progress={scrollYProgress}
@@ -1283,10 +1279,71 @@ export default function Hero3D() {
           .dashboard-mockup-grid { grid-template-columns: repeat(3, 1fr) !important; }
         }
         @media (max-width: 640px) {
-          .dashboard-mockup-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .dashboard-mockup-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+          .dashboard-mockup-content { padding: 14px !important; }
+        }
+        @media (max-width: 420px) {
+          .hero-mockup-wrap { padding: 0 4px !important; }
+          .dashboard-mockup-content { padding: 12px !important; }
         }
         @media (max-width: 768px) {
           .hero-floating-badge { display: none !important; }
+        }
+
+        /* Quick onboarding form */
+        .hero-onboard-form {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: #fff;
+          border: 1px solid rgba(15,23,42,0.08);
+          border-radius: 14px;
+          padding: 6px;
+          box-shadow: 0 8px 24px rgba(15,23,42,0.06);
+          max-width: 480px;
+          margin: 0 auto 14px;
+        }
+        @media (max-width: 480px) {
+          .hero-onboard-form {
+            flex-direction: column;
+            padding: 8px;
+            border-radius: 16px;
+            gap: 8px;
+          }
+          .hero-onboard-form .hero-onboard-input-wrap {
+            width: 100%;
+            padding: 4px 12px !important;
+            border-bottom: 1px solid rgba(15,23,42,0.06);
+            padding-bottom: 8px !important;
+            margin-bottom: 4px;
+          }
+          .hero-onboard-form button[type="submit"] {
+            width: 100%;
+            justify-content: center;
+            padding: 12px 18px !important;
+          }
+        }
+
+        /* Role toggle wraps on small */
+        @media (max-width: 380px) {
+          .hero-role-toggle button {
+            padding: 10px 16px !important;
+            font-size: 13px !important;
+          }
+        }
+
+        /* OAuth row wraps cleanly on mobile */
+        @media (max-width: 480px) {
+          .hero-oauth-row {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 8px !important;
+          }
+          .hero-oauth-row a, .hero-oauth-row button {
+            width: 100%;
+            justify-content: center;
+          }
+          .hero-oauth-row .hero-oauth-or { display: none !important; }
         }
       `}</style>
     </section>

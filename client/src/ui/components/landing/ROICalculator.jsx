@@ -311,7 +311,7 @@ export default function ROICalculator() {
         .roi-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
-          width: 22px; height: 22px;
+          width: 28px; height: 28px;
           border-radius: 50%;
           background: #fff;
           border: 3px solid #7C3AED;
@@ -321,12 +321,17 @@ export default function ROICalculator() {
         }
         .roi-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
         .roi-slider::-moz-range-thumb {
-          width: 22px; height: 22px;
+          width: 28px; height: 28px;
           border-radius: 50%;
           background: #fff;
           border: 3px solid #7C3AED;
           cursor: pointer;
           box-shadow: 0 2px 8px rgba(124,58,237,0.3);
+        }
+        @media (pointer: coarse) {
+          .roi-slider { height: 8px; }
+          .roi-slider::-webkit-slider-thumb { width: 32px; height: 32px; }
+          .roi-slider::-moz-range-thumb { width: 32px; height: 32px; }
         }
         @media (max-width: 760px) {
           .roi-container { grid-template-columns: 1fr !important; }
