@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { Sparkles, X } from 'lucide-react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { Sparkles } from 'lucide-react'
 import { ErrorBanner, useConfirm } from '../shared/DashComponents'
 import apiService from '../../../../services/api'
 import DeliveryBadge from '../../../components/DeliveryBadge'
 import SuggestionCard from '../../../components/SuggestionCard'
-import CopyAnalyzerCompact from '../../../components/CopyAnalyzerCompact'
-import { analyzeCopy } from '../../../lib/copyAnalyzer'
+import ProposeChangeModal from '../../../components/ProposeChangeModal'
 import { useAuth } from '../../../../auth/AuthContext'
 import { FONT_BODY, FONT_DISPLAY, OK as _OK, BLUE as _BLUE, WARN, ERR } from '../../../theme/tokens'
 
@@ -374,142 +373,6 @@ const ChatPanel = ({ campaign, onSent, onCampaignUpdate }) => {
           onSubmit={handlePropose}
         />
       )}
-    </div>
-  )
-}
-
-/* ── Propose change modal ──────────────────────────────────────────────────── */
-const ProposeChangeModal = ({ campaign, onClose, onSubmit }) => {
-  const channelId = campaign?.channel?._id || campaign?.channel
-  const [proposed, setProposed] = useState(campaign?.content || '')
-  const [comment, setComment] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-
-  // We need a baseline score (current content) and a proposed score for the
-  // diff badge. Both via analyzeCopy — but the analyzer is wrapped inside
-  // CopyAnalyzerCompact below, so for the score persisting we recompute.
-  const baseScore = useMemo(() => analyzeCopy(campaign?.content || '').score, [campaign?.content])
-  const proposedScore = useMemo(() => analyzeCopy(proposed).score, [proposed])
-
-  const isUnchanged = proposed.trim() === (campaign?.content || '').trim()
-  const tooLong = proposed.length > 5000
-
-  const handleSubmit = async () => {
-    if (submitting || isUnchanged || tooLong || !proposed.trim()) return
-    setSubmitting(true)
-    await onSubmit({
-      proposedContent: proposed.trim(),
-      comment: comment.trim() || null,
-      scoreBefore: baseScore,
-      scoreAfter: proposedScore,
-    })
-    setSubmitting(false)
-  }
-
-  return (
-    <div onClick={e => { if (e.target === e.currentTarget) onClose() }} style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1100,
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
-      backdropFilter: 'blur(6px)',
-    }}>
-      <div style={{
-        background: 'var(--surface)', borderRadius: 18, width: '100%', maxWidth: 620,
-        maxHeight: '90vh', overflow: 'auto', padding: 22, fontFamily: F,
-        boxShadow: '0 32px 80px rgba(0,0,0,0.35)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 9,
-            background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.35)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Sparkles size={15} color="#8B5CF6" />
-          </div>
-          <h2 style={{ fontFamily: D, fontSize: 17, fontWeight: 800, color: 'var(--text)', margin: 0, flex: 1 }}>
-            Proponer cambio en el texto
-          </h2>
-          <button onClick={onClose} style={{
-            background: 'transparent', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--muted)',
-          }}>
-            <X size={18} />
-          </button>
-        </div>
-
-        <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.5, marginBottom: 14 }}>
-          Edita el texto del anuncio. La otra parte podrá aceptar o rechazar tu propuesta.
-          El score se actualiza en tiempo real con datos de tu canal.
-        </div>
-
-        <label style={{ display: 'block', marginBottom: 12 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Texto propuesto
-          </div>
-          <textarea
-            value={proposed}
-            onChange={e => setProposed(e.target.value)}
-            placeholder="Texto del anuncio..."
-            rows={6}
-            maxLength={5000}
-            style={{
-              width: '100%', boxSizing: 'border-box', background: 'var(--bg)',
-              border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px',
-              fontSize: 13, color: 'var(--text)', fontFamily: F, resize: 'vertical', lineHeight: 1.5,
-            }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
-            <span>{proposed.length}/5000 chars</span>
-            {baseScore != null && proposedScore != null && (
-              <span>
-                Score: {baseScore} → <strong style={{
-                  color: proposedScore >= baseScore ? OK : RED,
-                }}>{proposedScore}</strong>
-              </span>
-            )}
-          </div>
-          <CopyAnalyzerCompact text={proposed} channelId={channelId} />
-        </label>
-
-        <label style={{ display: 'block', marginBottom: 14 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Comentario (opcional)
-          </div>
-          <textarea
-            value={comment}
-            onChange={e => setComment(e.target.value)}
-            placeholder="¿Por qué propones este cambio?"
-            rows={2}
-            maxLength={2000}
-            style={{
-              width: '100%', boxSizing: 'border-box', background: 'var(--bg)',
-              border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px',
-              fontSize: 12.5, color: 'var(--text)', fontFamily: F, resize: 'vertical',
-            }}
-          />
-        </label>
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onClose} style={{
-            background: 'var(--bg2)', color: 'var(--text)', border: '1px solid var(--border)',
-            borderRadius: 9, padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: F,
-          }}>
-            Cancelar
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={submitting || isUnchanged || tooLong || !proposed.trim()}
-            style={{
-              background: '#8B5CF6', color: '#fff', border: 'none',
-              borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700,
-              cursor: (submitting || isUnchanged || tooLong || !proposed.trim()) ? 'default' : 'pointer',
-              fontFamily: F,
-              opacity: (isUnchanged || tooLong || !proposed.trim()) ? 0.5 : 1,
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-            }}>
-            <Sparkles size={13} />
-            {submitting ? 'Enviando...' : isUnchanged ? 'Sin cambios' : 'Enviar propuesta'}
-          </button>
-        </div>
-      </div>
     </div>
   )
 }

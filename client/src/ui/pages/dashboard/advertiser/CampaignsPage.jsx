@@ -4,12 +4,15 @@ import {
   RefreshCw, CreditCard, CheckCircle, XCircle, Eye, Clock, Zap,
   TrendingUp, MessageCircle, Send, ArrowRight, ExternalLink, Shield,
   BarChart3, ChevronRight, Copy, AlertCircle, Megaphone, Plus,
-  LayoutGrid, Table2,
+  LayoutGrid, Table2, Sparkles,
 } from 'lucide-react'
 import apiService from '../../../../services/api'
 import DeliveryBadge from '../../../components/DeliveryBadge'
 import EmptyState from '../../../components/EmptyState'
 import ChannelHealthMonitor from '../../../components/ChannelHealthMonitor'
+import SuggestionCard from '../../../components/SuggestionCard'
+import ProposeChangeModal from '../../../components/ProposeChangeModal'
+import { useAuth } from '../../../../auth/AuthContext'
 import AdsPage from './AdsPage'
 import CampaignsTableView from './CampaignsTableView'
 import {
@@ -143,14 +146,62 @@ const Avatar = ({ name, color = PURPLE, size = 28 }) => {
 }
 
 /* ── Pro chat panel ────────────────────────────────────────────────────────── */
-const ChatPanel = ({ campaign, myRole = 'advertiser' }) => {
+const ChatPanel = ({ campaign, myRole = 'advertiser', onCampaignUpdate }) => {
+  const { user } = useAuth()
+  const currentUserId = String(user?._id || user?.id || '')
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
   const [expanded, setExpanded] = useState(true)
   const [messages, setMessages] = useState([])
   const [chatError, setChatError] = useState('')
+  const [proposeOpen, setProposeOpen] = useState(false)
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
+
+  // Editable in DRAFT or PAID; locked once published
+  const canPropose = ['DRAFT', 'PAID'].includes(campaign?.status)
+
+  const refetchMessages = useCallback(async () => {
+    if (!campaign?._id) return
+    try {
+      const res = await apiService.getCampaignMessages(campaign._id)
+      if (res?.success) setMessages(res.data || [])
+    } catch {}
+  }, [campaign?._id])
+
+  const handleResolveSuggestion = async (msgId, action) => {
+    try {
+      const r = await apiService.resolveCampaignSuggestion(campaign._id, msgId, action)
+      if (r?.success) {
+        await refetchMessages()
+        if (r.data?.campaign && onCampaignUpdate) onCampaignUpdate(r.data.campaign)
+      } else {
+        setChatError(r?.message || 'Error al resolver la propuesta')
+      }
+    } catch {
+      setChatError('Error de conexión')
+    }
+  }
+
+  const handlePropose = async ({ proposedContent, comment, scoreBefore, scoreAfter }) => {
+    try {
+      const r = await apiService.createCampaignSuggestion(campaign._id, {
+        proposedContent,
+        baseContent: campaign.content || '',
+        comment,
+        scoreBefore,
+        scoreAfter,
+      })
+      if (r?.success) {
+        setProposeOpen(false)
+        await refetchMessages()
+      } else {
+        setChatError(r?.message || 'Error al enviar la propuesta')
+      }
+    } catch {
+      setChatError('Error de conexión')
+    }
+  }
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -270,6 +321,22 @@ const ChatPanel = ({ campaign, myRole = 'advertiser' }) => {
                 </div>
               </div>
             ) : messages.map((msg, i) => {
+              // Suggestion messages get a full-width card with diff + actions
+              if (msg.type === 'suggestion') {
+                return (
+                  <div key={msg._id || i} style={{ animation: 'adf-fadein .2s ease', marginTop: 4 }}>
+                    <div style={{ fontSize: 10.5, color: 'var(--muted2)', marginBottom: 4, paddingLeft: 4 }}>
+                      {msg.senderName || msg.senderRole} · {fmtDateTime(msg.createdAt)}
+                    </div>
+                    <SuggestionCard
+                      msg={msg}
+                      currentUserId={currentUserId}
+                      currentContent={campaign?.content || ''}
+                      onResolve={(action) => handleResolveSuggestion(msg._id, action)}
+                    />
+                  </div>
+                )
+              }
               const isMe = msg.senderRole === myRole
               const prevMsg = messages[i - 1]
               const showAvatar = !prevMsg || prevMsg.senderRole !== msg.senderRole
@@ -339,6 +406,18 @@ const ChatPanel = ({ campaign, myRole = 'advertiser' }) => {
             display: 'flex', gap: '10px', alignItems: 'flex-end',
             background: 'var(--surface)',
           }}>
+            {/* Propose change toggle (only if editing is allowed) */}
+            {canPropose && (
+              <button onClick={() => setProposeOpen(true)} title="Proponer cambio en el texto" style={{
+                width: '40px', height: '40px', borderRadius: '12px',
+                background: 'var(--bg)', border: '1px solid var(--border)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', flexShrink: 0, transition: 'all .15s',
+                color: PURPLE,
+              }}>
+                <Sparkles size={16} />
+              </button>
+            )}
             <div style={{ flex: 1, position: 'relative' }}>
               <textarea
                 ref={inputRef}
@@ -382,6 +461,14 @@ const ChatPanel = ({ campaign, myRole = 'advertiser' }) => {
             </button>
           </div>
         </>
+      )}
+
+      {proposeOpen && (
+        <ProposeChangeModal
+          campaign={campaign}
+          onClose={() => setProposeOpen(false)}
+          onSubmit={handlePropose}
+        />
       )}
     </div>
   )
@@ -971,7 +1058,7 @@ export default function CampaignsPage() {
 
                 {/* Chat */}
                 {['DRAFT', 'PAID', 'PUBLISHED', 'COMPLETED'].includes(sel.status) && (
-                  <ChatPanel campaign={sel} myRole="advertiser" />
+                  <ChatPanel campaign={sel} myRole="advertiser" onCampaignUpdate={handleChatUpdate} />
                 )}
 
                 {/* Analytics link */}
