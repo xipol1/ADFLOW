@@ -73,6 +73,7 @@ skills-lock.json
 channelad-pitch-video/
 channelad-ad-flow/
 channelad-advertiser-tour/
+channelad-client-pitch/
 
 # ── One-off scripts (investor deck, etc.) ─────────────────────────────────────
 scripts/create_burn_slide.py
