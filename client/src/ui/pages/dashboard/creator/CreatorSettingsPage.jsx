@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { User, Bell, Lock, CreditCard, Link2, CheckCircle, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
@@ -62,14 +62,79 @@ const Inp = ({ label, type = 'text', value, onChange, placeholder, hint, error, 
 }
 
 // ── Toggle ───────────────────────────────────────────────────────────────────
-const Toggle = ({ label, desc, on, onChange }) => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
-    <div><div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', marginBottom: '2px' }}>{label}</div><div style={{ fontSize: '12px', color: 'var(--muted)' }}>{desc}</div></div>
-    <button onClick={() => onChange?.(!on)} style={{ width: '44px', height: '24px', borderRadius: '12px', border: 'none', cursor: 'pointer', position: 'relative', background: on ? WA : 'var(--muted2)', transition: 'background .2s', flexShrink: 0 }}>
-      <div style={{ position: 'absolute', top: '3px', left: on ? '22px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left .2s' }} />
-    </button>
-  </div>
-)
+const Toggle = ({ label, desc, on, onChange }) => {
+  const descId = useState(() => `toggle-desc-${Math.random().toString(36).slice(2, 9)}`)[0]
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
+      <div>
+        <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', marginBottom: '2px' }}>{label}</div>
+        <div id={descId} style={{ fontSize: '12px', color: 'var(--muted)' }}>{desc}</div>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={!!on}
+        aria-label={label}
+        aria-describedby={desc ? descId : undefined}
+        onClick={() => onChange?.(!on)}
+        onKeyDown={(e) => {
+          if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onChange?.(!on) }
+        }}
+        style={{ width: '44px', height: '24px', borderRadius: '12px', border: 'none', cursor: 'pointer', position: 'relative', background: on ? WA : 'var(--muted2)', transition: 'background .2s', flexShrink: 0 }}
+      >
+        <span aria-hidden="true" style={{ position: 'absolute', top: '3px', left: on ? '22px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left .2s' }} />
+      </button>
+    </div>
+  )
+}
+
+// ── Password strength meter ──────────────────────────────────────────────────
+const PasswordStrength = ({ value }) => {
+  if (!value) return null
+  const checks = {
+    length:    value.length >= 8,
+    longer:    value.length >= 12,
+    upper:     /[A-Z]/.test(value),
+    lower:     /[a-z]/.test(value),
+    digit:     /\d/.test(value),
+    symbol:    /[^A-Za-z0-9]/.test(value),
+  }
+  const score = Object.values(checks).filter(Boolean).length // 0..6
+  const tier =
+    score <= 2 ? { label: 'Débil',   color: ER,  pct: 25 } :
+    score <= 3 ? { label: 'Aceptable', color: '#f59e0b', pct: 50 } :
+    score <= 4 ? { label: 'Fuerte',  color: OK,  pct: 75 } :
+                 { label: 'Muy fuerte', color: OK, pct: 100 }
+  const requirements = [
+    { ok: checks.length, label: 'Al menos 8 caracteres' },
+    { ok: checks.upper,  label: 'Una mayúscula' },
+    { ok: checks.lower,  label: 'Una minúscula' },
+    { ok: checks.digit,  label: 'Un número' },
+    { ok: checks.symbol, label: 'Un símbolo (recomendado)' },
+  ]
+  return (
+    <div role="status" aria-live="polite" style={{ marginTop: -6 }}>
+      <div style={{
+        height: 4, background: 'var(--bg2)', borderRadius: 2, overflow: 'hidden', marginBottom: 6,
+      }}>
+        <div style={{
+          width: `${tier.pct}%`, height: '100%', background: tier.color, transition: 'width .2s, background .2s',
+        }} />
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11, fontFamily: F }}>
+        <span style={{ color: tier.color, fontWeight: 700 }}>{tier.label}</span>
+        <span style={{ color: 'var(--muted)' }}>{score}/6 criterios</span>
+      </div>
+      <ul style={{ margin: '6px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexWrap: 'wrap', gap: '2px 12px' }}>
+        {requirements.map(r => (
+          <li key={r.label} style={{ fontSize: 10.5, color: r.ok ? OK : 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <span aria-hidden="true">{r.ok ? '✓' : '·'}</span> {r.label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
 
 // ── Card ─────────────────────────────────────────────────────────────────────
 const Card = ({ title, children }) => (
@@ -137,9 +202,39 @@ export default function CreatorSettingsPage() {
 
   // ── Profile form state ──
   const [profile, setProfile] = useState({
-    nombre: '', email: '', bio: '', sitioWeb: '', pais: '',
+    nombre: '', email: '', bio: '', sitioWeb: '', pais: '', avatarUrl: '',
   })
   const up = (k, v) => { setProfile(p => ({ ...p, [k]: v })); setErrors(e => ({ ...e, [k]: null })) }
+
+  // ── Avatar upload ──
+  const fileInputRef = useRef(null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const handleAvatarFile = async (file) => {
+    if (!file) return
+    if (!/^image\/(png|jpe?g|webp)$/i.test(file.type)) {
+      setToast({ type: 'error', text: 'Formato no soportado. Usa PNG, JPG o WebP.' })
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setToast({ type: 'error', text: 'La imagen excede 2MB.' })
+      return
+    }
+    setUploadingAvatar(true)
+    try {
+      const res = await apiService.uploadFile(file, 'avatar')
+      const url = res?.data?.url || res?.url || res?.data?.fileUrl
+      if (res?.success && url) {
+        setProfile(p => ({ ...p, avatarUrl: url }))
+        setToast({ type: 'success', text: 'Avatar actualizado. Recuerda guardar cambios.' })
+      } else {
+        setToast({ type: 'error', text: res?.message || 'No se pudo subir el avatar' })
+      }
+    } catch {
+      setToast({ type: 'error', text: 'Error de conexión al subir el avatar' })
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
 
   // ── Notification prefs ──
   const [notifs, setNotifs] = useState({
@@ -180,6 +275,7 @@ export default function CreatorSettingsPage() {
             bio: u.perfilCreador?.biografia || '',
             sitioWeb: u.perfilCreador?.sitioWeb || '',
             pais: u.perfilCreador?.pais || u.ubicacion?.pais || '',
+            avatarUrl: u.perfilCreador?.avatar || u.avatar || '',
           })
           if (u.preferenciasNotificacion) setNotifs(p => ({ ...p, ...u.preferenciasNotificacion }))
           if (u.datosFacturacion) setPayment(p => ({ ...p, ...u.datosFacturacion }))
@@ -192,7 +288,7 @@ export default function CreatorSettingsPage() {
           setChannels(channelsRes.data)
         }
       } catch {
-        if (!cancelled) setFetchError('No se pudieron cargar los datos. Verifica tu conexion.')
+        if (!cancelled) setFetchError('No se pudieron cargar los datos. Verifica tu conexión.')
       }
       if (!cancelled) setLoading(false)
     }
@@ -241,7 +337,7 @@ export default function CreatorSettingsPage() {
         method: 'PUT',
         body: JSON.stringify({
           nombre: profile.nombre,
-          perfilCreador: { biografia: profile.bio, sitioWeb: profile.sitioWeb, pais: profile.pais },
+          perfilCreador: { biografia: profile.bio, sitioWeb: profile.sitioWeb, pais: profile.pais, avatar: profile.avatarUrl },
         }),
       })
       setToast({ message: res?.success ? 'Perfil actualizado' : (res?.message || 'Error al guardar'), type: res?.success ? 'success' : 'error' })
@@ -360,12 +456,38 @@ export default function CreatorSettingsPage() {
           </Card>
           <Card title="Avatar">
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: WAG(0.15), border: `2px solid ${WAG(0.4)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: D, fontWeight: 700, fontSize: '24px', color: WA, flexShrink: 0 }}>
-                {initials}
+              <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: profile.avatarUrl ? `center/cover no-repeat url(${profile.avatarUrl})` : WAG(0.15), border: `2px solid ${WAG(0.4)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: D, fontWeight: 700, fontSize: '24px', color: WA, flexShrink: 0, overflow: 'hidden' }}>
+                {!profile.avatarUrl && initials}
               </div>
               <div>
-                <button style={{ background: WAG(0.1), border: `1px solid ${WAG(0.25)}`, borderRadius: '9px', padding: '8px 16px', fontSize: '13px', fontWeight: 600, color: WA, cursor: 'pointer', fontFamily: F }}>Subir imagen</button>
-                <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '6px' }}>PNG o JPG, máx. 2MB</div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={e => { handleAvatarFile(e.target.files?.[0]); e.target.value = '' }}
+                  style={{ display: 'none' }}
+                  aria-label="Seleccionar imagen de avatar"
+                />
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                    style={{ background: WAG(0.1), border: `1px solid ${WAG(0.25)}`, borderRadius: '9px', padding: '8px 16px', fontSize: '13px', fontWeight: 600, color: WA, cursor: uploadingAvatar ? 'not-allowed' : 'pointer', fontFamily: F, opacity: uploadingAvatar ? 0.6 : 1 }}
+                  >
+                    {uploadingAvatar ? 'Subiendo…' : (profile.avatarUrl ? 'Cambiar imagen' : 'Subir imagen')}
+                  </button>
+                  {profile.avatarUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setProfile(p => ({ ...p, avatarUrl: '' }))}
+                      style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: '9px', padding: '8px 12px', fontSize: '13px', fontWeight: 600, color: 'var(--muted)', cursor: 'pointer', fontFamily: F }}
+                    >
+                      Quitar
+                    </button>
+                  )}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '6px' }}>PNG, JPG o WebP, máx. 2MB</div>
               </div>
             </div>
           </Card>
@@ -391,6 +513,7 @@ export default function CreatorSettingsPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <Inp label="Contraseña actual" type="password" value={security.actual} onChange={v => us('actual', v)} placeholder="••••••••" error={errors.actual} />
               <Inp label="Nueva contraseña" type="password" value={security.nueva} onChange={v => us('nueva', v)} placeholder="Mínimo 8 caracteres" error={errors.nueva} hint="Debe incluir mayúscula, minúscula y número" />
+              <PasswordStrength value={security.nueva} />
               <Inp label="Confirmar nueva contraseña" type="password" value={security.confirmar} onChange={v => us('confirmar', v)} placeholder="Repite la contraseña" error={errors.confirmar} />
             </div>
           </Card>
