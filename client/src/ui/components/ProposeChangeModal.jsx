@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react'
-import { Sparkles, X } from 'lucide-react'
+import { Sparkles, X, AlertTriangle } from 'lucide-react'
 import { analyzeCopy } from '../lib/copyAnalyzer'
 import CopyAnalyzerCompact from './CopyAnalyzerCompact'
-import { FONT_BODY as F, FONT_DISPLAY as D, OK, ERR } from '../theme/tokens'
+import { FONT_BODY as F, FONT_DISPLAY as D, OK, ERR, WARN } from '../theme/tokens'
 
 const PURPLE = '#8B5CF6'
 
@@ -84,6 +84,22 @@ export default function ProposeChangeModal({ campaign, onClose, onSubmit }) {
           Edita el texto del anuncio. La otra parte podrá aceptar o rechazar tu propuesta.
           El score se actualiza en tiempo real con datos de este canal.
         </div>
+
+        {campaign?.status === 'PAID' && (
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 10,
+            background: `${WARN}10`, border: `1px solid ${WARN}40`,
+            borderRadius: 10, padding: '10px 12px', marginBottom: 14,
+            fontSize: 12, color: WARN, lineHeight: 1.5,
+          }}>
+            <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+            <span style={{ color: 'var(--text)' }}>
+              <strong style={{ color: WARN }}>Esta campaña ya está pagada.</strong>{' '}
+              Los cambios al texto se aplican al contenido que se publicará.
+              No se permite cambiar el dominio del enlace después del pago.
+            </span>
+          </div>
+        )}
 
         <label style={{ display: 'block', marginBottom: 12 }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>

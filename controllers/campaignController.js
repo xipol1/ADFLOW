@@ -846,6 +846,33 @@ const createCampaignSuggestion = async (req, res, next) => {
       }
     }
 
+    // Anti-bait-and-switch: refuse if the proposal SWAPS any URL present in
+    // the original content for a different domain. A creator (or compromised
+    // advertiser) could otherwise pay/be-paid for one URL, then sneak in a
+    // different destination by accepting a content change. Adding new URLs
+    // is allowed; changing existing ones is not. The clickable tracking link
+    // is unaffected (it's stored on Campaign.trackingUrl, not in `content`),
+    // but visible URLs in the copy still drive trust + manual clicks.
+    const URL_RE = /https?:\/\/([^\s/]+)/gi;
+    const hostsIn = (txt) => {
+      const out = new Set();
+      let m;
+      while ((m = URL_RE.exec(txt || '')) !== null) {
+        out.add(String(m[1]).toLowerCase().replace(/^www\./, ''));
+      }
+      return out;
+    };
+    const baseHosts = hostsIn(campaign.content || '');
+    const proposedHosts = hostsIn(proposedContent);
+    const removedHosts = [...baseHosts].filter(h => !proposedHosts.has(h));
+    if (removedHosts.length > 0 && campaign.status === 'PAID') {
+      return res.status(422).json({
+        success: false,
+        blocked: true,
+        message: `No se permite cambiar la URL después de pagar (perdió: ${removedHosts.join(', ')}). Mantén el dominio original o cancela la campaña.`,
+      });
+    }
+
     const isAdvertiser = campaign.advertiser?.toString() === String(userId);
     const senderRole = isAdvertiser ? 'advertiser' : 'creator';
 

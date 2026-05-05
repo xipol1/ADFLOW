@@ -195,7 +195,17 @@ const CanalSchema = new mongoose.Schema(
     // services/copyBenchmarksService.js for the payload shape.
     copyBenchmarksCache: { type: mongoose.Schema.Types.Mixed, default: null },
   },
-  { timestamps: true, strict: true }
+  {
+    timestamps: true,
+    strict: true,
+    // Don't auto-create indexes on connection. Mongoose default is `true`
+    // which would try to build the partial unique index below on every cold
+    // start of the serverless function — failing loudly if the dataset has
+    // pre-existing duplicate verified canals for the same (plataforma,
+    // identificadorCanal). Operators run scripts/migrate-canal-trust-index.js
+    // once at deploy time; that script audits duplicates first.
+    autoIndex: false,
+  }
 );
 
 // Compound index for the daily scoring cron (status + last score date).

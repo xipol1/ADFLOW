@@ -283,8 +283,10 @@ const acceptSwap = async (req, res, next) => {
 
     // Generate two tracking links (one for each creator's post). Each link
     // points to the OTHER channel — clicks measure conversion driven by the
-    // mention. If link creation fails, we still accept the swap but the
-    // tracking URLs will be empty (creator can publish raw URLs as fallback).
+    // mention. If link creation fails, we still accept the swap but flag
+    // the response so the UI can surface a retry — markPublished() will
+    // also self-heal a missing trackingUrl on first publication.
+    let trackingWarning = null;
     try {
       const [requesterChannel, recipientChannel] = await Promise.all([
         Canal.findById(swap.requesterChannel).lean(),
@@ -303,15 +305,18 @@ const acceptSwap = async (req, res, next) => {
         ]);
         swap.contenidoRequester.trackingUrl = urlForRequesterPost;
         swap.contenidoRecipient.trackingUrl = urlForRecipientPost;
+      } else {
+        trackingWarning = 'tracking_channels_missing';
       }
     } catch (trackErr) {
       console.error('[swap.accept] tracking link creation failed:', trackErr?.message);
+      trackingWarning = 'tracking_link_failed';
     }
 
     swap.status = 'aceptado';
     await swap.save();
 
-    return res.json({ success: true, data: swap });
+    return res.json({ success: true, data: swap, warning: trackingWarning });
   } catch (err) {
     return next(err);
   }
@@ -393,6 +398,29 @@ const markPublished = async (req, res, next) => {
 
     if (!['aceptado', 'publicado_a', 'publicado_b'].includes(swap.status)) {
       return next(httpError(400, `No se puede marcar como publicado en estado ${swap.status}`));
+    }
+
+    // Self-heal missing tracking URL: when acceptSwap silently failed at
+    // tracking-link creation (DB hiccup, bug, etc.) the swap landed in
+    // 'aceptado' with empty trackingUrl fields and no recovery path. Retry
+    // generation here for the side that's marking published — if it still
+    // fails we keep the publication mark, but at least we'll have logged it.
+    const myContent = esRequester ? swap.contenidoRequester : swap.contenidoRecipient;
+    if (!myContent.trackingUrl) {
+      try {
+        const destinationChannelId = esRequester ? swap.recipientChannel : swap.requesterChannel;
+        const destinationChannel = await Canal.findById(destinationChannelId).lean();
+        if (destinationChannel) {
+          const url = await createSwapTrackingLink({
+            swap, posterUserId: userId, destinationChannel,
+          });
+          if (esRequester) swap.contenidoRequester.trackingUrl = url;
+          else             swap.contenidoRecipient.trackingUrl = url;
+        }
+      } catch (regenErr) {
+        console.error('[swap.markPublished] tracking link regen failed:', regenErr?.message);
+        // Continue — we still want to record the publication.
+      }
     }
 
     const ahora = new Date();
