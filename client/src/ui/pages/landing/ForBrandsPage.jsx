@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import SEO from '../../components/SEO'
 import CrossLinks from '../../components/landing/CrossLinks'
@@ -82,25 +82,67 @@ const TESTIMONIALS = [
    ═══════════════════════════════════════════════════════════ */
 export default function ForBrandsPage() {
   const [openFaq, setOpenFaq] = useState(null)
+  // Adaptive SEO: this component is rendered both at "/" (under the
+  // landingUnification flag) and "/para-anunciantes". The canonical, title,
+  // description and structured data must change accordingly so we don't ship
+  // duplicate content with /para-anunciantes' canonical from the root URL.
+  const location = useLocation()
+  const isOnRootPath = location?.pathname === '/' || location?.pathname === ''
 
-  return (
-    <main style={{ fontFamily: F, color: 'var(--text)', background: 'var(--bg)' }}>
-      <Helmet>
-        <script type="application/ld+json">{JSON.stringify({
-          '@context': 'https://schema.org', '@type': 'WebPage', name: 'Publicidad en comunidades para marcas — Channelad',
-          description: 'Compra publicidad en canales verificados de WhatsApp, Telegram y Discord.',
-          url: 'https://channelad.io/para-anunciantes',
-          publisher: { '@type': 'Organization', name: 'Channelad', url: 'https://channelad.io' },
-          breadcrumb: { '@type': 'BreadcrumbList', itemListElement: [
+  const seoTitle = isOnRootPath
+    ? 'Channelad — Publicidad en comunidades reales'
+    : 'Publicidad en comunidades para marcas'
+  const seoDescription = isOnRootPath
+    ? 'Channelad es el marketplace de publicidad en comunidades reales de WhatsApp, Telegram y Discord. Pagos custodiados, metricas verificadas, dashboard con +30 herramientas.'
+    : 'Compra publicidad en canales verificados de WhatsApp, Telegram y Discord. Desde 50 euros por publicacion. Pagos custodiados, metricas verificadas y sin suscripciones.'
+  const seoPath = isOnRootPath ? '/' : '/para-anunciantes'
+
+  // Structured data — root URL gets WebSite+SearchAction (helps Google
+  // surface the sitelinks search box); /para-anunciantes keeps the original
+  // WebPage+BreadcrumbList.
+  const structuredData = isOnRootPath
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'Channelad',
+        url: 'https://channelad.io/',
+        description:
+          'Marketplace de publicidad en comunidades reales de WhatsApp, Telegram y Discord.',
+        publisher: { '@type': 'Organization', name: 'Channelad', url: 'https://channelad.io' },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: 'https://channelad.io/marketplace?q={search_term_string}',
+          },
+          'query-input': 'required name=search_term_string',
+        },
+      }
+    : {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'Publicidad en comunidades para marcas — Channelad',
+        description: 'Compra publicidad en canales verificados de WhatsApp, Telegram y Discord.',
+        url: 'https://channelad.io/para-anunciantes',
+        publisher: { '@type': 'Organization', name: 'Channelad', url: 'https://channelad.io' },
+        breadcrumb: {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://channelad.io/' },
             { '@type': 'ListItem', position: 2, name: 'Para marcas', item: 'https://channelad.io/para-anunciantes' },
-          ]},
-        })}</script>
+          ],
+        },
+      }
+
+  return (
+    <main data-testid="for-brands-page" style={{ fontFamily: F, color: 'var(--text)', background: 'var(--bg)' }}>
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Helmet>
       <SEO
-        title="Publicidad en comunidades para marcas"
-        description="Compra publicidad en canales verificados de WhatsApp, Telegram y Discord. Desde 50 euros por publicacion. Pagos custodiados, metricas verificadas y sin suscripciones."
-        path="/para-anunciantes"
+        title={seoTitle}
+        description={seoDescription}
+        path={seoPath}
         type="website"
       />
 
@@ -159,7 +201,7 @@ export default function ForBrandsPage() {
             transition={{ delay: 0.65, duration: 0.5 }}
             style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '48px' }}
           >
-            <Link to="/marketplace" className="btn-glow" style={{
+            <Link to="/marketplace" data-testid="for-brands-cta-explore" className="btn-glow" style={{
               background: A, color: '#fff', textDecoration: 'none',
               borderRadius: '12px', padding: '14px 32px',
               fontSize: '15px', fontWeight: 600,
