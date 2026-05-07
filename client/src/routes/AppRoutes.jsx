@@ -14,6 +14,7 @@ import RankingsPage from '../ui/pages/rankings/RankingsPage'
 import CandidatesReviewPage from '../ui/pages/admin/CandidatesReviewPage'
 import ClaimChannelPage from '../ui/pages/claim/ClaimChannelPage'
 import { useAuth } from '../auth/AuthContext'
+import { getFeatureFlag } from '../flags/featureFlags'
 
 // Advertiser dashboard suite
 import AdvertiserLayout from '../ui/pages/dashboard/advertiser/AdvertiserLayout'
@@ -130,12 +131,15 @@ function FullAccessOnly({ children, feature }) {
 
 export default function AppRoutes() {
   const { isAuthenticated, user } = useAuth()
+  // Feature flag: when ON, "/" renders ForBrandsPage (unified landing).
+  // Default OFF — see client/src/flags/featureFlags.js.
+  const landingUnificationEnabled = getFeatureFlag('landingUnification')
 
   return (
     <Routes>
       {/* ── Public / landing routes ────────────────────── */}
       <Route path="/" element={<AppLayout />}>
-        <Route index element={<LandingPage />} />
+        <Route index element={landingUnificationEnabled ? <ForBrandsPage /> : <LandingPage />} />
         <Route path="marketplace" element={<MarketplacePage />} /> {/* Public browsing allowed */}
         <Route path="marketplace/:channelId" element={<ChannelDetailPage />} /> {/* Marketplace channel detail (purchase-oriented view) */}
         <Route path="channel/:id" element={<ChannelExplorerPage />} /> {/* Public channel intelligence (by ID or username) */}
