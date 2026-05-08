@@ -9,6 +9,7 @@ import EarningsCalculator from '../../components/landing/EarningsCalculator'
 import RotatingWord from '../../components/landing/RotatingWord'
 import EarningsCard from '../../components/landing/hero/EarningsCard'
 import MiniChannelCard from '../../components/landing/hero/MiniChannelCard'
+import HeroBgPattern from '../../components/landing/hero/HeroBgPattern'
 import CampaignFlow from '../../components/landing/CampaignFlow'
 import { DiscoverIcon, PayIcon, PublishIcon, ResultsIcon } from '../../components/landing/AnimatedFlowIcons'
 import BrowserChrome from '../../components/landing/demo/BrowserChrome'
@@ -301,33 +302,21 @@ export default function ForChannelsPage() {
           hero composition — same premium feel, creator-side data).
       ══════════════════════════════════════════════════════ */}
       <section style={{
-        padding: 'clamp(72px, 10vw, 120px) clamp(20px, 4vw, 48px) clamp(72px, 10vw, 120px)',
-        position: 'relative', overflow: 'hidden',
-        minHeight: '92vh', display: 'flex', alignItems: 'center',
+        padding: '108px 32px 88px',
+        position: 'relative',
+        overflow: 'hidden',
       }}>
-        {/* Soft green orbs as ambient bg */}
-        <div aria-hidden style={{
-          position: 'absolute', width: '720px', height: '480px',
-          borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%',
-          background: `radial-gradient(ellipse, ${greenAlpha(0.18)} 0%, transparent 70%)`,
-          top: '-12%', left: '-8%', filter: 'blur(80px)', pointerEvents: 'none',
-          animation: 'orbFloat1 14s ease-in-out infinite',
-        }} />
-        <div aria-hidden style={{
-          position: 'absolute', width: '560px', height: '440px',
-          borderRadius: '60% 40% 30% 70% / 50% 60% 40% 50%',
-          background: `radial-gradient(ellipse, ${greenAlpha(0.10)} 0%, transparent 65%)`,
-          top: '14%', right: '-6%', filter: 'blur(80px)', pointerEvents: 'none',
-          animation: 'orbFloat2 17s ease-in-out infinite',
-        }} />
+        {/* Unified atmospheric bg — green theme. Replaces the two patchy orbs
+            so the gradient blends across the whole section, no harsh edges. */}
+        <HeroBgPattern theme="creator" />
 
         <div style={{
           position: 'relative', zIndex: 2,
           maxWidth: 1280, margin: '0 auto', width: '100%',
         }}>
           <div className="creator-hero-grid" style={{
-            display: 'grid', gridTemplateColumns: '1.05fr 1fr',
-            gap: 'clamp(40px, 6vw, 80px)', alignItems: 'center',
+            display: 'grid', gridTemplateColumns: '1fr 1.05fr',
+            gap: 56, alignItems: 'center',
           }}>
             {/* LEFT — text + CTA */}
             <div className="creator-hero-text">
@@ -472,80 +461,83 @@ export default function ForChannelsPage() {
               </motion.div>
             </div>
 
-            {/* RIGHT — visual: EarningsCard + 3 floating MiniChannelCards */}
+            {/* RIGHT — visual composition. Mirrors the advertiser hero
+                exactly: fixed-height container, EarningsCard absolute-anchored
+                bottom-right, 3 floats with explicit pixel offsets and slight
+                tilt for organic feel. */}
             <div className="creator-hero-visual" style={{
-              position: 'relative', minHeight: 600,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              position: 'relative', height: 720, width: '100%',
             }}>
-              {/* Ambient glow behind the card */}
-              <div aria-hidden style={{
-                position: 'absolute', width: 520, height: 520,
-                borderRadius: '50%',
-                background: `radial-gradient(circle, ${greenAlpha(0.20)} 0%, transparent 60%)`,
-                top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                filter: 'blur(60px)', pointerEvents: 'none',
-              }} />
-
+              {/* Card 1 — solid white, top-left of composition */}
               <motion.div
-                initial={{ opacity: 0, y: 30, scale: 0.96 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.7, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                style={{ position: 'relative', zIndex: 2 }}
+                className="creator-float-1"
+                initial={{ opacity: 0, y: 24, rotate: -10, filter: 'blur(8px)' }}
+                animate={{ opacity: 1, y: 0, rotate: -4, filter: 'blur(0px)' }}
+                transition={{ duration: 0.7, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                style={{ position: 'absolute', top: 0, left: 0, zIndex: 13 }}
+              >
+                <MiniChannelCard
+                  channel={{ id: '057', platform: 'newsletter', tier: 'A', niche: 'B2B SaaS', region: 'ES', subs: '6.4K', cpm: '22 €', score: 85 }}
+                  driftAmount={6}
+                  driftDuration={7.5}
+                  solid
+                />
+              </motion.div>
+
+              {/* Card 2 — translucent, top-right corner */}
+              <motion.div
+                className="creator-float-2"
+                initial={{ opacity: 0, y: 24, rotate: 8, filter: 'blur(8px)' }}
+                animate={{ opacity: 1, y: 0, rotate: 5, filter: 'blur(0px)' }}
+                transition={{ duration: 0.7, delay: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                style={{ position: 'absolute', top: 60, right: -8, zIndex: 12 }}
+              >
+                <MiniChannelCard
+                  channel={{ id: '018', platform: 'whatsapp', tier: 'S', niche: 'Finanzas', region: 'ES', subs: '24.7K', cpm: '15 €', score: 91 }}
+                  driftAmount={5}
+                  driftDuration={6.8}
+                />
+              </motion.div>
+
+              {/* Card 3 — telegram crypto, lower-left of EarningsCard */}
+              <motion.div
+                className="creator-float-3"
+                initial={{ opacity: 0, y: 24, rotate: -7, filter: 'blur(8px)' }}
+                animate={{ opacity: 1, y: 0, rotate: -3, filter: 'blur(0px)' }}
+                transition={{ duration: 0.7, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                style={{ position: 'absolute', top: 460, left: -16, zIndex: 12 }}
+              >
+                <MiniChannelCard
+                  channel={{ id: '009', platform: 'telegram', tier: 'S', niche: 'Crypto', region: 'LATAM', subs: '41.2K', cpm: '14 €', score: 94 }}
+                  driftAmount={7}
+                  driftDuration={8.2}
+                />
+              </motion.div>
+
+              {/* EarningsCard — focal point, anchored bottom-right */}
+              <motion.div
+                initial={{ opacity: 0, y: 36, scale: 0.94, filter: 'blur(10px)' }}
+                animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+                transition={{ duration: 0.8, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                style={{ position: 'absolute', bottom: 0, right: 8, zIndex: 20 }}
+                className="creator-hero-earnings"
               >
                 <EarningsCard />
               </motion.div>
-
-              {/* 3 floating MiniChannelCards */}
-              <div className="creator-hero-floats" aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7, duration: 0.6 }}
-                  style={{ position: 'absolute', top: '4%', right: '-2%', pointerEvents: 'auto' }}
-                >
-                  <MiniChannelCard
-                    channel={{ id: '057', platform: 'newsletter', tier: 'A', niche: 'B2B SaaS', region: 'ES', subs: '6.4K', cpm: '22 €', score: 85 }}
-                    driftAmount={6}
-                    driftDuration={7}
-                  />
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.85, duration: 0.6 }}
-                  style={{ position: 'absolute', bottom: '6%', left: '-4%', pointerEvents: 'auto' }}
-                >
-                  <MiniChannelCard
-                    channel={{ id: '009', platform: 'telegram', tier: 'S', niche: 'Crypto', region: 'LATAM', subs: '41.2K', cpm: '14 €', score: 94 }}
-                    driftAmount={5}
-                    driftDuration={8}
-                  />
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 1.0, duration: 0.6 }}
-                  style={{ position: 'absolute', top: '40%', right: '-8%', pointerEvents: 'auto' }}
-                >
-                  <MiniChannelCard
-                    channel={{ id: '018', platform: 'whatsapp', tier: 'S', niche: 'Finanzas', region: 'ES', subs: '24.7K', cpm: '15 €', score: 91 }}
-                    driftAmount={7}
-                    driftDuration={9}
-                    solid
-                  />
-                </motion.div>
-              </div>
             </div>
           </div>
         </div>
 
         <style>{`
-          @media (max-width: 1080px) {
-            .creator-hero-grid { grid-template-columns: 1fr !important; }
-            .creator-hero-visual { min-height: 480px !important; margin-top: 24px; }
+          @media (max-width: 1024px) {
+            .creator-hero-grid { grid-template-columns: 1fr 1fr !important; gap: 32px !important; }
+            .creator-float-3 { display: none; }
           }
-          @media (max-width: 720px) {
-            .creator-hero-floats { display: none !important; }
+          @media (max-width: 768px) {
+            .creator-hero-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
+            .creator-float-1, .creator-float-2 { display: none; }
+            .creator-hero-visual { height: 580px !important; }
+            .creator-hero-earnings { position: static !important; display: flex; justify-content: center; }
           }
         `}</style>
       </section>
