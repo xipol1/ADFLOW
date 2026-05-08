@@ -182,8 +182,21 @@ export default function RankingsPage() {
                         <td className="px-3 py-3 text-center"><DeltaBadge delta={delta} /></td>
                         <td className="px-3 py-3">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0" style={{ background: `${catColor}12`, color: catColor, border: `1px solid ${catColor}25` }}>
-                              {isAuthenticated ? (ch.nombre || '?').charAt(0).toUpperCase() : '?'}
+                            {ch.foto ? (
+                              <img
+                                src={ch.foto}
+                                alt=""
+                                loading="lazy"
+                                className="w-8 h-8 rounded-lg flex-shrink-0 object-cover"
+                                style={{ border: `1px solid ${catColor}25` }}
+                                onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+                              />
+                            ) : null}
+                            <div
+                              className="w-8 h-8 rounded-lg items-center justify-center text-xs font-bold flex-shrink-0"
+                              style={{ background: `${catColor}12`, color: catColor, border: `1px solid ${catColor}25`, display: ch.foto ? 'none' : 'flex' }}
+                            >
+                              {(ch.nombre || ch.username || '?').charAt(0).toUpperCase()}
                             </div>
                             <div className="min-w-0">
                               <div className="text-sm font-medium truncate" style={{ color: 'var(--text)', maxWidth: 180 }}>

@@ -85,6 +85,7 @@ const listChannels = async (req, res) => {
       return {
         id: c._id,
         nombre: c.nombreCanal || '',
+        username: c.identificadorCanal || '',
         plataforma: c.plataforma || '',
         categoria: c.categoria || '',
         audiencia: c.estadisticas?.seguidores || 0,
@@ -92,6 +93,7 @@ const listChannels = async (req, res) => {
         moneda: 'EUR',
         verificado: c.estado === 'verificado',
         descripcion: c.descripcion || '',
+        foto: c.foto || '',
         url: c.url || '',
         // v2 scores (direct from Canal document)
         CAS,
@@ -394,6 +396,7 @@ const getRankings = async (req, res) => {
       id: c._id,
       nombre: c.nombreCanal || '',
       username: c.identificadorCanal || '',
+      foto: c.foto || '',
       plataforma: c.plataforma || '',
       categoria: c.categoria || '',
       seguidores: c.estadisticas?.seguidores || 0,

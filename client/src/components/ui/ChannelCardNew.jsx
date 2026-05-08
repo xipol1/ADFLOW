@@ -249,11 +249,21 @@ export default function ChannelCardNew({ channel, onClick, lists, onAddToList, o
     >
       {/* Header */}
       <div className="p-4 pb-3 flex items-start gap-3">
+        {channel.foto ? (
+          <img
+            src={channel.foto}
+            alt=""
+            loading="lazy"
+            className="w-10 h-10 rounded-lg flex-shrink-0 object-cover"
+            style={{ border: `1px solid ${catColor}25` }}
+            onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+          />
+        ) : null}
         <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center text-base font-bold flex-shrink-0"
-          style={{ background: `${catColor}15`, color: catColor, border: `1px solid ${catColor}25` }}
+          className="w-10 h-10 rounded-lg items-center justify-center text-base font-bold flex-shrink-0"
+          style={{ background: `${catColor}15`, color: catColor, border: `1px solid ${catColor}25`, display: channel.foto ? 'none' : 'flex' }}
         >
-          {isAuthenticated ? cName.charAt(0).toUpperCase() : '?'}
+          {cName.charAt(0).toUpperCase() || '?'}
         </div>
         <div className="min-w-0 flex-1">
           <div className="font-semibold text-sm truncate" style={{ color: 'var(--text)' }}>
