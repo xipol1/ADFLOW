@@ -1,22 +1,21 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import SEO from '../../components/SEO'
 import LazyMount from '../../components/utils/LazyMount'
 import Hero3D from '../../components/landing/Hero3D'
 import DashboardShowcase from '../../components/landing/DashboardShowcase'
 import RealDataSection from '../../components/landing/RealDataSection'
+import SubscriptionTiers3D from '../../components/landing/SubscriptionTiers3D'
 import {
   PURPLE as A,
   purpleAlpha as AG,
   FONT_BODY,
-  FONT_DISPLAY,
   MAX_W,
 } from '../../theme/tokens'
 
 const F = FONT_BODY
-const D = FONT_DISPLAY
 
 // Re-uses three components from the legacy main landing (Hero3D 3D dashboard
 // mockup, DashboardShowcase 4-category tab grid, RealDataSection numbers +
@@ -102,70 +101,10 @@ export default function HerramientasPage() {
         <RealDataSection />
       </LazyMount>
 
-      {/* Final CTA back to landing */}
-      <section style={{ padding: 'clamp(72px, 10vw, 120px) 24px clamp(96px, 12vw, 140px)' }}>
-        <div
-          style={{
-            maxWidth: 720,
-            margin: '0 auto',
-            textAlign: 'center',
-          }}
-        >
-          <h2
-            style={{
-              fontFamily: D,
-              fontSize: 'clamp(28px, 4vw, 40px)',
-              fontWeight: 700,
-              letterSpacing: '-0.03em',
-              color: 'var(--text)',
-              margin: '0 0 16px',
-              lineHeight: 1.1,
-            }}
-          >
-            Todas las herramientas, una sola comisión.
-          </h2>
-          <p
-            style={{
-              fontSize: 16,
-              color: 'var(--muted)',
-              lineHeight: 1.65,
-              margin: '0 auto 32px',
-              maxWidth: 540,
-            }}
-          >
-            Sin add-ons, sin tiers de pago, sin sorpresas. Acceso completo desde el primer día.
-          </p>
-          <Link
-            to="/"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '14px 28px',
-              borderRadius: 12,
-              background: 'linear-gradient(180deg, #8B5CF6 0%, #7C3AED 100%)',
-              color: '#fff',
-              fontSize: 15,
-              fontWeight: 600,
-              textDecoration: 'none',
-              boxShadow:
-                '0 1px 0 0 rgba(255,255,255,0.18) inset, 0 12px 28px -8px rgba(124,58,237,0.45)',
-              transition: 'transform .25s, box-shadow .25s, background .25s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(180deg, #A78BFA 0%, #8B5CF6 100%)'
-              e.currentTarget.style.transform = 'translateY(-1px)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(180deg, #8B5CF6 0%, #7C3AED 100%)'
-              e.currentTarget.style.transform = 'none'
-            }}
-          >
-            Pedir acceso al beta
-            <ArrowRight size={16} strokeWidth={2.4} />
-          </Link>
-        </div>
-      </section>
+      {/* Subscription tiers — 4 cards 3D (Free creator + Pro/Agency/Enterprise advertiser) */}
+      <LazyMount placeholder={<div style={{ minHeight: 720 }} />}>
+        <SubscriptionTiers3D />
+      </LazyMount>
     </main>
   )
 }
