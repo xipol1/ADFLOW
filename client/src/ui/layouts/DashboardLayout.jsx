@@ -326,7 +326,7 @@ function LogoutButton({ collapsed, onClick }) {
   const [tipVisible, setTipVisible] = useState(false)
 
   return (
-    <NavTooltip label="Cerrar sesion" visible={collapsed && tipVisible}>
+    <NavTooltip label="Cerrar sesión" visible={collapsed && tipVisible}>
       <button
         onClick={onClick}
         onMouseEnter={() => { setHovered(true); if (collapsed) setTipVisible(true) }}
@@ -346,7 +346,7 @@ function LogoutButton({ collapsed, onClick }) {
         }}
       >
         <LogOut size={18} strokeWidth={1.8} style={{ flexShrink: 0 }} />
-        {!collapsed && <span>Cerrar sesion</span>}
+        {!collapsed && <span>Cerrar sesión</span>}
       </button>
     </NavTooltip>
   )

@@ -12,11 +12,11 @@ const PLATFORMS = [
 
 const NICHES = [
   { id: 'finanzas',     label: 'Finanzas',         mult: 1.4 },
-  { id: 'tech',         label: 'Tecnologia',       mult: 1.2 },
+  { id: 'tech',         label: 'Tecnología',       mult: 1.2 },
   { id: 'ecommerce',    label: 'E-commerce',       mult: 1.1 },
   { id: 'lifestyle',    label: 'Lifestyle',        mult: 1.0 },
   { id: 'gaming',       label: 'Gaming',           mult: 0.9 },
-  { id: 'edu',          label: 'Educacion',        mult: 1.15 },
+  { id: 'edu',          label: 'Educación',        mult: 1.15 },
 ]
 
 function fmtNum(n) {
@@ -132,7 +132,7 @@ export default function ROICalculator({ background = 'var(--bg)', sectionId = 'c
             lineHeight: 1.08, letterSpacing: '-0.03em',
             margin: '0 0 16px', color: 'var(--text)',
           }}>
-            ¿Cuanto puedes alcanzar con tu presupuesto?
+            ¿Cuánto puedes alcanzar con tu presupuesto?
           </h2>
           <p style={{
             fontFamily: FONT_BODY, fontSize: 16, color: 'var(--muted)',
@@ -163,7 +163,7 @@ export default function ROICalculator({ background = 'var(--bg)', sectionId = 'c
             <h3 style={{
               fontFamily: FONT_DISPLAY, fontSize: 16, fontWeight: 700,
               letterSpacing: '-0.02em', margin: '0 0 24px',
-            }}>Tu campana</h3>
+            }}>Tu campaña</h3>
 
             <div style={{ marginBottom: 28 }}>
               <Slider
@@ -234,7 +234,7 @@ export default function ROICalculator({ background = 'var(--bg)', sectionId = 'c
               <h3 style={{
                 fontFamily: FONT_DISPLAY, fontSize: 16, fontWeight: 700,
                 letterSpacing: '-0.02em', margin: 0,
-              }}>Estimacion</h3>
+              }}>Estimación</h3>
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 4,
                 fontSize: 11, fontWeight: 600, color: '#22c55e',
@@ -285,7 +285,7 @@ export default function ROICalculator({ background = 'var(--bg)', sectionId = 'c
                 boxShadow: '0 8px 20px rgba(124,58,237,0.3)',
               }}
             >
-              Lanzar mi campana de {fmtEur(budget)}
+              Lanzar mi campaña de {fmtEur(budget)}
               <ArrowRight size={16} strokeWidth={2.5} />
             </motion.a>
 

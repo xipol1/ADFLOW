@@ -17,7 +17,7 @@ const revealUp = {
 
 /* ── Module data with chart types ──────────────────────────────── */
 const DASHBOARD_MODULES = [
-  { icon: Layout, label: 'Overview', color: '#8b5cf6', value: 12, suffix: ' activas', sub: 'Campanas', chart: 'line', live: true },
+  { icon: Layout, label: 'Overview', color: '#8b5cf6', value: 12, suffix: ' activas', sub: 'Campañas', chart: 'line', live: true },
   { icon: Search, label: 'Marketplace', color: '#3b82f6', value: 2847, suffix: '', sub: 'Canales', chart: 'bar' },
   { icon: BarChart3, label: 'Analytics', color: '#10b981', value: 34, prefix: '+', suffix: '%', sub: 'CTR medio', chart: 'area', live: true },
   { icon: FlaskConical, label: 'A/B Testing', color: '#f59e0b', value: 3, suffix: ' tests', sub: 'En curso', chart: 'line' },
@@ -26,7 +26,7 @@ const DASHBOARD_MODULES = [
   { icon: PieChart, label: 'Cohorts', color: '#ec4899', value: 8, suffix: ' segmentos', sub: 'Activos', chart: 'line' },
   { icon: Globe, label: 'Heatmap', color: '#14b8a6', value: 23, suffix: ' nichos', sub: 'Mapeados', chart: 'bar' },
   { icon: LineChart, label: 'Monitor', color: '#8b5cf6', valueText: 'LIVE', sub: 'Real-time', chart: 'pulse', live: true },
-  { icon: Send, label: 'Bulk Launch', color: '#f97316', value: 50, suffix: '+', sub: 'Campanas/dia', chart: 'area' },
+  { icon: Send, label: 'Bulk Launch', color: '#f97316', value: 50, suffix: '+', sub: 'Campañas/día', chart: 'area' },
   { icon: MessageSquare, label: 'Inbox', color: '#6366f1', value: 3, suffix: ' nuevos', sub: 'Mensajes', chart: 'line', live: true },
   { icon: CreditCard, label: 'Finanzas', color: '#10b981', valueText: 'Escrow', sub: 'Protegido', chart: 'shield' },
 ]
@@ -34,7 +34,7 @@ const DASHBOARD_MODULES = [
 const SIDEBAR_ITEMS = [
   { icon: Layout, label: 'Dashboard', active: true },
   { icon: Search, label: 'Explorar' },
-  { icon: Megaphone, label: 'Campanas' },
+  { icon: Megaphone, label: 'Campañas' },
   { icon: BarChart3, label: 'Analytics' },
   { icon: FlaskConical, label: 'A/B Tests' },
   { icon: Target, label: 'ROI' },
@@ -587,7 +587,7 @@ function DashboardMockup({ externalGridRef, externalContainerRef }) {
                     </motion.span>
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
-                    4 mayo 2026 · Todas las metricas en tiempo real
+                    4 mayo 2026 · Todas las métricas en tiempo real
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -989,8 +989,8 @@ function QuickOnboarding() {
         fontSize: 13, color: 'var(--muted)',
       }}>
         {(role === 'advertiser'
-          ? ['Sin tarjeta', 'Escrow Stripe', 'Metricas reales']
-          : ['Cobro automatico', 'Sin exclusividad', '5% por referido']
+          ? ['Sin tarjeta', 'Escrow Stripe', 'Métricas reales']
+          : ['Cobro automático', 'Sin exclusividad', '5% por referido']
         ).map((t, i) => (
           <React.Fragment key={i}>
             {i > 0 && <span style={{ color: 'rgba(15,23,42,0.15)', margin: '0 4px' }}>·</span>}

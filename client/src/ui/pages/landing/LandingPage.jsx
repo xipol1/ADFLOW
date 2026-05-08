@@ -76,7 +76,7 @@ export default function LandingPage() {
     <main data-testid="landing-page-legacy" style={{ minHeight: '100vh' }}>
       <SEO
         title={null}
-        description="Channelad es el marketplace de publicidad en comunidades reales. Dashboard con +30 herramientas, calculadora de ROI, escrow Stripe y metricas verificadas con tracking links."
+        description="Channelad es el marketplace de publicidad en comunidades reales. Dashboard con +30 herramientas, calculadora de ROI, escrow Stripe y métricas verificadas con tracking links."
         path="/"
       />
       <StickyHeader />

@@ -128,10 +128,10 @@ export default function ResetPasswordPage() {
             </div>
 
             <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '22px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px' }}>
-              Contrasena actualizada
+              Contraseña actualizada
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '28px', lineHeight: 1.6 }}>
-              Tu contrasena ha sido restablecida exitosamente. Ya puedes iniciar sesion con tu nueva contrasena.
+              Tu contraseña ha sido restablecida exitosamente. Ya puedes iniciar sesión con tu nueva contraseña.
             </p>
 
             <Link to="/auth/login" style={{

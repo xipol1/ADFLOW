@@ -74,7 +74,7 @@ export default function AuthPage({ defaultTab = 'login' }) {
     if (res?.success) {
       navigate('/dashboard', { replace: true })
     } else {
-      setError(res?.message || 'Error al iniciar sesion con Google')
+      setError(res?.message || 'Error al iniciar sesión con Google')
     }
     setLoading(false)
   }
@@ -549,7 +549,7 @@ export default function AuthPage({ defaultTab = 'login' }) {
                 />
                 {founderData?.valid && (
                   <p style={{ fontSize: '11px', color: '#8b5cf6', marginTop: '4px' }}>
-                    Email vinculado a tu verificacion del bot
+                    Email vinculado a tu verificación del bot
                   </p>
                 )}
               </div>
