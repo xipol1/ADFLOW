@@ -400,13 +400,14 @@ const TIERS = [
   },
 ]
 
-export default function SubscriptionTiers3D() {
+export default function SubscriptionTiers3D({
+  background = 'radial-gradient(ellipse 90% 50% at 50% 0%, rgba(124,58,237,0.06) 0%, transparent 60%), var(--bg)',
+} = {}) {
   return (
     <section
       style={{
         padding: 'clamp(72px, 10vw, 120px) clamp(16px, 4vw, 24px)',
-        background:
-          'radial-gradient(ellipse 90% 50% at 50% 0%, rgba(124,58,237,0.06) 0%, transparent 60%), var(--bg)',
+        background,
         position: 'relative',
       }}
     >
