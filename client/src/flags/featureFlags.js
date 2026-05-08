@@ -18,9 +18,9 @@ const DEFAULTS = {
   // Toggle the unified landing experience: when ON, "/" renders ForBrandsPage
   // (the advertiser-focused main landing). When OFF, "/" renders the legacy
   // LandingPage (kept around in case we need it for a different surface later).
-  // Default: ON. Override per-user via cookie ff_landingUnification=off, or
-  // per-environment via VITE_FF_LANDING_UNIFICATION=off.
-  landingUnification: true,
+  // Default: OFF (canary rollout). Override per-user via cookie
+  // ff_landingUnification=on, or per-environment via VITE_FF_LANDING_UNIFICATION=on.
+  landingUnification: false,
 }
 
 const COOKIE_PREFIX = 'ff_'
@@ -88,8 +88,8 @@ export function setFeatureFlag(name, value) {
   if (typeof document === 'undefined') return
   const expires = new Date(Date.now() + COOKIE_TTL_DAYS * 24 * 60 * 60 * 1000).toUTCString()
   const cookieValue = value ? 'on' : 'off'
-  // Note: add `; Secure` in production HTTPS environments.
-  document.cookie = `${COOKIE_PREFIX}${name}=${cookieValue}; expires=${expires}; path=/; SameSite=Lax`
+  const secure = typeof location !== 'undefined' && location.protocol === 'https:' ? '; Secure' : ''
+  document.cookie = `${COOKIE_PREFIX}${name}=${cookieValue}; expires=${expires}; path=/; SameSite=Lax${secure}`
 }
 
 // Expose manual override hook (for QA / canary smoke tests).

@@ -21,8 +21,11 @@ import { test, expect } from '@playwright/test'
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:5173'
 
 async function setLandingFlag(context, value: boolean) {
-  // Clear only our flag cookie to avoid wiping unrelated session cookies.
-  await context.clearCookies({ name: 'ff_landingUnification' })
+  // Wipe all cookies for test isolation. Each test runs in a fresh browser
+  // context, but Playwright's name-filter for clearCookies is only available in
+  // ≥1.43; clearing all is portable and equivalent here since we're not relying
+  // on any other cookies in these tests.
+  await context.clearCookies()
   await context.addCookies([
     {
       name: 'ff_landingUnification',
@@ -34,7 +37,7 @@ async function setLandingFlag(context, value: boolean) {
   ])
 }
 
-test.describe('Landing unification — flag OFF (default / legacy behavior)', () => {
+test.describe('Landing unification — flag OFF (legacy behavior, matches default)', () => {
   test('"/" renders legacy LandingPage', async ({ page, context }) => {
     await setLandingFlag(context, false)
     await page.goto(`${BASE_URL}/`)
