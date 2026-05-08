@@ -1,313 +1,321 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from '../ui/routing/ProtectedRoute'
 import AppLayout from '../ui/layouts/AppLayout'
-import LoginPage from '../ui/pages/auth/LoginPage'
-import RegisterPage from '../ui/pages/auth/RegisterPage'
-import VerifyEmailPage from '../ui/pages/auth/VerifyEmailPage'
-import LandingPage from '../ui/pages/landing/LandingPage'
-import DashboardPage from '../ui/pages/dashboard/DashboardPage'
-import MarketplacePage from '../ui/pages/marketplace/MarketplacePage'
-import ChannelExplorerPage from '../ui/pages/channel/ChannelExplorerPage'
-import NicheIntelligencePage from '../ui/pages/niche/NicheIntelligencePage'
-import RankingsPage from '../ui/pages/rankings/RankingsPage'
-import CandidatesReviewPage from '../ui/pages/admin/CandidatesReviewPage'
-import ClaimChannelPage from '../ui/pages/claim/ClaimChannelPage'
 import { useAuth } from '../auth/AuthContext'
 import { getFeatureFlag } from '../flags/featureFlags'
 
+// ── Eagerly loaded (used on first paint or critical path) ──────────
+import LandingPage from '../ui/pages/landing/LandingPage'
+
+// ── Lazy-loaded pages ──────────────────────────────────────────────
+const LoginPage = lazy(() => import('../ui/pages/auth/LoginPage'))
+const RegisterPage = lazy(() => import('../ui/pages/auth/RegisterPage'))
+const VerifyEmailPage = lazy(() => import('../ui/pages/auth/VerifyEmailPage'))
+const ForgotPasswordPage = lazy(() => import('../ui/pages/auth/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('../ui/pages/auth/ResetPasswordPage'))
+
+const DashboardPage = lazy(() => import('../ui/pages/dashboard/DashboardPage'))
+const MarketplacePage = lazy(() => import('../ui/pages/marketplace/MarketplacePage'))
+const ChannelExplorerPage = lazy(() => import('../ui/pages/channel/ChannelExplorerPage'))
+const NicheIntelligencePage = lazy(() => import('../ui/pages/niche/NicheIntelligencePage'))
+const RankingsPage = lazy(() => import('../ui/pages/rankings/RankingsPage'))
+const CandidatesReviewPage = lazy(() => import('../ui/pages/admin/CandidatesReviewPage'))
+const ClaimChannelPage = lazy(() => import('../ui/pages/claim/ClaimChannelPage'))
+const ChannelDetailPage = lazy(() => import('../ui/pages/marketplace/ChannelDetailPage'))
+
+const ForChannelsPage = lazy(() => import('../ui/pages/landing/ForChannelsPage'))
+const ForBrandsPage = lazy(() => import('../ui/pages/landing/ForBrandsPage'))
+const HerramientasPage = lazy(() => import('../ui/pages/landing/HerramientasPage'))
+const BlogIndex = lazy(() => import('../ui/pages/blog/BlogIndex'))
+const BlogPost = lazy(() => import('../ui/pages/blog/BlogPost'))
+
+const PrivacyPage = lazy(() => import('../ui/pages/legal/PrivacyPage'))
+const TermsPage = lazy(() => import('../ui/pages/legal/TermsPage'))
+const AboutPage = lazy(() => import('../ui/pages/legal/AboutPage'))
+const SupportPage = lazy(() => import('../ui/pages/legal/SupportPage'))
+const DataProcessingPage = lazy(() => import('../ui/pages/legal/DataProcessingPage'))
+
+const NotFoundPage = lazy(() => import('../ui/pages/NotFoundPage'))
+const PublicCreatorProfilePage = lazy(() => import('../ui/pages/public/PublicCreatorProfilePage'))
+
 // Advertiser dashboard suite
-import AdvertiserLayout from '../ui/pages/dashboard/advertiser/AdvertiserLayout'
-import OverviewPage     from '../ui/pages/dashboard/advertiser/OverviewPage'
-import ExplorePage      from '../ui/pages/dashboard/advertiser/ExplorePage'
-import NewCampaignPage  from '../ui/pages/dashboard/advertiser/NewCampaignPage'
-import AutoBuyPage      from '../ui/pages/dashboard/advertiser/AutoBuyPage'
-import AdsPage          from '../ui/pages/dashboard/advertiser/AdsPage'
-import CampaignsPage    from '../ui/pages/dashboard/advertiser/CampaignsPage'
-import FinancesPage     from '../ui/pages/dashboard/advertiser/FinancesPage'
-import InboxPage        from '../ui/pages/dashboard/advertiser/InboxPage'
-import TrackingSetupPage from '../ui/pages/dashboard/advertiser/TrackingSetupPage'
-import SettingsPage     from '../ui/pages/dashboard/advertiser/SettingsPage'
-import ReferralsPage   from '../ui/pages/dashboard/advertiser/ReferralsPage'
-import AdvertiserAnalyticsPage from '../ui/pages/dashboard/advertiser/AdvertiserAnalyticsPage'
-import CampaignAnalyticsPage from '../ui/pages/dashboard/advertiser/CampaignAnalyticsPage'
-import AnalyzeChannelPage from '../ui/pages/dashboard/advertiser/AnalyzeChannelPage'
-import AnalyzeAdPage from '../ui/pages/dashboard/advertiser/AnalyzeAdPage'
-import CompareChannelsPage from '../ui/pages/dashboard/advertiser/CompareChannelsPage'
-import NicheHeatmapPage from '../ui/pages/dashboard/advertiser/NicheHeatmapPage'
-import ForecastROIPage from '../ui/pages/dashboard/advertiser/ForecastROIPage'
-import LookalikeChannelsPage from '../ui/pages/dashboard/advertiser/LookalikeChannelsPage'
-import AuditChannelsPage from '../ui/pages/dashboard/advertiser/AuditChannelsPage'
-import CampaignCalendarPage from '../ui/pages/dashboard/advertiser/CampaignCalendarPage'
-import RealtimeMonitorPage from '../ui/pages/dashboard/advertiser/RealtimeMonitorPage'
-import FunnelAnalyzerPage from '../ui/pages/dashboard/advertiser/FunnelAnalyzerPage'
-import CohortAnalysisPage from '../ui/pages/dashboard/advertiser/CohortAnalysisPage'
-import PositionTrackerPage from '../ui/pages/dashboard/advertiser/PositionTrackerPage'
-import AudienceOverlapPage from '../ui/pages/dashboard/advertiser/AudienceOverlapPage'
-import ABTestLabPage from '../ui/pages/dashboard/advertiser/ABTestLabPage'
-import BulkLauncherPage from '../ui/pages/dashboard/advertiser/BulkLauncherPage'
-import TopicResearchPage from '../ui/pages/dashboard/advertiser/TopicResearchPage'
-import AudienceInsightsPage from '../ui/pages/dashboard/advertiser/AudienceInsightsPage'
-import ReportStudioPage from '../ui/pages/dashboard/advertiser/ReportStudioPage'
+const AdvertiserLayout = lazy(() => import('../ui/pages/dashboard/advertiser/AdvertiserLayout'))
+const OverviewPage = lazy(() => import('../ui/pages/dashboard/advertiser/OverviewPage'))
+const ExplorePage = lazy(() => import('../ui/pages/dashboard/advertiser/ExplorePage'))
+const NewCampaignPage = lazy(() => import('../ui/pages/dashboard/advertiser/NewCampaignPage'))
+const AutoBuyPage = lazy(() => import('../ui/pages/dashboard/advertiser/AutoBuyPage'))
+const AdsPage = lazy(() => import('../ui/pages/dashboard/advertiser/AdsPage'))
+const CampaignsPage = lazy(() => import('../ui/pages/dashboard/advertiser/CampaignsPage'))
+const FinancesPage = lazy(() => import('../ui/pages/dashboard/advertiser/FinancesPage'))
+const InboxPage = lazy(() => import('../ui/pages/dashboard/advertiser/InboxPage'))
+const TrackingSetupPage = lazy(() => import('../ui/pages/dashboard/advertiser/TrackingSetupPage'))
+const SettingsPage = lazy(() => import('../ui/pages/dashboard/advertiser/SettingsPage'))
+const ReferralsPage = lazy(() => import('../ui/pages/dashboard/advertiser/ReferralsPage'))
+const AdvertiserAnalyticsPage = lazy(() => import('../ui/pages/dashboard/advertiser/AdvertiserAnalyticsPage'))
+const CampaignAnalyticsPage = lazy(() => import('../ui/pages/dashboard/advertiser/CampaignAnalyticsPage'))
+const AnalyzeChannelPage = lazy(() => import('../ui/pages/dashboard/advertiser/AnalyzeChannelPage'))
+const AnalyzeAdPage = lazy(() => import('../ui/pages/dashboard/advertiser/AnalyzeAdPage'))
+const CompareChannelsPage = lazy(() => import('../ui/pages/dashboard/advertiser/CompareChannelsPage'))
+const NicheHeatmapPage = lazy(() => import('../ui/pages/dashboard/advertiser/NicheHeatmapPage'))
+const ForecastROIPage = lazy(() => import('../ui/pages/dashboard/advertiser/ForecastROIPage'))
+const LookalikeChannelsPage = lazy(() => import('../ui/pages/dashboard/advertiser/LookalikeChannelsPage'))
+const AuditChannelsPage = lazy(() => import('../ui/pages/dashboard/advertiser/AuditChannelsPage'))
+const CampaignCalendarPage = lazy(() => import('../ui/pages/dashboard/advertiser/CampaignCalendarPage'))
+const RealtimeMonitorPage = lazy(() => import('../ui/pages/dashboard/advertiser/RealtimeMonitorPage'))
+const FunnelAnalyzerPage = lazy(() => import('../ui/pages/dashboard/advertiser/FunnelAnalyzerPage'))
+const CohortAnalysisPage = lazy(() => import('../ui/pages/dashboard/advertiser/CohortAnalysisPage'))
+const PositionTrackerPage = lazy(() => import('../ui/pages/dashboard/advertiser/PositionTrackerPage'))
+const AudienceOverlapPage = lazy(() => import('../ui/pages/dashboard/advertiser/AudienceOverlapPage'))
+const ABTestLabPage = lazy(() => import('../ui/pages/dashboard/advertiser/ABTestLabPage'))
+const BulkLauncherPage = lazy(() => import('../ui/pages/dashboard/advertiser/BulkLauncherPage'))
+const TopicResearchPage = lazy(() => import('../ui/pages/dashboard/advertiser/TopicResearchPage'))
+const AudienceInsightsPage = lazy(() => import('../ui/pages/dashboard/advertiser/AudienceInsightsPage'))
+const ReportStudioPage = lazy(() => import('../ui/pages/dashboard/advertiser/ReportStudioPage'))
 
 // Creator dashboard suite
-import CreatorLayout        from '../ui/pages/dashboard/creator/CreatorLayout'
-import CreatorOverviewPage  from '../ui/pages/dashboard/creator/CreatorOverviewPage'
-import CreatorChannelsPage  from '../ui/pages/dashboard/creator/CreatorChannelsPage'
-import CreatorRequestsPage  from '../ui/pages/dashboard/creator/CreatorRequestsPage'
-import CreatorEarningsPage  from '../ui/pages/dashboard/creator/CreatorEarningsPage'
-import CreatorSettingsPage  from '../ui/pages/dashboard/creator/CreatorSettingsPage'
-import RegisterChannelPage  from '../ui/pages/dashboard/creator/RegisterChannelPage'
-import CreatorReferralsPage from '../ui/pages/dashboard/creator/CreatorReferralsPage'
-import CreatorAnalyticsPage from '../ui/pages/dashboard/creator/CreatorAnalyticsPage'
-import PricingOptimizerPage from '../ui/pages/dashboard/creator/PricingOptimizerPage'
-import CreatorReportsPage   from '../ui/pages/dashboard/creator/CreatorReportsPage'
-import CreatorABTestPage    from '../ui/pages/dashboard/creator/CreatorABTestPage'
-import CreatorAudiencePage  from '../ui/pages/dashboard/creator/CreatorAudiencePage'
-import CreatorComparePage   from '../ui/pages/dashboard/creator/CreatorComparePage'
-import CreatorProfilePage   from '../ui/pages/dashboard/creator/CreatorProfilePage'
-import CreatorInboxPage     from '../ui/pages/dashboard/creator/CreatorInboxPage'
-import CreatorDiscoverPage     from '../ui/pages/dashboard/creator/CreatorDiscoverPage'
-import CreatorCalendarPage     from '../ui/pages/dashboard/creator/CreatorCalendarPage'
-import CreatorBrandsPage       from '../ui/pages/dashboard/creator/CreatorBrandsPage'
-import CreatorNotificationsPage from '../ui/pages/dashboard/creator/CreatorNotificationsPage'
-import CreatorContentStudioPage from '../ui/pages/dashboard/creator/CreatorContentStudioPage'
-import CreatorToolsPage        from '../ui/pages/dashboard/creator/CreatorToolsPage'
-import CreatorActivityPage     from '../ui/pages/dashboard/creator/CreatorActivityPage'
-import CreatorBillingPage      from '../ui/pages/dashboard/creator/CreatorBillingPage'
-import CreatorSwapsPage        from '../ui/pages/dashboard/creator/CreatorSwapsPage'
-import PublicCreatorProfilePage from '../ui/pages/public/PublicCreatorProfilePage'
+const CreatorLayout = lazy(() => import('../ui/pages/dashboard/creator/CreatorLayout'))
+const CreatorOverviewPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorOverviewPage'))
+const CreatorChannelsPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorChannelsPage'))
+const CreatorRequestsPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorRequestsPage'))
+const CreatorEarningsPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorEarningsPage'))
+const CreatorSettingsPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorSettingsPage'))
+const RegisterChannelPage = lazy(() => import('../ui/pages/dashboard/creator/RegisterChannelPage'))
+const CreatorReferralsPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorReferralsPage'))
+const CreatorAnalyticsPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorAnalyticsPage'))
+const PricingOptimizerPage = lazy(() => import('../ui/pages/dashboard/creator/PricingOptimizerPage'))
+const CreatorReportsPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorReportsPage'))
+const CreatorABTestPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorABTestPage'))
+const CreatorAudiencePage = lazy(() => import('../ui/pages/dashboard/creator/CreatorAudiencePage'))
+const CreatorComparePage = lazy(() => import('../ui/pages/dashboard/creator/CreatorComparePage'))
+const CreatorProfilePage = lazy(() => import('../ui/pages/dashboard/creator/CreatorProfilePage'))
+const CreatorInboxPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorInboxPage'))
+const CreatorDiscoverPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorDiscoverPage'))
+const CreatorCalendarPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorCalendarPage'))
+const CreatorBrandsPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorBrandsPage'))
+const CreatorNotificationsPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorNotificationsPage'))
+const CreatorContentStudioPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorContentStudioPage'))
+const CreatorToolsPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorToolsPage'))
+const CreatorActivityPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorActivityPage'))
+const CreatorBillingPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorBillingPage'))
+const CreatorSwapsPage = lazy(() => import('../ui/pages/dashboard/creator/CreatorSwapsPage'))
+const LinkWhatsAppPage = lazy(() => import('../ui/pages/dashboard/creator/LinkWhatsAppPage'))
+const WhatsAppAuditLogPage = lazy(() => import('../ui/pages/dashboard/creator/WhatsAppAuditLogPage'))
+const VerifyWhatsAppAdminPage = lazy(() => import('../ui/pages/dashboard/creator/VerifyWhatsAppAdminPage'))
 
 // Admin dashboard suite
-import AdminLayout          from '../ui/pages/dashboard/admin/AdminLayout'
-import AdminOverviewPage    from '../ui/pages/dashboard/admin/AdminOverviewPage'
-import AdminUsersPage       from '../ui/pages/dashboard/admin/AdminUsersPage'
-import AdminChannelsPage    from '../ui/pages/dashboard/admin/AdminChannelsPage'
-import AdminCampaignsPage   from '../ui/pages/dashboard/admin/AdminCampaignsPage'
-import AdminDisputesPage    from '../ui/pages/dashboard/admin/AdminDisputesPage'
-import AdminFinancesPage    from '../ui/pages/dashboard/admin/AdminFinancesPage'
-import AdminScoringPage     from '../ui/pages/dashboard/admin/AdminScoringPage'
+const AdminLayout = lazy(() => import('../ui/pages/dashboard/admin/AdminLayout'))
+const AdminOverviewPage = lazy(() => import('../ui/pages/dashboard/admin/AdminOverviewPage'))
+const AdminUsersPage = lazy(() => import('../ui/pages/dashboard/admin/AdminUsersPage'))
+const AdminChannelsPage = lazy(() => import('../ui/pages/dashboard/admin/AdminChannelsPage'))
+const AdminCampaignsPage = lazy(() => import('../ui/pages/dashboard/admin/AdminCampaignsPage'))
+const AdminDisputesPage = lazy(() => import('../ui/pages/dashboard/admin/AdminDisputesPage'))
+const AdminFinancesPage = lazy(() => import('../ui/pages/dashboard/admin/AdminFinancesPage'))
+const AdminScoringPage = lazy(() => import('../ui/pages/dashboard/admin/AdminScoringPage'))
 
 // Shared pages
-import DisputesPage from '../ui/pages/dashboard/DisputesPage'
-import NotificationsPage from '../ui/pages/dashboard/NotificationsPage'
+const DisputesPage = lazy(() => import('../ui/pages/dashboard/DisputesPage'))
+const NotificationsPage = lazy(() => import('../ui/pages/dashboard/NotificationsPage'))
+const ComingSoon = lazy(() => import('../ui/components/ComingSoon'))
 
-// Coming Soon gate
-import ComingSoon from '../ui/components/ComingSoon'
+// Onboarding flow
+const OnboardingLayout = lazy(() => import('../ui/pages/onboarding/OnboardingLayout'))
+const RegisterStep = lazy(() => import('../ui/pages/onboarding/RegisterStep'))
+const VerifyStep = lazy(() => import('../ui/pages/onboarding/VerifyStep'))
+const ChannelStep = lazy(() => import('../ui/pages/onboarding/ChannelStep'))
+const SuccessStep = lazy(() => import('../ui/pages/onboarding/SuccessStep'))
 
-// Legal & info pages
-import PrivacyPage from '../ui/pages/legal/PrivacyPage'
-import TermsPage from '../ui/pages/legal/TermsPage'
-import AboutPage from '../ui/pages/legal/AboutPage'
-import SupportPage from '../ui/pages/legal/SupportPage'
-import DataProcessingPage from '../ui/pages/legal/DataProcessingPage'
-import ForgotPasswordPage from '../ui/pages/auth/ForgotPasswordPage'
-import ForChannelsPage from '../ui/pages/landing/ForChannelsPage'
-import ForBrandsPage from '../ui/pages/landing/ForBrandsPage'
-import HerramientasPage from '../ui/pages/landing/HerramientasPage'
-import BlogIndex from '../ui/pages/blog/BlogIndex'
-import BlogPost from '../ui/pages/blog/BlogPost'
+function RouteFallback() {
+  return <div style={{ minHeight: '100vh' }} />
+}
 
-// WhatsApp linking
-import LinkWhatsAppPage from '../ui/pages/dashboard/creator/LinkWhatsAppPage'
-import WhatsAppAuditLogPage from '../ui/pages/dashboard/creator/WhatsAppAuditLogPage'
-import VerifyWhatsAppAdminPage from '../ui/pages/dashboard/creator/VerifyWhatsAppAdminPage'
-
-// Rescued pages (404, password reset, channel detail, onboarding flow)
-import NotFoundPage from '../ui/pages/NotFoundPage'
-import ResetPasswordPage from '../ui/pages/auth/ResetPasswordPage'
-import ChannelDetailPage from '../ui/pages/marketplace/ChannelDetailPage'
-import OnboardingLayout from '../ui/pages/onboarding/OnboardingLayout'
-import RegisterStep from '../ui/pages/onboarding/RegisterStep'
-import VerifyStep from '../ui/pages/onboarding/VerifyStep'
-import ChannelStep from '../ui/pages/onboarding/ChannelStep'
-import SuccessStep from '../ui/pages/onboarding/SuccessStep'
-
-// Guard for full-access-only pages — shows Coming Soon for limited users
 function FullAccessOnly({ children, feature }) {
   const { isFullAccess } = useAuth()
   if (isFullAccess) return children
-  return <ComingSoon feature={feature} />
+  return (
+    <Suspense fallback={<RouteFallback />}>
+      <ComingSoon feature={feature} />
+    </Suspense>
+  )
 }
 
 export default function AppRoutes() {
   const { isAuthenticated, user } = useAuth()
-  // Feature flag: when ON, "/" renders ForBrandsPage (unified landing).
-  // Default OFF — see client/src/flags/featureFlags.js.
   const landingUnificationEnabled = getFeatureFlag('landingUnification')
 
   return (
-    <Routes>
-      {/* ── Public / landing routes ────────────────────── */}
-      <Route path="/" element={<AppLayout />}>
-        <Route index element={landingUnificationEnabled ? <ForBrandsPage /> : <LandingPage />} />
-        <Route path="marketplace" element={<MarketplacePage />} /> {/* Public browsing allowed */}
-        <Route path="marketplace/:channelId" element={<ChannelDetailPage />} /> {/* Marketplace channel detail (purchase-oriented view) */}
-        <Route path="channel/:id" element={<ChannelExplorerPage />} /> {/* Public channel intelligence (by ID or username) */}
-        <Route path="niche/:nicho" element={<NicheIntelligencePage />} /> {/* Public niche market intelligence */}
-        <Route path="rankings" element={<RankingsPage />} /> {/* Public channel rankings */}
-        <Route path="explore" element={<ExplorePage />} /> {/* Public explore directory */}
-        <Route path="claim/:id" element={<ClaimChannelPage />} /> {/* Claim channel ownership */}
-        <Route path="c/:slug" element={<PublicCreatorProfilePage />} /> {/* Public creator profile */}
-        <Route
-          path="auth"
-          element={isAuthenticated && user?.emailVerificado !== false ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth/login" replace />}
-        />
-        <Route
-          path="auth/login"
-          element={isAuthenticated && user?.emailVerificado !== false ? <Navigate to="/dashboard" replace /> : <LoginPage />}
-        />
-        <Route
-          path="auth/register"
-          element={isAuthenticated && user?.emailVerificado !== false ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
-        />
-        <Route path="auth/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="auth/reset-password/:token" element={<ResetPasswordPage />} />
-        <Route path="verificar-email/:token" element={<VerifyEmailPage />} />
-        <Route path="privacidad" element={<PrivacyPage />} />
-        <Route path="terminos" element={<TermsPage />} />
-        <Route path="sobre-nosotros" element={<AboutPage />} />
-        <Route path="soporte" element={<SupportPage />} />
-        <Route path="politica-acceso-whatsapp" element={<DataProcessingPage />} />
-        <Route path="para-canales" element={<ForChannelsPage />} />
-        <Route path="para-anunciantes" element={<ForBrandsPage />} />
-        <Route path="herramientas" element={<HerramientasPage />} />
-        <Route path="blog" element={<BlogIndex />} />
-        <Route path="blog/:slug" element={<BlogPost />} />
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
+        {/* ── Public / landing routes ────────────────────── */}
+        <Route path="/" element={<AppLayout />}>
+          <Route index element={landingUnificationEnabled ? <ForBrandsPage /> : <LandingPage />} />
+          <Route path="marketplace" element={<MarketplacePage />} />
+          <Route path="marketplace/:channelId" element={<ChannelDetailPage />} />
+          <Route path="channel/:id" element={<ChannelExplorerPage />} />
+          <Route path="niche/:nicho" element={<NicheIntelligencePage />} />
+          <Route path="rankings" element={<RankingsPage />} />
+          <Route path="explore" element={<ExplorePage />} />
+          <Route path="claim/:id" element={<ClaimChannelPage />} />
+          <Route path="c/:slug" element={<PublicCreatorProfilePage />} />
+          <Route
+            path="auth"
+            element={isAuthenticated && user?.emailVerificado !== false ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth/login" replace />}
+          />
+          <Route
+            path="auth/login"
+            element={isAuthenticated && user?.emailVerificado !== false ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+          />
+          <Route
+            path="auth/register"
+            element={isAuthenticated && user?.emailVerificado !== false ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
+          />
+          <Route path="auth/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="auth/reset-password/:token" element={<ResetPasswordPage />} />
+          <Route path="verificar-email/:token" element={<VerifyEmailPage />} />
+          <Route path="privacidad" element={<PrivacyPage />} />
+          <Route path="terminos" element={<TermsPage />} />
+          <Route path="sobre-nosotros" element={<AboutPage />} />
+          <Route path="soporte" element={<SupportPage />} />
+          <Route path="politica-acceso-whatsapp" element={<DataProcessingPage />} />
+          <Route path="para-canales" element={<ForChannelsPage />} />
+          <Route path="para-anunciantes" element={<ForBrandsPage />} />
+          <Route path="herramientas" element={<HerramientasPage />} />
+          <Route path="blog" element={<BlogIndex />} />
+          <Route path="blog/:slug" element={<BlogPost />} />
 
-        {/* Creator / Admin dashboard (uses public NavBar layout) */}
+          <Route
+            path="dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="admin/candidates"
+            element={
+              <ProtectedRoute>
+                <CandidatesReviewPage />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
+        {/* ── Advertiser dashboard — own sidebar layout ─── */}
         <Route
-          path="dashboard"
+          path="/advertiser"
           element={
-            <ProtectedRoute>
-              <DashboardPage />
+            <ProtectedRoute requireBeta>
+              <AdvertiserLayout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index        element={<OverviewPage />} />
+          <Route path="explore"  element={<FullAccessOnly feature="Marketplace"><ExplorePage /></FullAccessOnly>} />
+          <Route path="autobuy"  element={<FullAccessOnly feature="Auto-compra"><AutoBuyPage /></FullAccessOnly>} />
+          <Route path="campaigns" element={<FullAccessOnly feature="Campanas"><CampaignsPage /></FullAccessOnly>} />
+          <Route path="campaigns/new" element={<FullAccessOnly feature="Campanas"><NewCampaignPage /></FullAccessOnly>} />
+          <Route path="campaigns/:id/analytics" element={<FullAccessOnly feature="Campanas"><CampaignAnalyticsPage /></FullAccessOnly>} />
+          <Route path="ads"      element={<Navigate to="/advertiser/campaigns?tab=solicitudes" replace />} />
+          <Route path="finances" element={<FullAccessOnly feature="Finanzas"><FinancesPage /></FullAccessOnly>} />
+          <Route path="inbox"    element={<InboxPage />} />
+          <Route path="tracking-setup" element={<TrackingSetupPage />} />
+          <Route path="analytics" element={<Navigate to="/advertiser/finances" replace />} />
+          <Route path="analyze/channel"   element={<FullAccessOnly feature="Análisis de canal"><AnalyzeChannelPage /></FullAccessOnly>} />
+          <Route path="analyze/compare"   element={<FullAccessOnly feature="Comparar canales"><CompareChannelsPage /></FullAccessOnly>} />
+          <Route path="analyze/lookalike" element={<FullAccessOnly feature="Canales similares"><LookalikeChannelsPage /></FullAccessOnly>} />
+          <Route path="analyze/audit"     element={<FullAccessOnly feature="Auditoría bulk"><AuditChannelsPage /></FullAccessOnly>} />
+          <Route path="analyze/niches"    element={<FullAccessOnly feature="Heatmap de nichos"><NicheHeatmapPage /></FullAccessOnly>} />
+          <Route path="analyze/ad"        element={<FullAccessOnly feature="Análisis de anuncio"><AnalyzeAdPage /></FullAccessOnly>} />
+          <Route path="analyze/forecast"  element={<FullAccessOnly feature="Forecaster ROI"><ForecastROIPage /></FullAccessOnly>} />
+          <Route path="analyze/realtime"  element={<FullAccessOnly feature="Monitor en tiempo real"><RealtimeMonitorPage /></FullAccessOnly>} />
+          <Route path="analyze/funnel"    element={<FullAccessOnly feature="Funnel Analyzer"><FunnelAnalyzerPage /></FullAccessOnly>} />
+          <Route path="analyze/cohorts"   element={<FullAccessOnly feature="Análisis por cohortes"><CohortAnalysisPage /></FullAccessOnly>} />
+          <Route path="analyze/watchlist" element={<FullAccessOnly feature="Watchlist de canales"><PositionTrackerPage /></FullAccessOnly>} />
+          <Route path="analyze/overlap"   element={<FullAccessOnly feature="Solapamiento de audiencias"><AudienceOverlapPage /></FullAccessOnly>} />
+          <Route path="analyze/abtest"    element={<FullAccessOnly feature="A/B Test Lab"><ABTestLabPage /></FullAccessOnly>} />
+          <Route path="campaigns/bulk"    element={<FullAccessOnly feature="Bulk Launcher"><BulkLauncherPage /></FullAccessOnly>} />
+          <Route path="analyze/topics"    element={<FullAccessOnly feature="Topic Research"><TopicResearchPage /></FullAccessOnly>} />
+          <Route path="analyze/audience"  element={<FullAccessOnly feature="Audience Insights"><AudienceInsightsPage /></FullAccessOnly>} />
+          <Route path="analyze/reports"   element={<FullAccessOnly feature="Report Studio"><ReportStudioPage /></FullAccessOnly>} />
+          <Route path="campaigns/calendar" element={<FullAccessOnly feature="Calendario de campañas"><CampaignCalendarPage /></FullAccessOnly>} />
+          <Route path="analyze/calendar"  element={<FullAccessOnly feature="Calendario de campañas"><CampaignCalendarPage /></FullAccessOnly>} />
+          <Route path="referrals" element={<ReferralsPage />} />
+          <Route path="disputes" element={<FullAccessOnly feature="Disputas"><DisputesPage /></FullAccessOnly>} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+        </Route>
+
+        {/* ── Creator dashboard — own sidebar layout ── */}
         <Route
-          path="admin/candidates"
+          path="/creator"
           element={
-            <ProtectedRoute>
-              <CandidatesReviewPage />
+            <ProtectedRoute requireBeta>
+              <CreatorLayout />
             </ProtectedRoute>
           }
-        />
-      </Route>
+        >
+          <Route index         element={<CreatorOverviewPage />} />
+          <Route path="channels" element={<CreatorChannelsPage />} />
+          <Route path="channels/new" element={<RegisterChannelPage />} />
+          <Route path="channels/link-whatsapp" element={<LinkWhatsAppPage />} />
+          <Route path="channels/:canalId/verify-wa-admin" element={<VerifyWhatsAppAdminPage />} />
+          <Route path="whatsapp-audit" element={<WhatsAppAuditLogPage />} />
+          <Route path="requests" element={<FullAccessOnly feature="Solicitudes"><CreatorRequestsPage /></FullAccessOnly>} />
+          <Route path="earnings" element={<FullAccessOnly feature="Ganancias"><CreatorEarningsPage /></FullAccessOnly>} />
+          <Route path="analytics" element={<FullAccessOnly feature="Analytics"><CreatorAnalyticsPage /></FullAccessOnly>} />
+          <Route path="pricing" element={<FullAccessOnly feature="Pricing Optimizer"><PricingOptimizerPage /></FullAccessOnly>} />
+          <Route path="reports" element={<FullAccessOnly feature="Reports Studio"><CreatorReportsPage /></FullAccessOnly>} />
+          <Route path="abtest" element={<FullAccessOnly feature="A/B Testing"><CreatorABTestPage /></FullAccessOnly>} />
+          <Route path="audience" element={<FullAccessOnly feature="Audience Insights"><CreatorAudiencePage /></FullAccessOnly>} />
+          <Route path="compare" element={<FullAccessOnly feature="Comparativa"><CreatorComparePage /></FullAccessOnly>} />
+          <Route path="profile" element={<CreatorProfilePage />} />
+          <Route path="inbox" element={<FullAccessOnly feature="Inbox"><CreatorInboxPage /></FullAccessOnly>} />
+          <Route path="discover" element={<FullAccessOnly feature="Discover"><CreatorDiscoverPage /></FullAccessOnly>} />
+          <Route path="calendar" element={<FullAccessOnly feature="Calendario"><CreatorCalendarPage /></FullAccessOnly>} />
+          <Route path="brands"   element={<FullAccessOnly feature="Brands CRM"><CreatorBrandsPage /></FullAccessOnly>} />
+          <Route path="notifications" element={<CreatorNotificationsPage />} />
+          <Route path="content"  element={<FullAccessOnly feature="Content Studio"><CreatorContentStudioPage /></FullAccessOnly>} />
+          <Route path="tools"    element={<FullAccessOnly feature="Tools"><CreatorToolsPage /></FullAccessOnly>} />
+          <Route path="activity" element={<FullAccessOnly feature="Actividad"><CreatorActivityPage /></FullAccessOnly>} />
+          <Route path="billing"  element={<FullAccessOnly feature="Billing"><CreatorBillingPage /></FullAccessOnly>} />
+          <Route path="swaps"    element={<FullAccessOnly feature="Colaboraciones"><CreatorSwapsPage /></FullAccessOnly>} />
+          <Route path="referrals" element={<CreatorReferralsPage />} />
+          <Route path="disputes" element={<FullAccessOnly feature="Disputas"><DisputesPage /></FullAccessOnly>} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="settings" element={<CreatorSettingsPage />} />
+        </Route>
 
-      {/* ── Advertiser dashboard — own sidebar layout ─── */}
-      <Route
-        path="/advertiser"
-        element={
-          <ProtectedRoute requireBeta>
-            <AdvertiserLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index        element={<OverviewPage />} />
-        <Route path="explore"  element={<FullAccessOnly feature="Marketplace"><ExplorePage /></FullAccessOnly>} />
-        <Route path="autobuy"  element={<FullAccessOnly feature="Auto-compra"><AutoBuyPage /></FullAccessOnly>} />
-        <Route path="campaigns" element={<FullAccessOnly feature="Campanas"><CampaignsPage /></FullAccessOnly>} />
-        <Route path="campaigns/new" element={<FullAccessOnly feature="Campanas"><NewCampaignPage /></FullAccessOnly>} />
-        <Route path="campaigns/:id/analytics" element={<FullAccessOnly feature="Campanas"><CampaignAnalyticsPage /></FullAccessOnly>} />
-        <Route path="ads"      element={<Navigate to="/advertiser/campaigns?tab=solicitudes" replace />} />
-        <Route path="finances" element={<FullAccessOnly feature="Finanzas"><FinancesPage /></FullAccessOnly>} />
-        <Route path="inbox"    element={<InboxPage />} />
-        <Route path="tracking-setup" element={<TrackingSetupPage />} />
-        <Route path="analytics" element={<Navigate to="/advertiser/finances" replace />} />
-        <Route path="analyze/channel"   element={<FullAccessOnly feature="Análisis de canal"><AnalyzeChannelPage /></FullAccessOnly>} />
-        <Route path="analyze/compare"   element={<FullAccessOnly feature="Comparar canales"><CompareChannelsPage /></FullAccessOnly>} />
-        <Route path="analyze/lookalike" element={<FullAccessOnly feature="Canales similares"><LookalikeChannelsPage /></FullAccessOnly>} />
-        <Route path="analyze/audit"     element={<FullAccessOnly feature="Auditoría bulk"><AuditChannelsPage /></FullAccessOnly>} />
-        <Route path="analyze/niches"    element={<FullAccessOnly feature="Heatmap de nichos"><NicheHeatmapPage /></FullAccessOnly>} />
-        <Route path="analyze/ad"        element={<FullAccessOnly feature="Análisis de anuncio"><AnalyzeAdPage /></FullAccessOnly>} />
-        <Route path="analyze/forecast"  element={<FullAccessOnly feature="Forecaster ROI"><ForecastROIPage /></FullAccessOnly>} />
-        <Route path="analyze/realtime"  element={<FullAccessOnly feature="Monitor en tiempo real"><RealtimeMonitorPage /></FullAccessOnly>} />
-        <Route path="analyze/funnel"    element={<FullAccessOnly feature="Funnel Analyzer"><FunnelAnalyzerPage /></FullAccessOnly>} />
-        <Route path="analyze/cohorts"   element={<FullAccessOnly feature="Análisis por cohortes"><CohortAnalysisPage /></FullAccessOnly>} />
-        <Route path="analyze/watchlist" element={<FullAccessOnly feature="Watchlist de canales"><PositionTrackerPage /></FullAccessOnly>} />
-        <Route path="analyze/overlap"   element={<FullAccessOnly feature="Solapamiento de audiencias"><AudienceOverlapPage /></FullAccessOnly>} />
-        <Route path="analyze/abtest"    element={<FullAccessOnly feature="A/B Test Lab"><ABTestLabPage /></FullAccessOnly>} />
-        <Route path="campaigns/bulk"    element={<FullAccessOnly feature="Bulk Launcher"><BulkLauncherPage /></FullAccessOnly>} />
-        <Route path="analyze/topics"    element={<FullAccessOnly feature="Topic Research"><TopicResearchPage /></FullAccessOnly>} />
-        <Route path="analyze/audience"  element={<FullAccessOnly feature="Audience Insights"><AudienceInsightsPage /></FullAccessOnly>} />
-        <Route path="analyze/reports"   element={<FullAccessOnly feature="Report Studio"><ReportStudioPage /></FullAccessOnly>} />
-        <Route path="campaigns/calendar" element={<FullAccessOnly feature="Calendario de campañas"><CampaignCalendarPage /></FullAccessOnly>} />
-        <Route path="analyze/calendar"  element={<FullAccessOnly feature="Calendario de campañas"><CampaignCalendarPage /></FullAccessOnly>} />
-        <Route path="referrals" element={<ReferralsPage />} />
-        <Route path="disputes" element={<FullAccessOnly feature="Disputas"><DisputesPage /></FullAccessOnly>} />
-        <Route path="notifications" element={<NotificationsPage />} />
-        <Route path="settings" element={<SettingsPage />} />
-      </Route>
+        {/* ── Admin dashboard — own sidebar layout ── */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index          element={<AdminOverviewPage />} />
+          <Route path="users"      element={<AdminUsersPage />} />
+          <Route path="channels"   element={<AdminChannelsPage />} />
+          <Route path="campaigns"  element={<AdminCampaignsPage />} />
+          <Route path="disputes"   element={<AdminDisputesPage />} />
+          <Route path="finances"   element={<AdminFinancesPage />} />
+          <Route path="scoring"    element={<AdminScoringPage />} />
+          <Route path="settings"   element={<SettingsPage />} />
+        </Route>
 
-      {/* ── Creator dashboard — own sidebar layout ── */}
-      <Route
-        path="/creator"
-        element={
-          <ProtectedRoute requireBeta>
-            <CreatorLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index         element={<CreatorOverviewPage />} />
-        <Route path="channels" element={<CreatorChannelsPage />} />
-        <Route path="channels/new" element={<RegisterChannelPage />} />
-        <Route path="channels/link-whatsapp" element={<LinkWhatsAppPage />} />
-        <Route path="channels/:canalId/verify-wa-admin" element={<VerifyWhatsAppAdminPage />} />
-        <Route path="whatsapp-audit" element={<WhatsAppAuditLogPage />} />
-        <Route path="requests" element={<FullAccessOnly feature="Solicitudes"><CreatorRequestsPage /></FullAccessOnly>} />
-        <Route path="earnings" element={<FullAccessOnly feature="Ganancias"><CreatorEarningsPage /></FullAccessOnly>} />
-        <Route path="analytics" element={<FullAccessOnly feature="Analytics"><CreatorAnalyticsPage /></FullAccessOnly>} />
-        <Route path="pricing" element={<FullAccessOnly feature="Pricing Optimizer"><PricingOptimizerPage /></FullAccessOnly>} />
-        <Route path="reports" element={<FullAccessOnly feature="Reports Studio"><CreatorReportsPage /></FullAccessOnly>} />
-        <Route path="abtest" element={<FullAccessOnly feature="A/B Testing"><CreatorABTestPage /></FullAccessOnly>} />
-        <Route path="audience" element={<FullAccessOnly feature="Audience Insights"><CreatorAudiencePage /></FullAccessOnly>} />
-        <Route path="compare" element={<FullAccessOnly feature="Comparativa"><CreatorComparePage /></FullAccessOnly>} />
-        <Route path="profile" element={<CreatorProfilePage />} />
-        <Route path="inbox" element={<FullAccessOnly feature="Inbox"><CreatorInboxPage /></FullAccessOnly>} />
-        <Route path="discover" element={<FullAccessOnly feature="Discover"><CreatorDiscoverPage /></FullAccessOnly>} />
-        <Route path="calendar" element={<FullAccessOnly feature="Calendario"><CreatorCalendarPage /></FullAccessOnly>} />
-        <Route path="brands"   element={<FullAccessOnly feature="Brands CRM"><CreatorBrandsPage /></FullAccessOnly>} />
-        <Route path="notifications" element={<CreatorNotificationsPage />} />
-        <Route path="content"  element={<FullAccessOnly feature="Content Studio"><CreatorContentStudioPage /></FullAccessOnly>} />
-        <Route path="tools"    element={<FullAccessOnly feature="Tools"><CreatorToolsPage /></FullAccessOnly>} />
-        <Route path="activity" element={<FullAccessOnly feature="Actividad"><CreatorActivityPage /></FullAccessOnly>} />
-        <Route path="billing"  element={<FullAccessOnly feature="Billing"><CreatorBillingPage /></FullAccessOnly>} />
-        <Route path="swaps"    element={<FullAccessOnly feature="Colaboraciones"><CreatorSwapsPage /></FullAccessOnly>} />
-        <Route path="referrals" element={<CreatorReferralsPage />} />
-        <Route path="disputes" element={<FullAccessOnly feature="Disputas"><DisputesPage /></FullAccessOnly>} />
-        <Route path="notifications" element={<NotificationsPage />} />
-        <Route path="settings" element={<CreatorSettingsPage />} />
-      </Route>
+        {/* ── Onboarding flow (self-contained layout) ────── */}
+        <Route path="/onboarding" element={<OnboardingLayout />}>
+          <Route index element={<Navigate to="register" replace />} />
+          <Route path="register" element={<RegisterStep />} />
+          <Route path="verify" element={<VerifyStep />} />
+          <Route path="channel" element={<ChannelStep />} />
+          <Route path="success" element={<SuccessStep />} />
+        </Route>
 
-      {/* ── Admin dashboard — own sidebar layout ── */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index          element={<AdminOverviewPage />} />
-        <Route path="users"      element={<AdminUsersPage />} />
-        <Route path="channels"   element={<AdminChannelsPage />} />
-        <Route path="campaigns"  element={<AdminCampaignsPage />} />
-        <Route path="disputes"   element={<AdminDisputesPage />} />
-        <Route path="finances"   element={<AdminFinancesPage />} />
-        <Route path="scoring"    element={<AdminScoringPage />} />
-        <Route path="settings"   element={<SettingsPage />} />
-      </Route>
-
-      {/* ── Onboarding flow (self-contained layout) ────── */}
-      <Route path="/onboarding" element={<OnboardingLayout />}>
-        <Route index element={<Navigate to="register" replace />} />
-        <Route path="register" element={<RegisterStep />} />
-        <Route path="verify" element={<VerifyStep />} />
-        <Route path="channel" element={<ChannelStep />} />
-        <Route path="success" element={<SuccessStep />} />
-      </Route>
-
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Suspense>
   )
 }
