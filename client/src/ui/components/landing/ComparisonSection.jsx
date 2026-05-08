@@ -43,16 +43,16 @@ function Cell({ data }) {
   )
 }
 
-export default function ComparisonSection() {
+export default function ComparisonSection({ background = 'var(--bg2)', sectionId = 'comparativa' } = {}) {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
 
   return (
     <section
       ref={ref}
-      id="comparativa"
+      id={sectionId}
       style={{
-        background: 'var(--bg2)',
+        background,
         padding: 'clamp(72px,10vw,140px) clamp(16px, 4vw, 24px)',
       }}
     >

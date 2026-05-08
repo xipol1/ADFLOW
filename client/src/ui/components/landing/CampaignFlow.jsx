@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { motion, useInView, AnimatePresence } from 'framer-motion'
 import {
   Search, CreditCard, Send, BarChart3, ArrowRight, CheckCircle2,
   Shield, Zap, Eye, Clock,
@@ -153,7 +153,11 @@ function StepCard({ step, index, isActive, onHover }) {
   )
 }
 
-export default function CampaignFlow() {
+export default function CampaignFlow({
+  background = 'var(--bg2)',
+  sectionId = 'como-funciona',
+  screens = null,
+} = {}) {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
   const [activeStep, setActiveStep] = useState(0)
@@ -161,9 +165,9 @@ export default function CampaignFlow() {
   return (
     <section
       ref={ref}
-      id="como-funciona"
+      id={sectionId}
       style={{
-        background: 'var(--bg2)',
+        background,
         padding: 'clamp(72px,10vw,140px) clamp(16px, 4vw, 24px)',
       }}
     >
@@ -250,6 +254,30 @@ export default function CampaignFlow() {
             />
           ))}
         </motion.div>
+
+        {/* Step preview — when `screens` is provided, render the screen
+            corresponding to the active step below the card grid. Hovering
+            any step card swaps the preview with a fade transition. */}
+        {screens && Array.isArray(screens) && screens.length > 0 && (
+          <div
+            style={{
+              marginTop: 'clamp(36px, 5vw, 56px)',
+              position: 'relative',
+            }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeStep}
+                initial={{ opacity: 0, y: 12, filter: 'blur(6px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, y: -8, filter: 'blur(4px)' }}
+                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {screens[Math.min(activeStep, screens.length - 1)]}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        )}
 
         {/* Bottom trust badges */}
         <div style={{
