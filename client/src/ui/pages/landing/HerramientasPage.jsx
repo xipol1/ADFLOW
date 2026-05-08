@@ -96,14 +96,14 @@ export default function HerramientasPage() {
         <DashboardShowcase />
       </LazyMount>
 
-      {/* Métricas verificables + badges de seguridad */}
-      <LazyMount placeholder={<div style={{ minHeight: 560 }} />}>
-        <RealDataSection />
-      </LazyMount>
-
       {/* Subscription tiers — 4 cards 3D (Free creator + Pro/Agency/Enterprise advertiser) */}
       <LazyMount placeholder={<div style={{ minHeight: 720 }} />}>
         <SubscriptionTiers3D />
+      </LazyMount>
+
+      {/* Métricas verificables + badges de seguridad */}
+      <LazyMount placeholder={<div style={{ minHeight: 560 }} />}>
+        <RealDataSection />
       </LazyMount>
     </main>
   )
