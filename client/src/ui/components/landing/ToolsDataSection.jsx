@@ -306,7 +306,7 @@ function CategoryCard({ cat, index }) {
   )
 }
 
-export default function ToolsDataSection() {
+export default function ToolsDataSection({ background = 'var(--bg)' } = {}) {
   const sectionRef = useRef(null)
   const inView = useInView(sectionRef, { once: true, margin: '-80px' })
 
@@ -314,7 +314,7 @@ export default function ToolsDataSection() {
     <section
       ref={sectionRef}
       style={{
-        background: 'var(--bg)',
+        background,
         padding: 'clamp(80px, 10vw, 140px) clamp(16px, 4vw, 24px)',
       }}
     >

@@ -29,7 +29,11 @@ export default function HerramientasPage() {
       style={{
         fontFamily: F,
         color: 'var(--text)',
-        background: 'var(--bg)',
+        // Page-level purple wash so all sections feel continuous (mirrors
+        // ForBrandsPage). Sections below pass `background="transparent"` so
+        // this gradient bleeds through them — no hard horizontal cuts.
+        background:
+          'radial-gradient(ellipse 90% 50% at 75% 8%, rgba(124, 58, 237, 0.08) 0%, transparent 55%), radial-gradient(ellipse 60% 40% at 15% 30%, rgba(99, 102, 241, 0.05) 0%, transparent 60%), var(--bg)',
         position: 'relative',
         minHeight: '100vh',
       }}
@@ -93,17 +97,19 @@ export default function HerramientasPage() {
 
       {/* +30 herramientas en 4 categorías con tabs interactivos */}
       <LazyMount placeholder={<div style={{ minHeight: 720 }} />}>
-        <DashboardShowcase />
+        <DashboardShowcase background="transparent" />
       </LazyMount>
 
-      {/* Subscription tiers — 4 cards 3D (Free creator + Pro/Agency/Enterprise advertiser) */}
+      {/* Subscription tiers — 4 cards 3D. Keeps a soft purple radial here
+          (var(--bg2) sibling) to give a rhythmic contrast band against the
+          surrounding transparent sections. */}
       <LazyMount placeholder={<div style={{ minHeight: 720 }} />}>
-        <SubscriptionTiers3D />
+        <SubscriptionTiers3D background="var(--bg2)" />
       </LazyMount>
 
       {/* Datos que cada herramienta expone — específico de /herramientas */}
       <LazyMount placeholder={<div style={{ minHeight: 720 }} />}>
-        <ToolsDataSection />
+        <ToolsDataSection background="transparent" />
       </LazyMount>
     </main>
   )

@@ -118,7 +118,7 @@ function ToolCard({ tool, categoryColor, index }) {
   )
 }
 
-export default function DashboardShowcase() {
+export default function DashboardShowcase({ background = 'var(--bg)' } = {}) {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
   const [activeCategory, setActiveCategory] = useState('discovery')
@@ -130,7 +130,7 @@ export default function DashboardShowcase() {
       ref={ref}
       id="dashboard-tour"
       style={{
-        background: 'var(--bg)',
+        background,
         padding: 'clamp(72px,10vw,140px) clamp(16px, 4vw, 24px)',
       }}
     >
