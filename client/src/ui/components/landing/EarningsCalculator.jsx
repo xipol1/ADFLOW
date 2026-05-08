@@ -203,33 +203,36 @@ export default function EarningsCalculator({ sectionId = 'earnings-calc' } = {})
   const result = useMemo(() => {
     const p = PLATFORMS.find((x) => x.id === platform)
     const n = NICHES.find((x) => x.id === niche)
-    // Base CPM: 12 € (mediana del marketplace para canales medianos).
-    // Ajustamos por engagement de plataforma y por nicho.
+    // Base CPM: 12 € (mediana del marketplace para canales medianos),
+    // ajustada por engagement de plataforma y nicho. Es el CPM que listas tú,
+    // y por tanto lo que recibes íntegro.
     const baseCpm = 12
     const effectiveCpm = baseCpm * p.mult * n.mult
     // Reach por publicación = miembros * tasa de impresión típica (60%).
     const reachPerPost = Math.round(members * 0.6)
-    // Precio bruto que paga el anunciante = (reach / 1000) * CPM.
-    const grossPerPost = (reachPerPost / 1000) * effectiveCpm
-    // El creador cobra el 100% del precio listado (Channelad cobra 10% al
-    // anunciante por encima del precio del creador en el escrow).
-    const creatorPerPost = grossPerPost * 0.85 // 15% buffer for net effective
+    // El creador cobra el 100% del CPM listado.
+    const creatorPerPost = (reachPerPost / 1000) * effectiveCpm
+    // Channelad añade un 20% sobre el precio del creador, lo cobra al
+    // anunciante en el escrow. (No descontamos nada al creador.)
+    const advertiserPaysPerPost = creatorPerPost * 1.20
     const monthly = creatorPerPost * posts
     const yearly = monthly * 12
 
-    // Comparativas — mismo ingreso bruto por canal/mes, distintas plataformas.
+    // Comparativas — mismo reach por mes, distintas plataformas.
     // Adsense: ~2 € CPM, monetización por tráfico web (no por canal). Sólo
     // tiene sentido si el creador desvía tráfico — estimamos 5% del reach.
     const adsense = (reachPerPost * posts * 0.05 / 1000) * 2
     // Patreon: 8% comisión, asume 5% de miembros pagando 5 €/mes.
     const patreon = members * 0.05 * 5 * 0.92
-    // Networks tradicionales: mismo precio bruto pero −40% comisión + retraso.
+    // Networks tradicionales: 30-50% comisión sobre el creator + cobro a
+    // 60-90 días. Aproximamos un 55% de retorno efectivo.
     const networks = monthly * 0.55
 
     return {
       monthly,
       yearly,
       perPost: creatorPerPost,
+      advertiserPaysPerPost,
       reachPerPost,
       effectiveCpm,
       adsense,

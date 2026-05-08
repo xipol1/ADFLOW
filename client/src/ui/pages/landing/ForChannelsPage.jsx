@@ -124,7 +124,7 @@ const STEPS = [
 const FAQS = [
   {
     q: '¿Cuánto me cobra Channelad?',
-    a: 'Cero. Channelad cobra una comisión al anunciante por encima del precio que tú fijas — nunca a ti. Si pones un precio de 500 €, tú recibes 500 €. La plataforma es gratis para el creador para siempre, sin fee de alta, sin comisiones por publicación, sin costes ocultos.',
+    a: 'Cero. Channelad añade un 20% sobre el precio que tú fijas y se lo cobra al anunciante — nunca a ti. Si pones un precio de 500 €, el anunciante deposita 600 € en escrow, Channelad se queda 100 € y tú recibes 500 € íntegros. La plataforma es gratis para el creador para siempre, sin fee de alta, sin comisiones por publicación, sin costes ocultos.',
   },
   {
     q: '¿Qué plataformas puedo registrar?',
@@ -872,13 +872,17 @@ export default function ForChannelsPage() {
                 }}>
                   <p style={{ fontSize: 11, fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 12px' }}>Ejemplo · tu precio = 500 €</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--muted)' }}>
-                      <span>El anunciante deposita</span>
-                      <span style={{ fontVariantNumeric: 'tabular-nums' }}>600 €</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text)' }}>
+                      <span>Tu precio listado</span>
+                      <strong style={{ fontVariantNumeric: 'tabular-nums' }}>500 €</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--muted)' }}>
-                      <span>Comisión Channelad (al anunciante)</span>
-                      <span style={{ fontVariantNumeric: 'tabular-nums' }}>−100 €</span>
+                      <span>Comisión Channelad (20% sobre tu precio, al anunciante)</span>
+                      <span style={{ fontVariantNumeric: 'tabular-nums' }}>+100 €</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--muted)' }}>
+                      <span>El anunciante deposita en escrow</span>
+                      <span style={{ fontVariantNumeric: 'tabular-nums' }}>600 €</span>
                     </div>
                     <div style={{
                       display: 'flex', justifyContent: 'space-between',
