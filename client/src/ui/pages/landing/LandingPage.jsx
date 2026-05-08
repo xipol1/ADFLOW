@@ -73,7 +73,7 @@ function DeferredMount({ children, delay = 0 }) {
 
 export default function LandingPage() {
   return (
-    <main style={{ minHeight: '100vh' }}>
+    <main data-testid="landing-page-legacy" style={{ minHeight: '100vh' }}>
       <SEO
         title={null}
         description="Channelad es el marketplace de publicidad en comunidades reales. Dashboard con +30 herramientas, calculadora de ROI, escrow Stripe y metricas verificadas con tracking links."

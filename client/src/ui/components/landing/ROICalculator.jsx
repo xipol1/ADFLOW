@@ -85,7 +85,7 @@ function MetricBox({ icon: Icon, label, value, sub, color, delay }) {
   )
 }
 
-export default function ROICalculator() {
+export default function ROICalculator({ background = 'var(--bg)', sectionId = 'calculadora' } = {}) {
   const [budget, setBudget] = useState(500)
   const [platform, setPlatform] = useState('mixto')
   const [niche, setNiche] = useState('lifestyle')
@@ -111,9 +111,9 @@ export default function ROICalculator() {
   return (
     <section
       ref={ref}
-      id="calculadora"
+      id={sectionId}
       style={{
-        background: 'var(--bg)',
+        background,
         padding: 'clamp(72px,10vw,140px) clamp(16px, 4vw, 24px)',
       }}
     >

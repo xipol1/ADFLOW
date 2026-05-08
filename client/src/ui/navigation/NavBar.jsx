@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import GlobalSearchBar from '../components/GlobalSearchBar'
 
@@ -34,6 +34,14 @@ const NAV_PLATFORMS = [
 export default function NavBar() {
   const { isAuthenticated, user, logout, isAnunciante, isCreador, isAdmin } = useAuth()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+  // Contextual toggle: on /herramientas show "Para marcas" → /, elsewhere
+  // show "Herramientas" → /herramientas. Lets users hop between landing and
+  // tool catalog without burying either in a submenu.
+  const onHerramientas = pathname === '/herramientas'
+  const advertiserButton = onHerramientas
+    ? { to: '/', label: 'Para marcas' }
+    : { to: '/herramientas', label: 'Herramientas' }
   const [isDark, setIsDark] = useState(false)
   const [megaOpen, setMegaOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -188,9 +196,9 @@ export default function NavBar() {
 
         {/* Audience buttons */}
         <div className="nav-audience-buttons" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <NavLink to="/para-anunciantes" className="text-[13px] font-semibold px-3 py-1.5 rounded-lg"
+          <NavLink to={advertiserButton.to} className="text-[13px] font-semibold px-3 py-1.5 rounded-lg"
             style={{ color: 'var(--accent)', background: 'var(--accent-dim)', border: '1px solid var(--accent-border)', textDecoration: 'none', transition: 'all .15s', whiteSpace: 'nowrap' }}
-          >Para Marcas</NavLink>
+          >{advertiserButton.label}</NavLink>
           <NavLink to="/para-canales" className="text-[13px] font-semibold px-3 py-1.5 rounded-lg"
             style={{ color: '#25d366', background: 'rgba(37,211,102,0.08)', border: '1px solid rgba(37,211,102,0.18)', textDecoration: 'none', transition: 'all .15s', whiteSpace: 'nowrap' }}
           >Para Creadores</NavLink>

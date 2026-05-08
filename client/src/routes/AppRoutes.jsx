@@ -14,6 +14,7 @@ import RankingsPage from '../ui/pages/rankings/RankingsPage'
 import CandidatesReviewPage from '../ui/pages/admin/CandidatesReviewPage'
 import ClaimChannelPage from '../ui/pages/claim/ClaimChannelPage'
 import { useAuth } from '../auth/AuthContext'
+import { getFeatureFlag } from '../flags/featureFlags'
 
 // Advertiser dashboard suite
 import AdvertiserLayout from '../ui/pages/dashboard/advertiser/AdvertiserLayout'
@@ -103,6 +104,7 @@ import DataProcessingPage from '../ui/pages/legal/DataProcessingPage'
 import ForgotPasswordPage from '../ui/pages/auth/ForgotPasswordPage'
 import ForChannelsPage from '../ui/pages/landing/ForChannelsPage'
 import ForBrandsPage from '../ui/pages/landing/ForBrandsPage'
+import HerramientasPage from '../ui/pages/landing/HerramientasPage'
 import BlogIndex from '../ui/pages/blog/BlogIndex'
 import BlogPost from '../ui/pages/blog/BlogPost'
 
@@ -130,12 +132,15 @@ function FullAccessOnly({ children, feature }) {
 
 export default function AppRoutes() {
   const { isAuthenticated, user } = useAuth()
+  // Feature flag: when ON, "/" renders ForBrandsPage (unified landing).
+  // Default OFF — see client/src/flags/featureFlags.js.
+  const landingUnificationEnabled = getFeatureFlag('landingUnification')
 
   return (
     <Routes>
       {/* ── Public / landing routes ────────────────────── */}
       <Route path="/" element={<AppLayout />}>
-        <Route index element={<LandingPage />} />
+        <Route index element={landingUnificationEnabled ? <ForBrandsPage /> : <LandingPage />} />
         <Route path="marketplace" element={<MarketplacePage />} /> {/* Public browsing allowed */}
         <Route path="marketplace/:channelId" element={<ChannelDetailPage />} /> {/* Marketplace channel detail (purchase-oriented view) */}
         <Route path="channel/:id" element={<ChannelExplorerPage />} /> {/* Public channel intelligence (by ID or username) */}
@@ -166,6 +171,7 @@ export default function AppRoutes() {
         <Route path="politica-acceso-whatsapp" element={<DataProcessingPage />} />
         <Route path="para-canales" element={<ForChannelsPage />} />
         <Route path="para-anunciantes" element={<ForBrandsPage />} />
+        <Route path="herramientas" element={<HerramientasPage />} />
         <Route path="blog" element={<BlogIndex />} />
         <Route path="blog/:slug" element={<BlogPost />} />
 

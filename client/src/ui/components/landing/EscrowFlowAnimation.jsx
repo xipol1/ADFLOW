@@ -4,15 +4,63 @@ import { CreditCard, Shield, Send, MousePointerClick, CheckCircle2, Wallet } fro
 import { FONT_DISPLAY, FONT_BODY, MAX_W } from '../../theme/tokens'
 
 const STEPS = [
-  { id: 0, label: 'Anunciante paga',     icon: CreditCard,       color: '#3b82f6', detail: '500€ via Stripe' },
-  { id: 1, label: 'Escrow protege',      icon: Shield,           color: '#7C3AED', detail: '500€ bloqueados' },
-  { id: 2, label: 'Creator publica',     icon: Send,             color: '#f59e0b', detail: 'Post en canal' },
-  { id: 3, label: 'Tracking verifica',   icon: MousePointerClick,color: '#06b6d4', detail: '127 clicks unicos' },
-  { id: 4, label: 'Liberacion auto',     icon: CheckCircle2,     color: '#22c55e', detail: 'Verificado en 18h' },
-  { id: 5, label: 'Creator cobra',       icon: Wallet,           color: '#10b981', detail: '500€ a tu cuenta' },
+  {
+    id: 0,
+    label: 'Anunciante paga',
+    icon: CreditCard,
+    color: '#3b82f6',
+    detail: '500€ via Stripe',
+    desc:
+      'Confirmas tu campaña y pagas vía Stripe Connect con cualquier tarjeta o transferencia. Tus fondos no llegan al canal todavía: quedan retenidos en escrow neutral.',
+  },
+  {
+    id: 1,
+    label: 'Escrow protege',
+    icon: Shield,
+    color: '#7C3AED',
+    detail: '500€ bloqueados',
+    desc:
+      'Stripe Connect mantiene los 500 € bloqueados durante toda la campaña. Ni el canal ni tú accedéis al dinero hasta que la entrega quede verificada.',
+  },
+  {
+    id: 2,
+    label: 'Creator publica',
+    icon: Send,
+    color: '#f59e0b',
+    detail: 'Post en canal',
+    desc:
+      'El canal publica tu mensaje en su comunidad con el formato que aprobasteis. Channelad detecta automáticamente la publicación con tracking links únicos.',
+  },
+  {
+    id: 3,
+    label: 'Tracking verifica',
+    icon: MousePointerClick,
+    color: '#06b6d4',
+    detail: '127 clicks únicos',
+    desc:
+      'Cada click se valida contra fingerprint, IP y patrón temporal para descartar bots. El contador solo suma clicks únicos verificables y auditables.',
+  },
+  {
+    id: 4,
+    label: 'Liberación auto',
+    icon: CheckCircle2,
+    color: '#22c55e',
+    detail: 'Verificado en 18h',
+    desc:
+      'Si el canal cumple los mínimos acordados, el escrow se libera automáticamente. Si no se publica en 48h, recibes el reembolso íntegro sin trámites.',
+  },
+  {
+    id: 5,
+    label: 'Creator cobra',
+    icon: Wallet,
+    color: '#10b981',
+    detail: '500€ a tu cuenta',
+    desc:
+      'Stripe Connect transfiere los 500 € directamente a la cuenta del canal. Recibes confirmación y reporte exportable con todas las métricas verificadas.',
+  },
 ]
 
-export default function EscrowFlowAnimation() {
+export default function EscrowFlowAnimation({ background = 'var(--bg)', sectionId = 'escrow-flow' } = {}) {
   const ref = useRef(null)
   const inView = useInView(ref, { once: false, margin: '-30%' })
   const [active, setActive] = useState(0)
@@ -26,8 +74,9 @@ export default function EscrowFlowAnimation() {
   return (
     <section
       ref={ref}
+      id={sectionId}
       style={{
-        background: 'var(--bg)',
+        background,
         padding: 'clamp(72px,10vw,140px) clamp(16px, 4vw, 24px)',
         overflow: 'hidden',
       }}
@@ -172,6 +221,134 @@ export default function EscrowFlowAnimation() {
           </div>
         </div>
 
+        {/* Step explanation cards — one per step, two-sentence detail.
+            The card matching the active timeline step lifts subtly. */}
+        <div
+          className="escrow-cards-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 16,
+            marginTop: 'clamp(40px, 6vw, 64px)',
+          }}
+        >
+          {STEPS.map((step, i) => {
+            const isActive = i === active
+            const Icon = step.icon
+            return (
+              <motion.div
+                key={step.id}
+                onMouseEnter={() => setActive(i)}
+                animate={{
+                  y: isActive ? -4 : 0,
+                  transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+                }}
+                style={{
+                  position: 'relative',
+                  background: 'var(--surface)',
+                  border: `1px solid ${isActive ? `${step.color}40` : 'var(--border)'}`,
+                  borderRadius: 16,
+                  padding: 'clamp(20px, 2.5vw, 26px)',
+                  boxShadow: isActive
+                    ? `0 18px 40px -12px ${step.color}26, 0 0 0 1px ${step.color}10`
+                    : 'var(--shadow-sm)',
+                  transition: 'box-shadow .35s, border-color .35s, background .35s',
+                  cursor: 'default',
+                }}
+              >
+                {/* Step number — absolute top-left, mirroring CampaignFlow style */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: -12,
+                    left: 20,
+                    width: 28,
+                    height: 28,
+                    borderRadius: 8,
+                    background: step.color,
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: FONT_DISPLAY,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    boxShadow: `0 4px 12px -4px ${step.color}80`,
+                  }}
+                >
+                  {String(i + 1).padStart(2, '0')}
+                </div>
+
+                {/* Header — icon + title + detail chip */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, marginTop: 4 }}>
+                  <div
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 12,
+                      background: `${step.color}10`,
+                      color: step.color,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Icon size={22} strokeWidth={2} />
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <h3
+                      style={{
+                        fontFamily: FONT_DISPLAY,
+                        fontSize: 16,
+                        fontWeight: 700,
+                        color: 'var(--text)',
+                        margin: 0,
+                        letterSpacing: '-0.015em',
+                        lineHeight: 1.15,
+                      }}
+                    >
+                      {step.label}
+                    </h3>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        fontSize: 11,
+                        color: step.color,
+                        fontWeight: 600,
+                        marginTop: 4,
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 5,
+                          height: 5,
+                          borderRadius: '50%',
+                          background: step.color,
+                        }}
+                      />
+                      {step.detail}
+                    </div>
+                  </div>
+                </div>
+
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: 'var(--muted)',
+                    margin: 0,
+                    lineHeight: 1.65,
+                  }}
+                >
+                  {step.desc}
+                </p>
+              </motion.div>
+            )
+          })}
+        </div>
+
         {/* Bottom note */}
         <div style={{
           textAlign: 'center', marginTop: 'clamp(32px, 5vw, 48px)',
@@ -189,9 +366,15 @@ export default function EscrowFlowAnimation() {
       </div>
 
       <style>{`
+        @media (max-width: 900px) {
+          .escrow-cards-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
         @media (max-width: 760px) {
           .escrow-steps { grid-template-columns: repeat(3, 1fr) !important; row-gap: 32px; }
           .escrow-track, .escrow-track-fill, .escrow-coin { display: none !important; }
+        }
+        @media (max-width: 540px) {
+          .escrow-cards-grid { grid-template-columns: 1fr !important; }
         }
         /* Mobile: vertical timeline with connecting line on the left */
         @media (max-width: 480px) {

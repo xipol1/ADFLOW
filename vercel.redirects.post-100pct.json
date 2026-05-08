@@ -1,0 +1,18 @@
+{
+  "_comment": "Apply this redirect block to vercel.json under `redirects` AFTER the canary is at 100% and the legacy /para-anunciantes audience has fully migrated.",
+  "_apply_when": "All of: (a) FF_LANDING_UNIFICATION=on at 100% in production for >= 7 days, (b) /para-anunciantes traffic in analytics is below 5% of total landing traffic, (c) all internal links migrated to '/' (see PR description, NEEDS DECISION #2).",
+  "_how_to_apply": "Open vercel.json, locate the `redirects` array, append the entries from the `redirects` field below, commit with message '[post-100pct] Activate 301 /para-anunciantes -> /', deploy.",
+  "_how_to_revert": "If a regression is detected after the 301 ships, remove the entries from vercel.json and redeploy. Search engines may take 24-72h to refresh; expect a brief SEO dip during revert.",
+  "redirects": [
+    {
+      "source": "/para-anunciantes",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/para-anunciantes/",
+      "destination": "/",
+      "permanent": true
+    }
+  ]
+}
