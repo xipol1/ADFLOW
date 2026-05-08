@@ -1041,7 +1041,7 @@ export default function ForBrandsPage() {
         ]}
       />
 
-
+      {/* ══════════════════════════════════════════════════════════════════
           5 · INSIGHTS PREVIEW — theme-adaptive (light + dark)
              Local CSS variables swap based on [data-theme] so the section
              integrates with the page background instead of forcing dark.
