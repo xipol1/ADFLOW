@@ -104,6 +104,7 @@ import DataProcessingPage from '../ui/pages/legal/DataProcessingPage'
 import ForgotPasswordPage from '../ui/pages/auth/ForgotPasswordPage'
 import ForChannelsPage from '../ui/pages/landing/ForChannelsPage'
 import ForBrandsPage from '../ui/pages/landing/ForBrandsPage'
+import HerramientasPage from '../ui/pages/landing/HerramientasPage'
 import BlogIndex from '../ui/pages/blog/BlogIndex'
 import BlogPost from '../ui/pages/blog/BlogPost'
 
@@ -170,6 +171,7 @@ export default function AppRoutes() {
         <Route path="politica-acceso-whatsapp" element={<DataProcessingPage />} />
         <Route path="para-canales" element={<ForChannelsPage />} />
         <Route path="para-anunciantes" element={<ForBrandsPage />} />
+        <Route path="herramientas" element={<HerramientasPage />} />
         <Route path="blog" element={<BlogIndex />} />
         <Route path="blog/:slug" element={<BlogPost />} />
 

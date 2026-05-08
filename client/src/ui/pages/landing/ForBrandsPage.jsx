@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Shield, Globe, Lock, SearchX, BarChart3, AlertTriangle, ShieldCheck, Eye, BadgeCheck, XCircle, Sparkles, MessageCircle, ArrowRight, Compass, LineChart, TrendingUp, Rocket } from 'lucide-react'
+import { Shield, Globe, Lock, SearchX, BarChart3, AlertTriangle, ShieldCheck, Eye, BadgeCheck, XCircle, Sparkles, MessageCircle, ArrowRight } from 'lucide-react'
 import SEO from '../../components/SEO'
 import CrossLinks from '../../components/landing/CrossLinks'
 import MotionSection, {
@@ -117,54 +117,14 @@ const PAIN_CARDS = [
   },
 ]
 
-/* ─── Sección 5 — Herramientas (toolkit catalog) ─────────────────────── */
-// 4 categorías x 4 herramientas. Refleja la suite real disponible en el
-// dashboard de anunciante. Mantiene cohesión visual con CampaignFlow:
-// cada categoría es una card con número, icono coloreado, descripción
-// y chips de herramientas dentro.
-const TOOLKIT_CATEGORIES = [
-  {
-    n: '01',
-    icon: Compass,
-    color: '#7C3AED',
-    title: 'Descubrir',
-    desc: 'Encuentra los canales que tu audiencia ya está siguiendo.',
-    tools: ['Marketplace', 'Heatmap de nichos', 'Canales similares', 'Auditoría bulk'],
-  },
-  {
-    n: '02',
-    icon: LineChart,
-    color: '#3b82f6',
-    title: 'Analizar',
-    desc: 'Mide audiencia, calidad y rendimiento con datos verificados.',
-    tools: ['Analytics dashboard', 'Cohort analysis', 'Monitor en tiempo real', 'Audience Insights'],
-  },
-  {
-    n: '03',
-    icon: TrendingUp,
-    color: '#f59e0b',
-    title: 'Optimizar',
-    desc: 'Aprende qué funciona y replica los wins en cada campaña.',
-    tools: ['Forecaster ROI', 'A/B Test Lab', 'Copy Analyzer', 'Solapamiento de audiencias'],
-  },
-  {
-    n: '04',
-    icon: Rocket,
-    color: '#16a34a',
-    title: 'Ejecutar',
-    desc: 'Lanza, automatiza y escala en una decena de canales a la vez.',
-    tools: ['Bulk Launcher', 'Campaign Builder', 'Auto-Buy', 'Report Studio'],
-  },
-]
-
-/* ─── Sección 6 — Insights capabilities ──────────────────────────────── */
+/* ─── Sección 5 — Insights capabilities ──────────────────────────────── */
 const INSIGHTS_CAPS = [
   'Compara CPM benchmarks por plataforma y nicho.',
   'Detecta canales con tráfico inflado o farms de bots.',
   'Mide engagement real antes de invertir un euro.',
 ]
 
-/* ─── Sección 10 — Pricing inclusions ────────────────────────────────── */
+/* ─── Sección 9 — Pricing inclusions ─────────────────────────────────── */
 const PRICING_INCLUDES = [
   { icon: ShieldCheck,    label: 'Catálogo de canales verificados' },
   { icon: Lock,           label: 'Pago protegido en escrow' },
@@ -173,7 +133,7 @@ const PRICING_INCLUDES = [
   { icon: MessageCircle,  label: 'Soporte humano en español' },
 ]
 
-/* ─── Sección 11 — FAQ ───────────────────────────────────────────────── */
+/* ─── Sección 10 — FAQ ───────────────────────────────────────────────── */
 const FAQS = [
   {
     q: '¿Qué es el escrow y cómo me protege?',
@@ -1082,213 +1042,7 @@ export default function ForBrandsPage() {
       />
 
 
-      {/* ══════════════════════════════════════════════════════════════════
-          5 · HERRAMIENTAS — full toolkit catalog (4 categorías x 4 tools)
-             Visualmente alineada con CampaignFlow: number badge + icon +
-             title + descripción + chips de herramientas. Reemplaza el
-             contenido del DashboardShowcase legacy en estilo nuevo.
-          ══════════════════════════════════════════════════════════════════ */}
-      <MotionSection style={{ padding: '100px 48px', background: 'transparent' }} id="herramientas">
-        <div style={{ maxWidth: MAX_W, margin: '0 auto' }}>
-          <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: 56, maxWidth: 720, margin: '0 auto 56px' }}>
-            <p
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: A,
-                textTransform: 'uppercase',
-                letterSpacing: '0.12em',
-                marginBottom: 12,
-              }}
-            >
-              Herramientas
-            </p>
-            <h2
-              style={{
-                fontFamily: D,
-                fontSize: 'clamp(28px, 3.4vw, 42px)',
-                fontWeight: 700,
-                letterSpacing: '-0.03em',
-                color: 'var(--text)',
-                marginBottom: 14,
-                lineHeight: 1.1,
-              }}
-            >
-              +30 herramientas en una plataforma
-            </h2>
-            <p style={{ fontSize: 16, color: 'var(--muted)', lineHeight: 1.7, margin: 0 }}>
-              Channelad no es solo un marketplace. Es el sistema operativo completo para descubrir
-              canales, analizar audiencia, optimizar ROI y ejecutar campañas a escala.
-            </p>
-          </motion.div>
-
-          <div
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}
-            className="toolkit-grid"
-          >
-            {TOOLKIT_CATEGORIES.map((cat) => {
-              const Icon = cat.icon
-              return (
-                <motion.div
-                  key={cat.n}
-                  variants={staggerItem}
-                  whileHover={{ y: -6, transition: { duration: 0.25 } }}
-                  style={{
-                    position: 'relative',
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 20,
-                    padding: 'clamp(24px, 3vw, 30px)',
-                    transition: 'all 0.35s cubic-bezier(.22,1,.36,1)',
-                    boxShadow: 'var(--shadow-sm)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = `${cat.color}06`
-                    e.currentTarget.style.borderColor = `${cat.color}30`
-                    e.currentTarget.style.boxShadow = `0 20px 50px ${cat.color}15, 0 0 0 1px ${cat.color}10`
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'var(--surface)'
-                    e.currentTarget.style.borderColor = 'var(--border)'
-                    e.currentTarget.style.boxShadow = 'var(--shadow-sm)'
-                  }}
-                >
-                  {/* Number badge */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: -12,
-                      left: 22,
-                      width: 28,
-                      height: 28,
-                      borderRadius: 8,
-                      background: cat.color,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontFamily: D,
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: '#fff',
-                      boxShadow: `0 4px 12px -4px ${cat.color}80`,
-                    }}
-                  >
-                    {cat.n}
-                  </div>
-
-                  {/* Icon block */}
-                  <div
-                    style={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: 14,
-                      background: `${cat.color}10`,
-                      color: cat.color,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: 16,
-                      marginTop: 4,
-                    }}
-                  >
-                    <Icon size={24} strokeWidth={1.9} />
-                  </div>
-
-                  {/* Title */}
-                  <h3
-                    style={{
-                      fontFamily: D,
-                      fontSize: 18,
-                      fontWeight: 700,
-                      color: 'var(--text)',
-                      letterSpacing: '-0.02em',
-                      margin: 0,
-                      marginBottom: 8,
-                    }}
-                  >
-                    {cat.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p
-                    style={{
-                      fontSize: 13,
-                      color: 'var(--muted)',
-                      lineHeight: 1.55,
-                      margin: 0,
-                      marginBottom: 18,
-                    }}
-                  >
-                    {cat.desc}
-                  </p>
-
-                  {/* Tool chips */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {cat.tools.map((tool) => (
-                      <div
-                        key={tool}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          padding: '7px 10px',
-                          borderRadius: 8,
-                          background: 'var(--bg2)',
-                          border: '1px solid var(--border)',
-                          fontSize: 12,
-                          color: 'var(--text)',
-                          fontWeight: 500,
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 4,
-                            height: 4,
-                            borderRadius: '50%',
-                            background: cat.color,
-                            flexShrink: 0,
-                          }}
-                        />
-                        {tool}
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )
-            })}
-          </div>
-
-          {/* Bottom note */}
-          <motion.p
-            variants={fadeUp}
-            style={{
-              textAlign: 'center',
-              marginTop: 40,
-              fontSize: 14,
-              color: 'var(--muted)',
-              fontWeight: 500,
-              maxWidth: 640,
-              marginLeft: 'auto',
-              marginRight: 'auto',
-            }}
-          >
-            Acceso completo desde el primer día. Todas las herramientas incluidas en la comisión —
-            sin add-ons, sin tiers de pago.
-          </motion.p>
-
-          <style>{`
-            @media (max-width: 1000px) {
-              .toolkit-grid { grid-template-columns: repeat(2, 1fr) !important; }
-            }
-            @media (max-width: 540px) {
-              .toolkit-grid { grid-template-columns: 1fr !important; }
-            }
-          `}</style>
-        </div>
-      </MotionSection>
-
-      {/* ══════════════════════════════════════════════════════════════════
-          6 · INSIGHTS PREVIEW — theme-adaptive (light + dark)
+          5 · INSIGHTS PREVIEW — theme-adaptive (light + dark)
              Local CSS variables swap based on [data-theme] so the section
              integrates with the page background instead of forcing dark.
           ══════════════════════════════════════════════════════════════════ */}
@@ -1477,13 +1231,13 @@ export default function ForBrandsPage() {
       </MotionSection>
 
       {/* ══════════════════════════════════════════════════════════════════
-          7 · COMPARISON — reuses ComparisonSection from main landing
+          6 · COMPARISON — reuses ComparisonSection from main landing
              ("Paid Ads vs. Channelad" two-card layout with VS badge).
           ══════════════════════════════════════════════════════════════════ */}
       <ComparisonSection background="transparent" sectionId="comparativa" />
 
       {/* ══════════════════════════════════════════════════════════════════
-          8 · ESCROW FLOW — "Tu dinero, en cada paso"
+          7 · ESCROW FLOW — "Tu dinero, en cada paso"
              Reuses EscrowFlowAnimation from main landing + adds explanatory
              cards (one per step, two-sentence detail). Active step in the
              timeline highlights the matching card and vice versa.
@@ -1491,14 +1245,14 @@ export default function ForBrandsPage() {
       <EscrowFlowAnimation background="transparent" sectionId="escrow-flow" />
 
       {/* ══════════════════════════════════════════════════════════════════
-          9 · ROI CALCULATOR — interactive sliders (budget · platform · niche)
+          8 · ROI CALCULATOR — interactive sliders (budget · platform · niche)
              Reuses ROICalculator from main landing. Lets the user simulate
              reach/clicks/engagement before reaching Pricing.
           ══════════════════════════════════════════════════════════════════ */}
       <ROICalculator background="transparent" sectionId="calculadora" />
 
       {/* ══════════════════════════════════════════════════════════════════
-          10 · PRICING — premium 2-col card with savings example + CTA
+          9 · PRICING — premium 2-col card with savings example + CTA
           ══════════════════════════════════════════════════════════════════ */}
       <MotionSection style={{ padding: '100px 48px', background: 'transparent', position: 'relative' }}>
         <div style={{ maxWidth: 980, margin: '0 auto', position: 'relative' }}>
@@ -1841,7 +1595,7 @@ export default function ForBrandsPage() {
       </MotionSection>
 
       {/* ══════════════════════════════════════════════════════════════════
-          11 · FAQ
+          10 · FAQ
           ══════════════════════════════════════════════════════════════════ */}
       <MotionSection style={{ padding: '100px 48px', background: 'transparent' }}>
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -1944,7 +1698,7 @@ export default function ForBrandsPage() {
       </MotionSection>
 
       {/* ══════════════════════════════════════════════════════════════════
-          12 · FINAL CTA + FOOTER
+          11 · FINAL CTA + FOOTER
           ══════════════════════════════════════════════════════════════════ */}
       <MotionSection style={{ padding: '0 48px 100px', background: 'transparent' }}>
         <motion.div
