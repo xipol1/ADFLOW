@@ -15,9 +15,12 @@
  */
 
 const DEFAULTS = {
-  // Toggle the unified landing experience (LandingPage at "/" instead of legacy index).
-  // Default OFF until canary completes.
-  landingUnification: false,
+  // Toggle the unified landing experience: when ON, "/" renders ForBrandsPage
+  // (the advertiser-focused main landing). When OFF, "/" renders the legacy
+  // LandingPage (kept around in case we need it for a different surface later).
+  // Default: ON. Override per-user via cookie ff_landingUnification=off, or
+  // per-environment via VITE_FF_LANDING_UNIFICATION=off.
+  landingUnification: true,
 }
 
 const COOKIE_PREFIX = 'ff_'
