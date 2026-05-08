@@ -21,7 +21,7 @@ const CATEGORIES = [
   { key: 'finanzas', label: 'Finanzas' },
   { key: 'marketing', label: 'Marketing' },
   { key: 'tecnologia', label: 'Tecnologia' },
-  { key: 'cripto', label: 'Crypto' },
+  { key: 'crypto', label: 'Crypto' },
   { key: 'salud', label: 'Salud' },
   { key: 'educacion', label: 'Educacion' },
   { key: 'lifestyle', label: 'Lifestyle' },
@@ -59,7 +59,7 @@ function DeltaBadge({ delta }) {
 
 const CATEGORY_COLORS = {
   finanzas: '#F0B429', marketing: '#00D4A8', tecnologia: '#58A6FF',
-  cripto: '#F59E0B', salud: '#10B981', educacion: '#8B5CF6',
+  crypto: '#F59E0B', salud: '#10B981', educacion: '#8B5CF6',
   lifestyle: '#EC4899', entretenimiento: '#F97316', default: '#8B949E',
 }
 
