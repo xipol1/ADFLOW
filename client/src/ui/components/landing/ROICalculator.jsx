@@ -43,6 +43,7 @@ function Slider({ label, value, min, max, step, onChange, suffix }) {
       </div>
       <input
         type="range"
+        aria-label={label}
         min={min} max={max} step={step} value={value}
         onChange={e => onChange(Number(e.target.value))}
         className="roi-slider"

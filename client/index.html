@@ -3,22 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-5D2RGMVJ');</script>
-    <!-- End Google Tag Manager -->
-    <!-- Ahrefs Web Analytics -->
-    <script src="https://analytics.ahrefs.com/analytics.js" data-key="fL5smjCwVE5/mjvICRXVVg" async></script>
+    <!-- Google Tag Manager (deferred to reduce TBT) -->
+    <script>window.dataLayer=window.dataLayer||[];
+    window.addEventListener('load',function(){setTimeout(function(){
+    var j=document.createElement('script');j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id=GTM-5D2RGMVJ';
+    document.head.appendChild(j);
+    },1500)});</script>
+    <!-- Ahrefs Web Analytics (deferred) -->
+    <script>window.addEventListener('load',function(){setTimeout(function(){
+    var s=document.createElement('script');s.async=true;s.src=
+    'https://analytics.ahrefs.com/analytics.js';s.dataset.key='fL5smjCwVE5/mjvICRXVVg';
+    document.head.appendChild(s);
+    },2000)});</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet"></noscript>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"></noscript>
+    <!-- DM Mono, DM Sans, Instrument Serif deferred: only needed in dashboard -->
+    <script>window.addEventListener('load',function(){setTimeout(function(){
+    var l=document.createElement('link');l.rel='stylesheet';
+    l.href='https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Instrument+Serif:ital@0;1&display=swap';
+    document.head.appendChild(l);
+    },3000)});</script>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#080C10">
     <meta name="apple-mobile-web-app-capable" content="yes">

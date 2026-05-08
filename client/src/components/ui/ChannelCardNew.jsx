@@ -254,6 +254,8 @@ export default function ChannelCardNew({ channel, onClick, lists, onAddToList, o
             src={channel.foto}
             alt=""
             loading="lazy"
+            width={40}
+            height={40}
             className="w-10 h-10 rounded-lg flex-shrink-0 object-cover"
             style={{ border: `1px solid ${catColor}25` }}
             onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}

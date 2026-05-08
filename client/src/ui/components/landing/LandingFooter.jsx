@@ -83,6 +83,7 @@ export default function LandingFooter() {
           <form onSubmit={handleNewsletterSubmit} className="footer-newsletter-form" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <input
               type="email"
+              aria-label="Email para newsletter"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="tu@email.com"

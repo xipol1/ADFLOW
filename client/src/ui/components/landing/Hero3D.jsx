@@ -883,6 +883,7 @@ function QuickOnboarding() {
           <input
             type="email"
             required
+            aria-label="Email para registro"
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder="tu@email.com"
