@@ -4,6 +4,11 @@ import { Helmet } from 'react-helmet-async'
 import SEO from '../../components/SEO'
 import CrossLinks from '../../components/landing/CrossLinks'
 import EscrowFlowAnimation from '../../components/landing/EscrowFlowAnimation'
+import ComparisonSection from '../../components/landing/ComparisonSection'
+import EarningsCalculator from '../../components/landing/EarningsCalculator'
+import RotatingWord from '../../components/landing/RotatingWord'
+import EarningsCard from '../../components/landing/hero/EarningsCard'
+import MiniChannelCard from '../../components/landing/hero/MiniChannelCard'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { XCircle, CheckCircle2, ArrowRight } from 'lucide-react'
 import { FONT_BODY, FONT_DISPLAY, MAX_W } from '../../theme/tokens'
@@ -118,8 +123,8 @@ const STEPS = [
 
 const FAQS = [
   {
-    q: '¿Es gratis registrar mi canal?',
-    a: 'Sí, completamente. Cobramos solo cuando completas una campaña pagada — un 10% sobre el importe que el anunciante deposita. Si no publicas, no pagas nada.',
+    q: '¿Cuánto me cobra Channelad?',
+    a: 'Cero. Channelad cobra una comisión al anunciante por encima del precio que tú fijas — nunca a ti. Si pones un precio de 500 €, tú recibes 500 €. La plataforma es gratis para el creador para siempre, sin fee de alta, sin comisiones por publicación, sin costes ocultos.',
   },
   {
     q: '¿Qué plataformas puedo registrar?',
@@ -155,9 +160,56 @@ const PRICING_INCLUDES = [
   'Aparición en marketplace verificado',
   'Pago en escrow Stripe Connect',
   'Verificación automática con tracking',
-  'Pricing Optimizer + benchmarks por nicho',
+  'Toolkit de crecimiento (Pricing Optimizer, Audience Insights, Cross-promo, …)',
   'Inbox + dashboard real-time',
   'Soporte en español 24/7',
+]
+
+// Creator-side growth toolkit — what the creator gets BEYOND the marketplace
+// itself. Six tools that help grow the channel, monetize better and reach
+// more audience. Mirrors the four advertiser categories but framed for
+// creators.
+const GROWTH_TOOLS = [
+  {
+    icon: '📈',
+    title: 'Pricing Optimizer',
+    desc: 'IA que sugiere tu precio óptimo cada mes según tu nicho, tamaño, engagement y la actividad del marketplace. Deja de regalar plazas.',
+  },
+  {
+    icon: '👥',
+    title: 'Audience Insights',
+    desc: 'Demografía, intereses, momentos de máxima actividad y solapamiento con otros canales. Sabe quién te lee mejor que tú.',
+  },
+  {
+    icon: '🔁',
+    title: 'Cross-promo & Swaps',
+    desc: 'Intercambia menciones con creadores complementarios verificados. Crece sin gastar en ads, con audiencias afines.',
+  },
+  {
+    icon: '🔍',
+    title: 'Discover',
+    desc: 'Encuentra anunciantes y creadores que ya están pagando en tu nicho. Acelera tu primer deal.',
+  },
+  {
+    icon: '✨',
+    title: 'Content Studio',
+    desc: 'Templates de copy y formatos validados con tracking real. CTAs y hooks que sabemos que convierten en cada plataforma.',
+  },
+  {
+    icon: '🧪',
+    title: 'A/B Test Lab',
+    desc: 'Testea hooks, CTAs y formatos antes de publicar al 100%. Significancia estadística sin esperar 30 días.',
+  },
+  {
+    icon: '📒',
+    title: 'Brand CRM',
+    desc: 'Lleva el control de qué anunciantes han trabajado contigo, cuánto pagaron y cuándo volver a contactarlos. Tu pipeline en un sitio.',
+  },
+  {
+    icon: '🔮',
+    title: 'Earnings Forecast',
+    desc: 'Predice ingresos del próximo mes con tu pipeline actual y patrones de tu nicho. Planifica como si tuvieras un equipo financiero.',
+  },
 ]
 
 const PRICING_CHIPS = [
@@ -166,61 +218,6 @@ const PRICING_CHIPS = [
   'Sin permanencia',
   'Pago en EU',
 ]
-
-/* ─── INCOME CALCULATOR ──────────────────────────────────── */
-function IncomeCalculator() {
-  const [members, setMembers] = useState(5000)
-  const [postsPerMonth, setPostsPerMonth] = useState(4)
-  const pricePerPost = Math.round(Math.max(30, Math.min(800, members * 0.08)))
-  const monthlyIncome = pricePerPost * postsPerMonth
-  const yearlyIncome = monthlyIncome * 12
-  const advertiserPays = Math.round(pricePerPost * 1.20)
-
-  return (
-    <motion.div variants={scaleIn} style={{
-      background: 'var(--surface)', border: '1px solid var(--border)',
-      borderRadius: '24px', padding: '40px', maxWidth: '700px', margin: '0 auto',
-      position: 'relative', overflow: 'hidden',
-    }}>
-      <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '180px', height: '180px', borderRadius: '50%', background: greenAlpha(0.04), pointerEvents: 'none' }} />
-      <h3 style={{ fontFamily: D, fontSize: '22px', fontWeight: 700, color: 'var(--text)', marginBottom: '28px', textAlign: 'center' }}>
-        Calcula tus ingresos potenciales
-      </h3>
-      <div style={{ marginBottom: '28px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-          <label style={{ fontSize: '14px', color: 'var(--muted)', fontFamily: F }}>Miembros en tu canal</label>
-          <span style={{ fontSize: '16px', fontWeight: 700, color: GREEN, fontFamily: D }}>{members.toLocaleString()}</span>
-        </div>
-        <input type="range" min="500" max="100000" step="500" value={members} onChange={e => setMembers(Number(e.target.value))}
-          style={{ width: '100%', accentColor: GREEN, height: '6px', cursor: 'pointer' }} />
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--muted2)', marginTop: '4px' }}><span>500</span><span>100.000</span></div>
-      </div>
-      <div style={{ marginBottom: '32px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-          <label style={{ fontSize: '14px', color: 'var(--muted)', fontFamily: F }}>Publicaciones al mes</label>
-          <span style={{ fontSize: '16px', fontWeight: 700, color: GREEN, fontFamily: D }}>{postsPerMonth}</span>
-        </div>
-        <input type="range" min="1" max="30" step="1" value={postsPerMonth} onChange={e => setPostsPerMonth(Number(e.target.value))}
-          style={{ width: '100%', accentColor: GREEN, height: '6px', cursor: 'pointer' }} />
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--muted2)', marginTop: '4px' }}><span>1</span><span>30</span></div>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', background: greenAlpha(0.06), borderRadius: '16px', padding: '24px', border: `1px solid ${greenAlpha(0.12)}` }}>
-        {[
-          { label: 'Tú cobras/post', val: `€${pricePerPost}`, color: GREEN },
-          { label: 'El anunciante paga', val: `€${advertiserPays}`, color: 'var(--muted)' },
-          { label: 'Tu ingreso mensual', val: `€${monthlyIncome.toLocaleString()}`, color: GREEN },
-          { label: 'Tu ingreso anual', val: `€${yearlyIncome.toLocaleString()}`, color: 'var(--text)' },
-        ].map(m => (
-          <div key={m.label} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '6px' }}>{m.label}</div>
-            <div style={{ fontFamily: D, fontSize: '26px', fontWeight: 700, color: m.color }}>{m.val}</div>
-          </div>
-        ))}
-      </div>
-      <p style={{ fontSize: '11px', color: 'var(--muted2)', textAlign: 'center', marginTop: '14px' }}>* Tú cobras el 100% de tu precio. Channelad cobra una comisión del 20% al anunciante.</p>
-    </motion.div>
-  )
-}
 
 /* ═══════════════════════════════════════════════════════════
    MAIN COMPONENT
@@ -263,141 +260,263 @@ export default function ForChannelsPage() {
       </Helmet>
       <SEO
         title="Monetiza tu canal de WhatsApp, Telegram o Discord"
-        description="Registra tu canal gratis y empieza a ganar dinero con publicidad. Sin mínimo de seguidores. Pagos protegidos y solo 10% de comisión por campaña completada."
+        description="Channelad es gratis para creadores. Pones tu canal en el marketplace, recibes propuestas verificadas y cobras el 100% de tu precio en escrow. Toolkit incluido para crecer y monetizar mejor."
         path="/para-canales"
       />
 
       {/* ══════════════════════════════════════════════════════
-          1 · HERO (Phase 1: minor copy tweaks, hero-cta anchor)
+          1 · HERO (Phase 2: split 60/40 layout, RotatingWord, EarningsCard
+          centerpiece, 3 floating MiniChannelCards. Mirrors the advertiser
+          hero composition — same premium feel, creator-side data).
       ══════════════════════════════════════════════════════ */}
       <section style={{
-        padding: '120px 48px 100px', textAlign: 'center',
+        padding: 'clamp(72px, 10vw, 120px) clamp(20px, 4vw, 48px) clamp(72px, 10vw, 120px)',
         position: 'relative', overflow: 'hidden',
-        minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        minHeight: '92vh', display: 'flex', alignItems: 'center',
       }}>
-        <div style={{
-          position: 'absolute', width: '600px', height: '400px',
+        {/* Soft green orbs as ambient bg */}
+        <div aria-hidden style={{
+          position: 'absolute', width: '720px', height: '480px',
           borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%',
-          background: `radial-gradient(ellipse, ${greenAlpha(0.15)} 0%, transparent 70%)`,
-          top: '-15%', left: '20%', filter: 'blur(60px)', pointerEvents: 'none',
-          animation: 'orbFloat1 12s ease-in-out infinite',
+          background: `radial-gradient(ellipse, ${greenAlpha(0.18)} 0%, transparent 70%)`,
+          top: '-12%', left: '-8%', filter: 'blur(80px)', pointerEvents: 'none',
+          animation: 'orbFloat1 14s ease-in-out infinite',
         }} />
-        <div style={{
-          position: 'absolute', width: '400px', height: '350px',
+        <div aria-hidden style={{
+          position: 'absolute', width: '560px', height: '440px',
           borderRadius: '60% 40% 30% 70% / 50% 60% 40% 50%',
-          background: `radial-gradient(ellipse, ${greenAlpha(0.08)} 0%, transparent 65%)`,
-          top: '10%', right: '10%', filter: 'blur(70px)', pointerEvents: 'none',
-          animation: 'orbFloat2 15s ease-in-out infinite',
+          background: `radial-gradient(ellipse, ${greenAlpha(0.10)} 0%, transparent 65%)`,
+          top: '14%', right: '-6%', filter: 'blur(80px)', pointerEvents: 'none',
+          animation: 'orbFloat2 17s ease-in-out infinite',
         }} />
 
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '6px',
-              background: greenAlpha(0.1), border: `1px solid ${greenAlpha(0.2)}`,
-              borderRadius: '99px', padding: '5px 16px', marginBottom: '28px',
-              fontSize: '12px', fontWeight: 600, color: GREEN,
-            }}
-          >
-            💰 Para canales y creadores
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.35 }}
-            style={{
-              fontFamily: D, fontSize: 'clamp(40px, 5.5vw, 64px)', fontWeight: 700,
-              letterSpacing: '-0.04em', lineHeight: 1.05, marginBottom: '24px',
-            }}
-          >
-            Monetiza tu{' '}
-            <span style={{
-              background: `linear-gradient(135deg, #34d399 0%, #25d366 40%, #10b981 100%)`,
-              backgroundSize: '200% auto',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              animation: 'shimmer 4s linear infinite',
-            }}>comunidad</span>{' '}
-            sin perder el control.
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            style={{ fontSize: '18px', color: 'var(--muted)', lineHeight: 1.7, maxWidth: '560px', margin: '0 auto 40px' }}
-          >
-            Pon tu canal en el marketplace, recibe propuestas verificadas y cobra automáticamente al publicar. Sin contratos, sin exclusividad, sin perseguir pagos.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.65, duration: 0.5 }}
-            style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '48px' }}
-          >
-            <Link
-              id="hero-cta"
-              to="/auth/register"
-              className="btn-glow"
-              style={{
-                background: GREEN, color: '#fff', textDecoration: 'none',
-                borderRadius: '12px', padding: '14px 32px',
-                fontSize: '15px', fontWeight: 600,
-                boxShadow: `0 0 24px ${greenAlpha(0.3)}`,
-                transition: 'all .25s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = GREEN_DARK; e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)'; e.currentTarget.style.boxShadow = `0 0 40px ${greenAlpha(0.45)}` }}
-              onMouseLeave={e => { e.currentTarget.style.background = GREEN; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 0 24px ${greenAlpha(0.3)}` }}
-            >
-              Registrar mi canal · Gratis
-            </Link>
-            <a
-              href="#how-it-works"
-              style={{
-                background: greenAlpha(0.08), color: GREEN, textDecoration: 'none',
-                borderRadius: '12px', padding: '14px 28px',
-                fontSize: '15px', fontWeight: 600,
-                border: `1px solid ${greenAlpha(0.2)}`,
-                transition: 'all .2s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = greenAlpha(0.15); e.currentTarget.style.transform = 'translateY(-2px)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = greenAlpha(0.08); e.currentTarget.style.transform = 'none' }}
-            >
-              Ver cómo funciona ↓
-            </a>
-          </motion.div>
-
-          {/* Trust pills (3) — replaces 6 platform pills as plan section 1 specifies */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.5 }}
-            style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}
-          >
-            {[
-              { icon: '🛡️', label: 'Verificación en 5 min' },
-              { icon: '💰', label: 'Pago en escrow' },
-              { icon: '🔓', label: 'Cero exclusividad' },
-            ].map((p) => (
-              <div key={p.label}
+        <div style={{
+          position: 'relative', zIndex: 2,
+          maxWidth: 1280, margin: '0 auto', width: '100%',
+        }}>
+          <div className="creator-hero-grid" style={{
+            display: 'grid', gridTemplateColumns: '1.05fr 1fr',
+            gap: 'clamp(40px, 6vw, 80px)', alignItems: 'center',
+          }}>
+            {/* LEFT — text + CTA */}
+            <div className="creator-hero-text">
+              {/* Eyebrow */}
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  padding: '6px 14px', borderRadius: '99px',
-                  background: 'var(--surface)', border: '1px solid var(--border)',
-                  fontSize: '12px', color: 'var(--muted)', fontWeight: 500,
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: greenAlpha(0.10), border: `1px solid ${greenAlpha(0.22)}`,
+                  borderRadius: 999, padding: '5px 14px', marginBottom: 24,
+                  fontSize: 12, fontWeight: 600, color: GREEN,
                 }}
               >
-                <span>{p.icon}</span>
-                {p.label}
+                💰 Para canales y creadores
+              </motion.div>
+
+              {/* H1 with RotatingWord */}
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.25 }}
+                style={{
+                  fontFamily: D, fontSize: 'clamp(36px, 5vw, 60px)', fontWeight: 700,
+                  letterSpacing: '-0.04em', lineHeight: 1.04, margin: '0 0 18px',
+                  color: 'var(--text)',
+                }}
+              >
+                Monetiza tu{' '}
+                <RotatingWord
+                  words={['comunidad', 'newsletter', 'tráfico', 'suscriptores']}
+                  interval={2400}
+                  gradient="linear-gradient(135deg, #16a34a 0%, #25d366 100%)"
+                />
+                <br />
+                sin perder el control.
+              </motion.h1>
+
+              {/* Subtitle */}
+              <motion.p
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                style={{
+                  fontSize: 17, color: 'var(--muted)', lineHeight: 1.65,
+                  maxWidth: 520, margin: '0 0 30px',
+                }}
+              >
+                Pon tu canal en el marketplace, recibe propuestas verificadas y cobra el 100% del precio que tú fijas. La comisión la pagamos del anunciante — nunca a ti.
+              </motion.p>
+
+              {/* CTAs */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.55, duration: 0.5 }}
+                style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}
+              >
+                <Link
+                  id="hero-cta"
+                  to="/auth/register"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    background: GREEN, color: '#fff', textDecoration: 'none',
+                    borderRadius: 12, padding: '14px 28px',
+                    fontSize: 15, fontWeight: 600,
+                    boxShadow: `0 12px 28px -8px ${greenAlpha(0.45)}, 0 1px 0 0 rgba(255,255,255,0.18) inset`,
+                    transition: 'transform .2s, background .2s, box-shadow .2s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = GREEN_DARK; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = GREEN; e.currentTarget.style.transform = 'none' }}
+                >
+                  Registrar mi canal · Gratis
+                  <ArrowRight size={16} strokeWidth={2.4} />
+                </Link>
+                <a
+                  href="#how-it-works"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    background: greenAlpha(0.08), color: GREEN, textDecoration: 'none',
+                    borderRadius: 12, padding: '14px 22px',
+                    fontSize: 15, fontWeight: 600,
+                    border: `1px solid ${greenAlpha(0.20)}`,
+                    transition: 'background .2s, transform .2s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = greenAlpha(0.14); e.currentTarget.style.transform = 'translateY(-1px)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = greenAlpha(0.08); e.currentTarget.style.transform = 'none' }}
+                >
+                  Ver cómo funciona ↓
+                </a>
+              </motion.div>
+
+              {/* Trust pills — 4 incl. 0% comisión */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7, duration: 0.5 }}
+                style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}
+              >
+                {[
+                  { icon: '💸', label: '0% comisión a creadores' },
+                  { icon: '🛡️', label: 'Verificación en 5 min' },
+                  { icon: '💰', label: 'Pago en escrow' },
+                  { icon: '🔓', label: 'Cero exclusividad' },
+                ].map((p) => (
+                  <span key={p.label}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: '6px 12px', borderRadius: 999,
+                      background: 'var(--surface)', border: '1px solid var(--border)',
+                      fontSize: 12, color: 'var(--muted)', fontWeight: 500,
+                    }}>
+                    <span>{p.icon}</span>{p.label}
+                  </span>
+                ))}
+              </motion.div>
+
+              {/* 3-stat ribbon */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.85, duration: 0.5 }}
+                style={{
+                  display: 'grid', gridTemplateColumns: 'repeat(3, auto)',
+                  gap: 32, alignItems: 'baseline',
+                }}
+              >
+                {[
+                  { v: '1.000+', l: 'Canales monetizando' },
+                  { v: '€2,8M', l: 'Pagado a creadores' },
+                  { v: 'Día 1', l: 'Acceso al toolkit' },
+                ].map((s) => (
+                  <div key={s.l}>
+                    <div style={{
+                      fontFamily: D, fontSize: 'clamp(22px, 2.4vw, 28px)', fontWeight: 700,
+                      color: GREEN, letterSpacing: '-0.025em', lineHeight: 1,
+                    }}>{s.v}</div>
+                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>{s.l}</div>
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+
+            {/* RIGHT — visual: EarningsCard + 3 floating MiniChannelCards */}
+            <div className="creator-hero-visual" style={{
+              position: 'relative', minHeight: 600,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              {/* Ambient glow behind the card */}
+              <div aria-hidden style={{
+                position: 'absolute', width: 520, height: 520,
+                borderRadius: '50%',
+                background: `radial-gradient(circle, ${greenAlpha(0.20)} 0%, transparent 60%)`,
+                top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                filter: 'blur(60px)', pointerEvents: 'none',
+              }} />
+
+              <motion.div
+                initial={{ opacity: 0, y: 30, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.7, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                style={{ position: 'relative', zIndex: 2 }}
+              >
+                <EarningsCard />
+              </motion.div>
+
+              {/* 3 floating MiniChannelCards */}
+              <div className="creator-hero-floats" aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7, duration: 0.6 }}
+                  style={{ position: 'absolute', top: '4%', right: '-2%', pointerEvents: 'auto' }}
+                >
+                  <MiniChannelCard
+                    channel={{ id: '057', platform: 'newsletter', tier: 'A', niche: 'B2B SaaS', region: 'ES', subs: '6.4K', cpm: '22 €', score: 85 }}
+                    driftAmount={6}
+                    driftDuration={7}
+                  />
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.85, duration: 0.6 }}
+                  style={{ position: 'absolute', bottom: '6%', left: '-4%', pointerEvents: 'auto' }}
+                >
+                  <MiniChannelCard
+                    channel={{ id: '009', platform: 'telegram', tier: 'S', niche: 'Crypto', region: 'LATAM', subs: '41.2K', cpm: '14 €', score: 94 }}
+                    driftAmount={5}
+                    driftDuration={8}
+                  />
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.0, duration: 0.6 }}
+                  style={{ position: 'absolute', top: '40%', right: '-8%', pointerEvents: 'auto' }}
+                >
+                  <MiniChannelCard
+                    channel={{ id: '018', platform: 'whatsapp', tier: 'S', niche: 'Finanzas', region: 'ES', subs: '24.7K', cpm: '15 €', score: 91 }}
+                    driftAmount={7}
+                    driftDuration={9}
+                    solid
+                  />
+                </motion.div>
               </div>
-            ))}
-          </motion.div>
+            </div>
+          </div>
         </div>
+
+        <style>{`
+          @media (max-width: 1080px) {
+            .creator-hero-grid { grid-template-columns: 1fr !important; }
+            .creator-hero-visual { min-height: 480px !important; margin-top: 24px; }
+          }
+          @media (max-width: 720px) {
+            .creator-hero-floats { display: none !important; }
+          }
+        `}</style>
       </section>
 
       {/* ══════════════════════════════════════════════════════
@@ -530,22 +649,10 @@ export default function ForChannelsPage() {
       </Section>
 
       {/* ══════════════════════════════════════════════════════
-          5 · INCOME CALCULATOR (Phase 1 keeps existing component)
+          5 · EARNINGS CALCULATOR (Phase 2: replaces IncomeCalculator with
+          richer simulator + comparison vs Adsense / Patreon / networks)
       ══════════════════════════════════════════════════════ */}
-      <Section style={{ padding: '110px 48px', background: 'var(--bg)' }}>
-        <div style={{ maxWidth: MAX_W, margin: '0 auto' }}>
-          <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <p style={{ fontSize: '11px', fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Calculadora</p>
-            <h2 style={{ fontFamily: D, fontSize: 'clamp(26px, 3vw, 36px)', fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--text)' }}>
-              ¿Cuánto puede ganar tu canal este mes?
-            </h2>
-            <p style={{ fontSize: 15, color: 'var(--muted)', maxWidth: 540, margin: '12px auto 0', lineHeight: 1.6 }}>
-              Estimación basada en CPM medios reales de 2.847 canales activos. No es un guess, es benchmark.
-            </p>
-          </motion.div>
-          <IncomeCalculator />
-        </div>
-      </Section>
+      <EarningsCalculator />
 
       {/* ══════════════════════════════════════════════════════
           6 · HOW IT WORKS (Phase 1 keeps lightweight version)
@@ -606,6 +713,109 @@ export default function ForChannelsPage() {
       />
 
       {/* ══════════════════════════════════════════════════════
+          7.5 · COMPARISON (creator variant — vs networks tradicionales)
+      ══════════════════════════════════════════════════════ */}
+      <ComparisonSection variant="creator" sectionId="creator-comparison" background="var(--bg2)" />
+
+      {/* ══════════════════════════════════════════════════════
+          7.6 · GROWTH TOOLKIT — herramientas para crecer audiencia y
+          monetizar mejor (no solo el marketplace, también todo lo que
+          rodea para que el canal escale).
+      ══════════════════════════════════════════════════════ */}
+      <Section style={{ padding: '110px 48px', background: 'var(--bg)' }}>
+        <div style={{ maxWidth: MAX_W, margin: '0 auto' }}>
+          <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: 'clamp(40px, 5vw, 64px)' }}>
+            <p style={{
+              fontSize: 11, fontWeight: 600, color: GREEN,
+              textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14,
+            }}>
+              Toolkit incluido
+            </p>
+            <h2 style={{
+              fontFamily: D, fontSize: 'clamp(28px, 4vw, 46px)', fontWeight: 700,
+              letterSpacing: '-0.035em', color: 'var(--text)', margin: '0 0 16px',
+              lineHeight: 1.06, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto',
+            }}>
+              Channelad no es solo marketplace. Es el sistema operativo de tu canal.
+            </h2>
+            <p style={{
+              fontFamily: F, fontSize: 16, color: 'var(--muted)',
+              maxWidth: 640, margin: '0 auto', lineHeight: 1.6,
+            }}>
+              8 herramientas para crecer audiencia, optimizar pricing y ganar más sin gastar
+              en ads. Todas incluidas — sin add-ons, sin tiers de pago.
+            </p>
+          </motion.div>
+
+          <div className="growth-grid" style={{
+            display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16,
+          }}>
+            {GROWTH_TOOLS.map((tool) => (
+              <motion.div key={tool.title} variants={staggerItem}
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.25 }}
+                style={{
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 18,
+                  padding: '24px 22px',
+                  transition: 'border-color .3s, box-shadow .3s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = greenAlpha(0.30)
+                  e.currentTarget.style.boxShadow = `0 18px 50px -22px ${greenAlpha(0.30)}`
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
+              >
+                <div style={{
+                  width: 44, height: 44, borderRadius: 12,
+                  background: greenAlpha(0.10),
+                  border: `1px solid ${greenAlpha(0.18)}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 22, marginBottom: 14,
+                }}>
+                  {tool.icon}
+                </div>
+                <h3 style={{
+                  fontFamily: D, fontSize: 16, fontWeight: 700,
+                  letterSpacing: '-0.015em', color: 'var(--text)',
+                  margin: '0 0 8px',
+                }}>
+                  {tool.title}
+                </h3>
+                <p style={{
+                  fontSize: 13, color: 'var(--muted)',
+                  lineHeight: 1.55, margin: 0,
+                }}>
+                  {tool.desc}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.p variants={fadeUp} style={{
+            textAlign: 'center', marginTop: 32, fontSize: 13,
+            color: 'var(--muted)', maxWidth: 600,
+            marginLeft: 'auto', marginRight: 'auto',
+          }}>
+            Acceso completo desde el primer día. Sin add-ons, sin tiers de pago.
+          </motion.p>
+
+          <style>{`
+            @media (max-width: 1100px) {
+              .growth-grid { grid-template-columns: repeat(2, 1fr) !important; }
+            }
+            @media (max-width: 540px) {
+              .growth-grid { grid-template-columns: 1fr !important; }
+            }
+          `}</style>
+        </div>
+      </Section>
+
+      {/* ══════════════════════════════════════════════════════
           8 · PRICING (premium 2-col card)
       ══════════════════════════════════════════════════════ */}
       <Section style={{ padding: '110px 48px', background: 'var(--bg2)' }}>
@@ -617,10 +827,10 @@ export default function ForChannelsPage() {
               letterSpacing: '-0.03em', color: 'var(--text)', margin: '0 0 14px',
               lineHeight: 1.1,
             }}>
-              Gratis registrarte. Solo cobramos si tú cobras.
+              Gratis para creadores. Siempre.
             </h2>
-            <p style={{ fontSize: 16, color: 'var(--muted)', maxWidth: 600, margin: '0 auto', lineHeight: 1.6 }}>
-              Una comisión del 10% sobre las campañas que completas. Sin fee de alta, sin costes ocultos, sin permanencia.
+            <p style={{ fontSize: 16, color: 'var(--muted)', maxWidth: 620, margin: '0 auto', lineHeight: 1.6 }}>
+              Channelad nunca te cobra a ti. La comisión la cobramos al anunciante por encima del precio que tú fijas. Tú recibes el 100% de tu precio en escrow.
             </p>
           </motion.div>
 
@@ -641,31 +851,34 @@ export default function ForChannelsPage() {
             <div className="creator-pricing-grid" style={{
               display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 0, position: 'relative',
             }}>
-              {/* Left — comisión + ejemplo */}
+              {/* Left — coste para el creador (cero) + cómo funciona la comisión */}
               <div style={{ padding: 'clamp(36px, 4vw, 48px)', borderRight: '1px solid var(--border)' }} className="creator-pricing-left">
                 <p style={{
                   fontSize: 11, fontWeight: 600, color: GREEN,
                   textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 14px',
-                }}>Comisión única</p>
+                }}>Lo que pagas</p>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 18 }}>
-                  <span style={{ fontFamily: D, fontSize: 'clamp(46px, 6vw, 68px)', fontWeight: 700, letterSpacing: '-0.04em', color: 'var(--text)', lineHeight: 1 }}>10%</span>
-                  <span style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 500 }}>solo si cobras</span>
+                  <span style={{ fontFamily: D, fontSize: 'clamp(46px, 6vw, 68px)', fontWeight: 700, letterSpacing: '-0.04em', color: GREEN, lineHeight: 1 }}>0 €</span>
+                  <span style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 500 }}>para ti, siempre</span>
                 </div>
+                <p style={{ fontSize: 13.5, color: 'var(--muted)', lineHeight: 1.6, margin: '0 0 18px' }}>
+                  La comisión Channelad se la cobramos al <strong style={{ color: 'var(--text)' }}>anunciante</strong>, no a ti. Tú recibes el 100% del precio que pongas — sin descuentos, sin sorpresas.
+                </p>
 
                 <div style={{
                   background: greenAlpha(0.06),
                   border: `1px solid ${greenAlpha(0.18)}`,
                   borderRadius: 14, padding: 22, marginBottom: 16,
                 }}>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 12px' }}>Ejemplo · campaña de 500 €</p>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 12px' }}>Ejemplo · tu precio = 500 €</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text)' }}>
-                      <span>Tu pago bruto</span>
-                      <strong style={{ fontVariantNumeric: 'tabular-nums' }}>500 €</strong>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--muted)' }}>
+                      <span>El anunciante deposita</span>
+                      <span style={{ fontVariantNumeric: 'tabular-nums' }}>600 €</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--muted)' }}>
-                      <span>Comisión Channelad (10%)</span>
-                      <span style={{ fontVariantNumeric: 'tabular-nums' }}>−50 €</span>
+                      <span>Comisión Channelad (al anunciante)</span>
+                      <span style={{ fontVariantNumeric: 'tabular-nums' }}>−100 €</span>
                     </div>
                     <div style={{
                       display: 'flex', justifyContent: 'space-between',
@@ -673,7 +886,7 @@ export default function ForChannelsPage() {
                       color: GREEN, fontWeight: 700,
                     }}>
                       <span>Tu ingreso neto</span>
-                      <span style={{ fontVariantNumeric: 'tabular-nums' }}>450 €</span>
+                      <span style={{ fontVariantNumeric: 'tabular-nums' }}>500 € · 100%</span>
                     </div>
                     <p style={{ fontSize: 12, color: 'var(--muted)', margin: '6px 0 0' }}>
                       En menos de 48h en tu balance · Networks tradicionales: 250–350 € en 60-90 días.
