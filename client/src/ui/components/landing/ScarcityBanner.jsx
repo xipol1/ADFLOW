@@ -1,11 +1,37 @@
 import React from 'react'
 
-// Pre-launch scarcity for the advertiser landing. Hooks into the hero CTA
-// via #hero-cta anchor — the hero must render an element with that id
-// somewhere in its email capture.
-const PILOT_SLOTS = '50'
+// Pre-launch scarcity for landing pages. Hooks into the hero CTA via
+// #hero-cta anchor — the hero must render an element with that id somewhere
+// in its email capture / form.
+//
+// Two palette variants:
+//   - "advertiser" (default): warm amber, points at the brands batch
+//   - "creator":              soft green, points at the channels batch
 
-export default function ScarcityBanner() {
+const VARIANTS = {
+  advertiser: {
+    bg: '#FEF3C7',
+    border: '#FDE68A',
+    text: '#92400E',
+    prefix: 'Lanzamiento Q1 2026 · ',
+    slots: '50',
+    middle: ' plazas para el batch piloto',
+    cta: 'Solicitar →',
+  },
+  creator: {
+    bg: '#DCFCE7',
+    border: '#BBF7D0',
+    text: '#166534',
+    prefix: 'Lanzamiento Q1 2026 · ',
+    slots: '200',
+    middle: ' canales del batch piloto cobran sin comisión los 3 primeros meses',
+    cta: 'Reservar plaza →',
+  },
+}
+
+export default function ScarcityBanner({ variant = 'advertiser' } = {}) {
+  const v = VARIANTS[variant] || VARIANTS.advertiser
+
   const handleScrollToCTA = (e) => {
     e.preventDefault()
     const target = document.getElementById('hero-cta')
@@ -15,8 +41,8 @@ export default function ScarcityBanner() {
   return (
     <div
       style={{
-        background: '#FEF3C7',
-        borderBottom: '1px solid #FDE68A',
+        background: v.bg,
+        borderBottom: `1px solid ${v.border}`,
         width: '100%',
       }}
     >
@@ -27,19 +53,19 @@ export default function ScarcityBanner() {
           padding: '10px 16px',
           textAlign: 'center',
           fontSize: 13,
-          color: '#92400E',
+          color: v.text,
           fontWeight: 500,
         }}
       >
-        <span className="scarcity-prefix">Lanzamiento Q1 2026 · </span>
-        <strong style={{ fontWeight: 600 }}>{PILOT_SLOTS} plazas</strong>
-        <span className="scarcity-prefix"> para el batch piloto</span>
+        <span className="scarcity-prefix">{v.prefix}</span>
+        <strong style={{ fontWeight: 600 }}>{v.slots}</strong>
+        <span className="scarcity-prefix">{v.middle}</span>
         <span> · </span>
         <a
           href="#hero-cta"
           onClick={handleScrollToCTA}
           style={{
-            color: '#92400E',
+            color: v.text,
             fontWeight: 600,
             textDecoration: 'none',
             textUnderlineOffset: 2,
@@ -47,7 +73,7 @@ export default function ScarcityBanner() {
           onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
           onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
         >
-          Solicitar →
+          {v.cta}
         </a>
       </div>
       <style>{`
