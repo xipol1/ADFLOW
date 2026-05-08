@@ -60,7 +60,13 @@ const STEPS = [
   },
 ]
 
-export default function EscrowFlowAnimation({ background = 'var(--bg)', sectionId = 'escrow-flow' } = {}) {
+export default function EscrowFlowAnimation({
+  background = 'var(--bg)',
+  sectionId = 'escrow-flow',
+  eyebrow = 'Tu dinero, en cada paso',
+  title = 'Así protege tu pago el escrow',
+  subtitle = 'Cada euro pasa por Stripe Connect. Solo se libera cuando el tracking link confirma la publicación.',
+} = {}) {
   const ref = useRef(null)
   const inView = useInView(ref, { once: false, margin: '-30%' })
   const [active, setActive] = useState(0)
@@ -86,20 +92,20 @@ export default function EscrowFlowAnimation({ background = 'var(--bg)', sectionI
           <p style={{
             fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
             letterSpacing: '0.12em', color: '#22c55e', marginBottom: 16,
-          }}>Tu dinero, en cada paso</p>
+          }}>{eyebrow}</p>
           <h2 style={{
             fontFamily: FONT_DISPLAY, fontWeight: 700,
             fontSize: 'clamp(24px, 4vw, 44px)',
             lineHeight: 1.08, letterSpacing: '-0.03em',
             margin: '0 0 16px', color: 'var(--text)',
           }}>
-            Así protege tu pago el escrow
+            {title}
           </h2>
           <p style={{
             fontFamily: FONT_BODY, fontSize: 16, color: 'var(--muted)',
             maxWidth: 540, margin: '0 auto', lineHeight: 1.6,
           }}>
-            Cada euro pasa por Stripe Connect. Solo se libera cuando el tracking link confirma la publicación.
+            {subtitle}
           </p>
         </div>
 
