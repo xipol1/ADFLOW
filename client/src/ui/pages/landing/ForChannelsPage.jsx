@@ -9,6 +9,13 @@ import EarningsCalculator from '../../components/landing/EarningsCalculator'
 import RotatingWord from '../../components/landing/RotatingWord'
 import EarningsCard from '../../components/landing/hero/EarningsCard'
 import MiniChannelCard from '../../components/landing/hero/MiniChannelCard'
+import CampaignFlow from '../../components/landing/CampaignFlow'
+import { DiscoverIcon, PayIcon, PublishIcon, ResultsIcon } from '../../components/landing/AnimatedFlowIcons'
+import BrowserChrome from '../../components/landing/demo/BrowserChrome'
+import DemoCreatorInbox from '../../components/landing/demo/DemoCreatorInbox'
+import DemoCreatorPublish from '../../components/landing/demo/DemoCreatorPublish'
+import DemoCreatorEarnings from '../../components/landing/demo/DemoCreatorEarnings'
+import DemoCreatorPayout from '../../components/landing/demo/DemoCreatorPayout'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { XCircle, CheckCircle2, ArrowRight } from 'lucide-react'
 import { FONT_BODY, FONT_DISPLAY, MAX_W } from '../../theme/tokens'
@@ -94,30 +101,44 @@ const PAIN_CARDS = [
   },
 ]
 
-const STEPS = [
+// Creator-side flow steps — shape matches CampaignFlow STEPS so the same
+// component renders this with props instead of duplicating the layout.
+const CREATOR_FLOW_STEPS = [
   {
-    n: '01',
-    icon: '📩',
+    num: '01',
+    AnimIcon: DiscoverIcon,
     title: 'Recibes propuestas',
-    desc: 'Anunciantes verificados te encuentran por nicho y plataforma. Tú filtras qué entra.',
+    desc: 'Anunciantes verificados (KYC + escrow) te encuentran por nicho, plataforma y tamaño. Llegan a tu inbox con precio, copy y plazo. Tú filtras qué entra.',
+    color: '#3b82f6',
+    details: ['Solo anunciantes con KYC', 'Filtro por nicho y plataforma', 'Sin spam, sin DMs cutres'],
+    time: '5–30 min/día',
   },
   {
-    n: '02',
-    icon: '✅',
+    num: '02',
+    AnimIcon: PublishIcon,
     title: 'Aceptas y publicas',
-    desc: 'El precio lo pones tú. El anunciante deposita en escrow antes de que muevas un dedo.',
+    desc: 'Tú fijas el precio. El anunciante deposita el 100% en escrow Stripe Connect antes de que muevas un dedo. Publicas con el copy que te llega (o que tú reescribes) y un tracking link único.',
+    color: '#16a34a',
+    details: ['100% en escrow antes de publicar', 'Tú apruebas o reescribes el copy', 'Tracking link auto-generado'],
+    time: '< 5 min',
   },
   {
-    n: '03',
-    icon: '🛡️',
+    num: '03',
+    AnimIcon: PayIcon,
     title: 'Verificación automática',
-    desc: 'Tracking link único, 3 clicks mínimos en 48h. Sin reportes manuales, sin dudas.',
+    desc: 'El tracking link cuenta clicks únicos. Cuando alcanza 3 en 48h, la publicación se valida sola — sin reportes manuales, sin esperas, sin dudas.',
+    color: '#8b5cf6',
+    details: ['3 clicks únicos = verificado', 'Plazo típico: 24-48h', 'Sin reportes manuales'],
+    time: '24–48h',
   },
   {
-    n: '04',
-    icon: '💸',
+    num: '04',
+    AnimIcon: ResultsIcon,
     title: 'Cobras al instante',
-    desc: 'El escrow se libera al verificar. A tu balance. Y de ahí a tu banco cuando tú quieras.',
+    desc: 'El escrow se libera a tu balance. Desde ahí a tu banco SEPA cuando tú quieras — llega en 1 día hábil. Sin retenciones, sin comisiones bancarias, 100% del precio que fijaste.',
+    color: '#f59e0b',
+    details: ['SEPA Instant a tu banco', 'Sin retenciones ni fees', 'Reporte exportable a tu CRM'],
+    time: 'Instantáneo',
   },
 ]
 
@@ -655,51 +676,40 @@ export default function ForChannelsPage() {
       <EarningsCalculator />
 
       {/* ══════════════════════════════════════════════════════
-          6 · HOW IT WORKS (Phase 1 keeps lightweight version)
+          6 · HOW IT WORKS (Phase 3: CampaignFlow with creator-side steps
+          + 4 product demos shown via BrowserChrome on hover/active step)
       ══════════════════════════════════════════════════════ */}
-      <Section id="how-it-works" style={{ padding: '110px 48px', background: 'var(--bg2)' }}>
-        <div style={{ maxWidth: '880px', margin: '0 auto' }}>
-          <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: '56px' }}>
-            <p style={{ fontSize: '11px', fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Cómo funciona</p>
-            <h2 style={{ fontFamily: D, fontSize: 'clamp(26px, 3.4vw, 40px)', fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--text)', lineHeight: 1.1 }}>
-              De propuesta a payout en 4 pasos.
-            </h2>
-            <p style={{ fontSize: 15, color: 'var(--muted)', marginTop: 12 }}>
-              Sin papeleos, sin contratos, sin perseguir nada.
-            </p>
-          </motion.div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {STEPS.map((s, i) => (
-              <motion.div key={s.n} variants={staggerItem}
-                whileHover={{ x: 8, transition: { duration: 0.2 } }}
-                style={{
-                  display: 'flex', gap: '20px', alignItems: 'flex-start',
-                  background: 'var(--surface)', border: '1px solid var(--border)',
-                  borderRadius: '18px', padding: '24px 28px',
-                  transition: 'box-shadow .3s, border-color .3s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 12px 32px ${greenAlpha(0.10)}`; e.currentTarget.style.borderColor = greenAlpha(0.2) }}
-                onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--border)' }}
-              >
-                <div style={{
-                  width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0,
-                  background: i === 0 ? greenAlpha(0.1) : 'var(--bg2)',
-                  border: `1px solid ${i === 0 ? greenAlpha(0.2) : 'var(--border)'}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '22px',
-                }}>{s.icon}</div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                    <span style={{ fontFamily: D, fontSize: '11px', fontWeight: 700, color: GREEN, opacity: 0.7 }}>{s.n}</span>
-                    <h3 style={{ fontFamily: D, fontSize: '17px', fontWeight: 600, color: 'var(--text)', margin: 0 }}>{s.title}</h3>
-                  </div>
-                  <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.65, margin: 0 }}>{s.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </Section>
+      <CampaignFlow
+        background="var(--bg2)"
+        sectionId="how-it-works"
+        eyebrow="Cómo funciona"
+        title="De propuesta a payout en 4 pasos."
+        subtitle="Sin papeleos, sin contratos, sin perseguir pagos."
+        accentColor={GREEN}
+        steps={CREATOR_FLOW_STEPS}
+        screens={[
+          (
+            <BrowserChrome url="channelad.io/creator/inbox" key="screen-1">
+              <DemoCreatorInbox />
+            </BrowserChrome>
+          ),
+          (
+            <BrowserChrome url="channelad.io/creator/campañas/q4-saas/publicar" key="screen-2">
+              <DemoCreatorPublish />
+            </BrowserChrome>
+          ),
+          (
+            <BrowserChrome url="channelad.io/creator/earnings" key="screen-3">
+              <DemoCreatorEarnings />
+            </BrowserChrome>
+          ),
+          (
+            <BrowserChrome url="channelad.io/creator/earnings/withdraw" key="screen-4">
+              <DemoCreatorPayout />
+            </BrowserChrome>
+          ),
+        ]}
+      />
 
       {/* ══════════════════════════════════════════════════════
           7 · ESCROW FLOW (reused from advertiser, creator copy)

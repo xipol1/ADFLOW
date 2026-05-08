@@ -157,10 +157,17 @@ export default function CampaignFlow({
   background = 'var(--bg2)',
   sectionId = 'como-funciona',
   screens = null,
+  steps = null,
+  eyebrow = 'Simple por diseño',
+  title = 'De la idea al resultado, sin fricción',
+  subtitle = '4 pasos. Pago protegido en cada uno. Métricas reales al final.',
+  accentColor = null,
 } = {}) {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
   const [activeStep, setActiveStep] = useState(0)
+  const flowSteps = steps || STEPS
+  const eyebrowColor = accentColor || 'var(--accent)'
 
   return (
     <section
@@ -176,9 +183,9 @@ export default function CampaignFlow({
         <div style={{ textAlign: 'center', marginBottom: 'clamp(36px, 6vw, 64px)' }}>
           <p style={{
             fontSize: '11px', fontWeight: 600, textTransform: 'uppercase',
-            letterSpacing: '0.12em', color: 'var(--accent)', marginBottom: '16px',
+            letterSpacing: '0.12em', color: eyebrowColor, marginBottom: '16px',
           }}>
-            Simple por diseño
+            {eyebrow}
           </p>
           <h2 style={{
             fontFamily: FONT_DISPLAY, fontWeight: 700,
@@ -186,13 +193,13 @@ export default function CampaignFlow({
             lineHeight: 1.08, letterSpacing: '-0.03em',
             margin: '0 0 16px', color: 'var(--text)',
           }}>
-            De la idea al resultado, sin fricción
+            {title}
           </h2>
           <p style={{
             fontFamily: FONT_BODY, fontSize: '16px', color: 'var(--muted)',
             maxWidth: '480px', margin: '0 auto', lineHeight: 1.6,
           }}>
-            4 pasos. Pago protegido en cada uno. Métricas reales al final.
+            {subtitle}
           </p>
         </div>
 
@@ -203,7 +210,7 @@ export default function CampaignFlow({
         }}
         className="flow-progress-bar"
         >
-          {STEPS.map((step, i) => (
+          {flowSteps.map((step, i) => (
             <React.Fragment key={i}>
               <motion.div
                 animate={{
@@ -217,11 +224,11 @@ export default function CampaignFlow({
                 }}
                 onClick={() => setActiveStep(i)}
               />
-              {i < STEPS.length - 1 && (
+              {i < flowSteps.length - 1 && (
                 <motion.div
                   animate={{
                     background: i < activeStep
-                      ? `linear-gradient(90deg, ${STEPS[i].color}, ${STEPS[i + 1].color})`
+                      ? `linear-gradient(90deg, ${flowSteps[i].color}, ${flowSteps[i + 1].color})`
                       : 'var(--border)',
                   }}
                   style={{ flex: 1, height: '2px', borderRadius: '1px' }}
@@ -244,7 +251,7 @@ export default function CampaignFlow({
             position: 'relative',
           }}
         >
-          {STEPS.map((step, i) => (
+          {flowSteps.map((step, i) => (
             <StepCard
               key={i}
               step={step}
