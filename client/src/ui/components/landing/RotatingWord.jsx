@@ -13,7 +13,13 @@ import { AnimatePresence, motion } from 'framer-motion'
  *     This causes a subtle layout shift on each swap (acceptable for
  *     marketing copy — the reader notices the word change, not the shift).
  */
-export default function RotatingWord({ words, interval = 2500 }) {
+// gradient: CSS background. Default = purple (advertiser). Override for
+// creator surfaces with `gradient="linear-gradient(135deg, #16a34a 0%, #25d366 100%)"`.
+export default function RotatingWord({
+  words,
+  interval = 2500,
+  gradient = 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
+}) {
   const [index, setIndex] = useState(0)
 
   useEffect(() => {
@@ -38,7 +44,7 @@ export default function RotatingWord({ words, interval = 2500 }) {
             padding: '0 14px',
             borderRadius: 10,
             color: '#fff',
-            background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
+            background: gradient,
             whiteSpace: 'nowrap',
           }}
         >
