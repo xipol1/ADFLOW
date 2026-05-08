@@ -285,7 +285,19 @@ export default function ForChannelsPage() {
   }
 
   return (
-    <main data-testid="for-channels-page" style={{ fontFamily: F, color: 'var(--text)', background: 'var(--bg)' }}>
+    <main
+      data-testid="for-channels-page"
+      style={{
+        fontFamily: F,
+        color: 'var(--text)',
+        // Page-level wash that bleeds across all sections so they feel
+        // continuous (mirrors ForBrandsPage). Sections below are mostly
+        // `background: transparent` so this gradient shows through.
+        background:
+          'radial-gradient(ellipse 90% 50% at 75% 8%, rgba(34, 197, 94, 0.08) 0%, transparent 55%), radial-gradient(ellipse 60% 40% at 15% 30%, rgba(74, 222, 128, 0.05) 0%, transparent 60%), var(--bg)',
+        position: 'relative',
+      }}
+    >
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(pageSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
@@ -545,7 +557,7 @@ export default function ForChannelsPage() {
       {/* ══════════════════════════════════════════════════════
           2 · TRUST BAR PLATFORMS
       ══════════════════════════════════════════════════════ */}
-      <Section style={{ padding: '40px 48px 80px', background: 'var(--bg)' }}>
+      <Section style={{ padding: '40px 48px 80px', background: 'transparent' }}>
         <div style={{ maxWidth: MAX_W, margin: '0 auto' }}>
           <motion.p variants={fadeUp} style={{
             fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
@@ -575,7 +587,7 @@ export default function ForChannelsPage() {
       {/* ══════════════════════════════════════════════════════
           3 · METRICS STRIP (updated numbers per plan)
       ══════════════════════════════════════════════════════ */}
-      <Section style={{ padding: '32px 48px 88px', background: 'var(--bg)' }}>
+      <Section style={{ padding: '32px 48px 88px', background: 'transparent' }}>
         <div style={{ maxWidth: MAX_W, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }} className="creator-stats-grid">
             {[
@@ -605,7 +617,7 @@ export default function ForChannelsPage() {
       ══════════════════════════════════════════════════════ */}
       <Section style={{
         padding: '110px 48px',
-        background: 'linear-gradient(180deg, var(--bg) 0%, rgba(239,68,68,0.025) 50%, var(--bg) 100%)',
+        background: 'linear-gradient(180deg, transparent 0%, rgba(239,68,68,0.03) 50%, transparent 100%)',
       }}>
         <div style={{ maxWidth: MAX_W, margin: '0 auto' }}>
           <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: '56px' }}>
@@ -675,7 +687,7 @@ export default function ForChannelsPage() {
           5 · EARNINGS CALCULATOR (Phase 2: replaces IncomeCalculator with
           richer simulator + comparison vs Adsense / Patreon / networks)
       ══════════════════════════════════════════════════════ */}
-      <EarningsCalculator />
+      <EarningsCalculator background="transparent" />
 
       {/* ══════════════════════════════════════════════════════
           6 · HOW IT WORKS (Phase 3: CampaignFlow with creator-side steps
@@ -717,7 +729,7 @@ export default function ForChannelsPage() {
           7 · ESCROW FLOW (reused from advertiser, creator copy)
       ══════════════════════════════════════════════════════ */}
       <EscrowFlowAnimation
-        background="var(--bg)"
+        background="transparent"
         sectionId="creator-escrow"
         eyebrow="Tu dinero, blindado"
         title="Cobras antes de mover un dedo."
@@ -734,7 +746,7 @@ export default function ForChannelsPage() {
           monetizar mejor (no solo el marketplace, también todo lo que
           rodea para que el canal escale).
       ══════════════════════════════════════════════════════ */}
-      <Section style={{ padding: '110px 48px', background: 'var(--bg)' }}>
+      <Section style={{ padding: '110px 48px', background: 'transparent' }}>
         <div style={{ maxWidth: MAX_W, margin: '0 auto' }}>
           <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: 'clamp(40px, 5vw, 64px)' }}>
             <p style={{
@@ -1022,7 +1034,7 @@ export default function ForChannelsPage() {
       {/* ══════════════════════════════════════════════════════
           9 · FAQ (8 questions + FAQPage schema)
       ══════════════════════════════════════════════════════ */}
-      <Section style={{ padding: '110px 48px', background: 'var(--bg)' }}>
+      <Section style={{ padding: '110px 48px', background: 'transparent' }}>
         <div style={{ maxWidth: '720px', margin: '0 auto' }}>
           <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: '48px' }}>
             <p style={{ fontSize: '11px', fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>FAQ</p>
@@ -1064,7 +1076,7 @@ export default function ForChannelsPage() {
       {/* ══════════════════════════════════════════════════════
           10 · FINAL CTA (rewritten copy + green tone)
       ══════════════════════════════════════════════════════ */}
-      <Section style={{ padding: '0 48px 110px', background: 'var(--bg)' }}>
+      <Section style={{ padding: '0 48px 110px', background: 'transparent' }}>
         <motion.div variants={scaleIn} style={{
           maxWidth: MAX_W, margin: '0 auto',
           background: `linear-gradient(135deg, #052e16 0%, #064e3b 50%, #052e16 100%)`,

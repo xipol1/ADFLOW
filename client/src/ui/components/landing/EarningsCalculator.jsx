@@ -191,7 +191,7 @@ function ComparisonBar({ label, value, baseline, sub, accent }) {
   )
 }
 
-export default function EarningsCalculator({ sectionId = 'earnings-calc' } = {}) {
+export default function EarningsCalculator({ sectionId = 'earnings-calc', background = 'var(--bg)' } = {}) {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
 
@@ -246,7 +246,7 @@ export default function EarningsCalculator({ sectionId = 'earnings-calc' } = {})
       ref={ref}
       id={sectionId}
       style={{
-        background: 'var(--bg)',
+        background,
         padding: 'clamp(72px, 10vw, 120px) clamp(16px, 4vw, 24px)',
       }}
     >
