@@ -15,7 +15,7 @@ const STEPS = [
     num: '01',
     AnimIcon: DiscoverIcon,
     title: 'Descubre',
-    desc: 'Explora el marketplace. Filtra por plataforma, nicho, audiencia y precio. Todas las metricas son verificables con tracking links.',
+    desc: 'Explora el marketplace. Filtra por plataforma, nicho, audiencia y precio. Todas las métricas son verificables con tracking links.',
     color: '#3b82f6',
     details: ['2,847 canales verificados', 'WhatsApp, Telegram, Discord', 'Filtros por nicho y audiencia'],
     time: '2 min',
@@ -24,28 +24,28 @@ const STEPS = [
     num: '02',
     AnimIcon: PayIcon,
     title: 'Paga seguro',
-    desc: 'Define tu campana y paga via Stripe. Tus fondos quedan protegidos en escrow hasta que la publicacion se verifica.',
+    desc: 'Define tu campaña y paga vía Stripe. Tus fondos quedan protegidos en escrow hasta que la publicación se verifica.',
     color: '#8b5cf6',
-    details: ['Escrow via Stripe Connect', 'Reembolso automatico si no publica', 'Sin minimos, sin permanencia'],
+    details: ['Escrow vía Stripe Connect', 'Reembolso automático si no publica', 'Sin mínimos, sin permanencia'],
     time: '1 min',
   },
   {
     num: '03',
     AnimIcon: PublishIcon,
     title: 'Se publica',
-    desc: 'El creador publica tu mensaje en su comunidad. La verificacion es automatica mediante tracking links con clicks unicos.',
+    desc: 'El creador publica tu mensaje en su comunidad. La verificación es automática mediante tracking links con clicks únicos.',
     color: '#10b981',
-    details: ['Publicacion verificada con tracking', 'Notificacion en tiempo real', 'Verificacion automatica en 48h'],
+    details: ['Publicación verificada con tracking', 'Notificación en tiempo real', 'Verificación automática en 48h'],
     time: '24-48h',
   },
   {
     num: '04',
     AnimIcon: ResultsIcon,
     title: 'Resultados reales',
-    desc: 'Metricas verificadas: clicks unicos, CPC, alcance y engagement. Fondos del escrow liberados automaticamente.',
+    desc: 'Métricas verificadas: clicks únicos, CPC, alcance y engagement. Fondos del escrow liberados automáticamente.',
     color: '#f59e0b',
-    details: ['Clicks unicos verificados', 'CPC y ROAS en real-time', 'Escrow liberado automaticamente'],
-    time: 'Instantaneo',
+    details: ['Clicks únicos verificados', 'CPC y ROAS en real-time', 'Escrow liberado automáticamente'],
+    time: 'Instantáneo',
   },
 ]
 
@@ -178,7 +178,7 @@ export default function CampaignFlow({
             fontSize: '11px', fontWeight: 600, textTransform: 'uppercase',
             letterSpacing: '0.12em', color: 'var(--accent)', marginBottom: '16px',
           }}>
-            Simple por diseno
+            Simple por diseño
           </p>
           <h2 style={{
             fontFamily: FONT_DISPLAY, fontWeight: 700,
@@ -186,13 +186,13 @@ export default function CampaignFlow({
             lineHeight: 1.08, letterSpacing: '-0.03em',
             margin: '0 0 16px', color: 'var(--text)',
           }}>
-            De la idea al resultado, sin friccion
+            De la idea al resultado, sin fricción
           </h2>
           <p style={{
             fontFamily: FONT_BODY, fontSize: '16px', color: 'var(--muted)',
             maxWidth: '480px', margin: '0 auto', lineHeight: 1.6,
           }}>
-            4 pasos. Pago protegido en cada uno. Metricas reales al final.
+            4 pasos. Pago protegido en cada uno. Métricas reales al final.
           </p>
         </div>
 
@@ -285,9 +285,9 @@ export default function CampaignFlow({
           gap: '24px', flexWrap: 'wrap', marginTop: 'clamp(36px, 5vw, 56px)',
         }}>
           {[
-            { icon: Shield, text: 'Escrow en cada transaccion', color: '#22c55e' },
-            { icon: Zap, text: 'Verificacion automatica', color: '#f59e0b' },
-            { icon: Eye, text: 'Metricas 100% auditables', color: '#3b82f6' },
+            { icon: Shield, text: 'Escrow en cada transacción', color: '#22c55e' },
+            { icon: Zap, text: 'Verificación automática', color: '#f59e0b' },
+            { icon: Eye, text: 'Métricas 100% auditables', color: '#3b82f6' },
           ].map((badge, i) => (
             <div key={i} style={{
               display: 'flex', alignItems: 'center', gap: '8px',

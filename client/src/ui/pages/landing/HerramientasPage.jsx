@@ -6,7 +6,7 @@ import SEO from '../../components/SEO'
 import LazyMount from '../../components/utils/LazyMount'
 import Hero3D from '../../components/landing/Hero3D'
 import DashboardShowcase from '../../components/landing/DashboardShowcase'
-import RealDataSection from '../../components/landing/RealDataSection'
+import ToolsDataSection from '../../components/landing/ToolsDataSection'
 import SubscriptionTiers3D from '../../components/landing/SubscriptionTiers3D'
 import {
   PURPLE as A,
@@ -101,9 +101,9 @@ export default function HerramientasPage() {
         <SubscriptionTiers3D />
       </LazyMount>
 
-      {/* Métricas verificables + badges de seguridad */}
-      <LazyMount placeholder={<div style={{ minHeight: 560 }} />}>
-        <RealDataSection />
+      {/* Datos que cada herramienta expone — específico de /herramientas */}
+      <LazyMount placeholder={<div style={{ minHeight: 720 }} />}>
+        <ToolsDataSection />
       </LazyMount>
     </main>
   )

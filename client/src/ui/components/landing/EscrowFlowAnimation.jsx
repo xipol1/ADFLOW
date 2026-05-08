@@ -93,13 +93,13 @@ export default function EscrowFlowAnimation({ background = 'var(--bg)', sectionI
             lineHeight: 1.08, letterSpacing: '-0.03em',
             margin: '0 0 16px', color: 'var(--text)',
           }}>
-            Asi protege tu pago el escrow
+            Así protege tu pago el escrow
           </h2>
           <p style={{
             fontFamily: FONT_BODY, fontSize: 16, color: 'var(--muted)',
             maxWidth: 540, margin: '0 auto', lineHeight: 1.6,
           }}>
-            Cada euro pasa por Stripe Connect. Solo se libera cuando el tracking link confirma la publicacion.
+            Cada euro pasa por Stripe Connect. Solo se libera cuando el tracking link confirma la publicación.
           </p>
         </div>
 
@@ -361,7 +361,7 @@ export default function EscrowFlowAnimation({ background = 'var(--bg)', sectionI
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         }}>
           <Shield size={16} style={{ color: '#22c55e' }} />
-          Si la publicacion no se verifica en 48h, recuperas el 100% automaticamente
+          Si la publicación no se verifica en 48h, recuperas el 100% automáticamente
         </div>
       </div>
 

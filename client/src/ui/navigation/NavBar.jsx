@@ -21,7 +21,7 @@ const NAV_CATEGORIES = [
   { icon: '🤖', label: 'Tech', to: '/explore?categories=tecnologia' },
   { icon: '₿', label: 'Crypto', to: '/explore?categories=cripto' },
   { icon: '🏥', label: 'Salud', to: '/explore?categories=salud' },
-  { icon: '📚', label: 'Educacion', to: '/explore?categories=educacion' },
+  { icon: '📚', label: 'Educación', to: '/explore?categories=educacion' },
 ]
 
 const NAV_PLATFORMS = [
@@ -140,7 +140,7 @@ export default function NavBar() {
                 display: 'flex', alignItems: 'center', gap: '4px', transition: 'all .15s',
               }}
             >
-              Categorias
+              Categorías
               <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6"/></svg>
             </button>
 
@@ -153,7 +153,7 @@ export default function NavBar() {
                 display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px',
               }}>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--accent)' }}>Categorias</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--accent)' }}>Categorías</p>
                   {NAV_CATEGORIES.map((cat) => (
                     <Link key={cat.label} to={cat.to} onClick={() => setMegaOpen(false)}
                       className="flex items-center gap-2 px-2 py-1.5 rounded-md text-[13px] transition-colors hover:bg-[var(--bg3)]"
@@ -229,7 +229,7 @@ export default function NavBar() {
             <>
               <Link to="/auth/login" className="text-[13px] font-medium px-3 py-1.5 rounded-md"
                 style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
-              >Iniciar sesion</Link>
+              >Iniciar sesión</Link>
               <Link to="/auth/register" className="text-[13px] font-semibold px-4 py-2 rounded-lg"
                 style={{ background: 'var(--accent)', color: '#080C10', textDecoration: 'none', transition: 'all .15s' }}
               >Registrarse</Link>
@@ -267,7 +267,7 @@ export default function NavBar() {
 
             <div className="my-3" style={{ borderTop: '1px solid var(--border)' }} />
 
-            <p className="px-3 text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--accent)' }}>Categorias</p>
+            <p className="px-3 text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--accent)' }}>Categorías</p>
             {NAV_CATEGORIES.map((cat) => (
               <Link key={cat.label} to={cat.to} onClick={closeMobile}
                 className="flex items-center gap-2 px-3 py-2 rounded-md text-sm"
@@ -280,11 +280,11 @@ export default function NavBar() {
             {isAuthenticated ? (
               <>
                 <Link to={dashboardPath} onClick={closeMobile} className="block px-3 py-2.5 rounded-md text-[15px] font-medium" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Mi Dashboard</Link>
-                <button onClick={onLogout} className="text-left px-3 py-2.5 rounded-md text-[15px] font-medium" style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}>Cerrar sesion</button>
+                <button onClick={onLogout} className="text-left px-3 py-2.5 rounded-md text-[15px] font-medium" style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}>Cerrar sesión</button>
               </>
             ) : (
               <>
-                <Link to="/auth/login" onClick={closeMobile} className="block px-3 py-2.5 rounded-md text-[15px] font-medium" style={{ color: 'var(--text)', textDecoration: 'none' }}>Iniciar sesion</Link>
+                <Link to="/auth/login" onClick={closeMobile} className="block px-3 py-2.5 rounded-md text-[15px] font-medium" style={{ color: 'var(--text)', textDecoration: 'none' }}>Iniciar sesión</Link>
                 <Link to="/auth/register" onClick={closeMobile} className="block px-3 py-2.5 rounded-lg text-[15px] font-semibold text-center mt-2" style={{ background: 'var(--accent)', color: '#080C10', textDecoration: 'none' }}>Registrarse</Link>
               </>
             )}

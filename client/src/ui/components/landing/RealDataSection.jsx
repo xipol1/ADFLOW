@@ -49,25 +49,25 @@ const SECURITY_FEATURES = [
   {
     icon: CreditCard,
     title: 'Escrow via Stripe Connect',
-    desc: 'Cada pago queda protegido en escrow. Los fondos solo se liberan cuando la publicacion se verifica con tracking links.',
+    desc: 'Cada pago queda protegido en escrow. Los fondos solo se liberan cuando la publicación se verifica con tracking links.',
     color: '#8b5cf6',
   },
   {
     icon: Lock,
     title: 'Cifrado AES-256 + TLS 1.3',
-    desc: 'Todos los datos en transito y en reposo estan cifrados con estandar bancario. Cumplimiento RGPD y LSSI-CE.',
+    desc: 'Todos los datos en tránsito y en reposo están cifrados con estándar bancario. Cumplimiento RGPD y LSSI-CE.',
     color: '#3b82f6',
   },
   {
     icon: BadgeCheck,
-    title: 'Verificacion con tracking links',
-    desc: 'Cada publicacion se verifica automaticamente con tracking links unicos. 3 clicks minimos en 48h para liberar fondos.',
+    title: 'Verificación con tracking links',
+    desc: 'Cada publicación se verifica automáticamente con tracking links únicos. 3 clicks mínimos en 48h para liberar fondos.',
     color: '#10b981',
   },
   {
     icon: Eye,
-    title: 'Metricas auditables en real-time',
-    desc: 'Clicks unicos, CPC, alcance y engagement — datos verificados que puedes auditar en cualquier momento desde tu dashboard.',
+    title: 'Métricas auditables en real-time',
+    desc: 'Clicks únicos, CPC, alcance y engagement — datos verificados que puedes auditar en cualquier momento desde tu dashboard.',
     color: '#f59e0b',
   },
 ]
@@ -145,7 +145,7 @@ export default function RealDataSection() {
             lineHeight: 1.08, letterSpacing: '-0.03em',
             margin: 0, color: 'var(--text)',
           }}>
-            Numeros que puedes verificar
+            Números que puedes verificar
           </h2>
         </div>
 
@@ -186,7 +186,7 @@ export default function RealDataSection() {
             fontFamily: FONT_BODY, fontSize: '16px', color: 'var(--muted)',
             maxWidth: '520px', margin: '0 auto', lineHeight: 1.6,
           }}>
-            Cada transaccion pasa por escrow. Cada publicacion se verifica automaticamente.
+            Cada transacción pasa por escrow. Cada publicación se verifica automáticamente.
             Si algo falla, recuperas tu dinero.
           </p>
         </div>
@@ -295,7 +295,7 @@ export default function RealDataSection() {
             fontWeight: 400,
           }}
         >
-          Channelad SL · CIF: BXXXXXXX · Registrada en Madrid, Espana
+          Channelad SL · CIF: BXXXXXXX · Registrada en Madrid, España
         </motion.p>
       </div>
 

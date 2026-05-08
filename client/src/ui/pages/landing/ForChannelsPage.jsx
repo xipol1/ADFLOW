@@ -39,27 +39,27 @@ const PLATFORMS_SUPPORTED = [
 ]
 
 const BENEFITS = [
-  { icon: '🔒', title: 'Pagos protegidos', desc: 'Los fondos quedan en escrow hasta que publiques. Si cumples, cobras automaticamente. Sin perseguir pagos.' },
-  { icon: '💰', title: 'Tu pones el precio', desc: 'Define cuanto cobras por publicacion, por dia o por formato. Sin tarifas impuestas ni limites.' },
-  { icon: '📊', title: 'Dashboard completo', desc: 'Controla clicks, alcance, ingresos y rendimiento de cada campana en tiempo real desde tu panel.' },
+  { icon: '🔒', title: 'Pagos protegidos', desc: 'Los fondos quedan en escrow hasta que publiques. Si cumples, cobras automáticamente. Sin perseguir pagos.' },
+  { icon: '💰', title: 'Tú pones el precio', desc: 'Define cuánto cobras por publicación, por día o por formato. Sin tarifas impuestas ni límites.' },
+  { icon: '📊', title: 'Dashboard completo', desc: 'Controla clicks, alcance, ingresos y rendimiento de cada campaña en tiempo real desde tu panel.' },
   { icon: '🔓', title: 'Sin exclusividad', desc: 'Publica en las plataformas que quieras. Channelad no te bloquea, no te limita, no te pide permanencia.' },
-  { icon: '⚡', title: 'Verificacion rapida', desc: 'Verificamos tu canal en minutos con un tracking link automatico. Sin papeleos ni procesos largos.' },
+  { icon: '⚡', title: 'Verificación rápida', desc: 'Verificamos tu canal en minutos con un tracking link automático. Sin papeleos ni procesos largos.' },
   { icon: '🎯', title: 'Anunciantes de calidad', desc: 'Solo trabajamos con anunciantes verificados que respetan tu comunidad y pagan a tiempo.' },
 ]
 
 const STEPS = [
-  { n: '01', icon: '📱', title: 'Registra tu canal', desc: 'Agrega tu canal de WhatsApp, Telegram, Discord, Instagram, Facebook o Newsletter. Verificacion automatica en minutos.' },
-  { n: '02', icon: '📩', title: 'Recibe propuestas', desc: 'Los anunciantes te encuentran en el marketplace y te envian propuestas con precio, contenido y plazo. Tu decides si aceptas.' },
-  { n: '03', icon: '💸', title: 'Cobra seguro', desc: 'Publica el anuncio, marca como completado y cobra automaticamente. El dinero llega a tu balance sin intermediarios.' },
+  { n: '01', icon: '📱', title: 'Registra tu canal', desc: 'Agrega tu canal de WhatsApp, Telegram, Discord, Instagram, Facebook o Newsletter. Verificación automática en minutos.' },
+  { n: '02', icon: '📩', title: 'Recibe propuestas', desc: 'Los anunciantes te encuentran en el marketplace y te envían propuestas con precio, contenido y plazo. Tú decides si aceptas.' },
+  { n: '03', icon: '💸', title: 'Cobra seguro', desc: 'Publica el anuncio, marca como completado y cobra automáticamente. El dinero llega a tu balance sin intermediarios.' },
 ]
 
 const FAQS = [
-  { q: 'Es gratis registrarse?', a: 'Si, completamente gratis. Solo cobramos una comision del 10% cuando completas una campana pagada. Sin costes fijos ni suscripciones.' },
-  { q: 'Que plataformas puedo registrar?', a: 'WhatsApp, Telegram, Discord, Instagram, Facebook y Newsletter. Cada plataforma tiene su propio proceso de verificacion automatizado.' },
-  { q: 'Como funciona la verificacion?', a: 'Publicamos un tracking link en tu canal. Cuando alcanza un minimo de clicks unicos, tu canal queda verificado automaticamente. El proceso tarda minutos.' },
-  { q: 'Cuando puedo retirar mi dinero?', a: 'Cuando una campana se marca como completada, el dinero pasa a tu balance. Puedes retirarlo a tu banco o PayPal desde el dashboard en cualquier momento.' },
-  { q: 'Hay minimo de seguidores?', a: 'No hay minimo. Canales de cualquier tamano pueden registrarse. Los anunciantes eligen segun su presupuesto, nicho y objetivos.' },
-  { q: 'Puedo rechazar campanas?', a: 'Absolutamente. Tu decides que publicar y que no. Si una propuesta no encaja con tu comunidad, la rechazas sin penalizacion.' },
+  { q: '¿Es gratis registrarse?', a: 'Sí, completamente gratis. Solo cobramos una comisión del 10% cuando completas una campaña pagada. Sin costes fijos ni suscripciones.' },
+  { q: '¿Qué plataformas puedo registrar?', a: 'WhatsApp, Telegram, Discord, Instagram, Facebook y Newsletter. Cada plataforma tiene su propio proceso de verificación automatizado.' },
+  { q: '¿Cómo funciona la verificación?', a: 'Publicamos un tracking link en tu canal. Cuando alcanza un mínimo de clicks únicos, tu canal queda verificado automáticamente. El proceso tarda minutos.' },
+  { q: '¿Cuándo puedo retirar mi dinero?', a: 'Cuando una campaña se marca como completada, el dinero pasa a tu balance. Puedes retirarlo a tu banco o PayPal desde el dashboard en cualquier momento.' },
+  { q: '¿Hay mínimo de seguidores?', a: 'No hay mínimo. Canales de cualquier tamaño pueden registrarse. Los anunciantes eligen según su presupuesto, nicho y objetivos.' },
+  { q: '¿Puedo rechazar campañas?', a: 'Absolutamente. Tú decides qué publicar y qué no. Si una propuesta no encaja con tu comunidad, la rechazas sin penalización.' },
 ]
 
 /* ─── INCOME CALCULATOR ──────────────────────────────────── */
@@ -101,7 +101,7 @@ function IncomeCalculator() {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', background: greenAlpha(0.06), borderRadius: '16px', padding: '24px', border: `1px solid ${greenAlpha(0.12)}` }}>
         {[
-          { label: 'Tu cobras/post', val: `€${pricePerPost}`, color: GREEN },
+          { label: 'Tú cobras/post', val: `€${pricePerPost}`, color: GREEN },
           { label: 'El anunciante paga', val: `€${advertiserPays}`, color: 'var(--muted)' },
           { label: 'Tu ingreso mensual', val: `€${monthlyIncome.toLocaleString()}`, color: GREEN },
           { label: 'Tu ingreso anual', val: `€${yearlyIncome.toLocaleString()}`, color: 'var(--text)' },
@@ -112,7 +112,7 @@ function IncomeCalculator() {
           </div>
         ))}
       </div>
-      <p style={{ fontSize: '11px', color: 'var(--muted2)', textAlign: 'center', marginTop: '14px' }}>* Tu cobras el 100% de tu precio. Channelad cobra una comision del 20% al anunciante.</p>
+      <p style={{ fontSize: '11px', color: 'var(--muted2)', textAlign: 'center', marginTop: '14px' }}>* Tú cobras el 100% de tu precio. Channelad cobra una comisión del 20% al anunciante.</p>
     </motion.div>
   )
 }
@@ -139,7 +139,7 @@ export default function ForChannelsPage() {
       </Helmet>
       <SEO
         title="Monetiza tu canal de WhatsApp, Telegram o Discord"
-        description="Registra tu canal gratis y empieza a ganar dinero con publicidad. Sin minimo de seguidores. Pagos protegidos y solo 10% de comision por campana completada."
+        description="Registra tu canal gratis y empieza a ganar dinero con publicidad. Sin mínimo de seguidores. Pagos protegidos y solo 10% de comisión por campaña completada."
         path="/para-canales"
       />
 
@@ -207,7 +207,7 @@ export default function ForChannelsPage() {
             transition={{ duration: 0.6, delay: 0.5 }}
             style={{ fontSize: '18px', color: 'var(--muted)', lineHeight: 1.7, maxWidth: '540px', margin: '0 auto 40px' }}
           >
-            Conecta con anunciantes verificados que pagan por publicar en tu canal. Cobro protegido, metricas en tiempo real y total libertad.
+            Conecta con anunciantes verificados que pagan por publicar en tu canal. Cobro protegido, métricas en tiempo real y total libertad.
           </motion.p>
 
           <motion.div
@@ -271,7 +271,7 @@ export default function ForChannelsPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
             {[
               { label: 'Canales registrados', value: '2.400+' },
-              { label: 'Campanas completadas', value: '8.900+' },
+              { label: 'Campañas completadas', value: '8.900+' },
               { label: 'Pagado a creadores', value: '€1.2M+' },
               { label: 'Plataformas soportadas', value: '6' },
             ].map((m, i) => (
@@ -297,7 +297,7 @@ export default function ForChannelsPage() {
           <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: '56px' }}>
             <p style={{ fontSize: '11px', fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Ventajas</p>
             <h2 style={{ fontFamily: D, fontSize: 'clamp(26px, 3vw, 36px)', fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--text)' }}>
-              Por que publicar con <span style={{ color: GREEN }}>Channelad</span>
+              Por qué publicar con <span style={{ color: GREEN }}>Channelad</span>
             </h2>
           </motion.div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
@@ -327,7 +327,7 @@ export default function ForChannelsPage() {
         <div style={{ maxWidth: MAX_W, margin: '0 auto' }}>
           <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: '48px' }}>
             <p style={{ fontSize: '11px', fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Simulador</p>
-            <h2 style={{ fontFamily: D, fontSize: 'clamp(26px, 3vw, 36px)', fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--text)' }}>Cuanto puedes ganar?</h2>
+            <h2 style={{ fontFamily: D, fontSize: 'clamp(26px, 3vw, 36px)', fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--text)' }}>¿Cuánto puedes ganar?</h2>
           </motion.div>
           <IncomeCalculator />
         </div>
@@ -338,7 +338,7 @@ export default function ForChannelsPage() {
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
           <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: '56px' }}>
             <p style={{ fontSize: '11px', fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Proceso</p>
-            <h2 style={{ fontFamily: D, fontSize: 'clamp(26px, 3vw, 36px)', fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--text)' }}>Como funciona</h2>
+            <h2 style={{ fontFamily: D, fontSize: 'clamp(26px, 3vw, 36px)', fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--text)' }}>Cómo funciona</h2>
           </motion.div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {STEPS.map((s, i) => (
