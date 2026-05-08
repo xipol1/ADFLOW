@@ -1226,7 +1226,7 @@ export default function Hero3D() {
               >
                 <Zap size={14} style={{ color: 'var(--accent)' }} />
               </motion.div>
-              <span>Tu centro de control de campanas</span>
+              <span>Tu centro de control de campañas</span>
             </div>
           </motion.div>
 
@@ -1239,7 +1239,7 @@ export default function Hero3D() {
               margin: '0 0 20px',
             }}>
               <div>Un dashboard.</div>
-              <div><span className="gradient-text">Todas tus campanas.</span></div>
+              <div><span className="gradient-text">Todas tus campañas.</span></div>
             </div>
           </motion.div>
 

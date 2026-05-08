@@ -67,7 +67,7 @@ export default function LandingFooter() {
             Cada semana, lo mejor del marketplace en tu bandeja.
           </h3>
           <p style={{ fontSize: '13px', color: 'var(--muted)', margin: 0 }}>
-            Canales trending, nuevas categorias y consejos para optimizar tus campanas.
+            Canales trending, nuevas categorías y consejos para optimizar tus campañas.
           </p>
         </div>
 
