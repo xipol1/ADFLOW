@@ -181,55 +181,65 @@ const PRICING_INCLUDES = [
   'Aparición en marketplace verificado',
   'Pago en escrow Stripe Connect',
   'Verificación automática con tracking',
-  'Toolkit de crecimiento (Pricing Optimizer, Audience Insights, Cross-promo, …)',
+  'Toolkit básico (Audience Insights, Discover, Brand CRM, Forecast)',
   'Inbox + dashboard real-time',
   'Soporte en español 24/7',
 ]
 
-// Creator-side growth toolkit — what the creator gets BEYOND the marketplace
-// itself. Six tools that help grow the channel, monetize better and reach
-// more audience. Mirrors the four advertiser categories but framed for
-// creators.
+// Creator-side growth toolkit. Marketplace + escrow + dashboards básicos
+// son siempre gratis. Las herramientas avanzadas (IA, automation, premium
+// templates) entran con el plan Pro — el desglose por tier vive en
+// /herramientas (SubscriptionTiers3D).
+//
+// tier: 'free' | 'pro' — determines the badge rendered on the card.
 const GROWTH_TOOLS = [
-  {
-    icon: '📈',
-    title: 'Pricing Optimizer',
-    desc: 'IA que sugiere tu precio óptimo cada mes según tu nicho, tamaño, engagement y la actividad del marketplace. Deja de regalar plazas.',
-  },
   {
     icon: '👥',
     title: 'Audience Insights',
-    desc: 'Demografía, intereses, momentos de máxima actividad y solapamiento con otros canales. Sabe quién te lee mejor que tú.',
-  },
-  {
-    icon: '🔁',
-    title: 'Cross-promo & Swaps',
-    desc: 'Intercambia menciones con creadores complementarios verificados. Crece sin gastar en ads, con audiencias afines.',
+    desc: 'Demografía básica, intereses y momentos de máxima actividad de tu comunidad. Para entender quién te lee.',
+    tier: 'free',
   },
   {
     icon: '🔍',
     title: 'Discover',
-    desc: 'Encuentra anunciantes y creadores que ya están pagando en tu nicho. Acelera tu primer deal.',
-  },
-  {
-    icon: '✨',
-    title: 'Content Studio',
-    desc: 'Templates de copy y formatos validados con tracking real. CTAs y hooks que sabemos que convierten en cada plataforma.',
-  },
-  {
-    icon: '🧪',
-    title: 'A/B Test Lab',
-    desc: 'Testea hooks, CTAs y formatos antes de publicar al 100%. Significancia estadística sin esperar 30 días.',
+    desc: 'Explora anunciantes y creadores que están pagando en tu nicho. Acelera tu primer deal sin esperar a que te encuentren.',
+    tier: 'free',
   },
   {
     icon: '📒',
     title: 'Brand CRM',
     desc: 'Lleva el control de qué anunciantes han trabajado contigo, cuánto pagaron y cuándo volver a contactarlos. Tu pipeline en un sitio.',
+    tier: 'free',
   },
   {
     icon: '🔮',
     title: 'Earnings Forecast',
-    desc: 'Predice ingresos del próximo mes con tu pipeline actual y patrones de tu nicho. Planifica como si tuvieras un equipo financiero.',
+    desc: 'Predice tus ingresos del próximo mes con tu pipeline actual y los patrones de tu nicho. Planifica con datos.',
+    tier: 'free',
+  },
+  {
+    icon: '📈',
+    title: 'Pricing Optimizer',
+    desc: 'IA entrenada con 2.847 canales que sugiere tu precio óptimo cada mes según nicho, tamaño y actividad del marketplace. Deja de regalar plazas.',
+    tier: 'pro',
+  },
+  {
+    icon: '🔁',
+    title: 'Cross-promo & Swaps',
+    desc: 'Match automático con creadores complementarios verificados. Intercambia menciones y crece sin gastar en ads.',
+    tier: 'pro',
+  },
+  {
+    icon: '✨',
+    title: 'Content Studio',
+    desc: 'Biblioteca premium de templates de copy, hooks y CTAs validados con tracking real en cada plataforma.',
+    tier: 'pro',
+  },
+  {
+    icon: '🧪',
+    title: 'A/B Test Lab',
+    desc: 'Testea hooks, copy y formatos antes de publicar al 100%. Significancia estadística sin esperar 30 días.',
+    tier: 'pro',
   },
 ]
 
@@ -281,7 +291,7 @@ export default function ForChannelsPage() {
       </Helmet>
       <SEO
         title="Monetiza tu canal de WhatsApp, Telegram o Discord"
-        description="Channelad es gratis para creadores. Pones tu canal en el marketplace, recibes propuestas verificadas y cobras el 100% de tu precio en escrow. Toolkit incluido para crecer y monetizar mejor."
+        description="Channelad es gratis para creadores. Pones tu canal en el marketplace, recibes propuestas verificadas y cobras el 100% de tu precio en escrow. Toolkit de crecimiento — herramientas básicas gratis, avanzadas con plan Pro."
         path="/para-canales"
       />
 
@@ -739,7 +749,7 @@ export default function ForChannelsPage() {
               fontSize: 11, fontWeight: 600, color: GREEN,
               textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14,
             }}>
-              Toolkit incluido
+              Toolkit de crecimiento
             </p>
             <h2 style={{
               fontFamily: D, fontSize: 'clamp(28px, 4vw, 46px)', fontWeight: 700,
@@ -750,69 +760,111 @@ export default function ForChannelsPage() {
             </h2>
             <p style={{
               fontFamily: F, fontSize: 16, color: 'var(--muted)',
-              maxWidth: 640, margin: '0 auto', lineHeight: 1.6,
+              maxWidth: 660, margin: '0 auto', lineHeight: 1.6,
             }}>
-              8 herramientas para crecer audiencia, optimizar pricing y ganar más sin gastar
-              en ads. Todas incluidas — sin add-ons, sin tiers de pago.
+              4 herramientas básicas gratis para todos los creadores. 4 avanzadas con plan Pro
+              — IA, automation y testing estadístico para escalar audiencia y CPM sin tocar ads.
             </p>
           </motion.div>
 
           <div className="growth-grid" style={{
             display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16,
           }}>
-            {GROWTH_TOOLS.map((tool) => (
-              <motion.div key={tool.title} variants={staggerItem}
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.25 }}
-                style={{
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 18,
-                  padding: '24px 22px',
-                  transition: 'border-color .3s, box-shadow .3s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = greenAlpha(0.30)
-                  e.currentTarget.style.boxShadow = `0 18px 50px -22px ${greenAlpha(0.30)}`
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border)'
-                  e.currentTarget.style.boxShadow = 'none'
-                }}
-              >
-                <div style={{
-                  width: 44, height: 44, borderRadius: 12,
-                  background: greenAlpha(0.10),
-                  border: `1px solid ${greenAlpha(0.18)}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 22, marginBottom: 14,
-                }}>
-                  {tool.icon}
-                </div>
-                <h3 style={{
-                  fontFamily: D, fontSize: 16, fontWeight: 700,
-                  letterSpacing: '-0.015em', color: 'var(--text)',
-                  margin: '0 0 8px',
-                }}>
-                  {tool.title}
-                </h3>
-                <p style={{
-                  fontSize: 13, color: 'var(--muted)',
-                  lineHeight: 1.55, margin: 0,
-                }}>
-                  {tool.desc}
-                </p>
-              </motion.div>
-            ))}
+            {GROWTH_TOOLS.map((tool) => {
+              const isPro = tool.tier === 'pro'
+              return (
+                <motion.div key={tool.title} variants={staggerItem}
+                  whileHover={{ y: -4 }}
+                  transition={{ duration: 0.25 }}
+                  style={{
+                    position: 'relative',
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 18,
+                    padding: '24px 22px',
+                    transition: 'border-color .3s, box-shadow .3s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = isPro ? 'rgba(124,58,237,0.30)' : greenAlpha(0.30)
+                    e.currentTarget.style.boxShadow = isPro
+                      ? '0 18px 50px -22px rgba(124,58,237,0.30)'
+                      : `0 18px 50px -22px ${greenAlpha(0.30)}`
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border)'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }}
+                >
+                  {/* Tier badge — top-right corner */}
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: 14, right: 14,
+                      fontSize: 9, fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      padding: '3px 8px',
+                      borderRadius: 5,
+                      background: isPro ? 'rgba(124,58,237,0.12)' : greenAlpha(0.14),
+                      color: isPro ? '#7C3AED' : '#16a34a',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {isPro ? 'Pro' : 'Gratis'}
+                  </span>
+
+                  <div style={{
+                    width: 44, height: 44, borderRadius: 12,
+                    background: isPro ? 'rgba(124,58,237,0.10)' : greenAlpha(0.10),
+                    border: `1px solid ${isPro ? 'rgba(124,58,237,0.18)' : greenAlpha(0.18)}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 22, marginBottom: 14,
+                  }}>
+                    {tool.icon}
+                  </div>
+                  <h3 style={{
+                    fontFamily: D, fontSize: 16, fontWeight: 700,
+                    letterSpacing: '-0.015em', color: 'var(--text)',
+                    margin: '0 0 8px',
+                  }}>
+                    {tool.title}
+                  </h3>
+                  <p style={{
+                    fontSize: 13, color: 'var(--muted)',
+                    lineHeight: 1.55, margin: 0,
+                  }}>
+                    {tool.desc}
+                  </p>
+                </motion.div>
+              )
+            })}
           </div>
 
-          <motion.p variants={fadeUp} style={{
-            textAlign: 'center', marginTop: 32, fontSize: 13,
-            color: 'var(--muted)', maxWidth: 600,
-            marginLeft: 'auto', marginRight: 'auto',
-          }}>
-            Acceso completo desde el primer día. Sin add-ons, sin tiers de pago.
-          </motion.p>
+          <div style={{ textAlign: 'center', marginTop: 36 }}>
+            <Link
+              to="/herramientas"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '11px 22px', borderRadius: 10,
+                background: 'var(--surface)', color: 'var(--text)',
+                border: '1px solid var(--border)',
+                fontSize: 14, fontWeight: 600,
+                textDecoration: 'none',
+                transition: 'border-color .2s, transform .2s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = greenAlpha(0.30); e.currentTarget.style.transform = 'translateY(-1px)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none' }}
+            >
+              Ver el toolkit completo y planes
+              <ArrowRight size={14} strokeWidth={2.4} />
+            </Link>
+            <p style={{
+              fontSize: 12, color: 'var(--muted)',
+              maxWidth: 560, margin: '14px auto 0', lineHeight: 1.55,
+            }}>
+              Marketplace, escrow y herramientas básicas siempre gratis para creadores.
+              Las 4 avanzadas requieren plan Pro — sin permanencia, cancela cuando quieras.
+            </p>
+          </div>
 
           <style>{`
             @media (max-width: 1100px) {
