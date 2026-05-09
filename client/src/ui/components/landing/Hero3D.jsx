@@ -18,7 +18,7 @@ const revealUp = {
 /* ── Module data with chart types ──────────────────────────────── */
 const DASHBOARD_MODULES = [
   { icon: Layout, label: 'Overview', color: '#8b5cf6', value: 12, suffix: ' activas', sub: 'Campañas', chart: 'line', live: true },
-  { icon: Search, label: 'Marketplace', color: '#3b82f6', value: 2847, suffix: '', sub: 'Canales', chart: 'bar' },
+  { icon: Search, label: 'Marketplace', color: '#3b82f6', value: 2500, suffix: '+', sub: 'Canales', chart: 'bar' },
   { icon: BarChart3, label: 'Analytics', color: '#10b981', value: 34, prefix: '+', suffix: '%', sub: 'CTR medio', chart: 'area', live: true },
   { icon: FlaskConical, label: 'A/B Testing', color: '#f59e0b', value: 3, suffix: ' tests', sub: 'En curso', chart: 'line' },
   { icon: Target, label: 'ROI Forecast', color: '#ef4444', value: 4.2, suffix: 'x', sub: 'ROAS previsto', chart: 'area', decimals: 1 },

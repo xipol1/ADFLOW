@@ -17,7 +17,7 @@ const STEPS = [
     title: 'Descubre',
     desc: 'Explora el marketplace. Filtra por plataforma, nicho, audiencia y precio. Todas las métricas son verificables con tracking links.',
     color: '#3b82f6',
-    details: ['2,847 canales verificados', 'WhatsApp, Telegram, Discord', 'Filtros por nicho y audiencia'],
+    details: ['+2.500 canales con métricas propias', 'WhatsApp, Telegram, Discord', 'Filtros por nicho y audiencia'],
     time: '2 min',
   },
   {

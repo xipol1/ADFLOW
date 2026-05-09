@@ -16,7 +16,7 @@ const STEPS = [
   {
     selector: 'a[href$="/advertiser/explore"]',
     title: 'Explora el marketplace',
-    body: 'Filtra entre 2,847 canales por nicho, plataforma y precio. Cada canal esta verificado.',
+    body: 'Filtra entre +2.500 canales con métricas propias por nicho, plataforma y precio.',
     placement: 'right',
   },
   {

@@ -107,7 +107,7 @@ export default function EarningsCard() {
         <div style={{ display: 'flex' }}>
           {RECENT_CHANNELS.map((c, i) => (
             <div
-              key={`${c.id}-${i}`}
+              key={c.id}
               style={{
                 width: 28,
                 height: 28,
