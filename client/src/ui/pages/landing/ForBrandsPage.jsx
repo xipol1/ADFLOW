@@ -31,6 +31,7 @@ import {
   MAX_W,
   PLATFORM_BRAND,
 } from '../../theme/tokens'
+import { PUBLIC_COMMISSION_LABEL } from '../../theme/stats'
 
 const F = FONT_BODY
 const D = FONT_DISPLAY
@@ -53,10 +54,6 @@ const HERO_FLOATING_CARDS = [
 
 // Words rotating in the hero H1 highlight pill.
 const HERO_ROTATING_WORDS = ['Telegram', 'WhatsApp', 'Discord', 'newsletters']
-
-// Public commission to advertise. Internal range stays 18–25%; public face is
-// "20% típico" to avoid pricing-tier confusion at the top of funnel.
-const PUBLIC_COMMISSION = '20%'
 
 /* ─── Sección 2 — Trust bar entries ──────────────────────────────────── */
 const TRUST_PLATFORMS = [
@@ -406,6 +403,15 @@ export default function ForBrandsPage() {
     >
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: FAQS.map((f) => ({
+            '@type': 'Question',
+            name: f.q,
+            acceptedAnswer: { '@type': 'Answer', text: f.a },
+          })),
+        })}</script>
       </Helmet>
       <SEO title={seoTitle} description={seoDescription} path={seoPath} type="website" />
 
@@ -1376,7 +1382,7 @@ export default function ForBrandsPage() {
                       backgroundClip: 'text',
                     }}
                   >
-                    {PUBLIC_COMMISSION}
+                    {PUBLIC_COMMISSION_LABEL}
                   </div>
                   <div
                     style={{
@@ -1778,8 +1784,8 @@ export default function ForBrandsPage() {
                 borderTop: '1px solid rgba(255,255,255,0.08)',
               }}
             >
-              Channelad SL · Madrid · Solo te escribimos sobre tu cuenta. Cancela el aviso cuando quieras
-              desde cualquier email.
+              Operado por MICHI SOLUCIONS S.L. (en constitución) · Madrid · Solo te escribimos sobre tu
+              cuenta. Cancela el aviso cuando quieras desde cualquier email.
             </p>
           </div>
         </motion.div>

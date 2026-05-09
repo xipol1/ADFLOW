@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { motion, useInView, AnimatePresence } from 'framer-motion'
+import { motion, useInView, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { CreditCard, Shield, Send, MousePointerClick, CheckCircle2, Wallet } from 'lucide-react'
 import { FONT_DISPLAY, FONT_BODY, MAX_W } from '../../theme/tokens'
 
-const STEPS = [
+const STEPS_ADVERTISER = [
   {
     id: 0,
     label: 'Anunciante paga',
@@ -24,7 +24,7 @@ const STEPS = [
   },
   {
     id: 2,
-    label: 'Creator publica',
+    label: 'El canal publica',
     icon: Send,
     color: '#f59e0b',
     detail: 'Post en canal',
@@ -51,12 +51,69 @@ const STEPS = [
   },
   {
     id: 5,
-    label: 'Creator cobra',
+    label: 'El canal cobra',
+    icon: Wallet,
+    color: '#10b981',
+    detail: '500€ a su cuenta',
+    desc:
+      'Stripe Connect transfiere los 500 € directamente a la cuenta del canal. Recibes confirmación y reporte exportable con todas las métricas verificadas.',
+  },
+]
+
+const STEPS_CREATOR = [
+  {
+    id: 0,
+    label: 'El anunciante paga',
+    icon: CreditCard,
+    color: '#3b82f6',
+    detail: '500€ via Stripe',
+    desc:
+      'El anunciante confirma la campaña y deposita el importe en Stripe Connect. El dinero todavía no es tuyo: queda retenido en escrow neutral hasta que publiques.',
+  },
+  {
+    id: 1,
+    label: 'Escrow protege',
+    icon: Shield,
+    color: '#7C3AED',
+    detail: '500€ bloqueados',
+    desc:
+      'Stripe Connect mantiene los 500 € bloqueados. El anunciante no puede recuperarlos a su antojo: si publicas según lo acordado, son tuyos.',
+  },
+  {
+    id: 2,
+    label: 'Tu canal publica',
+    icon: Send,
+    color: '#f59e0b',
+    detail: 'Post en tu canal',
+    desc:
+      'Publicas el mensaje del anunciante con el formato acordado. Channelad detecta automáticamente la publicación con tracking links únicos — sin capturas ni pruebas manuales.',
+  },
+  {
+    id: 3,
+    label: 'Tracking verifica',
+    icon: MousePointerClick,
+    color: '#06b6d4',
+    detail: '127 clicks únicos',
+    desc:
+      'Cada click se valida contra fingerprint, IP y patrón temporal. El contador es público para ti y para el anunciante: ambos veis las mismas cifras.',
+  },
+  {
+    id: 4,
+    label: 'Liberación auto',
+    icon: CheckCircle2,
+    color: '#22c55e',
+    detail: 'Verificado en 18h',
+    desc:
+      'Cumplido el acuerdo, el escrow se libera automáticamente a tu favor. Sin chats incómodos, sin recordatorios, sin esperas de 60-90 días.',
+  },
+  {
+    id: 5,
+    label: 'Tú cobras',
     icon: Wallet,
     color: '#10b981',
     detail: '500€ a tu cuenta',
     desc:
-      'Stripe Connect transfiere los 500 € directamente a la cuenta del canal. Recibes confirmación y reporte exportable con todas las métricas verificadas.',
+      'Stripe Connect transfiere los 500 € directamente a tu cuenta. Recibes confirmación y reporte exportable con todas las métricas verificadas.',
   },
 ]
 
@@ -66,16 +123,19 @@ export default function EscrowFlowAnimation({
   eyebrow = 'Tu dinero, en cada paso',
   title = 'Así protege tu pago el escrow',
   subtitle = 'Cada euro pasa por Stripe Connect. Solo se libera cuando el tracking link confirma la publicación.',
+  variant = 'advertiser',
 } = {}) {
+  const STEPS = variant === 'creator' ? STEPS_CREATOR : STEPS_ADVERTISER
   const ref = useRef(null)
   const inView = useInView(ref, { once: false, margin: '-30%' })
+  const reducedMotion = useReducedMotion()
   const [active, setActive] = useState(0)
 
   useEffect(() => {
-    if (!inView) return
+    if (!inView || reducedMotion) return
     const t = setInterval(() => setActive(a => (a + 1) % STEPS.length), 2200)
     return () => clearInterval(t)
-  }, [inView])
+  }, [inView, reducedMotion, STEPS.length])
 
   return (
     <section
@@ -357,7 +417,7 @@ export default function EscrowFlowAnimation({
 
         {/* Bottom note */}
         <div style={{
-          textAlign: 'center', marginTop: 'clamp(32px, 5vw, 48px)',
+          textAlign: 'center',
           padding: '14px 20px',
           background: 'rgba(34,197,94,0.05)',
           border: '1px solid rgba(34,197,94,0.15)',

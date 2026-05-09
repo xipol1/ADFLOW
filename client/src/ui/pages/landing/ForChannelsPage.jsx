@@ -221,7 +221,7 @@ const GROWTH_TOOLS = [
   {
     icon: '📈',
     title: 'Pricing Optimizer',
-    desc: 'IA entrenada con 2.847 canales que sugiere tu precio óptimo cada mes según nicho, tamaño y actividad del marketplace. Deja de regalar plazas.',
+    desc: 'IA entrenada con +2.500 canales con métricas propias que sugiere tu precio óptimo cada mes según nicho, tamaño y actividad del marketplace. Deja de regalar plazas.',
     tier: 'pro',
   },
   {
@@ -304,7 +304,7 @@ export default function ForChannelsPage() {
       </Helmet>
       <SEO
         title="Monetiza tu canal de WhatsApp, Telegram o Discord"
-        description="Channelad es gratis para creadores. Pones tu canal en el marketplace, recibes propuestas verificadas y cobras el 100% de tu precio en escrow. Toolkit de crecimiento — herramientas básicas gratis, avanzadas con plan Pro."
+        description="Gratis para creadores: lista tu canal, recibe propuestas verificadas y cobra el 100% de tu precio en escrow. Toolkit de crecimiento incluido."
         path="/para-canales"
       />
 
@@ -458,7 +458,7 @@ export default function ForChannelsPage() {
                 }}
               >
                 {[
-                  { v: '1.000+', l: 'Canales monetizando' },
+                  { v: '+2.500', l: 'Canales con métricas propias' },
                   { v: '€2,8M', l: 'Pagado a creadores' },
                   { v: 'Día 1', l: 'Acceso al toolkit' },
                 ].map((s) => (
@@ -591,7 +591,7 @@ export default function ForChannelsPage() {
         <div style={{ maxWidth: MAX_W, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }} className="creator-stats-grid">
             {[
-              { label: 'Canales monetizando', value: '1.000+' },
+              { label: 'Canales con métricas propias', value: '+2.500' },
               { label: 'Pagado a creadores', value: '€2,8M' },
               { label: 'Plataformas integradas', value: '6' },
               { label: 'Fee de alta', value: '0%' },
@@ -734,6 +734,7 @@ export default function ForChannelsPage() {
         eyebrow="Tu dinero, blindado"
         title="Cobras antes de mover un dedo."
         subtitle="El anunciante deposita el 100% del precio en escrow Stripe Connect antes de que aceptes la propuesta. Tú publicas, el sistema verifica, los fondos se liberan a tu balance."
+        variant="creator"
       />
 
       {/* ══════════════════════════════════════════════════════
@@ -1046,10 +1047,16 @@ export default function ForChannelsPage() {
                 background: 'var(--surface)', border: `1px solid ${openFaq === i ? greenAlpha(0.25) : 'var(--border)'}`,
                 borderRadius: '14px', overflow: 'hidden', transition: 'border-color .2s',
               }}>
-                <button onClick={() => setOpenFaq(openFaq === i ? null : i)} style={{
-                  width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '20px 24px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
-                }}>
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  aria-expanded={openFaq === i}
+                  aria-controls={`creator-faq-panel-${i}`}
+                  id={`creator-faq-trigger-${i}`}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '20px 24px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
+                  }}
+                >
                   <span style={{ fontSize: '15px', fontWeight: 500, color: openFaq === i ? GREEN : 'var(--text)', fontFamily: F }}>{faq.q}</span>
                   <motion.svg animate={{ rotate: openFaq === i ? 45 : 0 }} transition={{ duration: 0.3 }}
                     width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -1059,7 +1066,11 @@ export default function ForChannelsPage() {
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                    <motion.div
+                      id={`creator-faq-panel-${i}`}
+                      role="region"
+                      aria-labelledby={`creator-faq-trigger-${i}`}
+                      initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }} style={{ overflow: 'hidden' }}>
                       <div style={{ padding: '0 24px 20px' }}>
                         <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.7 }}>{faq.a}</p>
