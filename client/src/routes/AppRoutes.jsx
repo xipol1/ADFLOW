@@ -126,7 +126,7 @@ const ChannelStep = lazy(() => import('../ui/pages/onboarding/ChannelStep'))
 const SuccessStep = lazy(() => import('../ui/pages/onboarding/SuccessStep'))
 
 function RouteFallback() {
-  return <div style={{ minHeight: '100vh' }} />
+  return <div style={{ minHeight: '100vh', background: 'var(--bg)' }} />
 }
 
 function FullAccessOnly({ children, feature }) {

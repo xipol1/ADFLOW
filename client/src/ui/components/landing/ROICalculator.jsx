@@ -294,7 +294,7 @@ export default function ROICalculator({ background = 'var(--bg)', sectionId = 'c
               fontSize: 11, color: 'var(--muted)', margin: '14px 0 0',
               textAlign: 'center', lineHeight: 1.5,
             }}>
-              Estimaciones basadas en 2,847 canales activos · CPM medio paid ads: 12€ · Datos actualizados {new Date().toLocaleDateString('es-ES')}
+              Estimaciones basadas en +2.500 canales con métricas propias · CPM medio paid ads: 12€ · Datos actualizados {new Date().toLocaleDateString('es-ES')}
             </p>
           </div>
         </motion.div>

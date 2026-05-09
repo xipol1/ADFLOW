@@ -40,7 +40,7 @@ export default function HerramientasPage() {
     >
       <SEO
         title="Herramientas para anunciantes"
-        description="+30 herramientas en una plataforma: descubrir canales, analizar audiencia, optimizar ROI y ejecutar campañas en comunidades privadas. Todas incluidas en la comisión."
+        description="+30 herramientas para descubrir canales, analizar audiencia, optimizar ROI y ejecutar campañas en comunidades privadas. Plan gratis para creadores · Pro para anunciantes."
         path="/herramientas"
         type="website"
       />

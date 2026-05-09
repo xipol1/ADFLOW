@@ -91,7 +91,7 @@ export default function TrustSection() {
             fontWeight: 400,
           }}
         >
-          Channelad SL · CIF: BXXXXXXX · Registrada en Madrid, Espana
+          Operado por MICHI SOLUCIONS S.L. (en constitución) · Madrid, España
         </motion.p>
       </div>
     </section>

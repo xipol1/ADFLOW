@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useId } from 'react'
 
 /**
  * HeroBgPattern — atmospheric background for the hero composition.
@@ -29,6 +29,9 @@ const THEMES = {
 
 export default function HeroBgPattern({ theme = 'advertiser' } = {}) {
   const t = THEMES[theme] || THEMES.advertiser
+  const uid = useId().replace(/:/g, '')
+  const noiseId = `hero-noise-${theme}-${uid}`
+  const dotId = `hero-dot-${theme}-${uid}`
 
   return (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }} aria-hidden="true">
@@ -80,21 +83,21 @@ export default function HeroBgPattern({ theme = 'advertiser' } = {}) {
         }}
         xmlns="http://www.w3.org/2000/svg"
       >
-        <filter id={`hero-noise-${theme}`}>
+        <filter id={noiseId}>
           <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" />
           <feColorMatrix type="saturate" values="0" />
         </filter>
-        <rect width="100%" height="100%" filter={`url(#hero-noise-${theme})`} />
+        <rect width="100%" height="100%" filter={`url(#${noiseId})`} />
       </svg>
       {/* Sparse dot pattern — almost invisible, just enough texture */}
       <svg
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.03 }}
         xmlns="http://www.w3.org/2000/svg"
       >
-        <pattern id={`hero-dot-pattern-${theme}`} width="28" height="28" patternUnits="userSpaceOnUse">
+        <pattern id={dotId} width="28" height="28" patternUnits="userSpaceOnUse">
           <circle cx="2" cy="2" r="1" fill={t.dot} />
         </pattern>
-        <rect width="100%" height="100%" fill={`url(#hero-dot-pattern-${theme})`} />
+        <rect width="100%" height="100%" fill={`url(#${dotId})`} />
       </svg>
     </div>
   )

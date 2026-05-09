@@ -2,9 +2,9 @@ import React, { useState, useMemo, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { Wallet, TrendingUp, Calendar, Sparkles } from 'lucide-react'
 import { FONT_DISPLAY, FONT_BODY, MAX_W } from '../../theme/tokens'
+import { PUBLIC_COMMISSION_LABEL, PUBLIC_COMMISSION_MULTIPLIER } from '../../theme/stats'
 
 const GREEN = '#22c55e'
-const GREEN_DARK = '#16a34a'
 
 const PLATFORMS = [
   { id: 'telegram',   label: 'Telegram',   mult: 1.0  },
@@ -212,9 +212,9 @@ export default function EarningsCalculator({ sectionId = 'earnings-calc', backgr
     const reachPerPost = Math.round(members * 0.6)
     // El creador cobra el 100% del CPM listado.
     const creatorPerPost = (reachPerPost / 1000) * effectiveCpm
-    // Channelad añade un 20% sobre el precio del creador, lo cobra al
-    // anunciante en el escrow. (No descontamos nada al creador.)
-    const advertiserPaysPerPost = creatorPerPost * 1.20
+    // Channelad añade su comisión sobre el precio del creador y la cobra al
+    // anunciante en el escrow. No descontamos nada al creador.
+    const advertiserPaysPerPost = creatorPerPost * PUBLIC_COMMISSION_MULTIPLIER
     const monthly = creatorPerPost * posts
     const yearly = monthly * 12
 
@@ -269,7 +269,7 @@ export default function EarningsCalculator({ sectionId = 'earnings-calc', backgr
             fontFamily: FONT_BODY, fontSize: 16, color: 'var(--muted)',
             maxWidth: 600, margin: '0 auto', lineHeight: 1.6,
           }}>
-            Estimación con CPM medios reales de 2.847 canales activos en el marketplace.
+            Estimación con CPM medios reales de +2.500 canales con métricas propias.
             No es un guess, es benchmark.
           </p>
         </div>
@@ -356,6 +356,14 @@ export default function EarningsCalculator({ sectionId = 'earnings-calc', backgr
                 sub="vs paid ads: 12 €"
               />
             </div>
+
+            <p style={{
+              marginTop: 14, fontSize: 12, lineHeight: 1.5,
+              color: 'var(--muted)', fontFamily: FONT_BODY,
+            }}>
+              El anunciante paga <strong style={{ color: 'var(--text)' }}>{fmtEur(result.advertiserPaysPerPost)}</strong> por publicación
+              {' '}(tu pago + {PUBLIC_COMMISSION_LABEL} de comisión Channelad). Tú recibes el 100% del precio que listas.
+            </p>
 
             {/* Comparativa */}
             <div style={{ marginTop: 28 }}>

@@ -21,7 +21,7 @@ const CATEGORIES = [
     icon: Search,
     color: '#3b82f6',
     tools: [
-      { icon: Search, name: 'Marketplace', desc: 'Filtra 2,800+ canales por nicho, plataforma y precio', metric: '2,847 canales' },
+      { icon: Search, name: 'Marketplace', desc: 'Filtra +2.500 canales por nicho, plataforma y precio', metric: '+2.500 canales' },
       { icon: Globe, name: 'Niche Heatmap', desc: 'Mapa de calor interactivo con 23 nichos y sub-nichos', metric: '23 nichos' },
       { icon: Users, name: 'Lookalike Channels', desc: 'Encuentra canales similares a los que ya te funcionan', metric: '95% precision' },
       { icon: Eye, name: 'Channel Audit', desc: 'Audita métricas reales de cualquier canal antes de comprar', metric: 'Datos verificados' },

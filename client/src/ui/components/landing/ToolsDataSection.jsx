@@ -45,7 +45,7 @@ function useCountUp(target, duration = 2000) {
 
 // 4 hard proof points stamped at the top of the section.
 const STATS = [
-  { value: 2847, label: 'Canales verificados' },
+  { value: 2500, suffix: '+', label: 'Canales con métricas propias' },
   { value: 7, label: 'Plataformas integradas' },
   { value: 30, suffix: '+', label: 'Herramientas operativas' },
   { value: 6, label: 'Métricas propietarias' },
@@ -61,7 +61,7 @@ const CATEGORIES = [
     color: '#3b82f6',
     summary: 'Verás antes de pagar: CPM histórico, audiencia real (sin bots) y saturación de tu nicho.',
     items: [
-      { icon: Search,  tool: 'Marketplace',     data: 'CPM histórico de 2.847 canales · filtro por nicho/región/precio' },
+      { icon: Search,  tool: 'Marketplace',     data: 'CPM histórico de +2.500 canales con métricas propias · filtro por nicho/región/precio' },
       { icon: Globe,   tool: 'Niche Heatmap',   data: 'Saturación % en 23 nichos y 80+ sub-nichos · oportunidades por trimestre' },
       { icon: Users,   tool: 'Lookalike',       data: 'Score de similitud 0–100 con canales que ya te funcionan' },
       { icon: Eye,     tool: 'Channel Audit',   data: '6 métricas propias (CAS, CAF, CTF, CER, CVS, CAP) sin bots ni padding' },
@@ -111,7 +111,9 @@ const CATEGORIES = [
 function StatChip({ stat, index }) {
   const target = stat.value
   const [count, ref] = useCountUp(target)
-  const display = count >= 1000 ? `${(count / 1000).toFixed(1)}K`.replace('.0K', 'K') : count
+  const display = count >= 10000
+    ? `${(count / 1000).toFixed(1)}K`.replace('.0K', 'K')
+    : count.toLocaleString('es-ES')
 
   return (
     <motion.div

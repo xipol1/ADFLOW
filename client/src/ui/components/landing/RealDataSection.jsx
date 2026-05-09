@@ -39,7 +39,7 @@ function useCountUp(target, duration = 2200) {
 }
 
 const METRICS = [
-  { value: 2847, suffix: '', label: 'Canales verificados', icon: Users, color: '#8b5cf6' },
+  { value: 2500, suffix: '+', label: 'Canales con métricas propias', icon: Users, color: '#8b5cf6' },
   { value: 7, suffix: '', label: 'Plataformas soportadas', icon: Globe, color: '#3b82f6' },
   { value: 34, suffix: '%', label: 'CTR medio vs. paid media', icon: TrendingUp, color: '#10b981' },
   { value: 100, suffix: '%', label: 'Reembolso si no publica', icon: Shield, color: '#22c55e' },
@@ -84,7 +84,9 @@ const COMPLIANCE_BADGES = [
 function MetricCard({ metric, index }) {
   const [count, ref] = useCountUp(metric.value)
   const Icon = metric.icon
-  const display = count >= 1000 ? `${(count / 1000).toFixed(1)}K` : count
+  const display = count >= 10000
+    ? `${(count / 1000).toFixed(1)}K`
+    : count.toLocaleString('es-ES')
 
   return (
     <motion.div
@@ -295,7 +297,7 @@ export default function RealDataSection() {
             fontWeight: 400,
           }}
         >
-          Channelad SL · CIF: BXXXXXXX · Registrada en Madrid, España
+          Operado por MICHI SOLUCIONS S.L. (en constitución) · Madrid, España
         </motion.p>
       </div>
 

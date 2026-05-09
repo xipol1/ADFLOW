@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 
 /**
  * RotatingWord — animated word swap inside an inline highlight pill.
@@ -21,12 +21,13 @@ export default function RotatingWord({
   gradient = 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
 }) {
   const [index, setIndex] = useState(0)
+  const reducedMotion = useReducedMotion()
 
   useEffect(() => {
-    if (!words || words.length <= 1) return
+    if (!words || words.length <= 1 || reducedMotion) return
     const id = setInterval(() => setIndex((i) => (i + 1) % words.length), interval)
     return () => clearInterval(id)
-  }, [words, interval])
+  }, [words, interval, reducedMotion])
 
   if (!words || words.length === 0) return null
 

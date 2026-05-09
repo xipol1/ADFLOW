@@ -134,8 +134,8 @@ export default function ComparisonSection({
         >
           {/* Left card — "lo de siempre" */}
           <div style={{
-            background: '#fff',
-            border: '1px solid rgba(15,23,42,0.08)',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
             borderRadius: 20,
             padding: 'clamp(20px, 3vw, 32px)',
             opacity: 0.92,
@@ -181,7 +181,7 @@ export default function ComparisonSection({
           <motion.div
             whileHover={{ y: -4 }}
             style={{
-              background: '#fff',
+              background: 'var(--surface)',
               border: `2px solid ${cfg.accent}`,
               borderRadius: 20,
               padding: 'clamp(20px, 3vw, 32px)',
@@ -243,7 +243,7 @@ export default function ComparisonSection({
             position: 'absolute', left: '50%', top: '50%',
             transform: 'translate(-50%, -50%)',
             width: 56, height: 56, borderRadius: '50%',
-            background: '#fff', border: '1px solid rgba(15,23,42,0.08)',
+            background: 'var(--surface)', border: '1px solid var(--border)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: FONT_DISPLAY, fontSize: 14, fontWeight: 700,
             color: 'var(--muted)', letterSpacing: '-0.02em',
