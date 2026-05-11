@@ -86,7 +86,11 @@ describe('Massive seed endpoints', () => {
     }));
 
     jest.mock('../middleware/auth', () => ({
-      autenticar: (req, res, next) => { req.usuario = { _id: 'test' }; next(); },
+      autenticar: (req, res, next) => { req.usuario = { _id: 'test', rol: 'admin' }; next(); },
+      autorizarRoles: () => (req, res, next) => next(),
+      requiereEmailVerificado: (req, res, next) => next(),
+      requiereDatosFacturacion: (req, res, next) => next(),
+      verificarPropietario: () => (req, res, next) => next(),
     }));
 
     jest.mock('../services/tgstatScraperService', () => ({
