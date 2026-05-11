@@ -5,6 +5,9 @@ module.exports = {
   forceExit: true,
   detectOpenHandles: true,
   testMatch: ['**/tests/**/*.test.js'],
+  globalSetup: '<rootDir>/tests/jest.global-setup.js',
+  globalTeardown: '<rootDir>/tests/jest.global-teardown.js',
+  setupFiles: ['<rootDir>/tests/jest.setup-worker.js'],
   collectCoverageFrom: [
     'controllers/**/*.js',
     'routes/**/*.js',

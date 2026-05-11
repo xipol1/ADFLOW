@@ -354,10 +354,13 @@ describe('GET /api/jobs/tgstat-discover', () => {
 
     jest.mock('../middleware/auth', () => ({
       autenticar: (req, res, next) => {
-        req.usuario = { _id: '507f1f77bcf86cd799439011' };
+        req.usuario = { _id: '507f1f77bcf86cd799439011', rol: 'admin' };
         next();
       },
+      autorizarRoles: () => (req, res, next) => next(),
       requiereEmailVerificado: (req, res, next) => next(),
+      requiereDatosFacturacion: (req, res, next) => next(),
+      verificarPropietario: () => (req, res, next) => next(),
     }));
 
     request = require('supertest');
