@@ -17,6 +17,7 @@ import apiService from '../../../../services/api'
 import { FONT_BODY as F, FONT_DISPLAY as D } from '../../../theme/tokens'
 import { BenchmarkBar } from '../../../components/scoring'
 import { Sparkline, ErrorBanner, Ring } from '../shared/DashComponents'
+import NewsletterDomainVerification from '../../../components/NewsletterDomainVerification'
 
 // ─── CPM formula (replicated from config/nicheBenchmarks.js) ─────────────────
 const CPM_BASE = {
@@ -561,6 +562,17 @@ function PlatformConnectionSection({ channel, connectForm, setConnectForm }) {
         }}>
           {connectResult.msg}
         </div>
+      )}
+
+      {/* Newsletter domain verification — shown once API-key connect succeeds
+          but channel is still verificado:false. The component owns its own
+          state machine for the DNS / email flows. */}
+      {plat === 'newsletter' && channelId && (connectResult?.ok || isConnected) && (
+        <NewsletterDomainVerification
+          channelId={channelId}
+          alreadyVerified={!!channel?.verificado}
+          onVerified={() => setConnectResult({ ok: true, msg: 'Dominio verificado correctamente' })}
+        />
       )}
 
       {/* Platform data preview */}

@@ -1,10 +1,25 @@
 const mongoose = require('mongoose');
 const { encryptIfNeeded } = require('../lib/encryption');
+const { ALLOWED_PLATFORMS } = require('../lib/platformWhitelist');
 
 const CanalSchema = new mongoose.Schema(
   {
     propietario: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', index: true },
-    plataforma: { type: String, required: true, lowercase: true, trim: true, index: true },
+    // Enum is the last line of defense — controllers and the dispatcher
+    // already reject unsupported platforms upstream, but persistence-level
+    // validation guarantees no junk row (e.g. seed data, future scripts)
+    // can introduce a non-canonical platform string.
+    plataforma: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+      index: true,
+      enum: {
+        values: [...ALLOWED_PLATFORMS],
+        message: 'Plataforma "{VALUE}" no soportada.',
+      },
+    },
     identificadorCanal: { type: String, required: true, trim: true, index: true },
     nombreCanal: { type: String, default: '', trim: true },
     descripcion: { type: String, default: '', trim: true },
@@ -160,6 +175,23 @@ const CanalSchema = new mongoose.Schema(
         default: 'declarado',
       },
       confianzaScore: { type: Number, default: 30, min: 0, max: 100 },
+    },
+
+    // ── Newsletter domain verification ──────────────────────────────────────
+    // Newsletter channels can't prove ownership via OAuth (Mailchimp/Beehiiv
+    // API keys verify the *account*, not the specific list / domain). To
+    // promote `verificado:true` we require an out-of-band proof: either a
+    // DNS TXT record on the newsletter's domain, or clicking a signed link
+    // delivered to admin@/postmaster@ on that domain. See
+    // services/newsletter/domainVerificationService.js for the protocol.
+    newsletterVerification: {
+      domain: { type: String, default: '', lowercase: true, trim: true },
+      method: { type: String, enum: ['', 'dns', 'email'], default: '' },
+      challengeToken: { type: String, default: '' },
+      challengeStartedAt: { type: Date, default: null },
+      verifiedAt: { type: Date, default: null },
+      attempts: { type: Number, default: 0 },
+      lastError: { type: String, default: '' },
     },
 
     // ── Anti-fraud signals ──────────────────────────────────────────────────

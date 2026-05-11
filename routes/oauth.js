@@ -5,6 +5,8 @@ const { validarCampos } = require('../middleware/validarCampos');
 const oauthController = require('../controllers/oauthController');
 const platformConnect = require('../controllers/platformConnectController');
 const { refreshExpiringTokens } = require('../services/tokenRefreshService');
+const { runHealthCheckBatch } = require('../services/channelHealthService');
+const newsletterDomain = require('../controllers/newsletterDomainController');
 
 const router = express.Router();
 
@@ -70,6 +72,29 @@ router.get('/meta/cron-refresh', async (req, res) => {
     return res.json({ success: true, data: results });
   } catch (err) {
     console.error('OAuth refresh cron error:', err.message);
+    return res.status(500).json({ success: false, message: 'Error interno del servidor' });
+  }
+});
+
+// ── Cron endpoint for channel health check (admin-loss / token-revoked detection) ──
+// Complements /meta/cron-refresh: that service rotates tokens *before* they
+// expire, this one catches the cases token refresh can't (bot demoted, user
+// revoked grant via platform UI, WhatsApp System User token died). Should be
+// scheduled hourly or every few hours; the service paginates internally via
+// batchSize to stay under serverless time limits.
+router.get('/channels/cron-health', async (req, res) => {
+  const cronSecret = process.env.CRON_SECRET;
+  const authHeader = req.headers.authorization;
+  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+
+  try {
+    const batchSize = Number(req.query.batchSize) || undefined;
+    const results = await runHealthCheckBatch({ batchSize });
+    return res.json({ success: true, data: results });
+  } catch (err) {
+    console.error('Channel health cron error:', err.message);
     return res.status(500).json({ success: false, message: 'Error interno del servidor' });
   }
 });
@@ -176,6 +201,52 @@ router.post(
   [param('id').isMongoId().withMessage('ID invalido')],
   validarCampos,
   platformConnect.disconnectNewsletter
+);
+
+// ── Newsletter domain verification (Phase 4 — promotes verificado:true) ──
+//
+// Newsletter channels can't prove ownership via OAuth. The /connect flow
+// above leaves them at verificado:false. These four endpoints implement
+// either DNS TXT or email-confirmation proof; on success the canal is
+// promoted to verificado:true with tipoAcceso='admin_directo'.
+
+router.post(
+  '/newsletter/verify-domain/start/:id',
+  autenticar,
+  [
+    param('id').isMongoId().withMessage('ID invalido'),
+    body('domain').isString().notEmpty().withMessage('domain requerido'),
+    body('method').isIn(['dns', 'email']).withMessage('method debe ser dns o email'),
+  ],
+  validarCampos,
+  newsletterDomain.startChallenge
+);
+
+router.post(
+  '/newsletter/verify-domain/dns-check/:id',
+  autenticar,
+  [param('id').isMongoId().withMessage('ID invalido')],
+  validarCampos,
+  newsletterDomain.checkDns
+);
+
+router.post(
+  '/newsletter/verify-domain/email-send/:id',
+  autenticar,
+  [
+    param('id').isMongoId().withMessage('ID invalido'),
+    body('mailbox').optional().isString().isLength({ max: 32 }),
+  ],
+  validarCampos,
+  newsletterDomain.sendEmail
+);
+
+// Public — the JWT in :token is the authorization. No auth middleware.
+router.get(
+  '/newsletter/verify/email-confirm/:token',
+  [param('token').isString().isLength({ min: 16, max: 2048 })],
+  validarCampos,
+  newsletterDomain.confirmEmail
 );
 
 // ── LinkedIn OAuth flow ──
