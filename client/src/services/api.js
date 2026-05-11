@@ -444,6 +444,23 @@ class ApiService {
     return this.request(`/oauth/newsletter/disconnect/${id}`, { method: 'POST' });
   }
 
+  /** Newsletter — domain verification (Phase 4 — promotes verificado:true) */
+  async startNewsletterDomainChallenge(id, { domain, method }) {
+    return this.request(`/oauth/newsletter/verify-domain/start/${id}`, {
+      method: 'POST',
+      body: JSON.stringify({ domain, method }),
+    });
+  }
+  async checkNewsletterDomainDns(id) {
+    return this.request(`/oauth/newsletter/verify-domain/dns-check/${id}`, { method: 'POST' });
+  }
+  async sendNewsletterDomainEmail(id, mailbox) {
+    return this.request(`/oauth/newsletter/verify-domain/email-send/${id}`, {
+      method: 'POST',
+      body: JSON.stringify({ mailbox }),
+    });
+  }
+
   /** LinkedIn — OAuth flow */
   async getLinkedinAuthUrl() {
     return this.request('/oauth/linkedin/authorize');

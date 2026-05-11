@@ -1,9 +1,11 @@
 const Canal = require('../models/Canal');
 const { ensureDb } = require('../lib/ensureDb');
+const { assertAllowed } = require('../lib/platformWhitelist');
 
-const httpError = (status, message) => {
+const httpError = (status, message, code) => {
   const err = new Error(message);
   err.status = status;
+  if (code) err.code = code;
   return err;
 };
 
@@ -23,6 +25,16 @@ const crearCanal = async (req, res, next) => {
 
     if (!plataforma || !identificadorCanal) {
       return next(httpError(400, 'plataforma e identificadorCanal son requeridos'));
+    }
+
+    // Reject YouTube/TikTok/Twitch and any non-whitelisted platform before
+    // touching the DB. The Canal enum would reject these on save anyway, but
+    // a controller-side check produces a localizable error code instead of
+    // a raw Mongoose ValidationError.
+    try {
+      assertAllowed(plataforma);
+    } catch (whitelistErr) {
+      return next(httpError(400, whitelistErr.message, whitelistErr.code));
     }
 
     // If someone has already strongly verified this channel (oauth_graph or
