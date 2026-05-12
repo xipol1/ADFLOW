@@ -87,17 +87,17 @@ const ONLY_DIRS = args.includes('--only-dirs');
       'español': 'comunidad',
     };
 
-    function normalizeCategory(raw) {
+    const normalizeCategory = (raw) => {
       if (!raw) return '';
       const key = String(raw).toLowerCase().trim();
       return CATEGORY_MAP[key] || key;
-    }
+    };
 
     /**
      * Detect probable language from name + description heuristics.
      * Falls back to 'unknown'. Cheap pre-filter — admin review still authoritative.
      */
-    function detectLanguage(text) {
+    const detectLanguage = (text) => {
       if (!text) return 'unknown';
       const lower = text.toLowerCase();
       // Spanish markers
@@ -109,13 +109,13 @@ const ONLY_DIRS = args.includes('--only-dirs');
         return 'en';
       }
       return 'unknown';
-    }
+    };
 
     /**
      * Upsert discovered channels into ChannelCandidate.
      * Returns { saved, dupes, errors }.
      */
-    async function saveDiscoveries(channels, plataforma, source) {
+    const saveDiscoveries = async (channels, plataforma, source) => {
       let saved = 0;
       let dupes = 0;
       const errs = [];
@@ -175,9 +175,9 @@ const ONLY_DIRS = args.includes('--only-dirs');
       }
 
       return { saved, dupes, errors: errs };
-    }
+    };
 
-    function buildUsername(ch, plataforma) {
+    const buildUsername = (ch, plataforma) => {
       if (plataforma === 'discord') {
         return ch.serverId
           ? `dc:${ch.serverId}`
@@ -196,7 +196,7 @@ const ONLY_DIRS = args.includes('--only-dirs');
       }
       // Telegram
       return ch.username || null;
-    }
+    };
 
     // ═══════════════════════════════════════════════════════════════════
     //  PHASE A: HTTP Directory Scrapers
