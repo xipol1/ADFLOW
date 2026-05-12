@@ -100,5 +100,8 @@
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
+  },
+  "optionalDependencies": {
+    "gcp-metadata": "^7.0.1"
   }
 }
