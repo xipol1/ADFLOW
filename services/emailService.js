@@ -632,6 +632,62 @@ class EmailService {
     });
   }
 
+  /**
+   * Welcome a user into their freshly activated paid (or trialing) plan.
+   * Inline HTML — the marketing copy lives next to the feature list it
+   * references, so changes don't require touching a template file.
+   *
+   * Called from the subscription webhook on customer.subscription.created
+   * (trialing or active).
+   */
+  async enviarBienvenidaPlanPro(user, planLabel, trialEnd) {
+    const trialLine = trialEnd
+      ? `Tu prueba gratis termina el <strong>${this._formatDate(trialEnd)}</strong>. Hasta entonces tienes acceso completo sin cargo.`
+      : '';
+    const subject = trialEnd
+      ? `Tu prueba de ${planLabel} ha empezado`
+      : `Bienvenido a ${planLabel}`;
+    const url = `${config.frontend?.url || 'https://channelad.io'}/account/billing`;
+    const html = `<!doctype html><html><body style="font-family:Inter,system-ui,sans-serif;color:#111;line-height:1.55">
+      <div style="max-width:560px;margin:0 auto;padding:32px 24px">
+        <h1 style="font-size:24px;font-weight:800;margin:0 0 12px">${subject}</h1>
+        <p>Hola ${user.nombre || ''},</p>
+        <p>Ya tienes acceso a <strong>${planLabel}</strong>. Estas son las funciones que acabas de desbloquear:</p>
+        <ul style="margin:12px 0 20px;padding-left:18px">
+          <li>Comisión rebajada al 15% (solo Advertiser Pro)</li>
+          <li>Bulk Launcher / Autobuy ilimitado</li>
+          <li>Lookalike, niche heatmap, audience insights</li>
+          <li>Atribución multi-touch con ventana 90d</li>
+          <li>Soporte prioritario</li>
+        </ul>
+        ${trialLine ? `<p style="padding:12px;border-radius:8px;background:#f5f3ff;border:1px solid #ddd6fe;color:#5b21b6">${trialLine}</p>` : ''}
+        <p><a href="${url}" style="display:inline-block;padding:10px 18px;border-radius:8px;background:#7C3AED;color:#fff;text-decoration:none;font-weight:600">Ver mi plan</a></p>
+        <p style="color:#6b7280;font-size:13px;margin-top:32px">¿Dudas? Responde a este correo y te ayudamos.</p>
+      </div>
+    </body></html>`;
+    return this.enviarEmail({ para: user.email, asunto: subject, html });
+  }
+
+  /**
+   * Heads-up email: trial ends in N days. Triggered by Stripe's
+   * customer.subscription.trial_will_end (fires 3 days before trial_end).
+   */
+  async enviarTrialAcabaEn(user, planLabel, trialEnd) {
+    const subject = `Tu prueba de ${planLabel} acaba pronto`;
+    const url = `${config.frontend?.url || 'https://channelad.io'}/account/billing`;
+    const html = `<!doctype html><html><body style="font-family:Inter,system-ui,sans-serif;color:#111;line-height:1.55">
+      <div style="max-width:560px;margin:0 auto;padding:32px 24px">
+        <h1 style="font-size:22px;font-weight:800;margin:0 0 12px">${subject}</h1>
+        <p>Hola ${user.nombre || ''},</p>
+        <p>Tu prueba gratuita de <strong>${planLabel}</strong> termina el <strong>${this._formatDate(trialEnd)}</strong>.</p>
+        <p>Para seguir disfrutando de ${planLabel} sin interrupciones, añade un método de pago desde tu panel:</p>
+        <p><a href="${url}" style="display:inline-block;padding:10px 18px;border-radius:8px;background:#7C3AED;color:#fff;text-decoration:none;font-weight:600">Añadir método de pago</a></p>
+        <p style="color:#6b7280;font-size:13px;margin-top:24px">Si no quieres continuar, no tienes que hacer nada — pasarás automáticamente al plan Free.</p>
+      </div>
+    </body></html>`;
+    return this.enviarEmail({ para: user.email, asunto: subject, html });
+  }
+
   _formatPrice(amount) {
     if (amount == null) return '0.00';
     return Number(amount).toLocaleString('en-US', {

@@ -6,6 +6,7 @@ import AppRoutes from './routes/AppRoutes'
 import { AuthProvider } from './auth/AuthContext'
 import { NotificationsProvider } from './hooks/useNotifications'
 import { ToastProvider } from './components/ui/Toast'
+import PlanGateProvider from './ui/components/PlanGateProvider'
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
 
@@ -30,6 +31,7 @@ export default function App() {
           <NotificationsProvider>
             <ToastProvider>
               <AppRoutes />
+              <PlanGateProvider />
             </ToastProvider>
           </NotificationsProvider>
         </AuthProvider>

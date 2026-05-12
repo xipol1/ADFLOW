@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, param } = require('express-validator');
 const { autenticar, requiereEmailVerificado, requiereDatosFacturacion } = require('../middleware/auth');
+const { requiereSubscription } = require('../middleware/requiereSubscription');
 const { validarCampos } = require('../middleware/validarCampos');
 const campaignController = require('../controllers/campaignController');
 
@@ -18,12 +19,13 @@ router.get(
   campaignController.getCampaignById
 );
 
-// Auto-buy: batch-create campaigns across channels
+// Auto-buy: batch-create campaigns across channels (Advertiser Pro: bulkLauncher)
 router.post(
   '/launch-auto',
   autenticar,
   requiereEmailVerificado,
   requiereDatosFacturacion,
+  requiereSubscription({ feature: 'bulkLauncher' }),
   [
     body('budget').isFloat({ min: 50 }).withMessage('Presupuesto mínimo: €50'),
     body('content').isString().notEmpty().trim().isLength({ max: 5000 }).withMessage('Contenido requerido (max 5000 caracteres)'),

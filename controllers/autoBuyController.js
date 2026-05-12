@@ -3,6 +3,7 @@ const UserList = require('../models/UserList');
 const Campaign = require('../models/Campaign');
 const Transaccion = require('../models/Transaccion');
 const Canal = require('../models/Canal');
+const Usuario = require('../models/Usuario');
 const { ensureDb } = require('../lib/ensureDb');
 
 const httpError = (status, message) => {
@@ -144,8 +145,9 @@ const triggerRule = async (req, res, next) => {
       return next(httpError(400, 'No hay canales configurados en esta regla'));
     }
 
-    const { resolveCommissionRate } = require('../config/commissions');
-    const commissionRate = resolveCommissionRate({ campaignType: 'autoCampaign' });
+    const { effectiveCommissionRate } = require('../lib/plans');
+    const advertiser = await Usuario.findById(userId).select('rol subscription').lean();
+    const commissionRate = effectiveCommissionRate(advertiser, { campaignType: 'autoCampaign' });
 
     let remainingBudget = rule.totalBudget - rule.totalSpent;
     let dailySpent = 0;

@@ -1,10 +1,38 @@
 const Conversion = require('../models/Conversion');
 const Campaign = require('../models/Campaign');
 const TrackingLink = require('../models/TrackingLink');
+const Usuario = require('../models/Usuario');
 const database = require('../config/database');
 const roiService = require('../services/roiService');
+const { getLimit } = require('../lib/plans');
 
 const VALID_TYPES = ['purchase', 'signup', 'lead', 'subscription', 'install', 'custom'];
+
+/**
+ * Soft-stop check for the advertiser's per-month conversion cap. Free
+ * advertisers are capped at 1000/month (see config/plans.js). Returns:
+ *   - { allowed: true } when under the limit (or Pro = Infinity)
+ *   - { allowed: false, count, limit } when at/over the limit
+ *
+ * Implemented as a count(this calendar month) query — cheap because the
+ * Conversion collection is indexed on advertiser. Pro users short-circuit
+ * before hitting the DB.
+ */
+async function checkConversionLimit(advertiserId) {
+  const user = await Usuario.findById(advertiserId).select('rol subscription').lean();
+  if (!user) return { allowed: true };
+  const limit = getLimit(user, 'conversionsPerMonth');
+  if (limit === Infinity) return { allowed: true };
+
+  const start = new Date();
+  start.setDate(1);
+  start.setHours(0, 0, 0, 0);
+  const count = await Conversion.countDocuments({
+    advertiser: advertiserId,
+    createdAt: { $gte: start },
+  });
+  return { allowed: count < limit, count, limit };
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -80,6 +108,18 @@ const recordConversion = async (req, res) => {
       }
     }
 
+    // Plan soft-limit: free advertisers cap at 1000 conversions/month.
+    // We return 200 (not 4xx) so the advertiser's pixel/callback keeps working
+    // and surface the cap via X-Limit-Exceeded header + body flag for analytics.
+    const cap = await checkConversionLimit(advertiserId);
+    if (!cap.allowed) {
+      res.setHeader('X-Limit-Exceeded', 'conversionsPerMonth');
+      return res.status(200).json({
+        success: true,
+        data: { dropped: true, reason: 'plan_limit', limit: cap.limit, count: cap.count },
+      });
+    }
+
     const doc = await Conversion.create({
       clickId: clickId || null,
       uid: resolved.uid || req.cookies?._chad_uid || null,
@@ -139,6 +179,13 @@ const recordConversionPixel = async (req, res) => {
         if (existing) canCreate = false;
       }
       if (canCreate) {
+        // Honour per-plan conversion cap silently — pixel always returns a gif.
+        const cap = await checkConversionLimit(resolved.advertiserId);
+        if (!cap.allowed) {
+          res.setHeader('X-Limit-Exceeded', 'conversionsPerMonth');
+          res.setHeader('Content-Type', 'image/gif');
+          return res.end(PIXEL_GIF);
+        }
         await Conversion.create({
           clickId: String(clickId),
           uid: resolved.uid || req.cookies?._chad_uid || null,

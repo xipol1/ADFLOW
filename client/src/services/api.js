@@ -102,6 +102,14 @@ class ApiService {
 
       // Pass status through so AuthContext can handle auth rejection gracefully
 
+      // 402 PLAN_REQUIRED — broadcast so PlanGateProvider can show the upsell
+      // modal anywhere in the app without each caller having to wire it.
+      if (response.status === 402 && parsed?.code === 'PLAN_REQUIRED' && typeof window !== 'undefined') {
+        try {
+          window.dispatchEvent(new CustomEvent('channelad:plan-required', { detail: parsed }));
+        } catch { /* CustomEvent not supported (unlikely) */ }
+      }
+
       if (parsed && typeof parsed === 'object') return { ...parsed, status: response.status };
       return { success: false, message: hasBody ? text : 'Error del servidor', status: response.status };
     } catch (error) {
@@ -1492,6 +1500,39 @@ class ApiService {
   async resolveCampaignSuggestion(campaignId, messageId, action, note = '') {
     return this.request(`/campaigns/${encodeURIComponent(campaignId)}/suggestions/${encodeURIComponent(messageId)}/resolve`, {
       method: 'POST', body: JSON.stringify({ action, note }),
+    });
+  }
+
+  // ==========================================
+  // SUBSCRIPTIONS / BILLING
+  // ==========================================
+
+  async getMySubscription() {
+    return this.request('/subscriptions/me');
+  }
+
+  async createSubscriptionCheckout(plan, interval) {
+    return this.request('/subscriptions/checkout', {
+      method: 'POST',
+      body: JSON.stringify({ plan, interval }),
+    });
+  }
+
+  async openBillingPortal() {
+    return this.request('/subscriptions/portal', { method: 'POST' });
+  }
+
+  async cancelSubscription(reason = '') {
+    return this.request('/subscriptions/cancel', {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async contactSales(payload) {
+    return this.request('/subscriptions/contact-sales', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     });
   }
 }

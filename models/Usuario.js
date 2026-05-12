@@ -159,6 +159,42 @@ const UsuarioSchema = new mongoose.Schema(
     },
     // Lookback window in days for multi-touch fan-out (default 30).
     attributionLookbackDays: { type: Number, default: 30, min: 1, max: 90 },
+
+    // Subscription state. Source of truth for the user's current tier.
+    // Read via lib/plans.js (getUserPlan / hasFeature / effectiveCommissionRate),
+    // never inspect these fields directly from business code.
+    //
+    // status semantics:
+    //   active     — paying, in a normal billing period
+    //   trialing   — inside the 14-day no-card trial window
+    //   granted    — admin-granted (Enterprise, comp, grandfathering); treated
+    //                as active for gating but billed=null
+    //   past_due   — payment failed, grace period (gates still open)
+    //   canceled   — user cancelled; plan stays active until currentPeriodEnd
+    //   expired    — fully downgraded; getUserPlan() returns the role's free tier
+    //
+    // grantedBy tracks the admin userId for audit when status === 'granted'.
+    subscription: {
+      plan: { type: String, default: null, index: true }, // key into config/plans.js PLANS
+      status: {
+        type: String,
+        enum: ['active', 'trialing', 'granted', 'past_due', 'canceled', 'expired', null],
+        default: null,
+        index: true,
+      },
+      billingInterval: { type: String, enum: ['monthly', 'annual', null], default: null },
+      currentPeriodStart: { type: Date, default: null },
+      currentPeriodEnd: { type: Date, default: null },
+      trialEnd: { type: Date, default: null },
+      cancelAtPeriodEnd: { type: Boolean, default: false },
+      stripeCustomerId: { type: String, default: null, index: true, sparse: true },
+      stripeSubscriptionId: { type: String, default: null, index: true, sparse: true },
+      grantedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', default: null },
+      grantedReason: { type: String, default: '' },
+      // Set when the user is grandfathered into Pro after launch. Used by
+      // the lifecycle scheduler to warn 30 days before downgrade.
+      grandfatheredUntil: { type: Date, default: null },
+    },
   },
   { timestamps: true }
 );
