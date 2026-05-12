@@ -7,6 +7,7 @@ import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { OK, WARN, BLUE } from '../../../theme/tokens'
 import CustomizableDashboard from './customizable/CustomizableDashboard'
+import OnboardingChecklist from '../../../components/OnboardingChecklist'
 
 const PURPLE = 'var(--accent, #8B5CF6)'
 
@@ -18,6 +19,7 @@ export default function OverviewPage() {
   const [monthlySpend, setMonthlySpend] = useState([])
   const [unreadMessages, setUnreadMessages] = useState(0)
   const [realRoi, setRealRoi] = useState(null)
+  const [transactions, setTransactions] = useState([])
 
   useEffect(() => {
     let mounted = true
@@ -38,6 +40,7 @@ export default function OverviewPage() {
         }
         if (txRes?.success) {
           const txItems = Array.isArray(txRes.data) ? txRes.data : Array.isArray(txRes.data?.items) ? txRes.data.items : []
+          setTransactions(txItems)
           const labels = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
           const buckets = {}
           txItems.forEach(tx => {
@@ -132,5 +135,15 @@ export default function OverviewPage() {
     }
   }, [user, campaigns, monthlySpend, unreadMessages, loading, realRoi, navigate])
 
-  return <CustomizableDashboard data={dashboardData} />
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <OnboardingChecklist
+        role="advertiser"
+        campaigns={campaigns}
+        transactions={transactions}
+        variant="banner"
+      />
+      <CustomizableDashboard data={dashboardData} />
+    </div>
+  )
 }
