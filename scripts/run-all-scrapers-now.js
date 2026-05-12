@@ -112,6 +112,30 @@ const ONLY_DIRS = args.includes('--only-dirs');
     };
 
     /**
+     * Build a username key for ChannelCandidate, namespaced per platform.
+     */
+    const buildUsername = (ch, plataforma) => {
+      if (plataforma === 'discord') {
+        return ch.serverId
+          ? `dc:${ch.serverId}`
+          : ch.name
+            ? `dc:${ch.name.toLowerCase().replace(/[^a-z0-9-]/g, '-').slice(0, 60)}`
+            : null;
+      }
+      if (plataforma === 'whatsapp') {
+        return ch.channelCode
+          ? `wa:${ch.channelCode}`
+          : ch.slug
+            ? `wa:${ch.slug}`
+            : ch.name
+              ? `wa:${ch.name.toLowerCase().replace(/[^a-z0-9áéíóúñ-]/g, '-').slice(0, 60)}`
+              : null;
+      }
+      // Telegram
+      return ch.username || null;
+    };
+
+    /**
      * Upsert discovered channels into ChannelCandidate.
      * Returns { saved, dupes, errors }.
      */
@@ -175,27 +199,6 @@ const ONLY_DIRS = args.includes('--only-dirs');
       }
 
       return { saved, dupes, errors: errs };
-    };
-
-    const buildUsername = (ch, plataforma) => {
-      if (plataforma === 'discord') {
-        return ch.serverId
-          ? `dc:${ch.serverId}`
-          : ch.name
-            ? `dc:${ch.name.toLowerCase().replace(/[^a-z0-9-]/g, '-').slice(0, 60)}`
-            : null;
-      }
-      if (plataforma === 'whatsapp') {
-        return ch.channelCode
-          ? `wa:${ch.channelCode}`
-          : ch.slug
-            ? `wa:${ch.slug}`
-            : ch.name
-              ? `wa:${ch.name.toLowerCase().replace(/[^a-z0-9áéíóúñ-]/g, '-').slice(0, 60)}`
-              : null;
-      }
-      // Telegram
-      return ch.username || null;
     };
 
     // ═══════════════════════════════════════════════════════════════════
