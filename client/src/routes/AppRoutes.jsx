@@ -27,6 +27,8 @@ const ChannelDetailPage = lazy(() => import('../ui/pages/marketplace/ChannelDeta
 const ForChannelsPage = lazy(() => import('../ui/pages/landing/ForChannelsPage'))
 const ForBrandsPage = lazy(() => import('../ui/pages/landing/ForBrandsPage'))
 const HerramientasPage = lazy(() => import('../ui/pages/landing/HerramientasPage'))
+const PricingPage = lazy(() => import('../ui/pages/pricing/PricingPage'))
+const BillingPage = lazy(() => import('../ui/pages/account/BillingPage'))
 const BlogIndex = lazy(() => import('../ui/pages/blog/BlogIndex'))
 const BlogPost = lazy(() => import('../ui/pages/blog/BlogPost'))
 
@@ -180,6 +182,16 @@ export default function AppRoutes() {
           <Route path="para-canales" element={<ForChannelsPage />} />
           <Route path="para-anunciantes" element={<ForBrandsPage />} />
           <Route path="herramientas" element={<HerramientasPage />} />
+          <Route path="pricing" element={<PricingPage />} />
+          <Route path="precios" element={<PricingPage />} />
+          <Route
+            path="account/billing"
+            element={
+              <ProtectedRoute>
+                <BillingPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="blog" element={<BlogIndex />} />
           <Route path="blog/:slug" element={<BlogPost />} />
 

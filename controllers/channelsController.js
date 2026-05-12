@@ -46,6 +46,17 @@ const listChannels = async (req, res) => {
     if (plataforma) filter.plataforma = plataforma;
     if (categoria) filter.categoria = categoria;
     if (verificado !== null) filter.estado = verificado ? 'verificado' : 'activo';
+
+    // Soft gate: hide channels whose owner exceeds the plan's maxChannels cap.
+    // Channels stay in the DB; they just don't surface here.
+    try {
+      const { getHiddenChannelIds } = require('../lib/marketplaceVisibility');
+      const hidden = await getHiddenChannelIds();
+      if (hidden.length > 0) filter._id = { $nin: hidden };
+    } catch (e) {
+      // Visibility helper is non-critical — log and continue.
+      try { require('../lib/logger').warn('marketplaceVisibility.fail', { msg: e?.message }); } catch {}
+    }
     if (busqueda) {
       filter.$or = [
         { nombreCanal: { $regex: busqueda, $options: 'i' } },

@@ -104,11 +104,20 @@ async function computeAdvertiserROI(advertiserId, options = {}) {
     Campaign.find({ advertiser: advertiserId, status: { $nin: ['DRAFT', 'CANCELLED'] } })
       .select('price status')
       .lean(),
-    Usuario.findById(advertiserId).select('attributionModel attributionLookbackDays').lean(),
+    Usuario.findById(advertiserId).select('rol attributionModel attributionLookbackDays subscription').lean(),
   ]);
 
-  const model = user?.attributionModel || 'last_touch';
-  const lookbackDays = user?.attributionLookbackDays || 30;
+  // Plan-driven clamps: Free advertisers are pinned to last_touch and the
+  // lookback window is capped at their plan's lookbackDays (default 7).
+  // Pro / Enterprise unlock both. The user-set attributionModel value is
+  // preserved in the document so an upgrade restores their preference.
+  const { hasFeature, getLimit } = require('../lib/plans');
+  const allowMultiTouch = hasFeature(user, 'multiTouchAttribution');
+  const planLookback = getLimit(user, 'lookbackDays');
+  const userLookback = user?.attributionLookbackDays || 30;
+
+  const model = allowMultiTouch ? (user?.attributionModel || 'last_touch') : 'last_touch';
+  const lookbackDays = planLookback === Infinity ? userLookback : Math.min(userLookback, planLookback || 7);
 
   // For non-last-touch models, fan revenue across all clicks of the same uid.
   let totalRevenue = 0;

@@ -49,6 +49,8 @@ try { _routes['./routes/dashboard']           = require('./routes/dashboard');  
 try { _routes['./routes/inbox']               = require('./routes/inbox');               } catch (e) { _routes['./routes/inbox']               = e; }
 try { _routes['./routes/conversions']         = require('./routes/conversions');         } catch (e) { _routes['./routes/conversions']         = e; }
 try { _routes['./routes/trackPixel']          = require('./routes/trackPixel');          } catch (e) { _routes['./routes/trackPixel']          = e; }
+try { _routes['./routes/adminSubscriptions']  = require('./routes/adminSubscriptions');  } catch (e) { _routes['./routes/adminSubscriptions']  = e; }
+try { _routes['./routes/subscriptions']       = require('./routes/subscriptions');       } catch (e) { _routes['./routes/subscriptions']       = e; }
 
 // Pre-load for Vercel nft tracer (require only, don't execute swagger-jsdoc at top level)
 let _swaggerPathsJson;
@@ -108,6 +110,15 @@ logger.info('ChannelAd API starting', { env: ENV });
   const webhookRoute = _routes['./routes/partnerWebhook'];
   if (webhookRoute && !(webhookRoute instanceof Error)) {
     app.use('/api/partners/webhooks/stripe', webhookRoute);
+  }
+  // Subscription billing webhook — same requirement, dedicated signing secret.
+  const subsRoute = _routes['./routes/subscriptions'];
+  if (subsRoute && !(subsRoute instanceof Error) && subsRoute.webhookHandler) {
+    app.post(
+      '/api/subscriptions/webhook',
+      express.raw({ type: 'application/json' }),
+      subsRoute.webhookHandler
+    );
   }
 }
 
@@ -509,6 +520,8 @@ const enabledRoutes = [
   ['/api/channel-candidates', './routes/channelCandidates'],
   ['/api/baileys', './routes/baileys'],
   ['/api/admin/payouts', './routes/adminPayouts'],
+  ['/api/admin/subscriptions', './routes/adminSubscriptions'],
+  ['/api/subscriptions',       './routes/subscriptions'],
   ['/api/dashboard', './routes/dashboard'],
   ['/api/inbox',     './routes/inbox'],
   ['/api/conversions', './routes/conversions'],

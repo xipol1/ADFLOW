@@ -78,7 +78,27 @@ module.exports = {
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY || '',
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
-    currency: process.env.STRIPE_CURRENCY || 'usd'
+    // Separate signing secret for the /api/subscriptions/webhook endpoint so
+    // subscription events can be routed through their own Stripe webhook
+    // endpoint (clean separation from campaign payments).
+    subscriptionWebhookSecret: process.env.STRIPE_SUBSCRIPTION_WEBHOOK_SECRET || '',
+    currency: process.env.STRIPE_CURRENCY || 'usd',
+    // Subscription Price IDs — provisioned by scripts/setup-stripe-subscription-products.js.
+    // Map plan key + interval → Stripe price_… id.
+    subscriptionPrices: {
+      creator_pro: {
+        monthly: process.env.STRIPE_PRICE_CREATOR_PRO_MONTHLY || '',
+        annual:  process.env.STRIPE_PRICE_CREATOR_PRO_ANNUAL  || '',
+      },
+      advertiser_pro: {
+        monthly: process.env.STRIPE_PRICE_ADVERTISER_PRO_MONTHLY || '',
+        annual:  process.env.STRIPE_PRICE_ADVERTISER_PRO_ANNUAL  || '',
+      },
+    },
+    // Where to redirect after Checkout / Portal sessions complete.
+    checkoutSuccessUrl: process.env.STRIPE_CHECKOUT_SUCCESS_URL || '',
+    checkoutCancelUrl:  process.env.STRIPE_CHECKOUT_CANCEL_URL  || '',
+    portalReturnUrl:    process.env.STRIPE_PORTAL_RETURN_URL    || '',
   },
   email: {
     // .trim() guards against trailing \n in Vercel env vars (copy-paste artefact)

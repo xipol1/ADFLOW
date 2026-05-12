@@ -1035,8 +1035,13 @@ const launchAutoCampaign = async (req, res, next) => {
     try { new URL(targetUrl.trim()); } catch { return next(httpError(400, 'URL de destino inválida')); }
     if (!budget || budget < 50) return next(httpError(400, 'Presupuesto mínimo: €50'));
 
-    const { resolveCommissionRate } = require('../config/commissions');
-    const commissionRate = resolveCommissionRate({ campaignType: 'autoCampaign' });
+    // Effective rate respects the advertiser's subscription plan (Pro → 0.15
+    // override) and falls back to the global resolver for everyone else.
+    // Snapshotted onto Campaign.commissionRate via the pre-save hook so a
+    // later plan change can't retroactively alter historical billing.
+    const { effectiveCommissionRate } = require('../lib/plans');
+    const advertiser = await Usuario.findById(userId).select('rol subscription').lean();
+    const commissionRate = effectiveCommissionRate(advertiser, { campaignType: 'autoCampaign' });
 
     // Resolve target channels based on mode
     let targetChannels = [];
