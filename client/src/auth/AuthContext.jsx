@@ -102,11 +102,11 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const loginWithGoogle = async (credential) => {
+  const loginWithGoogle = async (credential, extra = {}) => {
     setError('')
     setLoading(true)
     try {
-      const res = await apiService.googleLogin(credential)
+      const res = await apiService.googleLogin(credential, extra)
       if (res && res.success && res.token && res.user) {
         localStorage.setItem('token', res.token)
         localStorage.setItem('refreshToken', res.refreshToken || '')
