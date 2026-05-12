@@ -776,6 +776,7 @@ const googleLogin = async (req, res) => {
 
     // Find existing user by googleId or email
     let user = await Usuario.findOne({ $or: [{ googleId }, { email }] });
+    let createdNow = false;
 
     if (user) {
       // Account lockout check
@@ -786,26 +787,82 @@ const googleLogin = async (req, res) => {
           message: `Cuenta bloqueada temporalmente. Intenta de nuevo en ${minutesLeft} minuto(s).`,
         });
       }
-      // Link Google account if not already linked
+      // Link Google account if not already linked.
+      // Only auto-link when the existing local account has a verified email,
+      // otherwise an attacker could create a Google account with a victim's
+      // unverified email and hijack the local registration.
       if (!user.googleId) {
+        if (!user.emailVerificado) {
+          logDev('GOOGLE LOGIN: refused to link to unverified local account', { email });
+          return res.status(409).json({
+            success: false,
+            message: 'Ya existe una cuenta con ese email pendiente de verificación. Verifícala primero para vincular Google.',
+          });
+        }
         user.googleId = googleId;
-        if (!user.emailVerificado && email_verified) user.emailVerificado = true;
         await user.save();
         logDev('GOOGLE LOGIN: linked Google account to existing user', { email });
       }
     } else {
-      // Create new user
+      // ── New user via Google ──
+      const requestedRole = ['creator', 'advertiser'].includes(req.body?.role) ? req.body.role : 'advertiser';
+      let tipoPerfil = null;
+      if (requestedRole === 'creator') {
+        const requested = String(req.body?.tipoPerfil || '').toLowerCase();
+        tipoPerfil = ['individual', 'agencia'].includes(requested) ? requested : 'individual';
+      }
+
+      // Referral code — applied atomically at creation (mirrors registro)
+      const referralCode = String(req.body?.referralCode || req.body?.ref || '').trim().toUpperCase();
+      let referrer = null;
+      let referralApplied = false;
+      let welcomeCredits = 0;
+      if (referralCode) {
+        referrer = await Usuario.findOne({ referralCode });
+        if (referrer) {
+          referralApplied = true;
+          welcomeCredits = 10;
+          logDev('GOOGLE LOGIN: referral code valid', { referralCode, referrerId: referrer._id.toString() });
+        }
+      }
+
+      const randomPassword = require('crypto').randomBytes(32).toString('hex');
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
       user = await Usuario.create({
         email,
-        password: require('crypto').randomBytes(32).toString('hex'), // random password, user can set later
+        password: hashedPassword,
         nombre: given_name || '',
         apellido: family_name || '',
-        rol: 'advertiser',
+        rol: requestedRole,
+        tipoPerfil,
         googleId,
-        emailVerificado: email_verified !== false,
+        emailVerificado: email_verified === true,
         activo: true,
+        ...(referralApplied ? { referredBy: referrer._id, campaignCreditsBalance: welcomeCredits } : {}),
       });
-      logDev('GOOGLE LOGIN: new user created', { email, googleId });
+      createdNow = true;
+      logDev('GOOGLE LOGIN: new user created', { email, googleId, rol: requestedRole, referral: referralApplied });
+
+      // Update referrer counts (synchronous for serverless).
+      if (referralApplied && referrer) {
+        try {
+          const { getReferralTier } = require('../config/commissions');
+          const updated = await Usuario.findByIdAndUpdate(referrer._id, {
+            $inc: { referralCount: 1 },
+          }, { new: true });
+          const newTier = getReferralTier(updated);
+          if (updated.referralTier !== newTier) {
+            await Usuario.findByIdAndUpdate(referrer._id, { referralTier: newTier });
+          }
+          try {
+            const emailService = require('../services/emailService');
+            await emailService.enviarReferidoRegistrado(updated, user.nombre || user.email, updated.referralCount || 0, updated.referralCreditsBalance);
+          } catch {}
+        } catch (refErr) {
+          logErr('auth.google_login.referrer_update_failed', refErr, { referrerId: referrer?._id?.toString() });
+        }
+      }
 
       // Send welcome email (non-blocking failure)
       try {
@@ -816,6 +873,22 @@ const googleLogin = async (req, res) => {
 
     if (!user.activo) {
       return res.status(403).json({ success: false, message: 'Cuenta desactivada' });
+    }
+
+    // Reset failed login attempts on successful Google auth
+    if (!createdNow && (user.failedLoginAttempts > 0 || user.lockedUntil)) {
+      await Usuario.findByIdAndUpdate(user._id, { failedLoginAttempts: 0, lockedUntil: null });
+    }
+
+    // 2FA — Google auth must respect the same second factor as password login
+    if (user.twoFactorEnabled) {
+      logDev('GOOGLE LOGIN: 2FA required', { userId: user._id.toString() });
+      return res.json({
+        success: true,
+        requires2FA: true,
+        email: user.email,
+        message: 'Introduce el codigo de tu app de autenticacion',
+      });
     }
 
     const tokens = await AuthService.generarTokens(user);
