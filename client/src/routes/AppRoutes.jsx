@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from '../ui/routing/ProtectedRoute'
 import AppLayout from '../ui/layouts/AppLayout'
+import ProGate from '../ui/components/ProGate'
 import { useAuth } from '../auth/AuthContext'
 import { getFeatureFlag } from '../flags/featureFlags'
 
@@ -224,7 +225,7 @@ export default function AppRoutes() {
         >
           <Route index        element={<OverviewPage />} />
           <Route path="explore"  element={<FullAccessOnly feature="Marketplace"><ExplorePage /></FullAccessOnly>} />
-          <Route path="autobuy"  element={<FullAccessOnly feature="Auto-compra"><AutoBuyPage /></FullAccessOnly>} />
+          <Route path="autobuy"  element={<ProGate feature="bulkLauncher" label="Autobuy / Bulk Launcher"><FullAccessOnly feature="Auto-compra"><AutoBuyPage /></FullAccessOnly></ProGate>} />
           <Route path="campaigns" element={<FullAccessOnly feature="Campanas"><CampaignsPage /></FullAccessOnly>} />
           <Route path="campaigns/new" element={<FullAccessOnly feature="Campanas"><NewCampaignPage /></FullAccessOnly>} />
           <Route path="campaigns/:id/analytics" element={<FullAccessOnly feature="Campanas"><CampaignAnalyticsPage /></FullAccessOnly>} />
@@ -234,22 +235,22 @@ export default function AppRoutes() {
           <Route path="tracking-setup" element={<TrackingSetupPage />} />
           <Route path="analytics" element={<Navigate to="/advertiser/finances" replace />} />
           <Route path="analyze/channel"   element={<FullAccessOnly feature="Análisis de canal"><AnalyzeChannelPage /></FullAccessOnly>} />
-          <Route path="analyze/compare"   element={<FullAccessOnly feature="Comparar canales"><CompareChannelsPage /></FullAccessOnly>} />
-          <Route path="analyze/lookalike" element={<FullAccessOnly feature="Canales similares"><LookalikeChannelsPage /></FullAccessOnly>} />
-          <Route path="analyze/audit"     element={<FullAccessOnly feature="Auditoría bulk"><AuditChannelsPage /></FullAccessOnly>} />
-          <Route path="analyze/niches"    element={<FullAccessOnly feature="Heatmap de nichos"><NicheHeatmapPage /></FullAccessOnly>} />
+          <Route path="analyze/compare"   element={<ProGate feature="lookalike" label="Comparar canales"><FullAccessOnly feature="Comparar canales"><CompareChannelsPage /></FullAccessOnly></ProGate>} />
+          <Route path="analyze/lookalike" element={<ProGate feature="lookalike" label="Canales similares"><FullAccessOnly feature="Canales similares"><LookalikeChannelsPage /></FullAccessOnly></ProGate>} />
+          <Route path="analyze/audit"     element={<ProGate feature="bulkLauncher" label="Auditoría bulk de canales"><FullAccessOnly feature="Auditoría bulk"><AuditChannelsPage /></FullAccessOnly></ProGate>} />
+          <Route path="analyze/niches"    element={<ProGate feature="nicheHeatmap" label="Heatmap de nichos"><FullAccessOnly feature="Heatmap de nichos"><NicheHeatmapPage /></FullAccessOnly></ProGate>} />
           <Route path="analyze/ad"        element={<FullAccessOnly feature="Análisis de anuncio"><AnalyzeAdPage /></FullAccessOnly>} />
-          <Route path="analyze/forecast"  element={<FullAccessOnly feature="Forecaster ROI"><ForecastROIPage /></FullAccessOnly>} />
-          <Route path="analyze/realtime"  element={<FullAccessOnly feature="Monitor en tiempo real"><RealtimeMonitorPage /></FullAccessOnly>} />
-          <Route path="analyze/funnel"    element={<FullAccessOnly feature="Funnel Analyzer"><FunnelAnalyzerPage /></FullAccessOnly>} />
-          <Route path="analyze/cohorts"   element={<FullAccessOnly feature="Análisis por cohortes"><CohortAnalysisPage /></FullAccessOnly>} />
-          <Route path="analyze/watchlist" element={<FullAccessOnly feature="Watchlist de canales"><PositionTrackerPage /></FullAccessOnly>} />
-          <Route path="analyze/overlap"   element={<FullAccessOnly feature="Solapamiento de audiencias"><AudienceOverlapPage /></FullAccessOnly>} />
-          <Route path="analyze/abtest"    element={<FullAccessOnly feature="A/B Test Lab"><ABTestLabPage /></FullAccessOnly>} />
-          <Route path="campaigns/bulk"    element={<FullAccessOnly feature="Bulk Launcher"><BulkLauncherPage /></FullAccessOnly>} />
-          <Route path="analyze/topics"    element={<FullAccessOnly feature="Topic Research"><TopicResearchPage /></FullAccessOnly>} />
-          <Route path="analyze/audience"  element={<FullAccessOnly feature="Audience Insights"><AudienceInsightsPage /></FullAccessOnly>} />
-          <Route path="analyze/reports"   element={<FullAccessOnly feature="Report Studio"><ReportStudioPage /></FullAccessOnly>} />
+          <Route path="analyze/forecast"  element={<ProGate feature="forecastRoi" label="Forecaster ROI"><FullAccessOnly feature="Forecaster ROI"><ForecastROIPage /></FullAccessOnly></ProGate>} />
+          <Route path="analyze/realtime"  element={<ProGate feature="realtimeMonitor" label="Monitor en tiempo real"><FullAccessOnly feature="Monitor en tiempo real"><RealtimeMonitorPage /></FullAccessOnly></ProGate>} />
+          <Route path="analyze/funnel"    element={<ProGate feature="forecastRoi" label="Funnel Analyzer"><FullAccessOnly feature="Funnel Analyzer"><FunnelAnalyzerPage /></FullAccessOnly></ProGate>} />
+          <Route path="analyze/cohorts"   element={<ProGate feature="audienceInsights" label="Análisis por cohortes"><FullAccessOnly feature="Análisis por cohortes"><CohortAnalysisPage /></FullAccessOnly></ProGate>} />
+          <Route path="analyze/watchlist" element={<ProGate feature="realtimeMonitor" label="Watchlist de canales"><FullAccessOnly feature="Watchlist de canales"><PositionTrackerPage /></FullAccessOnly></ProGate>} />
+          <Route path="analyze/overlap"   element={<ProGate feature="audienceInsights" label="Solapamiento de audiencias"><FullAccessOnly feature="Solapamiento de audiencias"><AudienceOverlapPage /></FullAccessOnly></ProGate>} />
+          <Route path="analyze/abtest"    element={<ProGate feature="abTestLab" label="A/B Test Lab"><FullAccessOnly feature="A/B Test Lab"><ABTestLabPage /></FullAccessOnly></ProGate>} />
+          <Route path="campaigns/bulk"    element={<ProGate feature="bulkLauncher" label="Bulk Launcher"><FullAccessOnly feature="Bulk Launcher"><BulkLauncherPage /></FullAccessOnly></ProGate>} />
+          <Route path="analyze/topics"    element={<ProGate feature="forecastRoi" label="Topic Research"><FullAccessOnly feature="Topic Research"><TopicResearchPage /></FullAccessOnly></ProGate>} />
+          <Route path="analyze/audience"  element={<ProGate feature="audienceInsights" label="Audience Insights"><FullAccessOnly feature="Audience Insights"><AudienceInsightsPage /></FullAccessOnly></ProGate>} />
+          <Route path="analyze/reports"   element={<ProGate feature="forecastRoi" label="Report Studio"><FullAccessOnly feature="Report Studio"><ReportStudioPage /></FullAccessOnly></ProGate>} />
           <Route path="campaigns/calendar" element={<FullAccessOnly feature="Calendario de campañas"><CampaignCalendarPage /></FullAccessOnly>} />
           <Route path="analyze/calendar"  element={<FullAccessOnly feature="Calendario de campañas"><CampaignCalendarPage /></FullAccessOnly>} />
           <Route path="referrals" element={<ReferralsPage />} />
@@ -275,20 +276,20 @@ export default function AppRoutes() {
           <Route path="whatsapp-audit" element={<WhatsAppAuditLogPage />} />
           <Route path="requests" element={<FullAccessOnly feature="Solicitudes"><CreatorRequestsPage /></FullAccessOnly>} />
           <Route path="earnings" element={<FullAccessOnly feature="Ganancias"><CreatorEarningsPage /></FullAccessOnly>} />
-          <Route path="analytics" element={<FullAccessOnly feature="Analytics"><CreatorAnalyticsPage /></FullAccessOnly>} />
-          <Route path="pricing" element={<FullAccessOnly feature="Pricing Optimizer"><PricingOptimizerPage /></FullAccessOnly>} />
-          <Route path="reports" element={<FullAccessOnly feature="Reports Studio"><CreatorReportsPage /></FullAccessOnly>} />
-          <Route path="abtest" element={<FullAccessOnly feature="A/B Testing"><CreatorABTestPage /></FullAccessOnly>} />
-          <Route path="audience" element={<FullAccessOnly feature="Audience Insights"><CreatorAudiencePage /></FullAccessOnly>} />
-          <Route path="compare" element={<FullAccessOnly feature="Comparativa"><CreatorComparePage /></FullAccessOnly>} />
+          <Route path="analytics" element={<ProGate feature="advancedAnalytics" label="Analytics avanzados"><FullAccessOnly feature="Analytics"><CreatorAnalyticsPage /></FullAccessOnly></ProGate>} />
+          <Route path="pricing" element={<ProGate feature="advancedAnalytics" label="Pricing Optimizer"><FullAccessOnly feature="Pricing Optimizer"><PricingOptimizerPage /></FullAccessOnly></ProGate>} />
+          <Route path="reports" element={<ProGate feature="advancedAnalytics" label="Reports Studio"><FullAccessOnly feature="Reports Studio"><CreatorReportsPage /></FullAccessOnly></ProGate>} />
+          <Route path="abtest" element={<ProGate feature="advancedAnalytics" label="A/B Testing"><FullAccessOnly feature="A/B Testing"><CreatorABTestPage /></FullAccessOnly></ProGate>} />
+          <Route path="audience" element={<ProGate feature="advancedAnalytics" label="Audience Insights"><FullAccessOnly feature="Audience Insights"><CreatorAudiencePage /></FullAccessOnly></ProGate>} />
+          <Route path="compare" element={<ProGate feature="advancedAnalytics" label="Comparativa de canales"><FullAccessOnly feature="Comparativa"><CreatorComparePage /></FullAccessOnly></ProGate>} />
           <Route path="profile" element={<CreatorProfilePage />} />
           <Route path="inbox" element={<FullAccessOnly feature="Inbox"><CreatorInboxPage /></FullAccessOnly>} />
-          <Route path="discover" element={<FullAccessOnly feature="Discover"><CreatorDiscoverPage /></FullAccessOnly>} />
+          <Route path="discover" element={<ProGate feature="advancedAnalytics" label="Discover de oportunidades"><FullAccessOnly feature="Discover"><CreatorDiscoverPage /></FullAccessOnly></ProGate>} />
           <Route path="calendar" element={<FullAccessOnly feature="Calendario"><CreatorCalendarPage /></FullAccessOnly>} />
-          <Route path="brands"   element={<FullAccessOnly feature="Brands CRM"><CreatorBrandsPage /></FullAccessOnly>} />
+          <Route path="brands"   element={<ProGate feature="advancedAnalytics" label="Brands CRM"><FullAccessOnly feature="Brands CRM"><CreatorBrandsPage /></FullAccessOnly></ProGate>} />
           <Route path="notifications" element={<CreatorNotificationsPage />} />
-          <Route path="content"  element={<FullAccessOnly feature="Content Studio"><CreatorContentStudioPage /></FullAccessOnly>} />
-          <Route path="tools"    element={<FullAccessOnly feature="Tools"><CreatorToolsPage /></FullAccessOnly>} />
+          <Route path="content"  element={<ProGate feature="advancedAnalytics" label="Content Studio"><FullAccessOnly feature="Content Studio"><CreatorContentStudioPage /></FullAccessOnly></ProGate>} />
+          <Route path="tools"    element={<ProGate feature="apiAccess" label="Tools y API personal"><FullAccessOnly feature="Tools"><CreatorToolsPage /></FullAccessOnly></ProGate>} />
           <Route path="activity" element={<FullAccessOnly feature="Actividad"><CreatorActivityPage /></FullAccessOnly>} />
           <Route path="billing"  element={<FullAccessOnly feature="Billing"><CreatorBillingPage /></FullAccessOnly>} />
           <Route path="swaps"    element={<FullAccessOnly feature="Colaboraciones"><CreatorSwapsPage /></FullAccessOnly>} />
