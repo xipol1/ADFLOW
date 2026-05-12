@@ -1511,7 +1511,7 @@ class ApiService {
     return this.request('/subscriptions/me');
   }
 
-  async createCheckoutSession(plan, interval) {
+  async createSubscriptionCheckout(plan, interval) {
     return this.request('/subscriptions/checkout', {
       method: 'POST',
       body: JSON.stringify({ plan, interval }),

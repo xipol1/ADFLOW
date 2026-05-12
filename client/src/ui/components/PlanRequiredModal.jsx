@@ -106,7 +106,7 @@ export default function PlanRequiredModal({ payload, onClose }) {
     }
     setLoading(true)
     try {
-      const res = await apiService.createCheckoutSession(suggestedPlan, 'monthly')
+      const res = await apiService.createSubscriptionCheckout(suggestedPlan, 'monthly')
       if (res?.url) {
         window.location.href = res.url
         return

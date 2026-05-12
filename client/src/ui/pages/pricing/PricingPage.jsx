@@ -546,7 +546,7 @@ export default function PricingPage() {
       }
       setLoadingKey(planKey)
       try {
-        const res = await apiService.createCheckoutSession(planKey, billingInterval)
+        const res = await apiService.createSubscriptionCheckout(planKey, billingInterval)
         if (res?.url) {
           window.location.href = res.url
           return
