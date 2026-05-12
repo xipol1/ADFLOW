@@ -1,5 +1,5 @@
 // Service worker — bump CACHE_NAME on each release so clients drop stale assets.
-const CACHE_NAME = 'channelad-v2';
+const CACHE_NAME = 'channelad-v3-plans';
 
 // Install: take over immediately so users on a new bundle don't need to refresh twice.
 self.addEventListener('install', (e) => {
