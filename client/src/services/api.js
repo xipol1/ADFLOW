@@ -212,10 +212,10 @@ class ApiService {
     });
   }
 
-  async googleLogin(credential) {
+  async googleLogin(credential, extra = {}) {
     return this.request('/auth/google', {
       method: 'POST',
-      body: JSON.stringify({ credential }),
+      body: JSON.stringify({ credential, ...extra }),
       auth: false,
     });
   }

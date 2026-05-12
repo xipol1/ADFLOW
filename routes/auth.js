@@ -535,6 +535,9 @@ const limitarGoogle = limitarIntentos({
 router.post('/google',
   limitarGoogle,
   body('credential').notEmpty().withMessage('Credential requerida'),
+  body('role').optional().isIn(['creator', 'advertiser']).withMessage('Rol invalido'),
+  body('tipoPerfil').optional().isIn(['individual', 'agencia']).withMessage('tipoPerfil invalido'),
+  body('referralCode').optional().isString().isLength({ max: 32 }),
   validarCampos,
   authController.googleLogin
 );
