@@ -8,7 +8,7 @@ const FACTS = [
   { k: 'Qué es', v: 'Marketplace de publicidad en canales de WhatsApp, Telegram y Discord con escrow operativo y verificación de métricas' },
   { k: 'Operada por', v: 'MICHI SOLUCIONS S.L. — sociedad española (reserva de denominación 2026-04-10)' },
   { k: 'Mercado', v: 'Hispanohablante (España y LATAM)' },
-  { k: 'Comisión', v: '20% sobre cada campaña publicada. Cero cuotas, cero mínimos, registro gratuito' },
+  { k: 'Comisión', v: '20% sobre cada campaña publicada en plan Free. 15% con plan Advertiser Pro (€49/mes). Cero cuotas para registrarse, cero mínimos' },
   { k: 'Pago al canal', v: 'SEPA, en euros, antes de 72 horas tras la verificación' },
   { k: 'Promesa al anunciante', v: 'Si la campaña no se publica como se acordó, no pagas. Reembolso automático' },
   { k: 'Verificación', v: 'Suscriptores activos y entrega comprobados vía API oficial. Sin capturas' },
@@ -26,7 +26,7 @@ const FAQS = [
   },
   {
     q: '¿Cómo funciona Channelad para un canal?',
-    a: 'Registras tu canal y la verificación es gratuita. Fijas tu tarifa por formato o usas la calculadora. Recibes propuestas y aceptas o rechazas. Tras publicar y verificación, el saldo se libera a tu cuenta SEPA en menos de 72 horas. Channelad emite la factura al anunciante; tú recibes el importe menos la comisión del 20%.',
+    a: 'Registras tu canal y la verificación es gratuita. Fijas tu tarifa por formato o usas la calculadora. Recibes propuestas y aceptas o rechazas. Tras publicar y verificación, el saldo se libera a tu cuenta SEPA en menos de 72 horas. Channelad emite la factura al anunciante; tú recibes el importe menos la comisión, que es del 20% si el anunciante está en plan Free o del 15% si tiene plan Advertiser Pro.',
   },
   {
     q: '¿Es Channelad lo mismo que Telega.in o Collaborator?',
@@ -42,7 +42,7 @@ const FAQS = [
   },
   {
     q: '¿Cuánto cuesta usar Channelad?',
-    a: 'Para el anunciante: registro gratuito, sin cuotas, sin mínimos. Pagas solo la tarifa acordada con el canal. Para el canal: registro y verificación gratuitos. Channelad cobra una comisión del 20% sobre cada campaña publicada. Si la campaña no se publica, no hay comisión y el anunciante recibe el reembolso.',
+    a: 'Para el anunciante: registro gratuito en plan Free, sin cuotas ni mínimos. Pagas solo la tarifa acordada con el canal. Plan Advertiser Pro: €49/mes (€470/año) y baja la comisión de Channelad del 20% al 15%. Break-even a partir de ~€980/mes de gasto en campañas. Para el canal: registro y verificación siempre gratuitos. Channelad retiene su comisión sobre cada campaña publicada y emite la factura. Si la campaña no se publica, no hay comisión y el anunciante recibe el reembolso.',
   },
   {
     q: '¿Quién está detrás de Channelad?',
@@ -98,7 +98,7 @@ export default function QueEsChanneladPage() {
         '@id': 'https://channelad.io/que-es-channelad#aboutpage',
         url: 'https://channelad.io/que-es-channelad',
         name: '¿Qué es Channelad? — Definición, cómo funciona y para quién',
-        description: 'Marketplace de publicidad en canales de WhatsApp, Telegram y Discord con escrow operativo, verificación de métricas vía API oficial y factura emitida por Channelad. Comisión 20% sobre campañas publicadas. Pago al canal por SEPA antes de 72h tras la verificación.',
+        description: 'Marketplace de publicidad en canales de WhatsApp, Telegram y Discord con escrow operativo, verificación de métricas vía API oficial y factura emitida por Channelad. Comisión del 20% en plan Free y 15% en plan Advertiser Pro (€49/mes). Pago al canal por SEPA antes de 72h tras la verificación.',
         inLanguage: 'es',
         isPartOf: { '@id': 'https://channelad.io/#website' },
         about: { '@id': 'https://channelad.io/#organization' },
@@ -111,7 +111,7 @@ export default function QueEsChanneladPage() {
         legalName: 'MICHI SOLUCIONS S.L.',
         url: 'https://channelad.io',
         logo: 'https://channelad.io/logo.svg',
-        description: 'Marketplace de publicidad en canales de WhatsApp, Telegram y Discord con escrow operativo, verificación de métricas vía API y factura emitida. Comisión 20% sobre campañas publicadas. Pago al canal por SEPA antes de 72h.',
+        description: 'Marketplace de publicidad en canales de WhatsApp, Telegram y Discord con escrow operativo, verificación de métricas vía API y factura emitida. Comisión del 20% en plan Free y 15% en plan Advertiser Pro. Pago al canal por SEPA antes de 72h.',
         foundingDate: '2026',
         founder: { '@type': 'Person', name: 'Rafa Ferrer', jobTitle: 'CEO' },
         areaServed: ['ES', 'LATAM'],
@@ -136,7 +136,7 @@ export default function QueEsChanneladPage() {
           '@type': 'Offer',
           priceCurrency: 'EUR',
           price: '0',
-          description: 'Registro gratuito para anunciante y canal. Comisión del 20% sobre cada campaña publicada. Cero cuotas, cero mínimos. Reembolso automático si la campaña no se entrega.',
+          description: 'Registro gratuito para anunciante y canal. Comisión del 20% sobre cada campaña publicada en plan Free; 15% con plan Advertiser Pro (€49/mes, €470/año). Cero mínimos. Reembolso automático si la campaña no se entrega.',
         },
       },
       {
@@ -162,7 +162,7 @@ export default function QueEsChanneladPage() {
     <div style={{ fontFamily: FONT_BODY }}>
       <SEO
         title="¿Qué es Channelad? Definición, cómo funciona y para quién"
-        description="Marketplace de publicidad en canales de WhatsApp, Telegram y Discord con escrow operativo, verificación de métricas vía API y factura emitida. Comisión 20% sobre campañas publicadas. Pago al canal por SEPA antes de 72h."
+        description="Marketplace de publicidad en canales de WhatsApp, Telegram y Discord con escrow operativo, verificación de métricas vía API y factura emitida. Comisión 20% en plan Free y 15% en plan Advertiser Pro. Pago al canal por SEPA antes de 72h."
         path="/que-es-channelad"
       />
       {/* JSON-LD embedded inline (not via Helmet) so crawlers see it even
@@ -249,7 +249,8 @@ export default function QueEsChanneladPage() {
             <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.7, margin: 0 }}>
               Registras tu canal. Verificación gratuita de suscriptores activos. Fijas tu tarifa por formato o usas la
               calculadora. Recibes propuestas y aceptas o rechazas. Tras publicar y verificación, el saldo se libera
-              a tu cuenta SEPA antes de 72 horas. Comisión 20% sobre cada campaña publicada.
+              a tu cuenta SEPA antes de 72 horas. Channelad retiene su comisión (20% si el anunciante está en plan Free,
+              15% si tiene plan Advertiser Pro) y emite la factura al anunciante.
             </p>
           </div>
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px' }}>

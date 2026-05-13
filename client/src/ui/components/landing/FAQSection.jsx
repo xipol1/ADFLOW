@@ -16,7 +16,7 @@ const FAQS = [
   },
   {
     q: 'Como puedo monetizar mi canal de Telegram, WhatsApp o Discord?',
-    a: 'Registra tu canal gratis en Channelad, completa la verificacion automatica y fija tus tarifas. Los anunciantes te encontraran en el marketplace. Solo se cobra una comision del 10% por campana completada. No hay costes fijos.',
+    a: 'Registra tu canal gratis en Channelad, completa la verificacion automatica y fija tus tarifas. Los anunciantes te encontraran en el marketplace. La comision la determina el plan del anunciante: 20% en plan Free, 15% en plan Advertiser Pro. El creador no paga cuotas ni comision por su plan.',
   },
   {
     q: 'Que alternativas existen a Collaborator y Telega para publicidad en Telegram?',
