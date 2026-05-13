@@ -39,7 +39,7 @@ const D = FONT_DISPLAY
 // Pre-launch dataset size for section 6 (Insights stat ribbon) and the
 // hero stat trio. Stored without the leading '+' so consumers can render
 // '+{N}', '{N}+', etc.
-const INSIGHTS_DATASET_COUNT = '1000'
+const INSIGHTS_DATASET_COUNT = '3000'
 
 // Pre-launch FAQ minimum (overridable when first verified channel lands).
 const MIN_BUDGET_EUR = '30'
@@ -587,7 +587,7 @@ export default function ForBrandsPage() {
                       '0 1px 0 0 rgba(255,255,255,0.18) inset, 0 8px 20px -6px rgba(124,58,237,0.45), 0 2px 6px -2px rgba(124,58,237,0.30)'
                   }}
                 >
-                  Pedir acceso
+                  Reservar plaza
                 </button>
               </motion.form>
 
@@ -765,7 +765,7 @@ export default function ForBrandsPage() {
               marginBottom: 20,
             }}
           >
-            Cubrimos los canales que importan
+            Operamos en las plataformas de comunidad que importan
           </p>
           <div
             style={{
@@ -1394,7 +1394,7 @@ export default function ForBrandsPage() {
                       marginBottom: 28,
                     }}
                   >
-                    típico sobre el GMV
+                    sobre el GMV de cada campaña
                   </div>
 
                   {/* Comparison bars */}
@@ -1407,7 +1407,7 @@ export default function ForBrandsPage() {
                       marginBottom: 18,
                     }}
                   >
-                    <ComparisonBar label="Channelad" value={20} suffix="% típico" highlight />
+                    <ComparisonBar label="Channelad" value={20} suffix="% sobre GMV" highlight />
                     <div style={{ height: 12 }} />
                     <ComparisonBar label="Agencia tradicional" value={35} suffix="% + retainer" />
                   </div>
@@ -1563,7 +1563,7 @@ export default function ForBrandsPage() {
                         '0 1px 0 0 rgba(255,255,255,0.18) inset, 0 12px 28px -8px rgba(124,58,237,0.45), 0 4px 10px -2px rgba(124,58,237,0.30)'
                     }}
                   >
-                    Pedir acceso
+                    Reservar plaza
                     <ArrowRight size={16} strokeWidth={2.4} />
                   </Link>
                 </div>
@@ -1585,7 +1585,7 @@ export default function ForBrandsPage() {
               >
                 <PricingChip>Sin fee de alta</PricingChip>
                 <PricingChip>Sin mínimos mensuales</PricingChip>
-                <PricingChip>Sin permanencia</PricingChip>
+                <PricingChip>Sin compromiso</PricingChip>
                 <PricingChip>Escrow incluido</PricingChip>
               </div>
             </motion.div>
@@ -1745,8 +1745,8 @@ export default function ForBrandsPage() {
                 margin: '0 auto 32px',
               }}
             >
-              Plazas limitadas durante el lanzamiento. Verificamos cada anunciante con conexión técnica
-              para mantener la calidad del marketplace.
+              Plazas limitadas. Verificamos cada anunciante: KYC, dominio y método de pago.
+              Para mantener la calidad del catálogo.
             </p>
             <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 24 }}>
               <Link
@@ -1772,7 +1772,7 @@ export default function ForBrandsPage() {
                   e.currentTarget.style.transform = 'none'
                 }}
               >
-                Pedir acceso
+                Reservar plaza
               </Link>
             </div>
             <p

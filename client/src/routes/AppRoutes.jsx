@@ -4,10 +4,9 @@ import ProtectedRoute from '../ui/routing/ProtectedRoute'
 import AppLayout from '../ui/layouts/AppLayout'
 import ProGate from '../ui/components/ProGate'
 import { useAuth } from '../auth/AuthContext'
-import { getFeatureFlag } from '../flags/featureFlags'
 
 // ── Eagerly loaded (used on first paint or critical path) ──────────
-import LandingPage from '../ui/pages/landing/LandingPage'
+import ForBrandsPage from '../ui/pages/landing/ForBrandsPage'
 
 // ── Lazy-loaded pages ──────────────────────────────────────────────
 const LoginPage = lazy(() => import('../ui/pages/auth/LoginPage'))
@@ -26,7 +25,6 @@ const ClaimChannelPage = lazy(() => import('../ui/pages/claim/ClaimChannelPage')
 const ChannelDetailPage = lazy(() => import('../ui/pages/marketplace/ChannelDetailPage'))
 
 const ForChannelsPage = lazy(() => import('../ui/pages/landing/ForChannelsPage'))
-const ForBrandsPage = lazy(() => import('../ui/pages/landing/ForBrandsPage'))
 const HerramientasPage = lazy(() => import('../ui/pages/landing/HerramientasPage'))
 const PricingPage = lazy(() => import('../ui/pages/pricing/PricingPage'))
 const BillingPage = lazy(() => import('../ui/pages/account/BillingPage'))
@@ -145,14 +143,13 @@ function FullAccessOnly({ children, feature }) {
 
 export default function AppRoutes() {
   const { isAuthenticated, user } = useAuth()
-  const landingUnificationEnabled = getFeatureFlag('landingUnification')
 
   return (
     <Suspense fallback={<RouteFallback />}>
       <Routes>
         {/* ── Public / landing routes ────────────────────── */}
         <Route path="/" element={<AppLayout />}>
-          <Route index element={landingUnificationEnabled ? <ForBrandsPage /> : <LandingPage />} />
+          <Route index element={<ForBrandsPage />} />
           <Route path="marketplace" element={<MarketplacePage />} />
           <Route path="marketplace/:channelId" element={<ChannelDetailPage />} />
           <Route path="channel/:id" element={<ChannelExplorerPage />} />

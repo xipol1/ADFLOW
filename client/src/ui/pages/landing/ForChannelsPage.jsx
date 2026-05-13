@@ -18,7 +18,12 @@ import DemoCreatorPublish from '../../components/landing/demo/DemoCreatorPublish
 import DemoCreatorEarnings from '../../components/landing/demo/DemoCreatorEarnings'
 import DemoCreatorPayout from '../../components/landing/demo/DemoCreatorPayout'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
-import { XCircle, CheckCircle2, ArrowRight } from 'lucide-react'
+import {
+  XCircle, CheckCircle2, ArrowRight,
+  Wallet, ShieldCheck, Lock, Unlock,
+  Users, Search, BookOpen, TrendingUp,
+  LineChart, RefreshCw, Sparkles, FlaskConical,
+} from 'lucide-react'
 import { FONT_BODY, FONT_DISPLAY, MAX_W } from '../../theme/tokens'
 
 const F = FONT_BODY
@@ -184,7 +189,7 @@ const PRICING_INCLUDES = [
   'Verificación automática con tracking',
   'Toolkit básico (Audience Insights, Discover, Brand CRM, Forecast)',
   'Inbox + dashboard real-time',
-  'Soporte en español 24/7',
+  'Soporte humano en español',
 ]
 
 // Creator-side growth toolkit. Marketplace + escrow + dashboards básicos
@@ -195,49 +200,49 @@ const PRICING_INCLUDES = [
 // tier: 'free' | 'pro' — determines the badge rendered on the card.
 const GROWTH_TOOLS = [
   {
-    icon: '👥',
+    Icon: Users,
     title: 'Audience Insights',
     desc: 'Demografía básica, intereses y momentos de máxima actividad de tu comunidad. Para entender quién te lee.',
     tier: 'free',
   },
   {
-    icon: '🔍',
+    Icon: Search,
     title: 'Discover',
     desc: 'Explora anunciantes y creadores que están pagando en tu nicho. Acelera tu primer deal sin esperar a que te encuentren.',
     tier: 'free',
   },
   {
-    icon: '📒',
+    Icon: BookOpen,
     title: 'Brand CRM',
     desc: 'Lleva el control de qué anunciantes han trabajado contigo, cuánto pagaron y cuándo volver a contactarlos. Tu pipeline en un sitio.',
     tier: 'free',
   },
   {
-    icon: '🔮',
+    Icon: TrendingUp,
     title: 'Earnings Forecast',
     desc: 'Predice tus ingresos del próximo mes con tu pipeline actual y los patrones de tu nicho. Planifica con datos.',
     tier: 'free',
   },
   {
-    icon: '📈',
+    Icon: LineChart,
     title: 'Pricing Optimizer',
-    desc: 'IA entrenada con +2.500 canales con métricas propias que sugiere tu precio óptimo cada mes según nicho, tamaño y actividad del marketplace. Deja de regalar plazas.',
+    desc: 'IA entrenada con 3.000+ canales con métricas propias que sugiere tu precio óptimo cada mes según nicho, tamaño y actividad del marketplace. Deja de regalar plazas.',
     tier: 'pro',
   },
   {
-    icon: '🔁',
+    Icon: RefreshCw,
     title: 'Cross-promo & Swaps',
-    desc: 'Match automático con creadores complementarios verificados. Intercambia menciones y crece sin gastar en ads.',
+    desc: 'Match automático con creadores complementarios verificados. Intercambia menciones y crece sin depender de paid media.',
     tier: 'pro',
   },
   {
-    icon: '✨',
+    Icon: Sparkles,
     title: 'Content Studio',
     desc: 'Biblioteca premium de templates de copy, hooks y CTAs validados con tracking real en cada plataforma.',
     tier: 'pro',
   },
   {
-    icon: '🧪',
+    Icon: FlaskConical,
     title: 'A/B Test Lab',
     desc: 'Testea hooks, copy y formatos antes de publicar al 100%. Significancia estadística sin esperar 30 días.',
     tier: 'pro',
@@ -247,7 +252,7 @@ const GROWTH_TOOLS = [
 const PRICING_CHIPS = [
   'Sin fee de alta',
   'Sin mínimos mensuales',
-  'Sin permanencia',
+  'Sin compromiso',
   'Pago en EU',
 ]
 
@@ -344,7 +349,7 @@ export default function ForChannelsPage() {
                   fontSize: 12, fontWeight: 600, color: GREEN,
                 }}
               >
-                💰 Para canales y creadores
+                <Wallet size={13} strokeWidth={2.2} /> Para canales y creadores
               </motion.div>
 
               {/* H1 with RotatingWord */}
@@ -378,7 +383,7 @@ export default function ForChannelsPage() {
                   maxWidth: 520, margin: '0 0 30px',
                 }}
               >
-                Pon tu canal en el marketplace, recibe propuestas verificadas y cobra el 100% del precio que tú fijas. La comisión la pagamos del anunciante — nunca a ti.
+                Pon tu canal en el marketplace, recibe propuestas verificadas y cobra el 100% del precio que tú fijas. La comisión la cobramos al anunciante, no a ti.
               </motion.p>
 
               {/* CTAs */}
@@ -402,7 +407,7 @@ export default function ForChannelsPage() {
                   onMouseEnter={(e) => { e.currentTarget.style.background = GREEN_DARK; e.currentTarget.style.transform = 'translateY(-2px)' }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = GREEN; e.currentTarget.style.transform = 'none' }}
                 >
-                  Registrar mi canal · Gratis
+                  Registrar canal · 0% para ti
                   <ArrowRight size={16} strokeWidth={2.4} />
                 </Link>
                 <a
@@ -430,10 +435,10 @@ export default function ForChannelsPage() {
                 style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}
               >
                 {[
-                  { icon: '💸', label: '0% comisión a creadores' },
-                  { icon: '🛡️', label: 'Verificación en 5 min' },
-                  { icon: '💰', label: 'Pago en escrow' },
-                  { icon: '🔓', label: 'Cero exclusividad' },
+                  { Icon: Wallet, label: '0% comisión a creadores' },
+                  { Icon: ShieldCheck, label: 'Verificación en 5 min' },
+                  { Icon: Lock, label: 'Pago en escrow' },
+                  { Icon: Unlock, label: 'Sin exclusividad' },
                 ].map((p) => (
                   <span key={p.label}
                     style={{
@@ -442,7 +447,7 @@ export default function ForChannelsPage() {
                       background: 'var(--surface)', border: '1px solid var(--border)',
                       fontSize: 12, color: 'var(--muted)', fontWeight: 500,
                     }}>
-                    <span>{p.icon}</span>{p.label}
+                    <p.Icon size={13} strokeWidth={2} color={GREEN} />{p.label}
                   </span>
                 ))}
               </motion.div>
@@ -458,8 +463,8 @@ export default function ForChannelsPage() {
                 }}
               >
                 {[
-                  { v: '+2.500', l: 'Canales con métricas propias' },
-                  { v: '€2,8M', l: 'Pagado a creadores' },
+                  { v: '100%', l: 'Cobras tu precio fijado' },
+                  { v: '72h', l: 'Pago tras publicar' },
                   { v: 'Día 1', l: 'Acceso al toolkit' },
                 ].map((s) => (
                   <div key={s.l}>
@@ -591,9 +596,9 @@ export default function ForChannelsPage() {
         <div style={{ maxWidth: MAX_W, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }} className="creator-stats-grid">
             {[
-              { label: 'Canales con métricas propias', value: '+2.500' },
-              { label: 'Pagado a creadores', value: '€2,8M' },
+              { label: 'Pago tras publicar', value: '72h' },
               { label: 'Plataformas integradas', value: '6' },
+              { label: 'Acceso al toolkit', value: 'Día 1' },
               { label: 'Fee de alta', value: '0%' },
             ].map((m) => (
               <motion.div key={m.label} variants={staggerItem} whileHover={{ scale: 1.03, y: -4 }} style={{
@@ -761,14 +766,14 @@ export default function ForChannelsPage() {
               letterSpacing: '-0.035em', color: 'var(--text)', margin: '0 0 16px',
               lineHeight: 1.06, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto',
             }}>
-              Channelad no es solo marketplace. Es el sistema operativo de tu canal.
+              Más que marketplace: las herramientas que tu canal necesita para escalar.
             </h2>
             <p style={{
               fontFamily: F, fontSize: 16, color: 'var(--muted)',
               maxWidth: 660, margin: '0 auto', lineHeight: 1.6,
             }}>
               4 herramientas básicas gratis para todos los creadores. 4 avanzadas con plan Pro
-              — IA, automation y testing estadístico para escalar audiencia y CPM sin tocar ads.
+              — IA, automatización y testing estadístico para escalar audiencia y CPM sin depender de paid media.
             </p>
           </motion.div>
 
@@ -822,9 +827,10 @@ export default function ForChannelsPage() {
                     background: isPro ? 'rgba(124,58,237,0.10)' : greenAlpha(0.10),
                     border: `1px solid ${isPro ? 'rgba(124,58,237,0.18)' : greenAlpha(0.18)}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 22, marginBottom: 14,
+                    color: isPro ? '#7C3AED' : '#16a34a',
+                    marginBottom: 14,
                   }}>
-                    {tool.icon}
+                    <tool.Icon size={20} strokeWidth={2} />
                   </div>
                   <h3 style={{
                     fontFamily: D, fontSize: 16, fontWeight: 700,
@@ -976,7 +982,7 @@ export default function ForChannelsPage() {
                   onMouseEnter={(e) => { e.currentTarget.style.background = GREEN_DARK; e.currentTarget.style.transform = 'translateY(-1px)' }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = GREEN; e.currentTarget.style.transform = 'none' }}
                 >
-                  Registrar mi canal · Gratis
+                  Registrar canal · 0% para ti
                   <ArrowRight size={16} strokeWidth={2.4} />
                 </Link>
               </div>
@@ -1107,7 +1113,7 @@ export default function ForChannelsPage() {
               fontSize: 16, color: 'rgba(255,255,255,0.7)', lineHeight: 1.65,
               maxWidth: 540, margin: '0 auto 32px',
             }}>
-              Registra tu canal hoy y aparece en el marketplace antes del lanzamiento de Q1 2026.
+              Registra tu canal hoy y aparece en el marketplace antes del lanzamiento de septiembre 2026.
             </p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 18 }}>
               <Link to="/auth/register" style={{
@@ -1121,7 +1127,7 @@ export default function ForChannelsPage() {
                 onMouseEnter={e => { e.currentTarget.style.background = GREEN_DARK; e.currentTarget.style.transform = 'translateY(-2px)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = GREEN; e.currentTarget.style.transform = 'none' }}
               >
-                Registrar mi canal · Gratis
+                Registrar canal · 0% para ti
                 <ArrowRight size={16} strokeWidth={2.4} />
               </Link>
               <Link to="/marketplace" style={{
@@ -1141,7 +1147,7 @@ export default function ForChannelsPage() {
             <p style={{
               fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0,
             }}>
-              Sin tarjeta · 5 min de setup · Cancelar en cualquier momento
+              Sin tarjeta · 5 min de alta · Cancela cuando quieras
             </p>
           </div>
         </motion.div>

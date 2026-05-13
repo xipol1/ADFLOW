@@ -13,16 +13,19 @@ export default function AuthPage({ defaultTab = 'login' }) {
   const refCode = searchParams.get('ref') || ''
   const botTokenParam = searchParams.get('bot_token') || ''
   const botEmailParam = searchParams.get('email') || ''
+  const roleParam = searchParams.get('role') || ''
 
   // If redirected from ProtectedRoute because email not verified
   const emailNotVerified = location.state?.emailNotVerified === true
   const unverifiedEmail = location.state?.email || ''
 
-  const [tab, setTab]           = useState((refCode || botTokenParam) ? 'register' : defaultTab)
+  const [tab, setTab]           = useState((refCode || botTokenParam || roleParam) ? 'register' : defaultTab)
   const [email, setEmail]       = useState(botEmailParam || unverifiedEmail)
   const [password, setPassword] = useState('')
   const [name, setName]         = useState('')
-  const [role, setRole]         = useState(botTokenParam ? 'creator' : 'advertiser')
+  const [role, setRole]         = useState(
+    botTokenParam ? 'creator' : (roleParam === 'creator' || roleParam === 'advertiser' ? roleParam : 'advertiser')
+  )
   // Creator sub-type: 'individual' (single creator) or 'agencia' (multi-client)
   const [tipoPerfil, setTipoPerfil] = useState('individual')
   const [referral, setReferral] = useState(refCode)
