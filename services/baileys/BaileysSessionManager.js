@@ -98,6 +98,24 @@ class BaileysSessionManager {
    * Fetch the newsletters (channels) this session administers and cache
    * them on the session document. Called automatically after a successful
    * connection; can be called again to refresh.
+   *
+   * Baileys version compatibility:
+   *   - 6.x exposed `sock.newsletterSubscribed()` returning the list of
+   *     newsletters the user is subscribed to. We use it when available.
+   *   - 7.0+ dropped that endpoint. Newsletter discovery now happens via
+   *     the chat sync stream (`messages.upsert` arriving with @newsletter
+   *     JIDs). To enumerate without accumulating those events, we'd need
+   *     to either (a) wait for chat history sync to complete and inspect
+   *     `Store.NewsletterCollection` via puppeteer eval (whatsapp-web.js
+   *     style, doesn't apply here), or (b) intercept the protocol-level
+   *     subscriptions message — neither path is upstream-supported.
+   *
+   * On 7.0+ this method returns an empty array, sets `session.newsletters`
+   * to [] so the contract stays consistent, and emits a single audit log
+   * entry of action 'newsletter.list_unavailable' (so operators can see
+   * WHY their canal lookup found nothing). Capa 2's ChannelSubscriptionWorker
+   * subscribes by explicit JID — it never needs enumeration — so this
+   * gap doesn't affect the intelligence pipeline.
    */
   async listNewsletters(sessionId) {
     const entry = this.sockets.get(sessionId);
@@ -106,26 +124,42 @@ class BaileysSessionManager {
     }
 
     const sock = entry.sock;
-    const newsletters = [];
 
-    // Baileys exposes newsletters via sock.newsletterSubscribed() or via
-    // querying the user's own newsletter list. The exact method varies
-    // by version — we try both.
+    // ── Baileys 7.0+ branch: enumeration endpoint not available ──────────
+    if (typeof sock.newsletterSubscribed !== 'function') {
+      console.log('[baileys] listNewsletters: enumeration unavailable on this Baileys version — returning []');
+      const session = await BaileysSession.findByIdAndUpdate(
+        sessionId,
+        { $set: { newsletters: [] } },
+        { new: true }
+      );
+      if (session) {
+        await WhatsAppAuditLog.record({
+          usuarioId: session.usuarioId,
+          sessionId,
+          action: 'newsletter.list_unavailable',
+          summary: 'Newsletter enumeration not supported in current Baileys version',
+          data: { baileysVersion: this._getBaileysVersion() },
+        }).catch(() => { /* audit log is best-effort */ });
+      }
+      return [];
+    }
+
+    // ── Baileys 6.x branch (legacy, kept for compatibility) ──────────────
+    const newsletters = [];
     try {
-      if (typeof sock.newsletterSubscribed === 'function') {
-        const subs = await sock.newsletterSubscribed();
-        for (const n of subs || []) {
-          newsletters.push({
-            jid: n.id || n.jid,
-            name: n.name || '',
-            description: n.description || '',
-            subscribers: n.subscribers_count || n.subscribers || 0,
-            verification: n.verification || 'UNVERIFIED',
-            inviteCode: n.invite || '',
-            picture: n.preview || '',
-            role: n.role || 'SUBSCRIBER',
-          });
-        }
+      const subs = await sock.newsletterSubscribed();
+      for (const n of subs || []) {
+        newsletters.push({
+          jid: n.id || n.jid,
+          name: n.name || '',
+          description: n.description || '',
+          subscribers: n.subscribers_count || n.subscribers || 0,
+          verification: n.verification || 'UNVERIFIED',
+          inviteCode: n.invite || '',
+          picture: n.preview || '',
+          role: n.role || 'SUBSCRIBER',
+        });
       }
     } catch (err) {
       console.warn('[baileys] newsletterSubscribed failed:', err.message);
@@ -151,6 +185,19 @@ class BaileysSessionManager {
     });
 
     return administered;
+  }
+
+  /**
+   * Best-effort version lookup for audit-log purposes.
+   * Hidden behind a try/catch so a missing package.json doesn't break the
+   * audit log on the unavailability path.
+   */
+  _getBaileysVersion() {
+    try {
+      return require('@whiskeysockets/baileys/package.json').version;
+    } catch {
+      return 'unknown';
+    }
   }
 
   /**
