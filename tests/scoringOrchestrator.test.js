@@ -62,12 +62,16 @@ describe('processChannelsConcurrently — fault isolation', () => {
 });
 
 describe('admin scoring endpoint — auth', () => {
+  // We mount the real router on a real express app and drive it with
+  // supertest. The previous version walked the router stack manually,
+  // which races against async handlers and reports a null body for
+  // happy-path requests even though the handler did write a response.
+  const express = require('express');
+  const request = require('supertest');
+
   beforeEach(() => {
     jest.resetModules();
     delete process.env.CRON_SECRET;
-  });
-
-  function makeRouter() {
     jest.doMock('../services/scoringOrchestrator', () => ({
       runScoringBatch: jest.fn().mockResolvedValue({
         canalesProcesados: 0, canalesActualizados: 0, errores: 0,
@@ -75,88 +79,36 @@ describe('admin scoring endpoint — auth', () => {
       }),
       recalcularCASCanal: jest.fn().mockResolvedValue({ CAS: 73 }),
     }));
-    return require('../routes/adminScoring');
-  }
+  });
 
-  function mkRes() {
-    return {
-      statusCode: 200,
-      body: null,
-      status(code) { this.statusCode = code; return this; },
-      json(payload) { this.body = payload; return this; },
-    };
-  }
-
-  function runMiddleware(router, req, res) {
-    // Walk the router stack manually to invoke the matching handler.
-    return new Promise((resolve) => {
-      const stack = router.stack || [];
-      const candidates = stack.filter((layer) => {
-        if (!layer.route) return false;
-        const methods = layer.route.methods || {};
-        return layer.route.path === req.path && methods[req.method.toLowerCase()];
-      });
-      if (candidates.length === 0) {
-        res.status(404).json({ err: 'no route' });
-        return resolve();
-      }
-      const layer = candidates[0];
-      const handlers = layer.route.stack.map((s) => s.handle);
-      let i = 0;
-      const next = (err) => {
-        if (err) { res.status(500).json({ err: String(err) }); return resolve(); }
-        const h = handlers[i++];
-        if (!h) return resolve();
-        try {
-          const result = h(req, res, next);
-          if (result && typeof result.then === 'function') {
-            result.then(() => {
-              if (res.body === null && i < handlers.length) next();
-              else resolve();
-            }).catch((e) => { res.status(500).json({ err: String(e) }); resolve(); });
-          } else if (res.body === null && i < handlers.length) {
-            next();
-          } else {
-            resolve();
-          }
-        } catch (e) {
-          res.status(500).json({ err: String(e) });
-          resolve();
-        }
-      };
-      next();
-    });
+  function makeApp() {
+    const router = require('../routes/adminScoring');
+    const app = express();
+    app.use(express.json());
+    app.use('/', router);
+    return app;
   }
 
   test('returns 503 when CRON_SECRET is not configured', async () => {
-    const router = makeRouter();
-    const req = { method: 'POST', path: '/run', headers: {}, body: {}, query: {} };
-    const res = mkRes();
-    await runMiddleware(router, req, res);
-    expect(res.statusCode).toBe(503);
+    const res = await request(makeApp()).post('/run');
+    expect(res.status).toBe(503);
     expect(res.body.message).toMatch(/CRON_SECRET/);
   });
 
   test('returns 401 when Authorization header is missing or wrong', async () => {
     process.env.CRON_SECRET = 'test-secret';
-    const router = makeRouter();
-    const req = { method: 'POST', path: '/run', headers: { authorization: 'Bearer nope' }, body: {}, query: {} };
-    const res = mkRes();
-    await runMiddleware(router, req, res);
-    expect(res.statusCode).toBe(401);
+    const res = await request(makeApp())
+      .post('/run')
+      .set('Authorization', 'Bearer nope');
+    expect(res.status).toBe(401);
   });
 
   test('returns 200 with batch result when auth is correct', async () => {
     process.env.CRON_SECRET = 'test-secret';
-    const router = makeRouter();
-    const req = {
-      method: 'POST', path: '/run',
-      headers: { authorization: 'Bearer test-secret' },
-      body: {}, query: {},
-    };
-    const res = mkRes();
-    await runMiddleware(router, req, res);
-    expect(res.statusCode).toBe(200);
+    const res = await request(makeApp())
+      .post('/run')
+      .set('Authorization', 'Bearer test-secret');
+    expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data).toHaveProperty('canalesProcesados');
     expect(res.body.data).toHaveProperty('nextCursor');
@@ -164,15 +116,10 @@ describe('admin scoring endpoint — auth', () => {
 
   test('GET /run is also supported (Vercel Cron uses GET)', async () => {
     process.env.CRON_SECRET = 'test-secret';
-    const router = makeRouter();
-    const req = {
-      method: 'GET', path: '/run',
-      headers: { authorization: 'Bearer test-secret' },
-      query: {},
-    };
-    const res = mkRes();
-    await runMiddleware(router, req, res);
-    expect(res.statusCode).toBe(200);
+    const res = await request(makeApp())
+      .get('/run')
+      .set('Authorization', 'Bearer test-secret');
+    expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
   });
 });

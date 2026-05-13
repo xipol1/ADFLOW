@@ -23,12 +23,23 @@ const limitarIntentos = (options = {}) => {
   const windowMs = options.windowMs ?? 15 * 60 * 1000;
   const max = options.max ?? 100;
 
+  // In the jest test environment we bypass rate limiting entirely —
+  // suites burst many requests against /auth/registro, /auth/login etc.
+  // and would otherwise trip the 5-per-hour cap. Behavior in dev/prod
+  // is unchanged because NODE_ENV is only 'test' under jest.
+  const baseSkip = options.skip;
+  const skip = (req, res) => {
+    if (process.env.NODE_ENV === 'test') return true;
+    return baseSkip ? baseSkip(req, res) : false;
+  };
+
   const config = {
     windowMs,
     max,
     standardHeaders: options.standardHeaders ?? true,
     legacyHeaders: options.legacyHeaders ?? false,
     message: options.message || { success: false, message: 'Demasiadas solicitudes' },
+    skip,
   };
 
   // Pass through optional fields the caller may need (keyGenerator, skip,
@@ -36,7 +47,7 @@ const limitarIntentos = (options = {}) => {
   // express-rate-limit options keeps rateLimit happy while still allowing
   // route-specific keying like (userId, resourceId) for chat / per-resource
   // limits that can't be safely keyed on req.ip alone.
-  for (const k of ['keyGenerator', 'skip', 'requestPropertyName', 'statusCode', 'handler']) {
+  for (const k of ['keyGenerator', 'requestPropertyName', 'statusCode', 'handler']) {
     if (options[k] !== undefined) config[k] = options[k];
   }
 

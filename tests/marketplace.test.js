@@ -49,9 +49,9 @@ describe('Marketplace endpoints — auth & structure', () => {
     expect(res.status).toBe(401);
   });
 
-  // Lists (public)
-  test('GET /api/lists/channels — devuelve respuesta válida (503 sin DB o 200 con DB)', async () => {
-    const res = await request(app).get('/api/lists/channels');
+  // Lists (public) — route lives under /api/lists/public now
+  test('GET /api/lists/public/channels — devuelve respuesta válida (503 sin DB o 200 con DB)', async () => {
+    const res = await request(app).get('/api/lists/public/channels');
     expect([200, 503]).toContain(res.status);
     expect(res.body).toHaveProperty('success');
   });
@@ -79,7 +79,7 @@ describe('Marketplace endpoints — auth & structure', () => {
       ['GET', '/api/campaigns'],
       ['GET', '/api/transacciones'],
       ['GET', '/api/estadisticas/campaign/507f1f77bcf86cd799439011'],
-      ['GET', '/api/lists/channels'],
+      ['GET', '/api/lists/public/channels'],
       ['GET', '/api/canales']
     ];
 
