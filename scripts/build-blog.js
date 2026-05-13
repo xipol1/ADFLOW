@@ -19,10 +19,40 @@ const TEMPLATE_PATH = path.join(CONTENT_DIR, '_template.html');
 const SITEMAP_PATH = path.join(ROOT, 'public', 'sitemap.xml');
 const DOMAIN = 'https://channelad.io';
 
+// Visual tokens kept in sync with client/src/ui/pages/blog/BlogIndex.jsx and theme/tokens.js
+const PURPLE = '#7C3AED';
+const CATEGORY_COLORS = {
+  'Guias':        { color: '#7C3AED', bg: 'rgba(124,58,237,0.08)' },
+  'Monetizacion': { color: '#10b981', bg: 'rgba(16,185,129,0.08)' },
+  'Comparativas': { color: '#3b82f6', bg: 'rgba(59,130,246,0.08)' },
+};
+const PLATFORM_BRAND = {
+  whatsapp:   { color: '#25d366', label: 'WhatsApp'   },
+  telegram:   { color: '#2aabee', label: 'Telegram'   },
+  discord:    { color: '#5865f2', label: 'Discord'    },
+  youtube:    { color: '#ef4444', label: 'YouTube'    },
+  instagram:  { color: '#e1306c', label: 'Instagram'  },
+  tiktok:     { color: '#010101', label: 'TikTok'     },
+  newsletter: { color: '#8b5cf6', label: 'Newsletter' },
+};
+function fmtCardDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }).replace(/\.$/, '');
+}
+function fmtMonthYear(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }).replace(/\.$/, '');
+}
+
 // ─── Frontmatter parser ───
 function parseFrontmatter(content) {
-  const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-  if (!match) return { meta: {}, body: content };
+  const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const match = normalized.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+  if (!match) return { meta: {}, body: normalized };
   const meta = {};
   match[1].split('\n').forEach(line => {
     const idx = line.indexOf(':');
@@ -372,13 +402,22 @@ function build() {
   const featuredPost = posts[0];
   const restPosts = posts.slice(1);
 
-  const featuredHtml = featuredPost ? `
+  const catMeta = (cat) => CATEGORY_COLORS[cat] || { color: PURPLE, bg: 'rgba(124,58,237,0.08)' };
+  const platformMeta = (plat) => PLATFORM_BRAND[plat] || { color: PURPLE, label: plat || '' };
+
+  const featuredHtml = featuredPost ? (() => {
+    const fc = catMeta(featuredPost.category);
+    const fp = platformMeta(featuredPost.platform);
+    const platformPill = featuredPost.platform ? `
+              <span class="featured-platform" style="color:${fp.color};background:${fp.color}1F">${fp.label}</span>` : '';
+    return `
     <section class="featured">
       <a href="/blog/${featuredPost.slug}" class="featured-card">
+        <span class="featured-accent" style="background:linear-gradient(90deg, ${fp.color}, ${fp.color}66)"></span>
         <div class="featured-ghost">DESTACADO</div>
         <div class="featured-inner">
           <div class="featured-meta">
-            <span class="card-category">${featuredPost.category || 'Guias'}</span>
+            <span class="card-category" style="color:${fc.color};background:${fc.bg}">${featuredPost.category || 'Guias'}</span>${platformPill}
             <span class="card-meta-text">${featuredPost.readTime}</span>
           </div>
           <h2>${featuredPost.title}</h2>
@@ -386,20 +425,37 @@ function build() {
           <span class="featured-link">Leer articulo <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 7h12M8 2l5 5-5 5"/></svg></span>
         </div>
       </a>
-    </section>` : '';
+    </section>`;
+  })() : '';
 
-  const gridCards = restPosts.map(p => `
-      <a href="/blog/${p.slug}" class="blog-card">
-        <div class="card-category">${p.category || 'Guias'}</div>
-        <h2>${p.title}</h2>
-        <p>${p.description || ''}</p>
-        <div class="card-footer">
-          <span>${p.readTime || '10 min'}</span>
-          <span>${p.date || ''}</span>
+  const gridCards = restPosts.map(p => {
+    const cc = catMeta(p.category);
+    const pc = platformMeta(p.platform).color;
+    const cat = p.category || 'Guias';
+    return `
+      <a href="/blog/${p.slug}" class="blog-card" data-category="${cat}">
+        <span class="card-accent" style="background:linear-gradient(90deg, ${pc}, ${pc}66)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:${cc.color};background:${cc.bg}">${cat}</div>
+          <h2>${p.title}</h2>
+          <p>${p.description || ''}</p>
+          <div class="card-footer">
+            <span>${p.readTime || '10 min'}</span>
+            <span>${fmtCardDate(p.date)}</span>
+          </div>
         </div>
-      </a>`).join('\n');
+      </a>`;
+  }).join('\n');
+
+  const categories = ['Todos', 'Guias', 'Monetizacion', 'Comparativas'];
+  const filterPills = categories.map((c, i) => {
+    const m = c === 'Todos' ? { color: PURPLE, bg: 'rgba(124,58,237,0.08)' } : catMeta(c);
+    const active = i === 0;
+    return `<button type="button" class="cat-pill${active ? ' active' : ''}" data-cat="${c}" data-color="${m.color}" data-bg="${m.bg}"${active ? ` style="color:${m.color};background:${m.bg};border-color:transparent"` : ''}>${c}</button>`;
+  }).join('');
 
   const totalMinutes = posts.reduce((s, p) => s + parseInt(p.readTime || '10'), 0);
+  const latestDate = posts.reduce((max, p) => (p.date && p.date > max ? p.date : max), '2000-01-01');
 
   const indexHtml = `<!DOCTYPE html>
 <html lang="es">
@@ -472,27 +528,35 @@ function build() {
 
     /* Featured */
     .featured { max-width: 960px; margin: 0 auto 48px; padding: 0 24px; }
-    .featured-card { display: block; position: relative; padding: 48px 40px; border-radius: 20px; background: #F5F5F7; border: 1px solid rgba(0,0,0,0.04); overflow: hidden; transition: border-color 0.3s; }
-    .featured-card:hover { border-color: rgba(124,58,237,0.2); }
-    .featured-ghost { position: absolute; top: -12px; left: 24px; font-family: 'Instrument Serif', serif; font-style: italic; font-size: clamp(80px, 12vw, 140px); font-weight: 400; color: #1D1D1F; opacity: 0.025; line-height: 1; pointer-events: none; user-select: none; }
+    .featured-card { display: block; position: relative; padding: 48px 40px; border-radius: 20px; background: #F5F5F7; border: 1px solid rgba(0,0,0,0.04); overflow: hidden; transition: border-color 0.3s cubic-bezier(.22,1,.36,1); }
+    .featured-card:hover { border-color: rgba(124,58,237,0.25); }
+    .featured-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .featured-ghost { position: absolute; top: -12px; left: 24px; font-family: 'Instrument Serif', serif; font-style: italic; font-size: clamp(80px, 12vw, 140px); font-weight: 400; color: #1D1D1F; opacity: 0.025; line-height: 1; pointer-events: none; user-select: none; letter-spacing: -0.02em; }
     .featured-inner { position: relative; z-index: 1; }
-    .featured-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .featured-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
     .featured-card h2 { font-family: 'Instrument Serif', serif; font-size: clamp(28px, 4vw, 40px); font-weight: 400; line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 14px; }
     .featured-card p { font-size: 16px; color: #86868B; line-height: 1.65; max-width: 600px; margin-bottom: 20px; }
     .featured-link { font-size: 13px; font-weight: 600; color: #7C3AED; display: inline-flex; align-items: center; gap: 6px; }
+    .featured-platform { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 4px 10px; border-radius: 6px; }
     .card-meta-text { font-size: 12px; color: #86868B; }
 
+    /* Category filter pills */
+    .filters { max-width: 960px; margin: 0 auto 32px; padding: 0 24px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .cat-pill { font-family: 'DM Sans', system-ui, sans-serif; font-size: 12px; font-weight: 600; padding: 7px 16px; border-radius: 100px; border: 1px solid rgba(0,0,0,0.08); background: transparent; color: #86868B; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; }
+    .cat-pill:hover { color: #1D1D1F; }
+    .cat-pill.active { border-color: transparent; }
+
     .grid { max-width: 960px; margin: 0 auto; padding: 0 24px 120px; display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px; }
-    .blog-card { border-radius: 16px; background: #F5F5F7; border: 1px solid rgba(0,0,0,0.04); padding: 28px 24px; display: flex; flex-direction: column; gap: 14px; transition: transform 0.3s cubic-bezier(.22,1,.36,1), border-color 0.3s, box-shadow 0.3s; }
+    .blog-card { position: relative; border-radius: 16px; background: #F5F5F7; border: 1px solid rgba(0,0,0,0.04); display: flex; flex-direction: column; overflow: hidden; transition: transform 0.3s cubic-bezier(.22,1,.36,1), border-color 0.3s cubic-bezier(.22,1,.36,1), box-shadow 0.3s cubic-bezier(.22,1,.36,1); }
     .blog-card:hover { transform: translateY(-2px); border-color: rgba(124,58,237,0.2); box-shadow: 0 8px 32px rgba(139,92,246,0.08); }
+    .card-accent { display: block; height: 3px; }
+    .card-body { padding: 28px 24px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
     .card-category { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #7C3AED; background: rgba(124,58,237,0.08); padding: 3px 8px; border-radius: 5px; width: fit-content; }
-    .blog-card h2 { font-family: 'Instrument Serif', serif; font-size: 20px; font-weight: 400; line-height: 1.3; }
+    .blog-card h2 { font-family: 'Instrument Serif', serif; font-size: 20px; font-weight: 400; line-height: 1.3; letter-spacing: -0.01em; }
     .blog-card p { font-size: 14px; color: #86868B; line-height: 1.6; flex: 1; }
     .card-footer { display: flex; justify-content: space-between; padding-top: 14px; border-top: 1px solid rgba(0,0,0,0.04); font-size: 12px; color: #86868B; }
 
     .grain { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0.028; }
-
-    .section-label { max-width: 960px; margin: 0 auto; padding: 0 24px 16px; font-size: 11px; color: #86868B; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -510,18 +574,49 @@ function build() {
 
   <section class="stats">
     <div class="stats-grid">
-      <div class="stat"><div class="stat-value">${posts.length}</div><div class="stat-label">Articulos</div></div>
-      <div class="stat"><div class="stat-value">${totalMinutes} min</div><div class="stat-label">Lectura total</div></div>
-      <div class="stat"><div class="stat-value">${posts[0]?.date?.slice(0, 7) || '2026'}</div><div class="stat-label">Ultima actualizacion</div></div>
+      <div class="stat"><div class="stat-value">${posts.length}</div><div class="stat-label">Articulos publicados</div></div>
+      <div class="stat"><div class="stat-value">${totalMinutes} min</div><div class="stat-label">Tiempo total de lectura</div></div>
+      <div class="stat"><div class="stat-value">${fmtMonthYear(latestDate)}</div><div class="stat-label">Ultima actualizacion</div></div>
     </div>
   </section>
 
   ${featuredHtml}
 
-  ${restPosts.length > 0 ? `<div class="section-label">Todos los articulos</div>` : ''}
+  <section class="filters" role="tablist" aria-label="Filtrar articulos por categoria">
+    ${filterPills}
+  </section>
+
   <section class="grid">
     ${gridCards}
   </section>
+
+  <script>
+    (function(){
+      var pills = document.querySelectorAll('.cat-pill');
+      var cards = document.querySelectorAll('.blog-card');
+      pills.forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var cat = btn.dataset.cat;
+          pills.forEach(function(b){
+            var active = b === btn;
+            b.classList.toggle('active', active);
+            if (active) {
+              b.style.color = b.dataset.color;
+              b.style.background = b.dataset.bg;
+              b.style.borderColor = 'transparent';
+            } else {
+              b.style.color = '';
+              b.style.background = '';
+              b.style.borderColor = '';
+            }
+          });
+          cards.forEach(function(c){
+            c.style.display = (cat === 'Todos' || c.dataset.category === cat) ? '' : 'none';
+          });
+        });
+      });
+    })();
+  </script>
 </body>
 </html>`;
 
