@@ -10,17 +10,13 @@
  *
  * SSR-safe: returns the hard-coded default when `document` is undefined.
  *
- * Manual override (dev/QA): window.__setFeatureFlag('landingUnification', true)
+ * Manual override (dev/QA): window.__setFeatureFlag('flagName', true)
  * Persists for 30 days via cookie.
  */
 
 const DEFAULTS = {
-  // Toggle the unified landing experience: when ON, "/" renders ForBrandsPage
-  // (the advertiser-focused main landing). When OFF, "/" renders the legacy
-  // LandingPage (kept around in case we need it for a different surface later).
-  // Default: OFF (canary rollout). Override per-user via cookie
-  // ff_landingUnification=on, or per-environment via VITE_FF_LANDING_UNIFICATION=on.
-  landingUnification: false,
+  // Add feature flags here as `flagName: false`. Override per-user via cookie
+  // ff_flagName=on, or per-environment via VITE_FF_FLAG_NAME=on.
 }
 
 const COOKIE_PREFIX = 'ff_'
@@ -66,7 +62,7 @@ function parseBoolean(raw) {
 
 /**
  * Returns the boolean value of a feature flag.
- * @param {string} name  - flag name (camelCase, e.g. "landingUnification")
+ * @param {string} name  - flag name (camelCase)
  * @returns {boolean}
  */
 export function getFeatureFlag(name) {

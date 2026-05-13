@@ -2,21 +2,15 @@ import React, { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import NavBar from '../navigation/NavBar'
 import ScarcityBanner from '../components/landing/ScarcityBanner'
-import { getFeatureFlag } from '../../flags/featureFlags'
 
 export default function AppLayout() {
   const { pathname } = useLocation()
   const isLanding = pathname === '/'
   const isFullWidth = pathname === '/marketplace'
-  // Scarcity banner — shown on the surfaces that render a hero with #hero-cta:
-  //   - /para-anunciantes (always, advertiser variant)
-  //   - /                 (only when landingUnification flag ON, advertiser variant)
-  //   - /para-canales     (always, creator variant)
-  // The banner anchors to #hero-cta; if the page doesn't render that target,
-  // don't show the banner here.
-  const landingUnificationEnabled = getFeatureFlag('landingUnification')
-  const isAdvertiserSurface =
-    pathname === '/para-anunciantes' || (pathname === '/' && landingUnificationEnabled)
+  // Scarcity banner — shown on surfaces that render a hero with #hero-cta:
+  //   - "/" y "/para-anunciantes": variante advertiser
+  //   - "/para-canales": variante creator
+  const isAdvertiserSurface = pathname === '/' || pathname === '/para-anunciantes'
   const isCreatorSurface = pathname === '/para-canales'
   const showScarcityBanner = isAdvertiserSurface || isCreatorSurface
   const scarcityVariant = isCreatorSurface ? 'creator' : 'advertiser'
