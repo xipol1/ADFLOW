@@ -39,8 +39,10 @@ export default function BlogIndex() {
 
   const totalMinutes = publishedPosts.reduce((s, p) => s + parseInt(p.readTime), 0)
   const latestDate = publishedPosts.reduce((max, p) => p.date > max ? p.date : max, '2000-01-01')
-  const featuredCat = CATEGORY_COLORS[featured.category] || { color: PURPLE, bg: purpleAlpha(0.08) }
-  const featuredPlatformColor = PLATFORM_BRAND[featured.platform]?.color || PURPLE
+  // Defensive fallbacks — if no posts are published yet (e.g., all dated in future),
+  // featured is undefined; we still render the page skeleton instead of crashing.
+  const featuredCat = CATEGORY_COLORS[featured?.category] || { color: PURPLE, bg: purpleAlpha(0.08) }
+  const featuredPlatformColor = PLATFORM_BRAND[featured?.platform]?.color || PURPLE
 
   return (
     <div style={{ fontFamily: SANS, color: 'var(--text)', background: 'var(--bg)', minHeight: '100vh' }}>
@@ -110,7 +112,7 @@ export default function BlogIndex() {
           borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)',
         }}>
           {[
-            { value: BLOG_POSTS.length, label: 'Articulos publicados' },
+            { value: publishedPosts.length, label: 'Articulos publicados' },
             { value: `${totalMinutes} min`, label: 'Tiempo total de lectura' },
             { value: new Date(latestDate).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }), label: 'Ultima actualizacion' },
           ].map((stat, i) => (
@@ -130,6 +132,7 @@ export default function BlogIndex() {
       </section>
 
       {/* ─── FEATURED ARTICLE ─── */}
+      {featured && (
       <section style={{
         maxWidth: '960px', margin: '0 auto 48px',
         padding: '0 24px',
@@ -216,6 +219,7 @@ export default function BlogIndex() {
           </div>
         </Link>
       </section>
+      )}
 
       {/* ─── CATEGORY FILTERS ─── */}
       <section style={{
