@@ -32,7 +32,6 @@ export function useFetch(fetcher, deps = [], opts = {}) {
 
   useEffect(() => () => { mountedRef.current = false }, [])
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const stableFetcher = useCallback(fetcher, deps)
 
   useEffect(() => {
@@ -83,7 +82,6 @@ export function useMultiFetch(fetchersMap, deps = []) {
   const [errors, setErrors] = useState({})
   const [retryKey, setRetryKey] = useState(0)
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const stableMap = useCallback(() => fetchersMap, deps)
 
   useEffect(() => {
