@@ -27,6 +27,7 @@ const ChannelDetailPage = lazy(() => import('../ui/pages/marketplace/ChannelDeta
 const ForChannelsPage = lazy(() => import('../ui/pages/landing/ForChannelsPage'))
 const ForBrandsPage = lazy(() => import('../ui/pages/landing/ForBrandsPage'))
 const HerramientasPage = lazy(() => import('../ui/pages/landing/HerramientasPage'))
+const QueEsChanneladPage = lazy(() => import('../ui/pages/landing/QueEsChanneladPage'))
 const BlogIndex = lazy(() => import('../ui/pages/blog/BlogIndex'))
 const BlogPost = lazy(() => import('../ui/pages/blog/BlogPost'))
 
@@ -175,6 +176,7 @@ export default function AppRoutes() {
           <Route path="privacidad" element={<PrivacyPage />} />
           <Route path="terminos" element={<TermsPage />} />
           <Route path="sobre-nosotros" element={<AboutPage />} />
+          <Route path="que-es-channelad" element={<QueEsChanneladPage />} />
           <Route path="soporte" element={<SupportPage />} />
           <Route path="politica-acceso-whatsapp" element={<DataProcessingPage />} />
           <Route path="para-canales" element={<ForChannelsPage />} />
