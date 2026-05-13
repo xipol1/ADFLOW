@@ -119,6 +119,18 @@ async function handleChannelIntelligenceDetail(req, res) {
     }
 
     const since30d = new Date(Date.now() - 30 * 24 * 3600 * 1000);
+
+    // Lazy-require CanalAlert + FraudDetectionService so this endpoint
+    // works on deploys where Fase 5 hasn't shipped yet.
+    let alerts = [];
+    try {
+      const CanalAlert = require('../models/CanalAlert');
+      alerts = await CanalAlert.find({ canalId, status: 'active' })
+        .sort({ severity: 1, triggeredAt: -1 })
+        .limit(50)
+        .lean();
+    } catch (_) { /* Capa 2 Fase 5 modules missing — return empty alerts */ }
+
     const [trendRaw, topPosts] = await Promise.all([
       CanalMetricsSnapshot.find({ canalId, timestamp: { $gte: since30d } })
         .sort({ timestamp: 1 })
@@ -141,6 +153,7 @@ async function handleChannelIntelligenceDetail(req, res) {
       data: {
         intelligence: intel,
         trend,
+        alerts,
         topPosts: topPosts.map((p) => ({
           _id: p._id,
           type: p.type,
@@ -163,5 +176,58 @@ router.get(
   requireAdmin,
   handleChannelIntelligenceDetail
 );
+
+// ── Capa 2 Fase 5 — alert management ────────────────────────────────────────
+
+async function handleListAlertsForCanal(req, res) {
+  const { canalId } = req.params;
+  const includeResolved = req.query.includeResolved === 'true';
+  try {
+    const fraud = require('../services/FraudDetectionService');
+    const alerts = await fraud.listAlertsForCanal(canalId, { includeResolved, limit: 100 });
+    return res.json({ success: true, data: { alerts } });
+  } catch (err) {
+    console.error('[adminMetrics] list alerts error:', err?.message);
+    return res.status(500).json({ success: false, message: 'List alerts failed', error: err.message });
+  }
+}
+
+async function handleResolveAlert(req, res) {
+  const { alertId } = req.params;
+  const note = String(req.body?.note || '').slice(0, 1000);
+  try {
+    const fraud = require('../services/FraudDetectionService');
+    const updated = await fraud.resolveAlert(alertId, {
+      userId: req.usuario?._id || req.usuario?.id,
+      note,
+    });
+    if (!updated) return res.status(404).json({ success: false, message: 'Alert not found' });
+    return res.json({ success: true, data: { alert: updated } });
+  } catch (err) {
+    console.error('[adminMetrics] resolve alert error:', err?.message);
+    return res.status(500).json({ success: false, message: 'Resolve failed', error: err.message });
+  }
+}
+
+async function handleDismissAlert(req, res) {
+  const { alertId } = req.params;
+  const note = String(req.body?.note || '').slice(0, 1000);
+  try {
+    const fraud = require('../services/FraudDetectionService');
+    const updated = await fraud.dismissAlert(alertId, {
+      userId: req.usuario?._id || req.usuario?.id,
+      note,
+    });
+    if (!updated) return res.status(404).json({ success: false, message: 'Alert not found' });
+    return res.json({ success: true, data: { alert: updated } });
+  } catch (err) {
+    console.error('[adminMetrics] dismiss alert error:', err?.message);
+    return res.status(500).json({ success: false, message: 'Dismiss failed', error: err.message });
+  }
+}
+
+router.get('/channel-intelligence/:canalId/alerts', autenticar, requireAdmin, handleListAlertsForCanal);
+router.post('/channel-intelligence/alerts/:alertId/resolve', autenticar, requireAdmin, handleResolveAlert);
+router.post('/channel-intelligence/alerts/:alertId/dismiss', autenticar, requireAdmin, handleDismissAlert);
 
 module.exports = router;

@@ -134,6 +134,16 @@ class CanalIntelligenceService {
       console.warn(`[ci-service] mirror to Canal failed canal=${canalId}:`, err.message);
     }
 
+    // Capa 2 Fase 5 — run fraud detection rules. We re-fetch the canal
+    // to get the latest `verificado`/`estado` + estadisticas (in case the
+    // mirror above changed something). Failures are non-fatal: the
+    // intelligence doc is already persisted.
+    try {
+      await this._runFraudDetection(canal._id);
+    } catch (err) {
+      console.warn(`[ci-service] fraud detection failed canal=${canalId}:`, err.message);
+    }
+
     return doc;
   }
 
@@ -193,6 +203,28 @@ class CanalIntelligenceService {
     if (typeof confianza !== 'number') return;
     const update = { 'verificacion.confianzaScore': confianza };
     await Canal.findByIdAndUpdate(canal._id, { $set: update });
+  }
+
+  /**
+   * Run fraud detection rules against the freshly persisted intelligence.
+   * Re-loads the canal + intelligence to ensure rules see the latest state.
+   * Lazy-required so this module stays importable in environments where
+   * the alert model isn't loaded (e.g. partial tests).
+   */
+  async _runFraudDetection(canalId) {
+    let fraud;
+    try {
+      fraud = require('./FraudDetectionService');
+    } catch (_) {
+      return;
+    }
+    if (typeof fraud?.runRules !== 'function') return;
+    const [latestIntel, freshCanal] = await Promise.all([
+      CanalIntelligence.findOne({ canalId }).lean(),
+      Canal.findById(canalId).select('_id categoria estado verificado estadisticas').lean(),
+    ]);
+    if (!latestIntel || !freshCanal) return;
+    return fraud.runRules({ intelligence: latestIntel, canal: freshCanal });
   }
 }
 
