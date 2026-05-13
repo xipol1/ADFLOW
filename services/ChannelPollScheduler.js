@@ -309,11 +309,32 @@ class ChannelPollScheduler {
       console.warn(`[poll-scheduler] recalcPriority failed canal=${canalId}:`, e.message)
     );
 
+    // Capa 2 Fase 4 — opportunistic intelligence recompute. Best-effort:
+    // if it fails, the canal still gets recomputed by the periodic 6h job
+    // (when that job lands). Non-blocking — we don't await it because the
+    // recompute scans 90d of data and can take 100-500ms.
+    this._recomputeIntelligence(canalId).catch((e) =>
+      console.warn(`[poll-scheduler] intelligence recompute failed canal=${canalId}:`, e.message)
+    );
+
     return {
       canalId,
       subscribersCount: result.snapshot.subscribersCount,
       snapshotId: String(result.snapshot._id),
     };
+  }
+
+  async _recomputeIntelligence(canalId) {
+    // Lazy-required to keep the scheduler usable in environments where the
+    // intelligence service or its models aren't loaded (e.g. tests).
+    let svc;
+    try {
+      svc = require('./CanalIntelligenceService');
+    } catch (_) {
+      return;
+    }
+    if (typeof svc?.recompute !== 'function') return;
+    await svc.recompute(canalId);
   }
 
   /**

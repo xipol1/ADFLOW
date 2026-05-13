@@ -77,4 +77,91 @@ router.get(
   handleChannelIntelligenceHealth
 );
 
+// ── Capa 2 Fase 4 — per-canal intelligence detail ──────────────────────────
+// Returns the full CanalIntelligence document + a compact 30d trend
+// (timestamp + subscribersCount per snapshot, for sparkline charting) +
+// the top 5 posts by reactions in the same window. Triggers a fresh
+// recompute IF the persisted doc is older than 6h (so admins always see
+// a relatively fresh score without hitting the DB hot-path).
+async function handleChannelIntelligenceDetail(req, res) {
+  const { canalId } = req.params;
+  if (!canalId) return res.status(400).json({ success: false, message: 'canalId required' });
+
+  let CanalIntelligence;
+  let CanalMetricsSnapshot;
+  let CanalPostObservation;
+  let intelligenceService;
+  try {
+    CanalIntelligence = require('../models/CanalIntelligence');
+    CanalMetricsSnapshot = require('../models/CanalMetricsSnapshot');
+    CanalPostObservation = require('../models/CanalPostObservation');
+    intelligenceService = require('../services/CanalIntelligenceService');
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Capa 2 modules not loadable', error: err.message });
+  }
+
+  try {
+    let intel = await CanalIntelligence.findOne({ canalId }).lean();
+    const STALE_MS = 6 * 3600 * 1000;
+    if (!intel || (intel.computedAt && Date.now() - new Date(intel.computedAt).getTime() > STALE_MS)) {
+      try {
+        await intelligenceService.recompute(canalId);
+        intel = await CanalIntelligence.findOne({ canalId }).lean();
+      } catch (err) {
+        // If recompute fails (e.g. canal has no intelligence enabled), fall
+        // back to whatever stale data we have. Surface the error in the body
+        // so admins can see why the data is old.
+        console.warn(`[adminMetrics] intelligence recompute failed canal=${canalId}:`, err.message);
+      }
+    }
+    if (!intel) {
+      return res.status(404).json({ success: false, message: 'No intelligence for this canal — metricsIntelligence may not be enabled' });
+    }
+
+    const since30d = new Date(Date.now() - 30 * 24 * 3600 * 1000);
+    const [trendRaw, topPosts] = await Promise.all([
+      CanalMetricsSnapshot.find({ canalId, timestamp: { $gte: since30d } })
+        .sort({ timestamp: 1 })
+        .select('timestamp subscribersCount')
+        .lean(),
+      CanalPostObservation.find({ canalId, publishedAt: { $gte: since30d } })
+        .sort({ 'reactions.total': -1, publishedAt: -1 })
+        .limit(5)
+        .select('_id type body publishedAt reactions.total nlp.categories')
+        .lean(),
+    ]);
+
+    const trend = trendRaw.map((s) => ({
+      ts: s.timestamp,
+      subscribers: s.subscribersCount,
+    }));
+
+    return res.json({
+      success: true,
+      data: {
+        intelligence: intel,
+        trend,
+        topPosts: topPosts.map((p) => ({
+          _id: p._id,
+          type: p.type,
+          publishedAt: p.publishedAt,
+          reactions: p.reactions?.total ?? 0,
+          categories: p.nlp?.categories || [],
+          bodyPreview: typeof p.body === 'string' ? p.body.substring(0, 200) : '',
+        })),
+      },
+    });
+  } catch (err) {
+    console.error('[adminMetrics] channel-intelligence detail error:', err?.message);
+    return res.status(500).json({ success: false, message: 'Detail fetch failed', error: err.message });
+  }
+}
+
+router.get(
+  '/channel-intelligence/:canalId',
+  autenticar,
+  requireAdmin,
+  handleChannelIntelligenceDetail
+);
+
 module.exports = router;
