@@ -391,13 +391,6 @@ export default function EarningsCalculator({ sectionId = 'earnings-calc', backgr
                 sub="30–50% comisión + cobro a 60-90 días."
               />
               <ComparisonBar
-                label="Patreon"
-                value={result.patreon}
-                baseline={result.monthly}
-                accent="rgba(241,99,67,0.55)"
-                sub="8% comisión, asume 5% miembros pagando 5 €/mes."
-              />
-              <ComparisonBar
                 label="Adsense"
                 value={result.adsense}
                 baseline={result.monthly}

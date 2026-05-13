@@ -46,7 +46,7 @@ const VARIANTS = {
     rightCard: { eyebrow: 'La nueva forma', title: 'Channelad', letter: 'C' },
     rows: [
       { icon: Coins, label: 'Comisión al creador',
-        left: { val: '30–50% sobre tu precio', good: false }, right: { val: '0% · la pagamos del anunciante', good: true } },
+        left: { val: '30–50% sobre tu precio', good: false }, right: { val: '0% · la cobramos al anunciante', good: true } },
       { icon: CalendarClock, label: 'Plazo de cobro',
         left: { val: '60–90 días post-publicación', good: false }, right: { val: '24–48h (escrow auto)', good: true } },
       { icon: Clock, label: 'Verificación inicial del canal',
@@ -56,7 +56,7 @@ const VARIANTS = {
       { icon: BadgeCheck, label: 'Anunciantes verificados',
         left: { val: 'Variable, sin KYC', good: false }, right: { val: 'KYC + escrow obligatorio', good: true } },
       { icon: Activity, label: 'Métricas en tiempo real',
-        left: { val: 'PDF mensual', good: false }, right: { val: 'Dashboard live 24/7', good: true } },
+        left: { val: 'PDF mensual', good: false }, right: { val: 'Panel live, datos al minuto', good: true } },
     ],
   },
 }
