@@ -194,6 +194,51 @@ const CanalSchema = new mongoose.Schema(
     // posts look like. Powers the channel-aware copy analyzer. See
     // services/copyBenchmarksService.js for the payload shape.
     copyBenchmarksCache: { type: mongoose.Schema.Types.Mixed, default: null },
+
+    // ── Capa 2 — Channel Intelligence (passive observation) ─────────────────
+    // Opt-in metadata + post observation pipeline for verified WhatsApp
+    // channels (and, in future phases, other platforms). Populated by
+    // services/ChannelMetricsCollector.js (Fase 2) + Baileys real-time
+    // subscription worker. Parallel to `botConfig.whatsapp` — does NOT
+    // replace Flujo A; this is the read-only intelligence layer.
+    //
+    // Historical context: Baileys 7.0.0-rc.9 cannot fetch historical channel
+    // posts (newsletterFetchMessages IQ times out). Observation therefore
+    // anchors at the moment of verification — see observationStartedAt.
+    metricsIntelligence: {
+      enabled: { type: Boolean, default: false },
+      channelJid: { type: String, default: '' },        // 120363...@newsletter, cached for worker filters
+      baileysSessionId: {                                // which BaileysSession owns the subscription
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'BaileysSession',
+        default: null,
+      },
+      observationStartedAt: { type: Date, default: null }, // anchor — pre-this date, no observation possible
+
+      // Poll cadence — recalculated by ChannelPollScheduler after each tick
+      pollPriority: {
+        type: String,
+        enum: ['high', 'standard', 'low', 'cold'],
+        default: 'standard',
+      },
+      lastPollAt: { type: Date, default: null },
+      lastPollStatus: {
+        type: String,
+        enum: ['ok', 'no_session', 'not_admin', 'metadata_failed', 'error', 'unknown'],
+        default: 'unknown',
+      },
+      consecutiveFailures: { type: Number, default: 0 },
+
+      // Real-time subscription lifecycle — subscribeNewsletterUpdates returns
+      // a 90s lease that must be renewed for continuous coverage. The worker
+      // tracks each lease here so we can detect gaps in real-time coverage.
+      lastSubscriptionRenewedAt: { type: Date, default: null },
+      subscriptionStatus: {
+        type: String,
+        enum: ['active', 'expired', 'never', 'failed'],
+        default: 'never',
+      },
+    },
   },
   {
     timestamps: true,

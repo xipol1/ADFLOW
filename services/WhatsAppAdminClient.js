@@ -199,6 +199,27 @@ class WhatsAppAdminClient {
     return this._sendRequest('healthCheck', {}, 5000);
   }
 
+  // Diagnostic-only. Used by scripts/probe-channel.js to discover the real
+  // shape of whatsapp-web.js Message objects before Capa 2 schema design.
+  // Worker caps `limit` at 20. Payload can be large (≈100KB-1MB) — do not
+  // call from request handlers.
+  async inspectChannelMessagesRaw(channelId, limit = 20) {
+    return this._sendRequest('inspectChannelMessagesRaw', { channelId, limit }, 60000);
+  }
+
+  // Discovery + diagnostic. Returns every chat where isChannel===true that
+  // this WhatsApp account is part of (admin or follower). Worker caps at 200.
+  // Read-only. Not wired to any job — surfacing it here as infrastructure for
+  // (a) the probe workflow (resolve sandbox JID by name) and (b) future
+  // auto-detection of channels where the bot has been added as admin without
+  // going through Flujo A.
+  // Generous timeout: client.getChats() on a freshly-paired account can take
+  // 60-90s while WhatsApp syncs the full chat list. Subsequent calls on a
+  // warm session typically return in <5s.
+  async listMyChannels() {
+    return this._sendRequest('listMyChannels', {}, 120000);
+  }
+
   // ─── Shutdown ──────────────────────────────────────────────────────────────
 
   shutdown() {
