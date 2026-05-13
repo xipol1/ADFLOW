@@ -126,6 +126,15 @@ class ChannelMetricsCollector {
 
     try {
       const doc = await CanalPostObservation.create(observation);
+      // Best-effort enqueue for Fase 3 NLP enrichment. Lazy require so a
+      // Vercel-side ingest path that doesn't have BullMQ stays usable —
+      // contentEnrichmentScheduler.enqueue() is itself a no-op if the
+      // scheduler isn't started in this process. Errors here MUST NOT
+      // bubble: the observation is already persisted; failed enrichment
+      // can be backfilled later via the partial index on nlp.enrichedAt.
+      this._enqueueEnrichment(doc._id).catch((err) =>
+        console.warn(`[metrics-collector] enqueue enrichment failed (non-fatal) obs=${doc._id}:`, err.message)
+      );
       return { created: true, doc };
     } catch (err) {
       if (err && err.code === 11000) {
@@ -138,6 +147,19 @@ class ChannelMetricsCollector {
       }
       throw err;
     }
+  }
+
+  // Lazy-required to keep ChannelMetricsCollector loadable in environments
+  // without BullMQ (Vercel) — the actual no-op behavior happens inside the
+  // scheduler when queue is null.
+  async _enqueueEnrichment(observationId) {
+    let scheduler;
+    try {
+      scheduler = require('./contentEnrichmentScheduler');
+    } catch (_) {
+      return;
+    }
+    await scheduler.enqueue(observationId);
   }
 
   // ─── Internal ─────────────────────────────────────────────────────────────

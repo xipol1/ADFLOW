@@ -33,6 +33,8 @@
 
 const subscriptionWorker = require('./ChannelSubscriptionWorker');
 const pollScheduler = require('./ChannelPollScheduler');
+const enrichmentScheduler = require('./contentEnrichmentScheduler');
+const llmBudgetGuard = require('./nlp/LLMBudgetGuard');
 const baileysSessionManager = require('./baileys/BaileysSessionManager');
 
 class ChannelIntelligenceBootstrap {
@@ -54,17 +56,28 @@ class ChannelIntelligenceBootstrap {
     //    being live before any polls fire.
     await subscriptionWorker.start();
 
-    // 2. Scheduler next — periodic metadata polls. Errors here shouldn't
-    //    take down the subscription worker, hence the try/catch.
+    // 2. Metadata poll scheduler — periodic newsletterMetadata snapshots.
+    //    Errors here shouldn't take down the subscription worker.
     try {
       await pollScheduler.start();
     } catch (err) {
-      console.error('[ci-bootstrap] scheduler start failed (continuing without it):', err.message);
+      console.error('[ci-bootstrap] poll scheduler start failed (continuing without it):', err.message);
     }
 
-    // 3. Pause-on-disconnect hook. We watch BaileysSessionManager for any
-    //    session that drops; if no sessions are alive, the scheduler can't
-    //    do useful work, so we pause it.
+    // 3. Content enrichment scheduler (Fase 3) — BullMQ worker that runs
+    //    NLP on each new observation. Independent from the poll scheduler:
+    //    if it fails to start, real-time ingestion + metadata polling
+    //    keep working, just without NLP. The partial index on
+    //    nlp.enrichedAt lets a later backfill pick up unenriched docs.
+    try {
+      await enrichmentScheduler.start();
+    } catch (err) {
+      console.error('[ci-bootstrap] enrichment scheduler start failed (continuing without NLP):', err.message);
+    }
+
+    // 4. Pause-on-disconnect hook. We watch BaileysSessionManager for any
+    //    session that drops; if no sessions are alive, the schedulers
+    //    can't do useful work, so we pause them.
     this._installPauseHook();
 
     console.log('[ci-bootstrap] stack started');
@@ -75,7 +88,8 @@ class ChannelIntelligenceBootstrap {
     this.started = false;
     console.log('[ci-bootstrap] stopping channel intelligence stack');
     try { await subscriptionWorker.stop(); } catch (e) { console.warn('[ci-bootstrap] subscriptionWorker stop error:', e.message); }
-    try { await pollScheduler.stop(); } catch (e) { console.warn('[ci-bootstrap] scheduler stop error:', e.message); }
+    try { await pollScheduler.stop(); } catch (e) { console.warn('[ci-bootstrap] pollScheduler stop error:', e.message); }
+    try { await enrichmentScheduler.stop(); } catch (e) { console.warn('[ci-bootstrap] enrichmentScheduler stop error:', e.message); }
     console.log('[ci-bootstrap] stopped');
   }
 
@@ -113,18 +127,22 @@ class ChannelIntelligenceBootstrap {
     sock.ev.on('connection.update', async (update) => {
       const { connection } = update || {};
       if (connection === 'close') {
-        // Check whether ANY session is still alive — if not, pause queue.
+        // Check whether ANY session is still alive — if not, pause both queues.
         const stillAlive = [...baileysSessionManager.sockets.values()].some(
           (e) => e?.sock && e.sock !== sock
         );
         if (!stillAlive) {
-          await pollScheduler.pauseAll().catch((e) =>
-            console.warn('[ci-bootstrap] pauseAll error:', e.message)
-          );
+          await Promise.all([
+            pollScheduler.pauseAll().catch((e) => console.warn('[ci-bootstrap] poll pauseAll error:', e.message)),
+            // NB: we DO NOT pause the enrichment queue on Baileys disconnect.
+            // Enrichment doesn't need the WhatsApp session — it processes
+            // already-persisted observations against Anthropic. Pausing it
+            // here would slow recovery without preventing failures.
+          ]);
         }
       } else if (connection === 'open') {
         await pollScheduler.resumeAll().catch((e) =>
-          console.warn('[ci-bootstrap] resumeAll error:', e.message)
+          console.warn('[ci-bootstrap] poll resumeAll error:', e.message)
         );
       }
     });
@@ -140,9 +158,17 @@ class ChannelIntelligenceBootstrap {
       number: e?.sock?.user?.id || null,
     }));
 
-    let scheduler = null;
-    try { scheduler = await pollScheduler.getHealthSnapshot(); }
-    catch (e) { scheduler = { error: e.message }; }
+    let pollSchedulerHealth = null;
+    try { pollSchedulerHealth = await pollScheduler.getHealthSnapshot(); }
+    catch (e) { pollSchedulerHealth = { error: e.message }; }
+
+    let enrichmentSchedulerHealth = null;
+    try { enrichmentSchedulerHealth = await enrichmentScheduler.getHealthSnapshot(); }
+    catch (e) { enrichmentSchedulerHealth = { error: e.message }; }
+
+    let budget = null;
+    try { budget = await llmBudgetGuard.getHealthSnapshot(); }
+    catch (e) { budget = { error: e.message }; }
 
     return {
       started: this.started,
@@ -151,7 +177,9 @@ class ChannelIntelligenceBootstrap {
         count: sessionStates.length,
         details: sessionStates,
       },
-      scheduler,
+      pollScheduler: pollSchedulerHealth,
+      enrichmentScheduler: enrichmentSchedulerHealth,
+      llmBudget: budget,
     };
   }
 }
