@@ -69,27 +69,35 @@
 
     /* Featured */
     .featured { max-width: 960px; margin: 0 auto 48px; padding: 0 24px; }
-    .featured-card { display: block; position: relative; padding: 48px 40px; border-radius: 20px; background: #F5F5F7; border: 1px solid rgba(0,0,0,0.04); overflow: hidden; transition: border-color 0.3s; }
-    .featured-card:hover { border-color: rgba(124,58,237,0.2); }
-    .featured-ghost { position: absolute; top: -12px; left: 24px; font-family: 'Instrument Serif', serif; font-style: italic; font-size: clamp(80px, 12vw, 140px); font-weight: 400; color: #1D1D1F; opacity: 0.025; line-height: 1; pointer-events: none; user-select: none; }
+    .featured-card { display: block; position: relative; padding: 48px 40px; border-radius: 20px; background: #F5F5F7; border: 1px solid rgba(0,0,0,0.04); overflow: hidden; transition: border-color 0.3s cubic-bezier(.22,1,.36,1); }
+    .featured-card:hover { border-color: rgba(124,58,237,0.25); }
+    .featured-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .featured-ghost { position: absolute; top: -12px; left: 24px; font-family: 'Instrument Serif', serif; font-style: italic; font-size: clamp(80px, 12vw, 140px); font-weight: 400; color: #1D1D1F; opacity: 0.025; line-height: 1; pointer-events: none; user-select: none; letter-spacing: -0.02em; }
     .featured-inner { position: relative; z-index: 1; }
-    .featured-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .featured-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
     .featured-card h2 { font-family: 'Instrument Serif', serif; font-size: clamp(28px, 4vw, 40px); font-weight: 400; line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 14px; }
     .featured-card p { font-size: 16px; color: #86868B; line-height: 1.65; max-width: 600px; margin-bottom: 20px; }
     .featured-link { font-size: 13px; font-weight: 600; color: #7C3AED; display: inline-flex; align-items: center; gap: 6px; }
+    .featured-platform { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 4px 10px; border-radius: 6px; }
     .card-meta-text { font-size: 12px; color: #86868B; }
 
+    /* Category filter pills */
+    .filters { max-width: 960px; margin: 0 auto 32px; padding: 0 24px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .cat-pill { font-family: 'DM Sans', system-ui, sans-serif; font-size: 12px; font-weight: 600; padding: 7px 16px; border-radius: 100px; border: 1px solid rgba(0,0,0,0.08); background: transparent; color: #86868B; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; }
+    .cat-pill:hover { color: #1D1D1F; }
+    .cat-pill.active { border-color: transparent; }
+
     .grid { max-width: 960px; margin: 0 auto; padding: 0 24px 120px; display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px; }
-    .blog-card { border-radius: 16px; background: #F5F5F7; border: 1px solid rgba(0,0,0,0.04); padding: 28px 24px; display: flex; flex-direction: column; gap: 14px; transition: transform 0.3s cubic-bezier(.22,1,.36,1), border-color 0.3s, box-shadow 0.3s; }
+    .blog-card { position: relative; border-radius: 16px; background: #F5F5F7; border: 1px solid rgba(0,0,0,0.04); display: flex; flex-direction: column; overflow: hidden; transition: transform 0.3s cubic-bezier(.22,1,.36,1), border-color 0.3s cubic-bezier(.22,1,.36,1), box-shadow 0.3s cubic-bezier(.22,1,.36,1); }
     .blog-card:hover { transform: translateY(-2px); border-color: rgba(124,58,237,0.2); box-shadow: 0 8px 32px rgba(139,92,246,0.08); }
+    .card-accent { display: block; height: 3px; }
+    .card-body { padding: 28px 24px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
     .card-category { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #7C3AED; background: rgba(124,58,237,0.08); padding: 3px 8px; border-radius: 5px; width: fit-content; }
-    .blog-card h2 { font-family: 'Instrument Serif', serif; font-size: 20px; font-weight: 400; line-height: 1.3; }
+    .blog-card h2 { font-family: 'Instrument Serif', serif; font-size: 20px; font-weight: 400; line-height: 1.3; letter-spacing: -0.01em; }
     .blog-card p { font-size: 14px; color: #86868B; line-height: 1.6; flex: 1; }
     .card-footer { display: flex; justify-content: space-between; padding-top: 14px; border-top: 1px solid rgba(0,0,0,0.04); font-size: 12px; color: #86868B; }
 
     .grain { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0.028; }
-
-    .section-label { max-width: 960px; margin: 0 auto; padding: 0 24px 16px; font-size: 11px; color: #86868B; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -107,19 +115,21 @@
 
   <section class="stats">
     <div class="stats-grid">
-      <div class="stat"><div class="stat-value">23</div><div class="stat-label">Articulos</div></div>
-      <div class="stat"><div class="stat-value">309 min</div><div class="stat-label">Lectura total</div></div>
-      <div class="stat"><div class="stat-value">2026-04</div><div class="stat-label">Ultima actualizacion</div></div>
+      <div class="stat"><div class="stat-value">23</div><div class="stat-label">Articulos publicados</div></div>
+      <div class="stat"><div class="stat-value">309 min</div><div class="stat-label">Tiempo total de lectura</div></div>
+      <div class="stat"><div class="stat-value">abr 2026</div><div class="stat-label">Ultima actualizacion</div></div>
     </div>
   </section>
 
   
     <section class="featured">
       <a href="/blog/negociar-publicidad-telegram" class="featured-card">
+        <span class="featured-accent" style="background:linear-gradient(90deg, #2aabee, #2aabee66)"></span>
         <div class="featured-ghost">DESTACADO</div>
         <div class="featured-inner">
           <div class="featured-meta">
-            <span class="card-category">Monetizacion</span>
+            <span class="card-category" style="color:#10b981;background:rgba(16,185,129,0.08)">Monetizacion</span>
+              <span class="featured-platform" style="color:#2aabee;background:#2aabee1F">Telegram</span>
             <span class="card-meta-text">14 min</span>
           </div>
           <h2>Negociar publicidad en Telegram 2026: scripts, precios y 6 objeciones</h2>
@@ -129,228 +139,325 @@
       </a>
     </section>
 
-  <div class="section-label">Todos los articulos</div>
+  <section class="filters" role="tablist" aria-label="Filtrar articulos por categoria">
+    <button type="button" class="cat-pill active" data-cat="Todos" data-color="#7C3AED" data-bg="rgba(124,58,237,0.08)" style="color:#7C3AED;background:rgba(124,58,237,0.08);border-color:transparent">Todos</button><button type="button" class="cat-pill" data-cat="Guias" data-color="#7C3AED" data-bg="rgba(124,58,237,0.08)">Guias</button><button type="button" class="cat-pill" data-cat="Monetizacion" data-color="#10b981" data-bg="rgba(16,185,129,0.08)">Monetizacion</button><button type="button" class="cat-pill" data-cat="Comparativas" data-color="#3b82f6" data-bg="rgba(59,130,246,0.08)">Comparativas</button>
+  </section>
+
   <section class="grid">
     
-      <a href="/blog/cuanto-cobrar-publicidad-whatsapp" class="blog-card">
-        <div class="card-category">Monetizacion</div>
-        <h2>Cuánto cobrar publicidad WhatsApp 2026: fórmula + tabla CPM por nicho</h2>
-        <p>La fórmula exacta para poner precio a un post patrocinado en tu canal de WhatsApp en 2026. Tabla de CPMs por nicho (4-18 EUR) y 3 ejemplos con números reales.</p>
-        <div class="card-footer">
-          <span>13 min</span>
-          <span>2026-04-17</span>
+      <a href="/blog/cuanto-cobrar-publicidad-whatsapp" class="blog-card" data-category="Monetizacion">
+        <span class="card-accent" style="background:linear-gradient(90deg, #25d366, #25d36666)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#10b981;background:rgba(16,185,129,0.08)">Monetizacion</div>
+          <h2>Cuánto cobrar publicidad WhatsApp 2026: fórmula + tabla CPM por nicho</h2>
+          <p>La fórmula exacta para poner precio a un post patrocinado en tu canal de WhatsApp en 2026. Tabla de CPMs por nicho (4-18 EUR) y 3 ejemplos con números reales.</p>
+          <div class="card-footer">
+            <span>13 min</span>
+            <span>17 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/monetizar-canal-difusion-instagram" class="blog-card">
-        <div class="card-category">Monetizacion</div>
-        <h2>Monetizar canal de difusión de Instagram 2026: 5 métodos (Broadcast Channels)</h2>
-        <p>Cómo monetizar un canal de difusión de Instagram en 2026. CPMs reales (6-15 EUR), tasa de apertura 60-75%, 5 métodos probados y cómo conectar con marcas. Sin humo.</p>
-        <div class="card-footer">
-          <span>15 min</span>
-          <span>2026-04-16</span>
+      <a href="/blog/monetizar-canal-difusion-instagram" class="blog-card" data-category="Monetizacion">
+        <span class="card-accent" style="background:linear-gradient(90deg, #e1306c, #e1306c66)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#10b981;background:rgba(16,185,129,0.08)">Monetizacion</div>
+          <h2>Monetizar canal de difusión de Instagram 2026: 5 métodos (Broadcast Channels)</h2>
+          <p>Cómo monetizar un canal de difusión de Instagram en 2026. CPMs reales (6-15 EUR), tasa de apertura 60-75%, 5 métodos probados y cómo conectar con marcas. Sin humo.</p>
+          <div class="card-footer">
+            <span>15 min</span>
+            <span>16 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/casos-exito-monetizar-telegram-channelad" class="blog-card">
-        <div class="card-category">Monetizacion</div>
-        <h2>5 casos reales: creadores que monetizan Telegram/Discord con Channelad</h2>
-        <p>Datos reales, ingresos reales. 5 creadores que generan 200-3.000€/mes con publicidad en Telegram y Discord a través de Channelad. Nichos, estrategias e ingresos exactos.</p>
-        <div class="card-footer">
-          <span>12 min</span>
-          <span>2026-04-15</span>
+      <a href="/blog/casos-exito-monetizar-telegram-channelad" class="blog-card" data-category="Monetizacion">
+        <span class="card-accent" style="background:linear-gradient(90deg, #2aabee, #2aabee66)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#10b981;background:rgba(16,185,129,0.08)">Monetizacion</div>
+          <h2>5 casos reales: creadores que monetizan Telegram/Discord con Channelad</h2>
+          <p>Datos reales, ingresos reales. 5 creadores que generan 200-3.000€/mes con publicidad en Telegram y Discord a través de Channelad. Nichos, estrategias e ingresos exactos.</p>
+          <div class="card-footer">
+            <span>12 min</span>
+            <span>15 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/publicidad-comunidades-online-guia-anunciantes" class="blog-card">
-        <div class="card-category">Guias</div>
-        <h2>Publicidad en comunidades online 2026: guía completa para anunciantes</h2>
-        <p>Cómo anunciarse en comunidades de Telegram, WhatsApp y Discord en España en 2026. Estrategia, presupuesto (desde 200€), métricas y cómo medir el ROI. Con tabla comparativa.</p>
-        <div class="card-footer">
-          <span>14 min</span>
-          <span>2026-04-15</span>
+      <a href="/blog/publicidad-comunidades-online-guia-anunciantes" class="blog-card" data-category="Guias">
+        <span class="card-accent" style="background:linear-gradient(90deg, #2aabee, #2aabee66)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#7C3AED;background:rgba(124,58,237,0.08)">Guias</div>
+          <h2>Publicidad en comunidades online 2026: guía completa para anunciantes</h2>
+          <p>Cómo anunciarse en comunidades de Telegram, WhatsApp y Discord en España en 2026. Estrategia, presupuesto (desde 200€), métricas y cómo medir el ROI. Con tabla comparativa.</p>
+          <div class="card-footer">
+            <span>14 min</span>
+            <span>15 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/publicidad-en-whatsapp-guia-completa" class="blog-card">
-        <div class="card-category">Guias</div>
-        <h2>Publicidad en WhatsApp 2026: guía sincera de precios y formatos</h2>
-        <p>Cómo hacer publicidad en grupos y canales de WhatsApp en 2026. Precios reales (30-120€/post), 80% de open rate y cómo encontrar canales verificados. Sin humo.</p>
-        <div class="card-footer">
-          <span>14 min</span>
-          <span>2026-04-14</span>
+      <a href="/blog/publicidad-en-whatsapp-guia-completa" class="blog-card" data-category="Guias">
+        <span class="card-accent" style="background:linear-gradient(90deg, #25d366, #25d36666)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#7C3AED;background:rgba(124,58,237,0.08)">Guias</div>
+          <h2>Publicidad en WhatsApp 2026: guía sincera de precios y formatos</h2>
+          <p>Cómo hacer publicidad en grupos y canales de WhatsApp en 2026. Precios reales (30-120€/post), 80% de open rate y cómo encontrar canales verificados. Sin humo.</p>
+          <div class="card-footer">
+            <span>14 min</span>
+            <span>14 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/telegram-vs-whatsapp-vs-discord-publicidad" class="blog-card">
-        <div class="card-category">Comparativas</div>
-        <h2>Telegram vs WhatsApp vs Discord 2026: dónde anunciarse (comparativa)</h2>
-        <p>Comparativa 2026 de las 3 plataformas para publicidad en comunidades: CPM (1,5-12€), engagement (15-40%), formatos y recomendaciones por tipo de marca. Con datos reales.</p>
-        <div class="card-footer">
-          <span>13 min</span>
-          <span>2026-04-14</span>
+      <a href="/blog/telegram-vs-whatsapp-vs-discord-publicidad" class="blog-card" data-category="Comparativas">
+        <span class="card-accent" style="background:linear-gradient(90deg, #2aabee, #2aabee66)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#3b82f6;background:rgba(59,130,246,0.08)">Comparativas</div>
+          <h2>Telegram vs WhatsApp vs Discord 2026: dónde anunciarse (comparativa)</h2>
+          <p>Comparativa 2026 de las 3 plataformas para publicidad en comunidades: CPM (1,5-12€), engagement (15-40%), formatos y recomendaciones por tipo de marca. Con datos reales.</p>
+          <div class="card-footer">
+            <span>13 min</span>
+            <span>14 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/publicidad-discord-marcas" class="blog-card">
-        <div class="card-category">Guias</div>
-        <h2>Publicidad en Discord para marcas 2026: formatos, precios y engagement</h2>
-        <p>Cómo anunciarse en servidores de Discord en 2026: formatos (posts, roles, eventos), precios reales (15-500€) y por qué el engagement en Discord supera al de cualquier red social.</p>
-        <div class="card-footer">
-          <span>11 min</span>
-          <span>2026-04-13</span>
+      <a href="/blog/publicidad-discord-marcas" class="blog-card" data-category="Guias">
+        <span class="card-accent" style="background:linear-gradient(90deg, #5865f2, #5865f266)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#7C3AED;background:rgba(124,58,237,0.08)">Guias</div>
+          <h2>Publicidad en Discord para marcas 2026: formatos, precios y engagement</h2>
+          <p>Cómo anunciarse en servidores de Discord en 2026: formatos (posts, roles, eventos), precios reales (15-500€) y por qué el engagement en Discord supera al de cualquier red social.</p>
+          <div class="card-footer">
+            <span>11 min</span>
+            <span>13 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/como-anunciarse-en-telegram" class="blog-card">
-        <div class="card-category">Guias</div>
-        <h2>Cómo anunciarse en Telegram 2026: guía de precios y formatos para marcas</h2>
-        <p>Todo para hacer publicidad en canales y grupos de Telegram en 2026. Formatos, precios (CPM 2-12€ por nicho), cómo encontrar canales verificados y errores a evitar.</p>
-        <div class="card-footer">
-          <span>16 min</span>
-          <span>2026-04-12</span>
+      <a href="/blog/como-anunciarse-en-telegram" class="blog-card" data-category="Guias">
+        <span class="card-accent" style="background:linear-gradient(90deg, #7C3AED, #7C3AED66)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#7C3AED;background:rgba(124,58,237,0.08)">Guias</div>
+          <h2>Cómo anunciarse en Telegram 2026: guía de precios y formatos para marcas</h2>
+          <p>Todo para hacer publicidad en canales y grupos de Telegram en 2026. Formatos, precios (CPM 2-12€ por nicho), cómo encontrar canales verificados y errores a evitar.</p>
+          <div class="card-footer">
+            <span>16 min</span>
+            <span>12 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/calculadora-precios-publicidad" class="blog-card">
-        <div class="card-category">Guias</div>
-        <h2>Calculadora precios publicidad Telegram/WhatsApp/Discord 2026</h2>
-        <p>Calculadora interactiva 2026: sabe en 30 segundos cuánto cobrar por publicidad en tu canal. CPMs reales del mercado español. Funciona para Telegram, WhatsApp y Discord.</p>
-        <div class="card-footer">
-          <span>8 min</span>
-          <span>2026-04-11</span>
+      <a href="/blog/calculadora-precios-publicidad" class="blog-card" data-category="Guias">
+        <span class="card-accent" style="background:linear-gradient(90deg, #2aabee, #2aabee66)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#7C3AED;background:rgba(124,58,237,0.08)">Guias</div>
+          <h2>Calculadora precios publicidad Telegram/WhatsApp/Discord 2026</h2>
+          <p>Calculadora interactiva 2026: sabe en 30 segundos cuánto cobrar por publicidad en tu canal. CPMs reales del mercado español. Funciona para Telegram, WhatsApp y Discord.</p>
+          <div class="card-footer">
+            <span>8 min</span>
+            <span>11 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/como-monetizar-canal-whatsapp" class="blog-card">
-        <div class="card-category">Monetizacion</div>
-        <h2>Monetizar canal de WhatsApp 2026: 6 métodos reales (y cuánto pagan)</h2>
-        <p>Guía paso a paso para ganar dinero con tu canal de WhatsApp en España en 2026. Las 6 formas reales (ads, suscripciones, afiliados), cifras por nicho y cómo empezar hoy.</p>
-        <div class="card-footer">
-          <span>18 min</span>
-          <span>2026-04-11</span>
+      <a href="/blog/como-monetizar-canal-whatsapp" class="blog-card" data-category="Monetizacion">
+        <span class="card-accent" style="background:linear-gradient(90deg, #25d366, #25d36666)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#10b981;background:rgba(16,185,129,0.08)">Monetizacion</div>
+          <h2>Monetizar canal de WhatsApp 2026: 6 métodos reales (y cuánto pagan)</h2>
+          <p>Guía paso a paso para ganar dinero con tu canal de WhatsApp en España en 2026. Las 6 formas reales (ads, suscripciones, afiliados), cifras por nicho y cómo empezar hoy.</p>
+          <div class="card-footer">
+            <span>18 min</span>
+            <span>11 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/crear-canal-telegram-monetizar" class="blog-card">
-        <div class="card-category">Guias</div>
-        <h2>Cómo crear un canal de Telegram y monetizarlo en 2026 (paso a paso)</h2>
-        <p>Guía de 22 min para crear un canal de Telegram rentable en España en 2026: nicho, contenido, 1ª anunciante y fórmula de precios con CPMs por nicho. Sin humo.</p>
-        <div class="card-footer">
-          <span>22 min</span>
-          <span>2026-04-11</span>
+      <a href="/blog/crear-canal-telegram-monetizar" class="blog-card" data-category="Guias">
+        <span class="card-accent" style="background:linear-gradient(90deg, #2aabee, #2aabee66)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#7C3AED;background:rgba(124,58,237,0.08)">Guias</div>
+          <h2>Cómo crear un canal de Telegram y monetizarlo en 2026 (paso a paso)</h2>
+          <p>Guía de 22 min para crear un canal de Telegram rentable en España en 2026: nicho, contenido, 1ª anunciante y fórmula de precios con CPMs por nicho. Sin humo.</p>
+          <div class="card-footer">
+            <span>22 min</span>
+            <span>11 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/media-kit-canal-telegram" class="blog-card">
-        <div class="card-category">Guias</div>
-        <h2>Media kit canal Telegram 2026: 7 elementos + plantilla gratuita</h2>
-        <p>Crea el media kit que convierte tu canal de Telegram en un negocio. Los 7 elementos clave, cómo conseguir estadísticas fiables con TGStat y plantilla descargable gratis.</p>
-        <div class="card-footer">
-          <span>10 min</span>
-          <span>2026-04-11</span>
+      <a href="/blog/media-kit-canal-telegram" class="blog-card" data-category="Guias">
+        <span class="card-accent" style="background:linear-gradient(90deg, #2aabee, #2aabee66)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#7C3AED;background:rgba(124,58,237,0.08)">Guias</div>
+          <h2>Media kit canal Telegram 2026: 7 elementos + plantilla gratuita</h2>
+          <p>Crea el media kit que convierte tu canal de Telegram en un negocio. Los 7 elementos clave, cómo conseguir estadísticas fiables con TGStat y plantilla descargable gratis.</p>
+          <div class="card-footer">
+            <span>10 min</span>
+            <span>11 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/publicidad-en-discord-guia-completa" class="blog-card">
-        <div class="card-category">Guias</div>
-        <h2>Publicidad en Discord 2026: precios, formatos y el error del 80% de marcas</h2>
-        <p>Guía definitiva 2026 para anunciarse en servidores de Discord en España. Formatos que funcionan, CPMs reales (1,5-3€) y por qué Discord tiene 15% engagement vs 1-3% de IG.</p>
-        <div class="card-footer">
-          <span>15 min</span>
-          <span>2026-04-10</span>
+      <a href="/blog/publicidad-en-discord-guia-completa" class="blog-card" data-category="Guias">
+        <span class="card-accent" style="background:linear-gradient(90deg, #5865f2, #5865f266)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#7C3AED;background:rgba(124,58,237,0.08)">Guias</div>
+          <h2>Publicidad en Discord 2026: precios, formatos y el error del 80% de marcas</h2>
+          <p>Guía definitiva 2026 para anunciarse en servidores de Discord en España. Formatos que funcionan, CPMs reales (1,5-3€) y por qué Discord tiene 15% engagement vs 1-3% de IG.</p>
+          <div class="card-footer">
+            <span>15 min</span>
+            <span>10 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/cuanto-cobrar-publicidad-telegram" class="blog-card">
-        <div class="card-category">Monetizacion</div>
-        <h2>Precio publicidad Telegram 2026: fórmula + tabla CPM por nicho</h2>
-        <p>La fórmula exacta para poner precio a un post patrocinado en tu canal de Telegram en 2026. Tabla de CPMs por nicho (finanzas, cripto, tech, gaming). Datos reales de España.</p>
-        <div class="card-footer">
-          <span>12 min</span>
-          <span>2026-04-09</span>
+      <a href="/blog/cuanto-cobrar-publicidad-telegram" class="blog-card" data-category="Monetizacion">
+        <span class="card-accent" style="background:linear-gradient(90deg, #2aabee, #2aabee66)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#10b981;background:rgba(16,185,129,0.08)">Monetizacion</div>
+          <h2>Precio publicidad Telegram 2026: fórmula + tabla CPM por nicho</h2>
+          <p>La fórmula exacta para poner precio a un post patrocinado en tu canal de Telegram en 2026. Tabla de CPMs por nicho (finanzas, cripto, tech, gaming). Datos reales de España.</p>
+          <div class="card-footer">
+            <span>12 min</span>
+            <span>9 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/como-monetizar-servidor-discord" class="blog-card">
-        <div class="card-category">Monetizacion</div>
-        <h2>Cómo monetizar un servidor de Discord 2026: 5 métodos probados</h2>
-        <p>Las 5 formas reales de ganar dinero con tu servidor de Discord en 2026: publicidad, roles premium, merchandising, cursos y servicios. Con ingresos reales por tamaño.</p>
-        <div class="card-footer">
-          <span>14 min</span>
-          <span>2026-04-08</span>
+      <a href="/blog/como-monetizar-servidor-discord" class="blog-card" data-category="Monetizacion">
+        <span class="card-accent" style="background:linear-gradient(90deg, #5865f2, #5865f266)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#10b981;background:rgba(16,185,129,0.08)">Monetizacion</div>
+          <h2>Cómo monetizar un servidor de Discord 2026: 5 métodos probados</h2>
+          <p>Las 5 formas reales de ganar dinero con tu servidor de Discord en 2026: publicidad, roles premium, merchandising, cursos y servicios. Con ingresos reales por tamaño.</p>
+          <div class="card-footer">
+            <span>14 min</span>
+            <span>8 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/cuanto-paga-telegram-por-canal" class="blog-card">
-        <div class="card-category">Monetizacion</div>
-        <h2>¿Cuánto paga Telegram por canal en 2026? Cifras reales (30-1.500€)</h2>
-        <p>Telegram no paga lo que crees. Un canal español gana 30-1.500€/mes reales. Descubre las 2 fuentes (Ad Revenue Sharing + publicidad directa) y cómo empezar con 1.000 subs.</p>
-        <div class="card-footer">
-          <span>10 min</span>
-          <span>2026-04-07</span>
+      <a href="/blog/cuanto-paga-telegram-por-canal" class="blog-card" data-category="Monetizacion">
+        <span class="card-accent" style="background:linear-gradient(90deg, #2aabee, #2aabee66)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#10b981;background:rgba(16,185,129,0.08)">Monetizacion</div>
+          <h2>¿Cuánto paga Telegram por canal en 2026? Cifras reales (30-1.500€)</h2>
+          <p>Telegram no paga lo que crees. Un canal español gana 30-1.500€/mes reales. Descubre las 2 fuentes (Ad Revenue Sharing + publicidad directa) y cómo empezar con 1.000 subs.</p>
+          <div class="card-footer">
+            <span>10 min</span>
+            <span>7 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/monetizar-canal-telegram-espana" class="blog-card">
-        <div class="card-category">Monetizacion</div>
-        <h2>Monetizar canal Telegram España 2026: 6 métodos y cifras reales</h2>
-        <p>Las 6 formas reales de ganar dinero con un canal de Telegram en España en 2026. CPMs por nicho (finanzas 5-10€, cripto 6-12€) y ejemplos que facturan 500-3.000€/mes.</p>
-        <div class="card-footer">
-          <span>18 min</span>
-          <span>2026-04-07</span>
+      <a href="/blog/monetizar-canal-telegram-espana" class="blog-card" data-category="Monetizacion">
+        <span class="card-accent" style="background:linear-gradient(90deg, #2aabee, #2aabee66)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#10b981;background:rgba(16,185,129,0.08)">Monetizacion</div>
+          <h2>Monetizar canal Telegram España 2026: 6 métodos y cifras reales</h2>
+          <p>Las 6 formas reales de ganar dinero con un canal de Telegram en España en 2026. CPMs por nicho (finanzas 5-10€, cripto 6-12€) y ejemplos que facturan 500-3.000€/mes.</p>
+          <div class="card-footer">
+            <span>18 min</span>
+            <span>7 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/telega-in-alternatives" class="blog-card">
-        <div class="card-category">Comparativas</div>
-        <h2>5 Telega.in Alternatives for Telegram Advertising in 2026 (Reviewed)</h2>
-        <p>Compare the 5 best Telega.in alternatives in 2026. Platforms with escrow payments, verified metrics and community-first approach. For buyers and sellers of Telegram ads.</p>
-        <div class="card-footer">
-          <span>13 min</span>
-          <span>2026-04-06</span>
+      <a href="/blog/telega-in-alternatives" class="blog-card" data-category="Comparativas">
+        <span class="card-accent" style="background:linear-gradient(90deg, #2aabee, #2aabee66)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#3b82f6;background:rgba(59,130,246,0.08)">Comparativas</div>
+          <h2>5 Telega.in Alternatives for Telegram Advertising in 2026 (Reviewed)</h2>
+          <p>Compare the 5 best Telega.in alternatives in 2026. Platforms with escrow payments, verified metrics and community-first approach. For buyers and sellers of Telegram ads.</p>
+          <div class="card-footer">
+            <span>13 min</span>
+            <span>6 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/publicidad-comunidades-vs-redes-sociales" class="blog-card">
-        <div class="card-category">Comparativas</div>
-        <h2>Comunidades vs redes sociales 2026: comparativa CPM, CTR y ROI</h2>
-        <p>Publicidad en Telegram/WhatsApp/Discord vs Instagram y TikTok Ads en 2026. CPM real, engagement (15-40% vs 1-3%) y qué rinde más según tu objetivo. Datos de campañas reales.</p>
-        <div class="card-footer">
-          <span>13 min</span>
-          <span>2026-04-05</span>
+      <a href="/blog/publicidad-comunidades-vs-redes-sociales" class="blog-card" data-category="Comparativas">
+        <span class="card-accent" style="background:linear-gradient(90deg, #5865f2, #5865f266)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#3b82f6;background:rgba(59,130,246,0.08)">Comparativas</div>
+          <h2>Comunidades vs redes sociales 2026: comparativa CPM, CTR y ROI</h2>
+          <p>Publicidad en Telegram/WhatsApp/Discord vs Instagram y TikTok Ads en 2026. CPM real, engagement (15-40% vs 1-3%) y qué rinde más según tu objetivo. Datos de campañas reales.</p>
+          <div class="card-footer">
+            <span>13 min</span>
+            <span>5 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/mejores-canales-whatsapp-espanol" class="blog-card">
-        <div class="card-category">Guias</div>
-        <h2>Los mejores canales de WhatsApp en español 2026 (por categoría)</h2>
-        <p>Selección curada 2026 de los canales de WhatsApp más activos en español. Finanzas, tecnología, marketing, noticias, emprendimiento y fitness. Con métricas y reviews.</p>
-        <div class="card-footer">
-          <span>10 min</span>
-          <span>2026-04-04</span>
+      <a href="/blog/mejores-canales-whatsapp-espanol" class="blog-card" data-category="Guias">
+        <span class="card-accent" style="background:linear-gradient(90deg, #25d366, #25d36666)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#7C3AED;background:rgba(124,58,237,0.08)">Guias</div>
+          <h2>Los mejores canales de WhatsApp en español 2026 (por categoría)</h2>
+          <p>Selección curada 2026 de los canales de WhatsApp más activos en español. Finanzas, tecnología, marketing, noticias, emprendimiento y fitness. Con métricas y reviews.</p>
+          <div class="card-footer">
+            <span>10 min</span>
+            <span>4 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/escrow-publicidad-digital" class="blog-card">
-        <div class="card-category">Guias</div>
-        <h2>Escrow en publicidad digital 2026: qué es y por qué protege tu inversión</h2>
-        <p>Todo sobre el pago custodiado en publicidad 2026: cómo funciona, qué plataformas lo ofrecen y por qué es imprescindible para anunciarse en Telegram, WhatsApp y Discord.</p>
-        <div class="card-footer">
-          <span>12 min</span>
-          <span>2026-04-03</span>
+      <a href="/blog/escrow-publicidad-digital" class="blog-card" data-category="Guias">
+        <span class="card-accent" style="background:linear-gradient(90deg, #2aabee, #2aabee66)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#7C3AED;background:rgba(124,58,237,0.08)">Guias</div>
+          <h2>Escrow en publicidad digital 2026: qué es y por qué protege tu inversión</h2>
+          <p>Todo sobre el pago custodiado en publicidad 2026: cómo funciona, qué plataformas lo ofrecen y por qué es imprescindible para anunciarse en Telegram, WhatsApp y Discord.</p>
+          <div class="card-footer">
+            <span>12 min</span>
+            <span>3 abr 2026</span>
+          </div>
         </div>
       </a>
 
-      <a href="/blog/publicidad-canales-whatsapp-marcas" class="blog-card">
-        <div class="card-category">Guias</div>
-        <h2>Publicidad en canales de WhatsApp para marcas 2026: guía y precios</h2>
-        <p>Cómo anunciarse en canales de WhatsApp en 2026: formatos, precios reales (30-120€/post), cómo encontrar canales verificados y los errores que cometen las marcas al empezar.</p>
-        <div class="card-footer">
-          <span>12 min</span>
-          <span>2026-04-02</span>
+      <a href="/blog/publicidad-canales-whatsapp-marcas" class="blog-card" data-category="Guias">
+        <span class="card-accent" style="background:linear-gradient(90deg, #25d366, #25d36666)"></span>
+        <div class="card-body">
+          <div class="card-category" style="color:#7C3AED;background:rgba(124,58,237,0.08)">Guias</div>
+          <h2>Publicidad en canales de WhatsApp para marcas 2026: guía y precios</h2>
+          <p>Cómo anunciarse en canales de WhatsApp en 2026: formatos, precios reales (30-120€/post), cómo encontrar canales verificados y los errores que cometen las marcas al empezar.</p>
+          <div class="card-footer">
+            <span>12 min</span>
+            <span>2 abr 2026</span>
+          </div>
         </div>
       </a>
   </section>
+
+  <script>
+    (function(){
+      var pills = document.querySelectorAll('.cat-pill');
+      var cards = document.querySelectorAll('.blog-card');
+      pills.forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var cat = btn.dataset.cat;
+          pills.forEach(function(b){
+            var active = b === btn;
+            b.classList.toggle('active', active);
+            if (active) {
+              b.style.color = b.dataset.color;
+              b.style.background = b.dataset.bg;
+              b.style.borderColor = 'transparent';
+            } else {
+              b.style.color = '';
+              b.style.background = '';
+              b.style.borderColor = '';
+            }
+          });
+          cards.forEach(function(c){
+            c.style.display = (cat === 'Todos' || c.dataset.category === cat) ? '' : 'none';
+          });
+        });
+      });
+    })();
+  </script>
 </body>
 </html>

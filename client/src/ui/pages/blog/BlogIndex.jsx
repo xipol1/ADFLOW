@@ -110,7 +110,7 @@ export default function BlogIndex() {
           borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)',
         }}>
           {[
-            { value: BLOG_POSTS.length, label: 'Articulos publicados' },
+            { value: publishedPosts.length, label: 'Articulos publicados' },
             { value: `${totalMinutes} min`, label: 'Tiempo total de lectura' },
             { value: new Date(latestDate).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }), label: 'Ultima actualizacion' },
           ].map((stat, i) => (
