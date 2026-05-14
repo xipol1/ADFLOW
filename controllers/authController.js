@@ -742,6 +742,8 @@ const solicitarRestablecimiento = async (req, res) => {
     user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     await user.save();
 
+    authAudit.record('password.reset.requested', req, { userId: user._id, email });
+
     // Send reset email synchronously — setImmediate callbacks get killed
     // in Vercel serverless after the HTTP response is sent.
     try {
@@ -784,6 +786,8 @@ const restablecerPassword = async (req, res) => {
     user.passwordResetToken = null;
     user.passwordResetExpires = null;
     await user.save();
+
+    authAudit.record('password.reset.completed', req, { userId: user._id, email: user.email });
 
     // Revoke all existing sessions for security
     await AuthService.revocarTodasLasSesiones(user._id).catch(() => {});

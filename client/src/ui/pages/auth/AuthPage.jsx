@@ -285,31 +285,31 @@ export default function AuthPage({ defaultTab = 'login' }) {
             }}>
               <strong>Verifica tu email para continuar.</strong><br />
               Hemos enviado un enlace de verificación a <strong>{unverifiedEmail}</strong>. Revisa tu bandeja de entrada y haz clic en el enlace antes de iniciar sesión.
+              {resendStatus === 'sent' && (
+                <div style={{ marginTop: '8px', color: '#10b981', fontWeight: 500 }}>✓ Email reenviado</div>
+              )}
+              {resendStatus === 'error' && (
+                <div style={{ marginTop: '8px', color: '#ef4444', fontWeight: 500 }}>No se pudo reenviar. Inténtalo de nuevo.</div>
+              )}
               <div style={{ marginTop: '10px' }}>
-                {resendStatus === 'sent' ? (
-                  <span style={{ color: '#10b981', fontWeight: 500 }}>✓ Email reenviado</span>
-                ) : resendStatus === 'error' ? (
-                  <span style={{ color: '#ef4444', fontWeight: 500 }}>No se pudo reenviar, intenta más tarde.</span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => handleResendVerification(unverifiedEmail)}
-                    disabled={resendCooldown > 0 || resendStatus === 'sending'}
-                    style={{
-                      background: 'none', border: 'none', padding: 0,
-                      color: (resendCooldown > 0 || resendStatus === 'sending') ? 'var(--muted2)' : '#f59e0b',
-                      fontWeight: 600, fontSize: '13px',
-                      cursor: (resendCooldown > 0 || resendStatus === 'sending') ? 'not-allowed' : 'pointer',
-                      textDecoration: 'underline',
-                    }}
-                  >
-                    {resendStatus === 'sending'
-                      ? 'Enviando…'
-                      : resendCooldown > 0
-                        ? `Reenviar en ${resendCooldown}s`
-                        : 'Reenviar email de verificación'}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => handleResendVerification(unverifiedEmail)}
+                  disabled={resendCooldown > 0 || resendStatus === 'sending'}
+                  style={{
+                    background: 'none', border: 'none', padding: 0,
+                    color: (resendCooldown > 0 || resendStatus === 'sending') ? 'var(--muted2)' : '#f59e0b',
+                    fontWeight: 600, fontSize: '13px',
+                    cursor: (resendCooldown > 0 || resendStatus === 'sending') ? 'not-allowed' : 'pointer',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  {resendStatus === 'sending'
+                    ? 'Enviando…'
+                    : resendCooldown > 0
+                      ? `Reenviar en ${resendCooldown}s`
+                      : 'Reenviar email de verificación'}
+                </button>
               </div>
             </div>
           )}

@@ -34,19 +34,30 @@ async function runUnverifiedCleanupJob() {
   //   - were created before the cutoff
   //   - have no still-valid verification token (so a fresh signup whose
   //     token happens to land near the cutoff is safe)
+  //   - are not admins, and have not somehow attracted referrals
+  //
+  // Two $or clauses are combined under $and so legacy users without the
+  // referralCount field (Mongoose only applies the default at save time)
+  // are still considered eligible.
   const filter = {
     emailVerificado: false,
     createdAt: { $lt: cutoff },
-    $or: [
-      { emailVerificationExpires: { $exists: false } },
-      { emailVerificationExpires: null },
-      { emailVerificationExpires: { $lte: new Date() } },
-    ],
-    // Belt-and-suspenders: never touch admins, or accounts that managed
-    // to accumulate credits/referrals (shouldn't happen pre-verification,
-    // but if it did, manual review is safer than silent deletion).
     rol: { $ne: 'admin' },
-    referralCount: { $in: [0, null, undefined] },
+    $and: [
+      {
+        $or: [
+          { emailVerificationExpires: { $exists: false } },
+          { emailVerificationExpires: null },
+          { emailVerificationExpires: { $lte: new Date() } },
+        ],
+      },
+      {
+        $or: [
+          { referralCount: { $exists: false } },
+          { referralCount: { $lte: 0 } },
+        ],
+      },
+    ],
   };
 
   const result = await Usuario.deleteMany(filter);
