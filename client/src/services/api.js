@@ -163,7 +163,7 @@ class ApiService {
    * Registrar usuario
    */
   async register(userData) {
-    return this.request('/auth/registro', {
+    return this.request('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
       auth: false,

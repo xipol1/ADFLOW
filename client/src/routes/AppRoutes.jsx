@@ -120,11 +120,11 @@ const DisputesPage = lazy(() => import('../ui/pages/dashboard/DisputesPage'))
 const NotificationsPage = lazy(() => import('../ui/pages/dashboard/NotificationsPage'))
 const ComingSoon = lazy(() => import('../ui/components/ComingSoon'))
 
-// Onboarding flow
+// Onboarding flow — account creation happens in /auth/register. This flow
+// covers channel creation, channel verification, and the success state.
 const OnboardingLayout = lazy(() => import('../ui/pages/onboarding/OnboardingLayout'))
-const RegisterStep = lazy(() => import('../ui/pages/onboarding/RegisterStep'))
-const VerifyStep = lazy(() => import('../ui/pages/onboarding/VerifyStep'))
 const ChannelStep = lazy(() => import('../ui/pages/onboarding/ChannelStep'))
+const VerifyStep = lazy(() => import('../ui/pages/onboarding/VerifyStep'))
 const SuccessStep = lazy(() => import('../ui/pages/onboarding/SuccessStep'))
 
 function RouteFallback() {
@@ -317,12 +317,21 @@ export default function AppRoutes() {
           <Route path="settings"   element={<SettingsPage />} />
         </Route>
 
-        {/* ── Onboarding flow (self-contained layout) ────── */}
-        <Route path="/onboarding" element={<OnboardingLayout />}>
-          <Route index element={<Navigate to="register" replace />} />
-          <Route path="register" element={<RegisterStep />} />
-          <Route path="verify" element={<VerifyStep />} />
+        {/* ── Onboarding flow (self-contained layout) ──────
+            ProtectedRoute enforces auth + email verification. Account
+            creation lives in /auth/register; this flow only handles
+            channel onboarding for verified creators. */}
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute>
+              <OnboardingLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="channel" replace />} />
           <Route path="channel" element={<ChannelStep />} />
+          <Route path="verify" element={<VerifyStep />} />
           <Route path="success" element={<SuccessStep />} />
         </Route>
 
