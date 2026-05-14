@@ -512,7 +512,7 @@ export default function VerifyStep() {
   const { channelId, platform, channelName } = state
 
   useEffect(() => {
-    if (isAuthenticated === false) navigate('/onboarding/register', { replace: true })
+    if (isAuthenticated === false) navigate('/auth/register', { replace: true })
   }, [isAuthenticated])
 
   useEffect(() => {

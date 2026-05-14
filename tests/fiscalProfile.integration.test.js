@@ -13,11 +13,16 @@ describe('Fiscal data — PUT /api/auth/perfil', () => {
   let token;
 
   beforeAll(async () => {
+    // Register + login (register no longer returns tokens — verification required)
     const res = await request(app)
       .post('/api/auth/registro')
       .send({ email, password, nombre: 'Fiscal Test', role: 'advertiser' });
     if (res.status === 503) return;
-    token = res.body.token;
+    const logRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email, password });
+    if (logRes.status === 503) return;
+    token = logRes.body.token;
   });
 
   test('persists complete fiscal data and marks completado=true', async () => {

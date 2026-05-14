@@ -528,6 +528,7 @@ const enabledRoutes = [
   ['/api/track',     './routes/trackPixel'],
   ['/api/swaps',     './routes/swaps'],
   ['/api/jobs',      './routes/swapsCron'],
+  ['/api/jobs',      './routes/authMaintenanceCron'],
 ];
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));

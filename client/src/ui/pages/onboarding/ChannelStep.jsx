@@ -34,7 +34,9 @@ export default function ChannelStep() {
   const [focused, setFocused] = useState(null)
 
   useEffect(() => {
-    if (isAuthenticated === false) navigate('/onboarding/register', { replace: true })
+    // Account creation now lives outside the onboarding flow. ProtectedRoute
+    // on /onboarding should catch this earlier, but kept as a safety net.
+    if (isAuthenticated === false) navigate('/auth/register', { replace: true })
   }, [isAuthenticated])
 
   const isValid = platform && channelName.trim().length >= 2

@@ -15,21 +15,26 @@ describe('Channels integration', () => {
   let channelId;
 
   beforeAll(async () => {
-    // Register creator
+    // Register + login creator. Registration no longer returns auth tokens
+    // (email verification is required), so we follow up with login.
     const creatorRes = await request(app)
       .post('/api/auth/registro')
       .send({ email: creatorEmail, password, nombre: 'Chan Creator', role: 'creator' });
-
     if (creatorRes.status === 503) return;
-    creatorToken = creatorRes.body.token;
+    const creatorLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: creatorEmail, password });
+    if (creatorLogin.status !== 503) creatorToken = creatorLogin.body.token;
 
-    // Register another user
+    // Register + login another user
     const otherRes = await request(app)
       .post('/api/auth/registro')
       .send({ email: otherEmail, password, nombre: 'Chan Other', role: 'creator' });
-
     if (otherRes.status !== 503) {
-      otherToken = otherRes.body.token;
+      const otherLogin = await request(app)
+        .post('/api/auth/login')
+        .send({ email: otherEmail, password });
+      if (otherLogin.status !== 503) otherToken = otherLogin.body.token;
     }
   });
 

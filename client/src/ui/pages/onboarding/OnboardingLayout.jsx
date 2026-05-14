@@ -13,7 +13,6 @@ const AG = (o) => `rgba(139,92,246,${o})`
 const OK = '#10b981'
 
 const STEPS = [
-  { path: 'register', label: 'Cuenta' },
   { path: 'channel', label: 'Canal' },
   { path: 'verify', label: 'Verificar' },
   { path: 'success', label: 'Listo' },
@@ -138,9 +137,12 @@ function InnerLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const { isAuthenticated, user } = useAuth()
-  const isFirst = location.pathname.includes('register')
+  const isFirst = location.pathname.endsWith('/onboarding/channel') || location.pathname.endsWith('/onboarding')
   const isSuccess = location.pathname.includes('success')
-  const needsEmailGate = isAuthenticated && user?.emailVerificado === false && !isFirst
+  // Defence-in-depth: ProtectedRoute already blocks unverified users from
+  // reaching /onboarding/*, but keep this gate in case that wrapper is
+  // ever removed or bypassed.
+  const needsEmailGate = isAuthenticated && user?.emailVerificado === false
 
   return (
     <div style={{

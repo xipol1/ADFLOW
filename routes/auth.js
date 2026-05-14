@@ -259,10 +259,22 @@ const limitarRestablecimiento = limitarIntentos({
 
 /**
  * @route   POST /api/auth/registro
- * @desc    Registrar nuevo usuario
+ * @desc    Registrar nuevo usuario — DEPRECATED, use /register
  * @access  Público
+ *
+ * Kept as a transitional alias for any cached client bundles still calling
+ * /registro. Logs each hit so we can confirm zero traffic before removing.
  */
-router.post('/registro', 
+const logDeprecatedRegistro = (req, _res, next) => {
+  // eslint-disable-next-line no-console
+  console.warn('[deprecated] POST /auth/registro hit — client should use /auth/register', {
+    ua: req.headers['user-agent'],
+    ip: req.ip,
+  });
+  next();
+};
+router.post('/registro',
+  logDeprecatedRegistro,
   limitarRegistro,
   validacionesRegistro,
   validarCampos,

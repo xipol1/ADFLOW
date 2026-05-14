@@ -84,15 +84,10 @@ export function AuthProvider({ children }) {
     setError('')
     setLoading(true)
     try {
+      // Registration does NOT log the user in — tokens are issued only after
+      // email verification (see verifyEmail / setAuthFromVerification). We
+      // intentionally don't touch localStorage or auth state here.
       const res = await apiService.register(userData)
-      if (res && res.success && res.token && res.user) {
-        localStorage.setItem('token', res.token)
-        localStorage.setItem('refreshToken', res.refreshToken || '')
-        localStorage.setItem('user', JSON.stringify(res.user))
-        setToken(res.token)
-        setRefreshToken(res.refreshToken || '')
-        setUser(res.user)
-      }
       return res
     } catch (e) {
       setError(e?.message || 'No se pudo registrar')

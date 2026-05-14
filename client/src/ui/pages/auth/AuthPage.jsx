@@ -119,6 +119,34 @@ export default function AuthPage({ defaultTab = 'login' }) {
   // Registration success state
   const [registerSuccess, setRegisterSuccess] = useState(false)
   const [registeredEmail, setRegisteredEmail] = useState('')
+  const [registerEmailSent, setRegisterEmailSent] = useState(true)
+
+  // Resend verification state — shared by post-register screen and
+  // "email not verified" banner on login.
+  const [resendCooldown, setResendCooldown] = useState(0)
+  const [resendStatus, setResendStatus] = useState('') // '', 'sending', 'sent', 'error'
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const t = setTimeout(() => setResendCooldown(c => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [resendCooldown])
+
+  const handleResendVerification = async (targetEmail) => {
+    if (!targetEmail || resendCooldown > 0 || resendStatus === 'sending') return
+    setResendStatus('sending')
+    try {
+      const r = await apiService.resendVerificationEmail(targetEmail)
+      if (r?.success) {
+        setResendStatus('sent')
+        setResendCooldown(60)
+      } else {
+        setResendStatus('error')
+      }
+    } catch {
+      setResendStatus('error')
+    }
+  }
 
   // Real-time password requirement checks (used by both submit + UI checklist)
   const passwordChecks = {
@@ -153,7 +181,10 @@ export default function AuthPage({ defaultTab = 'login' }) {
     if (res?.success) {
       // Don't navigate to dashboard — show "check your email" message
       setRegisteredEmail(email)
+      setRegisterEmailSent(res.emailSent !== false)
       setRegisterSuccess(true)
+      // Start cooldown only when the first email actually went out
+      if (res.emailSent !== false) setResendCooldown(60)
       return
     }
     setError(res?.message || 'No se pudo crear la cuenta')
@@ -254,6 +285,32 @@ export default function AuthPage({ defaultTab = 'login' }) {
             }}>
               <strong>Verifica tu email para continuar.</strong><br />
               Hemos enviado un enlace de verificación a <strong>{unverifiedEmail}</strong>. Revisa tu bandeja de entrada y haz clic en el enlace antes de iniciar sesión.
+              <div style={{ marginTop: '10px' }}>
+                {resendStatus === 'sent' ? (
+                  <span style={{ color: '#10b981', fontWeight: 500 }}>✓ Email reenviado</span>
+                ) : resendStatus === 'error' ? (
+                  <span style={{ color: '#ef4444', fontWeight: 500 }}>No se pudo reenviar, intenta más tarde.</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleResendVerification(unverifiedEmail)}
+                    disabled={resendCooldown > 0 || resendStatus === 'sending'}
+                    style={{
+                      background: 'none', border: 'none', padding: 0,
+                      color: (resendCooldown > 0 || resendStatus === 'sending') ? 'var(--muted2)' : '#f59e0b',
+                      fontWeight: 600, fontSize: '13px',
+                      cursor: (resendCooldown > 0 || resendStatus === 'sending') ? 'not-allowed' : 'pointer',
+                      textDecoration: 'underline',
+                    }}
+                  >
+                    {resendStatus === 'sending'
+                      ? 'Enviando…'
+                      : resendCooldown > 0
+                        ? `Reenviar en ${resendCooldown}s`
+                        : 'Reenviar email de verificación'}
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -400,31 +457,77 @@ export default function AuthPage({ defaultTab = 'login' }) {
           {/* REGISTER SUCCESS — verify email */}
           {registerSuccess && (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>📧</div>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>{registerEmailSent ? '📧' : '⚠️'}</div>
               <h3 style={{ fontFamily: FONT_DISPLAY, fontSize: '20px', fontWeight: 700, color: 'var(--text)', marginBottom: '12px' }}>
                 ¡Cuenta creada!
               </h3>
-              <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '8px' }}>
-                Hemos enviado un enlace de verificación a:
-              </p>
-              <p style={{ fontSize: '15px', fontWeight: 700, color: A, marginBottom: '20px' }}>
-                {registeredEmail}
-              </p>
-              <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '24px' }}>
-                Haz clic en el enlace del email para activar tu cuenta y acceder a la plataforma.
-                Si no lo encuentras, revisa la carpeta de spam.
-              </p>
-              <button
-                onClick={() => { setRegisterSuccess(false); setTab('login') }}
-                style={{
-                  background: A, color: '#fff', border: 'none',
-                  borderRadius: '10px', padding: '12px 24px',
-                  fontSize: '14px', fontWeight: 600, cursor: 'pointer',
-                  fontFamily: FONT_BODY,
-                }}
-              >
-                Ir a iniciar sesión
-              </button>
+              {registerEmailSent ? (
+                <>
+                  <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '8px' }}>
+                    Hemos enviado un enlace de verificación a:
+                  </p>
+                  <p style={{ fontSize: '15px', fontWeight: 700, color: A, marginBottom: '20px' }}>
+                    {registeredEmail}
+                  </p>
+                  <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '24px' }}>
+                    Haz clic en el enlace del email para activar tu cuenta y acceder a la plataforma.
+                    Si no lo encuentras, revisa la carpeta de spam.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '8px' }}>
+                    Tu cuenta para <strong style={{ color: A }}>{registeredEmail}</strong> está creada, pero no pudimos enviarte el email de verificación en este momento.
+                  </p>
+                  <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '24px' }}>
+                    Pulsa el botón para reintentar.
+                  </p>
+                </>
+              )}
+
+              {/* Resend status feedback */}
+              {resendStatus === 'sent' && (
+                <p style={{ fontSize: '13px', color: '#10b981', marginBottom: '16px', fontWeight: 500 }}>
+                  ✓ Email reenviado a {registeredEmail}
+                </p>
+              )}
+              {resendStatus === 'error' && (
+                <p style={{ fontSize: '13px', color: '#ef4444', marginBottom: '16px', fontWeight: 500 }}>
+                  No se pudo reenviar. Inténtalo en unos minutos.
+                </p>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+                <button
+                  onClick={() => handleResendVerification(registeredEmail)}
+                  disabled={resendCooldown > 0 || resendStatus === 'sending'}
+                  style={{
+                    background: (resendCooldown > 0 || resendStatus === 'sending') ? 'var(--muted2)' : A,
+                    color: '#fff', border: 'none',
+                    borderRadius: '10px', padding: '12px 24px',
+                    fontSize: '14px', fontWeight: 600,
+                    cursor: (resendCooldown > 0 || resendStatus === 'sending') ? 'not-allowed' : 'pointer',
+                    fontFamily: FONT_BODY, minWidth: '220px',
+                  }}
+                >
+                  {resendStatus === 'sending'
+                    ? 'Enviando…'
+                    : resendCooldown > 0
+                      ? `Reenviar en ${resendCooldown}s`
+                      : 'Reenviar email de verificación'}
+                </button>
+                <button
+                  onClick={() => { setRegisterSuccess(false); setResendStatus(''); setTab('login') }}
+                  style={{
+                    background: 'none', color: 'var(--muted)', border: 'none',
+                    padding: '8px 16px',
+                    fontSize: '13px', fontWeight: 500, cursor: 'pointer',
+                    fontFamily: FONT_BODY,
+                  }}
+                >
+                  Ir a iniciar sesión
+                </button>
+              </div>
             </div>
           )}
 

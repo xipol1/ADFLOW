@@ -17,21 +17,27 @@ describe('Disputes integration — /api/disputes', () => {
   let disputeId;
 
   beforeAll(async () => {
-    // Register advertiser
+    // Register + login advertiser (register no longer returns tokens)
     const advRes = await request(app)
       .post('/api/auth/registro')
       .send({ email: advertiserEmail, password, nombre: 'Dispute Advertiser', role: 'advertiser' });
-
     if (advRes.status === 503) return;
-    advertiserToken = advRes.body.token;
+    const advLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: advertiserEmail, password });
+    if (advLogin.status === 503) return;
+    advertiserToken = advLogin.body.token;
 
-    // Register creator
+    // Register + login creator
     const creRes = await request(app)
       .post('/api/auth/registro')
       .send({ email: creatorEmail, password, nombre: 'Dispute Creator', role: 'creator' });
-
     if (creRes.status === 503) return;
-    creatorToken = creRes.body.token;
+    const creLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: creatorEmail, password });
+    if (creLogin.status === 503) return;
+    creatorToken = creLogin.body.token;
 
     // Create channel
     const chanRes = await request(app)

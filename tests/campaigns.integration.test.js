@@ -16,21 +16,28 @@ describe('Campaigns integration — /api/campaigns', () => {
   let campaignId;
 
   beforeAll(async () => {
-    // Register advertiser
+    // Register + login advertiser. Registration no longer returns auth
+    // tokens (email verification is required), so we follow up with login.
     const advRes = await request(app)
       .post('/api/auth/registro')
       .send({ email: advertiserEmail, password, nombre: 'Camp Advertiser', role: 'advertiser' });
-
     if (advRes.status === 503) return;
-    advertiserToken = advRes.body.token;
+    const advLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: advertiserEmail, password });
+    if (advLogin.status === 503) return;
+    advertiserToken = advLogin.body.token;
 
-    // Register creator and create a channel
+    // Register + login creator, then create a channel
     const creRes = await request(app)
       .post('/api/auth/registro')
       .send({ email: creatorEmail, password, nombre: 'Camp Creator', role: 'creator' });
-
     if (creRes.status === 503) return;
-    creatorToken = creRes.body.token;
+    const creLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: creatorEmail, password });
+    if (creLogin.status === 503) return;
+    creatorToken = creLogin.body.token;
 
     // Create a channel for campaigns
     const chanRes = await request(app)

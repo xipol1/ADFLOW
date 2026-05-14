@@ -12,12 +12,16 @@ describe('Notifications integration — /api/notifications', () => {
   let userToken;
 
   beforeAll(async () => {
+    // Register + login (register no longer returns tokens — verification required)
     const res = await request(app)
       .post('/api/auth/registro')
       .send({ email: userEmail, password, nombre: 'Notif User', role: 'advertiser' });
-
     if (res.status === 503) return;
-    userToken = res.body.token;
+    const logRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: userEmail, password });
+    if (logRes.status === 503) return;
+    userToken = logRes.body.token;
   });
 
   // ── List notifications ────────────────────────────────────────────────────

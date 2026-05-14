@@ -72,6 +72,14 @@ class EmailService {
     }
   }
 
+  // True once init has finished and a transporter is configured. Callers that
+  // need to refuse work when email is dead (e.g. registration without ability
+  // to send the verification link) should await this before deciding.
+  async isOperational() {
+    await this.ready;
+    return Boolean(this.transporter);
+  }
+
   async enviarEmail(opciones) {
     await this.ready;
 

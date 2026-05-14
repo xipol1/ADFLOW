@@ -17,21 +17,27 @@ describe('Lists & AutoBuy integration', () => {
   let ruleId;
 
   beforeAll(async () => {
-    // Register advertiser
+    // Register + login advertiser
     const advRes = await request(app)
       .post('/api/auth/registro')
       .send({ email: advertiserEmail, password, nombre: 'List Advertiser', role: 'advertiser' });
-
     if (advRes.status === 503) return;
-    advertiserToken = advRes.body.token;
+    const advLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: advertiserEmail, password });
+    if (advLogin.status === 503) return;
+    advertiserToken = advLogin.body.token;
 
-    // Register creator and create channel
+    // Register + login creator
     const creRes = await request(app)
       .post('/api/auth/registro')
       .send({ email: creatorEmail, password, nombre: 'List Creator', role: 'creator' });
-
     if (creRes.status === 503) return;
-    creatorToken = creRes.body.token;
+    const creLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: creatorEmail, password });
+    if (creLogin.status === 503) return;
+    creatorToken = creLogin.body.token;
 
     const chanRes = await request(app)
       .post('/api/canales')
