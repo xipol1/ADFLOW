@@ -16,7 +16,7 @@ describe('Auth integration — /api/auth', () => {
   // ── Registration ──────────────────────────────────────────────────────────
 
   describe('POST /api/auth/registro', () => {
-    test('registers a new creator and returns token', async () => {
+    test('registers a new creator (no tokens — verification required)', async () => {
       const res = await request(app)
         .post('/api/auth/registro')
         .send({
@@ -34,15 +34,16 @@ describe('Auth integration — /api/auth', () => {
 
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('success', true);
-      expect(res.body).toHaveProperty('token');
-      expect(res.body).toHaveProperty('refreshToken');
+      // Registration must NOT log the user in — tokens are issued only after
+      // email verification. See verificarEmail.
+      expect(res.body).not.toHaveProperty('token');
+      expect(res.body).not.toHaveProperty('refreshToken');
+      expect(res.body).toHaveProperty('emailVerificationRequired', true);
       expect(res.body.user).toHaveProperty('email', creatorEmail);
-
-      creatorToken = res.body.token;
-      creatorRefreshToken = res.body.refreshToken;
+      expect(res.body.user).toHaveProperty('emailVerificado', false);
     });
 
-    test('registers a new advertiser and returns token', async () => {
+    test('registers a new advertiser (no tokens — verification required)', async () => {
       const res = await request(app)
         .post('/api/auth/registro')
         .send({
@@ -56,7 +57,7 @@ describe('Auth integration — /api/auth', () => {
 
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('success', true);
-      expect(res.body).toHaveProperty('token');
+      expect(res.body).not.toHaveProperty('token');
       expect(res.body.user).toHaveProperty('email', advertiserEmail);
     });
 

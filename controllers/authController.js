@@ -5,6 +5,7 @@ const AuthService = require('../services/authService');
 const config = require('../config/config');
 const database = require('../config/database');
 const logger = require('../lib/logger');
+const authAudit = require('../lib/authAudit');
 
 const env = process.env.NODE_ENV || 'development';
 const isDev = env !== 'production';
@@ -102,12 +103,18 @@ const login = async (req, res) => {
     logDev('LOGIN: user lookup', { found: Boolean(user) });
 
     if (!user) {
+      authAudit.record('login.failed', req, { email, metadata: { reason: 'user_not_found' } });
       return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
 
     // Account lockout check
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       const minutesLeft = Math.ceil((user.lockedUntil - Date.now()) / 60000);
+      authAudit.record('login.failed', req, {
+        userId: user._id,
+        email,
+        metadata: { reason: 'account_locked', minutesLeft },
+      });
       return res.status(423).json({
         success: false,
         message: `Cuenta bloqueada temporalmente. Intenta de nuevo en ${minutesLeft} minuto(s).`,
@@ -128,6 +135,11 @@ const login = async (req, res) => {
       }
       await Usuario.findByIdAndUpdate(user._id, update);
       logDev('LOGIN: password mismatch', { userId: user._id.toString(), attempts });
+      authAudit.record('login.failed', req, {
+        userId: user._id,
+        email,
+        metadata: { reason: 'bad_password', attempts, lockedNow: attempts >= 5 },
+      });
       return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
 
@@ -149,6 +161,12 @@ const login = async (req, res) => {
 
     const tokens = await AuthService.generarTokens(user);
     logDev('LOGIN: tokens generated', { userId: user._id.toString() });
+
+    authAudit.record('login.success', req, {
+      userId: user._id,
+      email,
+      metadata: { rol: user.rol, twoFactor: false },
+    });
 
     return res.json({
       success: true,
@@ -195,20 +213,24 @@ const registro = async (req, res) => {
 
     // Refuse registration if email infra is dead. Otherwise we'd create a user
     // who can never receive the verification link and is permanently locked out
-    // (verifyEmail is the only path to flip emailVerificado=true in prod).
+    // (verifyEmail is the only path to flip emailVerificado=true in prod). The
+    // check is skipped in NODE_ENV=test where no SMTP is configured by design.
     const emailService = require('../services/emailService');
-    const emailOperational = await emailService.isOperational();
-    if (!emailOperational) {
-      logErr('auth.register.email_not_operational', new Error('Email transporter not configured'), { email });
-      return res.status(503).json({
-        success: false,
-        message: 'No podemos enviar emails ahora mismo. Intenta de nuevo en unos minutos.',
-      });
+    if (process.env.NODE_ENV !== 'test') {
+      const emailOperational = await emailService.isOperational();
+      if (!emailOperational) {
+        logErr('auth.register.email_not_operational', new Error('Email transporter not configured'), { email });
+        return res.status(503).json({
+          success: false,
+          message: 'No podemos enviar emails ahora mismo. Intenta de nuevo en unos minutos.',
+        });
+      }
     }
 
     const existing = await Usuario.findOne({ email });
     logDev('REGISTER: user lookup', { found: Boolean(existing) });
     if (existing) {
+      authAudit.record('register.failed', req, { email, metadata: { reason: 'duplicate_email' } });
       return res.status(400).json({ success: false, message: 'El email ya está registrado' });
     }
 
@@ -333,6 +355,12 @@ const registro = async (req, res) => {
       logErr('auth.register.verification_email_failed', emailErr, { userId: user._id.toString() });
     }
 
+    authAudit.record('register.success', req, {
+      userId: user._id,
+      email: user.email,
+      metadata: { rol: user.rol, tipoPerfil: user.tipoPerfil, founderApplied, referralApplied, emailSent },
+    });
+
     // Do NOT issue auth tokens here. The user must verify their email first;
     // verificarEmail issues fresh tokens with emailVerificado=true. This keeps
     // localStorage clean and prevents the "logged in but blocked" state.
@@ -351,6 +379,11 @@ const registro = async (req, res) => {
     });
   } catch (error) {
     logErr('auth.register.failed', error, { email });
+    authAudit.record('register.failed', req, {
+      email,
+      metadata: { reason: 'server_error' },
+      error: error?.message || String(error),
+    });
     return res.status(500).json({
       success: false,
       message: 'Error interno del servidor',
@@ -628,6 +661,14 @@ const verificarEmail = async (req, res) => {
     user.emailVerificationToken = null;
     user.emailVerificationExpires = null;
     await user.save();
+
+    if (isFirstVerification) {
+      authAudit.record('email.verified', req, {
+        userId: user._id,
+        email: user.email,
+        metadata: { rol: user.rol },
+      });
+    }
 
     // Send welcome email only on the first successful verification. We send
     // it here (not at registration) so unverified/bot signups don't waste

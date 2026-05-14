@@ -14,13 +14,16 @@ describe('Tracking integration — /api/tracking', () => {
   let trackingLinkCode;
 
   beforeAll(async () => {
-    // Register creator
+    // Register + login creator (register no longer returns tokens)
     const creRes = await request(app)
       .post('/api/auth/registro')
       .send({ email: creatorEmail, password, nombre: 'Track Creator', role: 'creator' });
-
     if (creRes.status === 503) return;
-    creatorToken = creRes.body.token;
+    const creLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: creatorEmail, password });
+    if (creLogin.status === 503) return;
+    creatorToken = creLogin.body.token;
 
     // Create a channel for verification tests
     const chanRes = await request(app)
