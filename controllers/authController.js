@@ -193,6 +193,19 @@ const registro = async (req, res) => {
       }
     }
 
+    // Refuse registration if email infra is dead. Otherwise we'd create a user
+    // who can never receive the verification link and is permanently locked out
+    // (verifyEmail is the only path to flip emailVerificado=true in prod).
+    const emailService = require('../services/emailService');
+    const emailOperational = await emailService.isOperational();
+    if (!emailOperational) {
+      logErr('auth.register.email_not_operational', new Error('Email transporter not configured'), { email });
+      return res.status(503).json({
+        success: false,
+        message: 'No podemos enviar emails ahora mismo. Intenta de nuevo en unos minutos.',
+      });
+    }
+
     const existing = await Usuario.findOne({ email });
     logDev('REGISTER: user lookup', { found: Boolean(existing) });
     if (existing) {
@@ -306,38 +319,32 @@ const registro = async (req, res) => {
 
     logDev('REGISTER: user created', { userId: user._id.toString(), founder: founderApplied, referral: referralApplied });
 
-    // Send verification + welcome emails BEFORE responding.
-    // Must be synchronous (await) in serverless — setImmediate callbacks
-    // get killed when the function returns the HTTP response.
+    // Send verification email BEFORE responding. Must be synchronous (await)
+    // in serverless — setImmediate callbacks get killed when the function
+    // returns the HTTP response. Welcome email is sent post-verification
+    // (see verificarEmail) to avoid wasting SMTP quota on unverified signups.
+    let emailSent = false;
     try {
-      const emailService = require('../services/emailService');
       await emailService.enviarEmailVerificacion(user.email, user.nombre || '', verificationToken);
+      emailSent = true;
       logDev('REGISTER: verification email sent', { email: user.email });
-      try {
-        await emailService.enviarBienvenida(user);
-        logDev('REGISTER: welcome email sent', { email: user.email });
-      } catch (welErr) {
-        logErr('auth.register.welcome_email_failed', welErr, { userId: user._id.toString() });
-      }
     } catch (emailErr) {
-      // Don't fail registration if email fails — user can resend later
+      // Don't fail registration if email fails — user can resend from the UI
       logErr('auth.register.verification_email_failed', emailErr, { userId: user._id.toString() });
     }
 
-    const tokens = await AuthService.generarTokens(user);
-    logDev('REGISTER: tokens generated', { userId: user._id.toString() });
-
+    // Do NOT issue auth tokens here. The user must verify their email first;
+    // verificarEmail issues fresh tokens with emailVerificado=true. This keeps
+    // localStorage clean and prevents the "logged in but blocked" state.
     return res.status(201).json({
       success: true,
       user: buildUserResponse(user),
-      token: tokens.tokenAcceso,
-      refreshToken: tokens.tokenRefresco,
-      expiresIn: tokens.expiresIn,
       emailVerificationRequired: true,
+      emailSent,
       founderApplied,
       referralApplied,
       message: founderApplied
-        ? 'Cuenta creada. €10 de bono acreditados — verifica tu canal para activar el tier de Fundador.'
+        ? 'Cuenta creada. €10 de bono acreditados — verifica tu email y tu canal para activar el tier de Fundador.'
         : referralApplied
           ? 'Cuenta creada. Has recibido 10€ en creditos de campana por tu codigo de referido. Revisa tu email para verificar tu cuenta.'
           : 'Cuenta creada. Revisa tu email para verificar tu cuenta.',
@@ -611,10 +618,30 @@ const verificarEmail = async (req, res) => {
       emailVerificationExpires: { $gt: new Date() },
     });
     if (!user) return res.status(400).json({ success: false, message: 'Token invalido o expirado' });
+
+    // Capture whether this is the first verification — used to gate the
+    // welcome email. Re-verifications (re-using a still-valid token) should
+    // not re-trigger the welcome.
+    const isFirstVerification = !user.emailVerificado;
+
     user.emailVerificado = true;
     user.emailVerificationToken = null;
     user.emailVerificationExpires = null;
     await user.save();
+
+    // Send welcome email only on the first successful verification. We send
+    // it here (not at registration) so unverified/bot signups don't waste
+    // SMTP quota and burn sender reputation.
+    if (isFirstVerification) {
+      try {
+        const emailService = require('../services/emailService');
+        await emailService.enviarBienvenida(user);
+        logDev('VERIFY: welcome email sent', { email: user.email });
+      } catch (welErr) {
+        logErr('auth.verify.welcome_email_failed', welErr, { userId: user._id.toString() });
+      }
+    }
+
     // Issue fresh tokens with emailVerificado=true so user doesn't need to re-login
     const tokens = await AuthService.generarTokens(user);
     return res.json({
