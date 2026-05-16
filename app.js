@@ -51,6 +51,8 @@ try { _routes['./routes/conversions']         = require('./routes/conversions');
 try { _routes['./routes/trackPixel']          = require('./routes/trackPixel');          } catch (e) { _routes['./routes/trackPixel']          = e; }
 try { _routes['./routes/adminSubscriptions']  = require('./routes/adminSubscriptions');  } catch (e) { _routes['./routes/adminSubscriptions']  = e; }
 try { _routes['./routes/subscriptions']       = require('./routes/subscriptions');       } catch (e) { _routes['./routes/subscriptions']       = e; }
+try { _routes['./routes/swapsCron']           = require('./routes/swapsCron');           } catch (e) { _routes['./routes/swapsCron']           = e; }
+try { _routes['./routes/authMaintenanceCron'] = require('./routes/authMaintenanceCron'); } catch (e) { _routes['./routes/authMaintenanceCron'] = e; }
 
 // Pre-load for Vercel nft tracer (require only, don't execute swagger-jsdoc at top level)
 let _swaggerPathsJson;
