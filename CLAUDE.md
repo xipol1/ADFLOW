@@ -44,6 +44,9 @@ Excepciones permitidas (no requieren spec): hotfix aislado, cambio de copy de un
 - **Worktrees de Claude**: nunca mergear directo — cherry-pick o rebase a `main` primero.
 
 <!-- SPECKIT START -->
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+**Plan vigente**: [specs/001-rgpd-delete-export/plan.md](specs/001-rgpd-delete-export/plan.md) — SPEC-B1 RGPD Delete + Export (Fase B del backlog MVP).
+
+Contexto técnico, estructura, decisiones de fasing (Stripe diferido a Fase F) y todos los artefactos asociados ([spec](specs/001-rgpd-delete-export/spec.md), [research](specs/001-rgpd-delete-export/research.md), [data-model](specs/001-rgpd-delete-export/data-model.md), [contracts/](specs/001-rgpd-delete-export/contracts/), [quickstart](specs/001-rgpd-delete-export/quickstart.md)) están en `specs/001-rgpd-delete-export/`.
+
+Próximo comando del pipeline: `/speckit-tasks` para descomponer el plan en tareas ejecutables.
 <!-- SPECKIT END -->
