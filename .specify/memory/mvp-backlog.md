@@ -29,15 +29,19 @@ deploy-checklist-landing-unification.md            # checklist deploy
 
 **Acción** (sobre `main`, no este worktree): inspeccionar cada archivo y crear 2–3 commits temáticos: `feat(legal)`, `feat(blog)`, `chore(observability)`. **0 h coding, ~30 min de revisión.**
 
-### A.2 Inventario de rutas "intel" sin UI
+### A.2 Inventario de rutas "intel" — ✅ COMPLETADO 2026-05-18
 
-Hay 4 routers montados en `app.js` que parecen sin consumidor frontend:
-- `routes/telegramIntel.js`
-- `routes/multiplatformIntel.js`
-- `routes/channelCandidates.js`
-- `routes/channelIntelligence.js`
+Verificación manual de las 4 rutas que un agente Explore había marcado como "zombie". **Diagnóstico corregido**: todas son infraestructura productiva. Detalle completo en [`intel-routes-inventory.md`](./intel-routes-inventory.md).
 
-**Acción**: en una sesión de exploración, grep desde `client/src/` para confirmar si hay imports/fetch que las consuman. Si están vivas → marcar destino UI en backlog. Si están dormidas → no eliminar, documentar como "intel back-office, exponer cuando haya admin avanzado". **30 min.**
+Resumen:
+- `routes/telegramIntel.js` — cron diario 02:30 UTC, infra backend, no requiere UI ✅
+- `routes/multiplatformIntel.js` — cron diario 04:00 UTC, infra backend, no requiere UI ✅
+- `routes/channelCandidates.js` — cron Lunes 05:00 + admin endpoints, UI en `CandidatesReviewPage.jsx` ✅
+- `routes/channelIntelligence.js` — endpoint público rate-limited, **consumido por 12+ páginas del cliente** (ChannelExplorer, AnalyzeChannel, AudienceInsights, AudienceOverlap, AuditChannels, CreatorAnalytics, CompareChannels, LookalikeChannels, NewCampaign, PositionTracker, ClaimChannel) ✅
+
+**Lectura estratégica**: el subsistema Channel Intelligence (12+ páginas + 2 crons diarios + 1 semanal + pipeline TGStat → candidates → canal aprobado) constituye **moat real** alineado con wedge del playbook §1.3 (verificación de métricas) y Principio I de la constitution (Verificable). No tocar como "limpieza".
+
+**Acción recomendada post-MVP**: página "Cómo verificamos los canales" en landing/FAQ para sobre-comunicar este diferenciador.
 
 ---
 
