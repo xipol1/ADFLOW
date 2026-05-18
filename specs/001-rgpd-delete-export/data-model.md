@@ -282,7 +282,114 @@ El manifest documenta explícitamente esta lista de exclusiones para transparenc
 Usuario 1 ────── 0..1 AccountDeletionRequest   (única request activa por usuario)
 Usuario 1 ────── 0..N DataExportRequest         (máximo 1 cada 24h, pero histórico se conserva)
 Usuario 1 ────── 0..N RGPDAuditLog              (todas las acciones del usuario)
-Usuario 1 ────── 0..1 ReservedSlug              (solo creators con channelUsername)
+Usuario 1 ────── 0..1 ReservedSlug              (solo creators con slug público)
 ```
 
 `AccountDeletionRequest` y `DataExportRequest` referencian `Usuario` por `usuarioId` con `ref` Mongoose. `RGPDAuditLog` y `ReservedSlug` solo guardan `usuarioId` sin `ref` para preservar trazabilidad post-anonimización (la referencia sigue siendo válida en la DB pero `.populate()` devuelve el Usuario anonimizado, no error).
+
+---
+
+## Modelos existentes referenciados (no editados, solo consultados)
+
+### Dispute
+
+`models/Dispute.js` — el modelo **se llama `Dispute` en inglés** (no `Disputa`). Campos relevantes para el pre-check FR-006:
+
+- `openedBy: ObjectId ref Usuario` (quién abrió la disputa)
+- `againstUser: ObjectId ref Usuario` (contra quién)
+- `status` enum: `'open' | 'under_review' | 'resolved_advertiser' | 'resolved_creator' | 'closed'`
+- "Disputa abierta" = `status ∈ ['open', 'under_review']` (las tres resoluciones son terminales y no bloquean borrado).
+
+Query para FR-006: `Dispute.countDocuments({ $or: [{openedBy: usuarioId}, {againstUser: usuarioId}], status: {$in: ['open','under_review']} })`.
+
+### Canal
+
+`models/Canal.js` — solo expone `propietario: ObjectId ref Usuario` para el creator dueño del canal. **No tiene actualmente campo `gestorId`** ni similar para modelar "agencia gestiona canales de clientes". Implicación para FR-008.a — ver sección "Future-ready" más abajo.
+
+### AuthAuditLog (no confundir con RGPDAuditLog)
+
+`models/AuthAuditLog.js` existente usa convención `event`/`user`/`email` para eventos de autenticación. **NO se reutiliza** para RGPD por:
+- Dominios distintos (auth ≠ tratamiento de datos personales).
+- Requisitos legales distintos (RGPD Art. 30 exige registro de actividades de tratamiento).
+- Inmutabilidad estricta requerida en RGPD vs solo append-recomendado en Auth.
+- Divergencia intencional de nomenclatura (`usuarioId` vs `user`, `action` vs `event`) para hacer evidente la separación en code review.
+
+---
+
+## Future-ready: campos que dependen de features futuras
+
+Dos requisitos del spec dependen de relaciones que **no existen actualmente en el modelo de datos** del repo. La spec los formula con propósito; el plan los implementa como skeleton activable.
+
+### FR-008.a — Agencia con canales de clientes
+
+El campo `Usuario.tipoPerfil = 'agencia'` existe, pero **no hay campo `Canal.gestorId`** que mapee canales gestionados por una agencia para clientes. Solo hay `Canal.propietario` para el dueño.
+
+**Tratamiento en SPEC-B1**:
+- El pre-check de `POST /api/rgpd/deletion` evalúa `tipoPerfil === 'agencia'`.
+- Si verdadero, consulta `Canal.countDocuments({ gestorId: usuarioId, activo: true })` — query que **devolverá siempre 0** mientras `gestorId` no esté wired.
+- El resultado se logueará a warn: `[rgpd] agency block returned 0 — gestorId field not yet present in Canal model. FR-008.a is skeleton-ready, full enforcement pending future spec.`
+- Cuando una spec futura añada `Canal.gestorId`, FR-008.a empieza a bloquear automáticamente. Sin cambios adicionales en SPEC-B1.
+
+### FR-012.a — Slug de perfil público creator
+
+La ruta `/c/:slug` existe en `client/src/routes/AppRoutes.jsx:160` apuntando a `PublicCreatorProfilePage.jsx`. El componente llama `apiService.getPublicCreatorProfile(slug)` pero **ese método no existe en `client/src/services/api.js`** ni hay endpoint backend que lo sirva. El componente tiene fallback a "derive from current user's profile".
+
+**Tratamiento en SPEC-B1**:
+- `rgpdDeletionWorker` siempre inserta `ReservedSlug` cuando el creator tiene un slug detectable (e.g. `channelUsername` no-null, o algún otro campo futuro).
+- El endpoint de registro de canal/perfil debe consultar `ReservedSlug` antes de aceptar slug nuevo (ya documentado en E-4).
+- Si actualmente el endpoint público no está completado, el `ReservedSlug` simplemente queda como reserva preventiva — no daña nada y se activa cuando el feature público entre en producción.
+
+### Modelos adicionales tocados por anonimización (FR-009 expandido)
+
+Beyond los campos de `Usuario`, las siguientes colecciones contienen PII del usuario y deben tratarse:
+
+- **`Tracking` / `TrackingFingerprint` / `TrackingLink`**: registran IP, user agent, fingerprint del visitante. Anonimización: para registros asociados a `usuarioId` del usuario borrado, sobreescribir `ip = '0.0.0.0'`, `userAgent = '(eliminado)'`, `fingerprint = null`. Los registros se preservan para integridad de métricas históricas agregadas.
+- **`Notificacion`**: notificaciones enviadas al usuario. Conservar el documento (para integridad de timeline) pero sobreescribir contenido si incluye PII transcrita.
+- **`Retiro`**: solicitudes de retiro (payouts). Datos fiscalmente relevantes → conservar 6 años con `usuarioId` anonimizado pero no borrado.
+- **`Review`**: reseñas dadas o recibidas. Conservar autoría anonimizada (igual que mensajes de Dispute).
+
+El servicio `anonymizationService.js` se estructura como pipeline de pasos:
+
+```
+anonymizeUser(usuarioId) {
+  await scrubUsuarioDoc(usuarioId);          // las 6 categorías en Usuario
+  await scrubTrackingRecords(usuarioId);     // Tracking* collections
+  await scrubNotificaciones(usuarioId);      // Notificacion content
+  await reserveSlugIfApplicable(usuarioId);  // ReservedSlug
+  // Retiro y Review se conservan intactos (FK al usuarioId anonimizado basta)
+  await logAuditEntry(usuarioId, 'deletion.anonymized', { stepsCompleted: [...] });
+}
+```
+
+Cada paso es independiente y se loggea individualmente para test forense (SC-004).
+
+---
+
+## Datos incluidos en el export (FR-016 expandido)
+
+Más allá del listado inicial, basado en los modelos del repo (`Notificacion`, `Tracking*`, `Review`, `Conversion`, `Retiro`, `Factura`):
+
+```
+export-{requestId}/
+├── MANIFEST.json
+├── profile.json
+├── campaigns.json
+├── transactions.json
+├── invoices.json          # facturas emitidas (Factura.js) — datos fiscales del usuario
+├── disputes.json
+├── reviews.json           # reseñas dadas o recibidas (Review.js)
+├── notifications.json     # historial de notificaciones recibidas
+├── tracking-summary.json  # agregado (no eventos crudos — solo conteos por campaña, sin IP individual)
+├── conversions.json       # conversiones atribuidas (Conversion.js)
+├── retirosolicitudes.json # retiros solicitados (Retiro.js)
+├── consents.json
+├── notifications-prefs.json
+├── channels/              # solo si creator
+│   ├── {channelId}.json
+│   └── ...
+└── README.txt
+```
+
+**Justificación de incluir tracking agregado pero no eventos crudos**: el detalle de cada visita con IP no aporta al usuario (es metadato de la plataforma) y exportarlo permite ataques de correlación. El agregado por campaña sí es relevante (saber cuántos clicks recibió cada uno de mis ads).
+
+**Documentado en el MANIFEST**: lista explícita de qué se incluye y qué se excluye con justificación. Aumenta transparencia y prueba el cumplimiento del Art. 15 + 20.

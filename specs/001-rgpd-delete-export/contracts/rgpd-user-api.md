@@ -33,8 +33,8 @@ Crea una solicitud de borrado. Envía email de confirmación.
 ```
 
 **Errors**:
-- `409 Conflict — disputes_open`: body `{ disputes: [{id, openedAt, contraparte}] }`.
-- `409 Conflict — agency_clients_active`: body `{ channels: [{id, slug, nombre}] }`.
+- `409 Conflict — disputes_open`: body `{ disputes: [{id, openedAt, contraparte, status}] }`. Solo bloquea disputes con `status ∈ ['open','under_review']` (los tres terminales `resolved_advertiser`, `resolved_creator`, `closed` no bloquean).
+- `409 Conflict — agency_clients_active`: body `{ channels: [{id, slug, nombre}] }`. **Nota**: skeleton ready — actualmente siempre devuelve 0 canales gestionados porque `Canal.gestorId` no está presente en el schema. Ver data-model "Future-ready". Se activa automáticamente cuando ese campo entre en producción.
 - `409 Conflict — last_admin`: body `{ message }`.
 - `409 Conflict — request_already_active`: body `{ requestId, status }`.
 - `429 Too Many Requests`: si > 3 solicitudes en 24h por mismo usuario (anti-abuso).

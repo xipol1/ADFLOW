@@ -15,9 +15,9 @@ Enfoque técnico: tres modelos nuevos (`AccountDeletionRequest`, `DataExportRequ
 **Language/Version**: Node.js ≥ 16 (backend) · React 18 (frontend) · ECMAScript 2022. Coincide con stack vigente del repo.
 
 **Primary Dependencies**:
-- Backend: `express ^4.18`, `mongoose ^7`, `bcryptjs ^2.4` (hash de tokens), `crypto` (nativo, generación token), `nodemailer` (vía `services/emailService.js` existente), `archiver` (NEW: empaquetar ZIP del export — ~700 KB unpacked, sin deps).
+- Backend: `express ^4.18`, `mongoose ^7.5`, `bcryptjs ^2.4.3` (hash de tokens), `jsonwebtoken ^9.0.2` (firma JWT del download URL — **ya presente en deps**), `crypto` (nativo), `nodemailer ^6.9` (vía `services/emailService.js` existente con método `renderTemplate(name, vars)`), **`archiver`** (NEW: empaquetar ZIP del export — ~700 KB unpacked, pure JS, sin nativas; compatible Vercel Lambda).
 - Frontend: `react ^18`, `react-router-dom ^6`, ya presentes. Sin nuevas deps.
-- Cron: Vercel Cron (declarado en `vercel.json`, ya hay 3 crons activos como precedente).
+- Cron: Vercel Cron (declarado en `vercel.json`, ya hay 3 crons activos como precedente: `telegramIntel` 02:30 UTC, `multiplatformIntel` 04:00 UTC, `tgstat-discover` lunes 05:00 UTC).
 
 **Storage**: MongoDB Atlas (mismo cluster que el resto de modelos). 4 colecciones nuevas: `accountdeletionrequests`, `dataexportrequests`, `rgpdauditlogs`, `reservedslugs`. Mutaciones en `usuarios` para anonimización (en su sitio, preservando `_id` para integridad referencial).
 
@@ -98,10 +98,10 @@ controllers/
 └── rgpdController.js              # NEW — orquestación de los flujos
 
 services/
-├── anonymizationService.js        # NEW — scrubber schema-aware (6 categorías PII de FR-009)
-├── dataExportService.js           # NEW — generación ZIP + manifest
+├── anonymizationService.js        # NEW — pipeline: scrubUsuarioDoc + scrubTrackingRecords + scrubNotificaciones + reserveSlugIfApplicable + logAuditEntry
+├── dataExportService.js           # NEW — generación ZIP + manifest (12 archivos incluyendo invoices, reviews, notifications, tracking-summary, conversions, retirosolicitudes)
 ├── rgpdAuditService.js            # NEW — escritura append-only del log
-└── emailService.js                # ✎ EDIT — wire 4 templates RGPD nuevos
+└── emailService.js                # ✎ EDIT — añadir 5 métodos para los 5 templates RGPD nuevos
 
 workers/
 ├── rgpdExportWorker.js            # NEW — procesa cola DataExportRequest pendiente
@@ -153,6 +153,21 @@ client/src/ui/pages/admin/AdminRGPDPage.jsx                     # NEW — UI mí
 ```
 
 **Structure Decision**: web fullstack (Option 2). Coincide con la estructura ya en producción (Express raíz + Vite client). Cero migración estructural; solo añade ficheros y edita los marcados.
+
+## Review Log
+
+- **2026-05-18 — Review crítica del plan vs código real**: confirmadas las siguientes asunciones (✓) y corregidas las siguientes desviaciones (✎). Plan/data-model/contracts editados en el mismo commit.
+  - ✓ `jsonwebtoken ^9.0.2` ya en deps (no es nueva).
+  - ✓ `bcryptjs ^2.4.3`, `mongoose ^7.5`, `nodemailer ^6.9` ya en deps. `emailService.renderTemplate(name, vars)` existe y se usa para 18 templates actuales.
+  - ✓ `CRON_SECRET` ya `required` en `config/validateEnv.js:46`. Tres crons activos como precedente.
+  - ✓ Paths `client/src/ui/pages/dashboard/{advertiser,creator}/{SettingsPage,CreatorSettingsPage}.jsx` confirmados.
+  - ✓ `middleware/auth.js` confirmado.
+  - ✎ **Modelo es `Dispute` (inglés), no `Disputa`**. Status enum real: `'open' | 'under_review' | 'resolved_advertiser' | 'resolved_creator' | 'closed'`. Campos relevantes: `openedBy`, `againstUser`. Bloquean borrado solo los dos primeros estados. Data-model y contracts actualizados.
+  - ✎ **`Canal.gestorId` no existe**: FR-008.a (bloqueo por agencia con canales de clientes) implementado como skeleton-ready — query devuelve siempre 0 hasta que el campo entre en producción por feature futura. Documentado en data-model "Future-ready" y en el contract de error 409 agency_clients_active.
+  - ✎ **`getPublicCreatorProfile` endpoint no existe todavía** (ruta `/c/:slug` está pero backend incompleto). FR-012.a (reservar slug 90d) implementación es preventiva — el `ReservedSlug` se inserta igualmente y activará la protección cuando el endpoint público se complete. Documentado.
+  - ✎ **Export ampliado** de 8 a 12 archivos: añadidos `invoices.json`, `reviews.json`, `notifications.json`, `tracking-summary.json` (agregado, no eventos crudos), `conversions.json`, `retirosolicitudes.json`. Basado en modelos reales del repo (`Factura`, `Review`, `Notificacion`, `Tracking*`, `Conversion`, `Retiro`).
+  - ✎ **Anonimización ampliada**: además de los campos en `Usuario`, scrubea `Tracking*` collections (IP/UA/fingerprint) y sobreescribe contenido de `Notificacion` si contiene PII transcrita. `Retiro` y `Review` se conservan intactos (FK al usuarioId anonimizado basta). Documentado en data-model como pipeline de pasos en `anonymizationService`.
+  - **Decisión sobre convención `RGPDAuditLog` vs `AuthAuditLog`**: mantengo divergencia intencional (`usuarioId`/`action` vs `user`/`event`) para señalizar separación de dominios. Documentado en data-model "Modelos existentes referenciados".
 
 ## Complexity Tracking
 
