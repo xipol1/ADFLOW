@@ -39,6 +39,7 @@ yarn-error.log*
 data/*.json
 data/whatsapp-session/
 data/whatsapp-session*/
+data/baileys-system-session/
 !data/.gitkeep
 
 # WhatsApp Web probe artifacts (local validation, never commit)
