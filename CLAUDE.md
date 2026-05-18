@@ -23,6 +23,43 @@ Toda feature no trivial:
 
 Excepciones permitidas (no requieren spec): hotfix aislado, cambio de copy de una sola línea, ajuste de config, dependencia de seguridad.
 
+## Arnés de sesión
+
+Antes de empezar y antes de cerrar cualquier sesión sobre el repo:
+
+```
+npm run verify
+```
+
+Eso corre [init.mjs](init.mjs) y valida en cascada: Node 20+, dependencias instaladas, archivos del arnés presentes, `.env` no modificado, working tree, sanidad del `tasks.md` del spec activo, lint y tests Jest. Exit 0 = sano, exit 1 = corrige antes de seguir. `SKIP_LINT=1` y `SKIP_TESTS=1` permiten saltar bloques caros en iteración rápida (no antes de cerrar).
+
+**Artefactos del arnés**:
+- [CHECKPOINTS.md](CHECKPOINTS.md) — criterios binarios C1–C5 que definen "terminado".
+- [progress/current.md](progress/current.md) — estado de la sesión activa (qué archivos, qué tareas, plan, log).
+- [progress/history.md](progress/history.md) — append-only de sesiones cerradas.
+- [.claude/agents/](.claude/agents/) — `leader`, `implementer`, `reviewer` (ver abajo).
+
+### Cuándo invocar subagentes
+
+| Situación | Patrón |
+|---|---|
+| Spec activo en `specs/` y vas a abordar una fase ≥3 tareas, una user story, o un PR grande | Lanza el subagente `leader` y deja que orqueste `implementer` + `reviewer` |
+| Tarea concreta de `tasks.md` que sabes exactamente cómo ejecutar | Lanza `implementer` directo con el ID y los paths |
+| Antes de marcar `[X]` una fase completa o de hacer cherry-pick / PR a main | Lanza `reviewer` con el alcance |
+| Hotfix, cambio de copy de una línea, ajuste de config, dependencia de seguridad | **No lances subagentes**. Edita tú directo |
+| Pregunta conceptual sobre el repo, lectura pura | No lances subagentes. Responde directo |
+
+El rol `leader` **no se activa por defecto** — solo cuando el usuario te pide trabajar sobre un spec o tú determinas que el alcance lo justifica. Para tareas sueltas fuera de `specs/`, sigue siendo Claude editando directo el que trabaja.
+
+### Regla anti-teléfono-roto
+
+Cuando lances un subagente, **instrúyelo para escribir su trabajo a disco** y devolverte solo una referencia, no el contenido. Convenciones:
+- `implementer` escribe código a su path real + un resumen breve en `progress/impl_<task-id>.md`. Devuelve `OK <task-id>: <ruta>` o `BLOCKED: <razón>`.
+- `reviewer` escribe veredicto en `progress/review_<scope>.md`. Devuelve `APROBADO ...` o `RECHAZADO ...` en una línea.
+- `Explore` / `general-purpose` escriben hallazgos en `progress/explore_<tema>.md`. Devuelven solo la ruta.
+
+Esto evita que el contenido de los subagentes erosione el contexto de Claude principal.
+
 ## Stack y restricciones
 
 - Backend: Node.js + Express (`server.js`, `routes/`, `controllers/`, `services/`, `models/`).

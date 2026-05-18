@@ -19,7 +19,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "verify": "node init.mjs"
   },
   "keywords": [],
   "author": "",

@@ -60,13 +60,16 @@ Thumbs.db
 .vercel/
 
 # ── Claude Code local state (never commit) ────────────────────────────────────
-# Ignoramos todo lo de .claude/ por defecto (settings, worktrees, agents, credenciales).
-# Excepción: los slash commands /speckit-* son definiciones markdown reutilizables
-# por todo el equipo y no contienen credenciales — se versionan.
+# Ignoramos todo lo de .claude/ por defecto (settings, worktrees, credenciales).
+# Excepciones que SÍ se versionan porque son definiciones reutilizables por todo
+# el equipo y no contienen credenciales:
+#   - .claude/skills/speckit-*/ — slash commands del pipeline Spec Kit
+#   - .claude/agents/           — subagentes leader/implementer/reviewer del arnés
 .claude/*
 !.claude/skills/
 .claude/skills/*
 !.claude/skills/speckit-*/
+!.claude/agents/
 .agents/
 
 # ── IDE / agent state ─────────────────────────────────────────────────────────
