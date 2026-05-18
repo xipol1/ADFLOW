@@ -33,7 +33,7 @@ description: "Task list — SPEC-B1 RGPD Delete + Export"
 - [ ] T001 Añadir `RGPD_TOKEN_SECRET` y `RGPD_EXPORT_SIGNING_KEY` a la lista de envs requeridas en [config/validateEnv.js](config/validateEnv.js). Documentar generación con `openssl rand -hex 32`.
 - [ ] T002 Añadir cron Vercel `/api/jobs/rgpd-grace` cada 10 min en [vercel.json](vercel.json) bajo `crons` (header `Authorization: Bearer $CRON_SECRET` ya gestionado por handler).
 - [ ] T003 [P] Instalar `archiver` (`npm install archiver`) y verificar versión en [package.json](package.json).
-- [ ] T004 [P] Crear 5 templates HTML en [email-templates/](email-templates/): `rgpd-confirm-deletion.html`, `rgpd-grace-started.html`, `rgpd-grace-warning.html`, `rgpd-deletion-completed.html`, `rgpd-export-ready.html`. Estructura idéntica a los 18 existentes (variables vía `{{var}}`). Copy alineado a [wording-playbook.md §6.3 fórmula email transaccional](.specify/memory/wording-playbook.md#63-email-transaccional).
+- [ ] T004 [P] Crear 5 templates HTML en [email-templates/](email-templates/): `rgpd-confirm-deletion.html`, `rgpd-grace-started.html`, `rgpd-grace-warning.html`, `rgpd-deletion-completed.html`, `rgpd-export-ready.html`. Estructura idéntica a los 18 existentes (variables vía `{{var}}`). Copy alineado a [wording-playbook.md §6.3 fórmula email transaccional](.specify/memory/wording-playbook.md#63-email-transaccional). **i18n-ready**: cada texto traducible va en variable separada (e.g., `{{subject}}`, `{{body_intro}}`, `{{cta_label}}`); en MVP el render server-side inyecta castellano peninsular. Cuando SPEC-C3 entregue i18n LATAM, basta con tener variantes por locale del mismo template sin cambiar el sistema de render (FR-025).
 
 ---
 
@@ -45,7 +45,7 @@ description: "Task list — SPEC-B1 RGPD Delete + Export"
 
 - [ ] T005 Crear modelo append-only [models/RGPDAuditLog.js](models/RGPDAuditLog.js) con schema `{usuarioId, action, timestamp, ip, userAgent, actor, actorUserId, metadata}` + índices `{usuarioId:1, timestamp:-1}` y `{action:1, timestamp:-1}`. Sin TTL (retención permanente — RGPD Art. 30).
 - [ ] T006 Crear [services/rgpdAuditService.js](services/rgpdAuditService.js) que expone **solo** `log(action, opts)`, `findByUser(usuarioId)`, `findByAction(action, range)`. No exporta `update`/`delete`. Comentario superior aclarando inmutabilidad.
-- [ ] T007 Editar [models/Usuario.js](models/Usuario.js): añadir `deletionStatus: String enum ['active','pending_email_confirmation','pending_deletion','anonymized']` default `'active'` con índice, y `anonymizedAt: Date` default null. Añadir método estático `Usuario.anonymizeById(id)` que delega en `anonymizationService` (importación lazy para evitar circular). Pre-save hook valida que `deletionStatus === 'anonymized'` no se acompañe de PII visible.
+- [ ] T007 Editar [models/Usuario.js](models/Usuario.js): añadir `deletionStatus: String enum ['active','pending_email_confirmation','pending_deletion','anonymized']` default `'active'` con índice, y `anonymizedAt: Date` default null. Añadir método estático `Usuario.anonymizeById(id)` que delega en `anonymizationService` (importación lazy para evitar circular). Pre-save hook valida que `deletionStatus === 'anonymized'` no se acompañe de PII visible. **Migración de usuarios existentes**: el `default: 'active'` solo aplica a docs nuevos. Añadir 1-liner de bootstrap (`Usuario.updateMany({deletionStatus:{$exists:false}}, {$set:{deletionStatus:'active'}})`) en `scripts/migrate-rgpd-deletionStatus.js` (nuevo) ejecutable manualmente una vez antes del release, o invocado en `app.js` boot tras `mongoose.connect()` como hot-fix idempotente.
 - [ ] T008 Editar [middleware/auth.js](middleware/auth.js): leer `Usuario.deletionStatus` después de validar JWT. Si `'anonymized'` → responder 401 con código `account_deleted` y mensaje sobrio. Si `'pending_deletion'` → permitir request pero inyectar header `X-Channelad-Deletion-Pending: true` para que el frontend muestre `DeletionGraceBanner`.
 - [ ] T009 Crear [routes/rgpd.js](routes/rgpd.js) con router skeleton (sin handlers todavía) y montarlo en [app.js](app.js) bajo `/api/rgpd` siguiendo el patrón lazy-load de `channelIntelligence` (línea ~40 de app.js).
 - [ ] T010 Crear [routes/adminRgpd.js](routes/adminRgpd.js) con router skeleton + middleware `autenticar + autorizarRoles('admin')` aplicado a todo el router. Montar en [app.js](app.js) bajo `/api/admin/rgpd`.
@@ -65,7 +65,7 @@ description: "Task list — SPEC-B1 RGPD Delete + Export"
 ### Tests for User Story 1 (FIRST — must FAIL before implementation)
 
 - [ ] T013 [P] [US1] Crear suite integration [tests/rgpdDeletion.integration.test.js](tests/rgpdDeletion.integration.test.js) cubriendo: (a) happy path completo con cron forzado, (b) bloqueo por disputa abierta (409 `disputes_open`), (c) bloqueo por último admin (409 `last_admin`), (d) bloqueo por agencia con canales (409 `agency_clients_active`, esperando que devuelva 0 por skeleton-ready), (e) cancelación durante gracia, (f) token de confirmación expirado (410), (g) token reutilizado (410).
-- [ ] T014 [P] [US1] Crear suite unit [tests/rgpdAnonymization.unit.test.js](tests/rgpdAnonymization.unit.test.js) cubriendo: (a) las 6 categorías PII de FR-009 sobreescritas correctamente, (b) `referredBy` preservado, (c) `Tracking*` records anonimizados, (d) test forense — queries operativas no devuelven PII original (asserts el SC-004).
+- [ ] T014 [P] [US1] Crear suite unit [tests/rgpdAnonymization.unit.test.js](tests/rgpdAnonymization.unit.test.js) cubriendo: (a) las 6 categorías PII de FR-009 sobreescritas correctamente, (b) `referredBy` preservado, (c) `Tracking*` records anonimizados (IP/UA/fingerprint a valores neutros), (d) test forense — queries operativas no devuelven PII original (asserts SC-004), (e) **aserción FR-010**: tras anonimización, documentos `Factura` del usuario siguen recuperables vía `Factura.find({usuarioId})` con todos los campos contables intactos (`numero`, `total`, `iva`, `fechaEmision`, `conceptos`) — solo cambia el snapshot de datos personales asociados. Igual aserción para `Transaccion` y `Retiro`.
 
 ### Implementation for User Story 1
 
@@ -141,14 +141,15 @@ description: "Task list — SPEC-B1 RGPD Delete + Export"
 
 **Purpose**: endpoints admin (admin API completa), wiring Sentry en workers, revisión de wording, ejecución de pre-flight checklist.
 
-- [ ] T049 [P] Implementar handler `GET /api/admin/rgpd/requests` en [controllers/rgpdController.js](controllers/rgpdController.js) con filtros `type/status/limit/skip`. Wire en `routes/adminRgpd.js`. Audit `admin.audit_viewed`.
-- [ ] T050 [P] Implementar handler `POST /api/admin/rgpd/requests/:id/force-execute` (transición desde `paused_pending_*` → `executing_liquidation`). Wire en `routes/adminRgpd.js`. Audit `deletion.force_executed`.
-- [ ] T051 [P] Implementar handler `POST /api/admin/rgpd/requests/:id/cancel` (admin override). Wire en `routes/adminRgpd.js`. Audit `deletion.cancelled_by_admin`. Envía email al usuario notificando cancelación con `adminNote`.
-- [ ] T052 [P] Implementar handler `GET /api/admin/rgpd/audit-log` con filtros `usuarioId/action/from/to`. Wire en `routes/adminRgpd.js`. Audit `admin.audit_viewed` (recursivo).
-- [ ] T053 [P] Implementar handler `GET /api/admin/rgpd/users/:id/dossier` (resumen RGPD de un usuario para soporte DPO). Wire en `routes/adminRgpd.js`. Audit `admin.dossier_viewed`.
+- [ ] T049 Implementar handler `GET /api/admin/rgpd/requests` en [controllers/rgpdController.js](controllers/rgpdController.js) con filtros `type/status/limit/skip`. Wire en `routes/adminRgpd.js`. Audit `admin.audit_viewed`.
+- [ ] T050 Implementar handler `POST /api/admin/rgpd/requests/:id/force-execute` (transición desde `paused_pending_*` → `executing_liquidation`). Wire en `routes/adminRgpd.js`. Audit `deletion.force_executed`.
+- [ ] T051 Implementar handler `POST /api/admin/rgpd/requests/:id/cancel` (admin override). Wire en `routes/adminRgpd.js`. Audit `deletion.cancelled_by_admin`. Envía email al usuario notificando cancelación con `adminNote`.
+- [ ] T052 Implementar handler `GET /api/admin/rgpd/audit-log` con filtros `usuarioId/action/from/to`. Wire en `routes/adminRgpd.js`. Audit `admin.audit_viewed` (recursivo).
+- [ ] T053 Implementar handler `GET /api/admin/rgpd/users/:id/dossier` (resumen RGPD de un usuario para soporte DPO). Wire en `routes/adminRgpd.js`. Audit `admin.dossier_viewed`.
+- [ ] T053b Nota sobre T049–T053: las cinco editan el mismo `controllers/rgpdController.js` y `routes/adminRgpd.js`, por lo que **NO son paralelizables**. Ejecutar secuencialmente; cada handler en su commit independiente para granularidad de revisión.
 - [ ] T054 [P] Crear [client/src/ui/pages/admin/AdminRGPDPage.jsx](client/src/ui/pages/admin/AdminRGPDPage.jsx): tabla de solicitudes pendientes (deletion + export) con acciones `force-execute` / `cancel`. Filtros básicos por estado.
 - [ ] T055 Wire Sentry en los 2 workers ([workers/rgpdDeletionWorker.js](workers/rgpdDeletionWorker.js) y [workers/rgpdExportWorker.js](workers/rgpdExportWorker.js)): llamar `sentry.captureException(err, {worker, requestId})` en cualquier `catch` no esperado. Asume que el wiring global de `lib/sentry.js` en `app.js` ya está hecho o se hará junto con esto.
-- [ ] T056 Revisión wording de todo el copy generado (5 templates email + DeletionFlowModal + ExportFlowModal + PrivacySection + ConfirmDeletionPage + DeletionGraceBanner) contra la checklist 6 del [wording-playbook.md §9](.specify/memory/wording-playbook.md#9-checklist-pre-publicación-las-6). Cada texto debe pasar las 6 antes de mergear.
+- [ ] T056 Revisión wording de todo el copy generado (5 templates email + DeletionFlowModal + ExportFlowModal + PrivacySection + ConfirmDeletionPage + DeletionGraceBanner) contra la checklist 6 del [wording-playbook.md §9](.specify/memory/wording-playbook.md#9-checklist-pre-publicación-las-6). Cada texto debe pasar las 6 antes de mergear. **Adicionalmente verificar**: (a) dirección DPO operativa real configurada (sustituir placeholder `dpo@channelad.io` por la elegida y confirmar buzón monitorizado), (b) menciones de plazos legales coinciden con FR-004/008/SC-007 (7d gracia, 24h confirmación email, 30d límite RGPD, 6 años retención fiscal), (c) ningún emoji en hero/CTA/asunto email (regla 10 de anti-patrones del playbook).
 - [ ] T057 [P] Actualizar [README.md](README.md) con sección "RGPD" describiendo los flujos disponibles, el endpoint del DPO operativo (placeholder hasta confirmación), y referencia a las rutas `/api/rgpd/*` y `/api/admin/rgpd/*`.
 - [ ] T058 Ejecutar el pre-flight checklist completo del [quickstart.md §"Pre-flight checklist"](specs/001-rgpd-delete-export/quickstart.md#pre-flight-checklist-antes-de-primer-release) en entorno staging. 9 items binarios, todos en verde antes de release.
 
@@ -252,12 +253,21 @@ Con 2 desarrolladores:
 
 ---
 
+## Review Log
+
+- **2026-05-18 — Review crítica de tasks.md vs paths reales**: corregidos 5 puntos:
+  - T049–T053 quitado `[P]` — comparten `controllers/rgpdController.js` y `routes/adminRgpd.js`, no son paralelizables. Añadido T053b como nota explícita.
+  - T014 ampliado con aserción FR-010: tests deben verificar que `Factura`/`Transaccion`/`Retiro` se conservan intactos tras anonimización.
+  - T007 ampliado con migración de usuarios existentes (`scripts/migrate-rgpd-deletionStatus.js`) — el default Mongoose solo aplica a docs nuevos.
+  - T056 ampliado con verificación de DPO email operativo (sustituir placeholder) y plazos legales coincidentes con FRs.
+  - T004 ampliado con nota i18n-ready en templates (FR-025 future-ready).
+
 ## Métricas de tasks
 
-- **Total**: 58 tareas.
+- **Total**: 59 tareas (58 + T053b nota).
 - **Por user story**: US1 = 19 (T013–T031) · US2 = 11 (T032–T042) · US3 = 6 (T043–T048).
 - **Setup**: 4 · **Foundational**: 8 · **Polish**: 10.
 - **Tests**: 3 suites (1 unit + 2 integration) — escritas en T013, T014, T032.
-- **Paralelizables [P]**: 21.
+- **Paralelizables [P]**: 13 (reducido de 18 reales tras quitar [P] mal puesto en T049–T053 — comparten archivo controller/router; nota original "21" era estimación previa).
 - **Edits a archivos existentes**: 9 (validateEnv.js, vercel.json, package.json, Usuario.js, auth.js, app.js, emailService.js, api.js, AppRoutes.jsx, SettingsPage.jsx, CreatorSettingsPage.jsx, README.md) — todas son adiciones.
 - **Archivos nuevos**: 4 modelos + 3 services + 2 workers + 1 job + 2 routes + 1 controller + 5 templates email + 6 componentes React + 2 páginas auth + 1 página admin = **27 archivos nuevos**.
