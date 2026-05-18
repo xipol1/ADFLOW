@@ -116,17 +116,23 @@ curl -X POST http://localhost:3000/api/jobs/rgpd-grace \
 6. Verificar `status === 'ready'`, `packageData` o `gridfsId` populado.
 7. Mailtrap recibe email `rgpd-export-ready` con link.
 8. Click en el link → descarga ZIP.
-9. Descomprimir y verificar contenido:
+9. Descomprimir y verificar contenido (12 archivos + carpeta channels/ si creator):
    ```
-   MANIFEST.json    — schemaVersion, generatedAt, files
-   profile.json     — datos del usuario sin password/2FA secrets
-   campaigns.json   — array de campañas
-   transactions.json
-   disputes.json
-   consents.json
+   MANIFEST.json          — schemaVersion, generatedAt, files, exclusiones documentadas
+   profile.json           — perfil sin password/2FA secrets
+   campaigns.json         — campañas como anunciante
+   transactions.json      — historial transaccional sin tokens Stripe
+   invoices.json          — facturas emitidas (Factura.js) — datos fiscales
+   disputes.json          — disputas con mensajes
+   reviews.json           — reseñas dadas o recibidas
+   notifications.json     — historial de notificaciones recibidas
+   tracking-summary.json  — agregado (no eventos crudos — sin IPs individuales)
+   conversions.json       — conversiones atribuidas
+   retirosolicitudes.json — retiros solicitados
+   consents.json          — historial T&C, cookies
    notifications-prefs.json
-   channels/        — solo si creator
-   README.txt
+   channels/              — solo si rol=creator, un fichero por canal con perfil + métricas
+   README.txt             — explicación humana en castellano
    ```
 10. Esperar (o forzar) 7 días → link debe devolver 410 `link_expired`.
 
