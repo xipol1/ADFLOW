@@ -54,5 +54,6 @@ Sección añadida específicamente para Channelad. Cada principio debe alinearse
 ## Notes
 
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`.
-- 2 [NEEDS CLARIFICATION] markers pendientes (Q1 operaciones pendientes, Q2 duración gracia) — presentados al usuario en el chat siguiendo el formato del skill `speckit-specify`. Cuando se respondan, se reemplazan los marcadores en spec.md y este checklist se actualiza a `[x]` en "No [NEEDS CLARIFICATION] markers remain".
-- Tras resolver clarifications, el siguiente comando recomendado es `/speckit-plan` (no `/speckit-clarify`, porque las dos preguntas están ya formuladas aquí explícitamente y el usuario solo necesita elegir opción).
+- 5 decisiones tomadas y registradas en Decision Log de la spec (Q1, Q2, Q3, Q4, Q5).
+- Review crítica 2026-05-18 contra código real (`models/Usuario.js`, `client/src/routes/AppRoutes.jsx`, `models/AuthAuditLog.js`) cerrada — todos los hallazgos enmendados directamente en la spec.
+- Spec lista para `/speckit-plan`.

@@ -34,7 +34,7 @@ Un usuario decide dejar de usar Channelad y quiere ejercer su derecho de supresi
 
 ### User Story 2 — Export de datos personales (Priority: P2)
 
-El mismo usuario quiere obtener una copia de los datos que Channelad guarda sobre él (Art. 20 RGPD — derecho de portabilidad). Desde la misma sección de ajustes pulsa "Descargar mis datos", el sistema genera la copia en segundo plano y le envía un email con un enlace de descarga temporal cuando el archivo está listo. El paquete contiene su perfil, historial de campañas, transacciones, disputas, mensajes y, si es un canal, los datos del canal verificado y sus métricas.
+El mismo usuario quiere obtener una copia de los datos que Channelad guarda sobre él. El export cumple a la vez el **Art. 15 RGPD (derecho de acceso — saber qué datos se tratan)** y el **Art. 20 RGPD (derecho de portabilidad — recibirlos en formato estructurado y reutilizable)**. Desde la misma sección de "Privacidad y datos" pulsa "Descargar mis datos", el sistema genera la copia en segundo plano y le envía un email con un enlace de descarga temporal cuando el archivo está listo. El paquete contiene su perfil, historial de campañas, transacciones, disputas, mensajes y, si es un canal, los datos del canal verificado y sus métricas.
 
 **Why this priority**: Complemento del derecho de supresión (Art. 17). RGPD lo exige aunque el usuario no piense borrarse. Además ayuda al usuario a tomar decisiones informadas antes de borrar (puede descargar primero, revisar, decidir).
 
@@ -56,11 +56,11 @@ El usuario llega a sus ajustes y encuentra una sección dedicada que explica sus
 
 **Why this priority**: sin esta página los usuarios no descubren los derechos aunque existan los endpoints. Es además requisito de transparencia: el RGPD exige información clara y accesible sobre cómo ejercer los derechos.
 
-**Independent Test**: se puede probar sin que los endpoints de borrado o export estén implementados. Test: navegar a `Ajustes → Privacidad` → comprobar que se listan los 6 derechos con explicación breve, plazos legales, y para cada uno o bien un botón funcional o un texto explicando que la vía es por email al DPO (con la dirección visible).
+**Independent Test**: se puede probar sin que los endpoints de borrado o export estén implementados. Test: navegar a la sección "Privacidad y datos" del panel de configuración personal (presente tanto en el panel del advertiser como en el del creator) → comprobar que se listan los 6 derechos con explicación breve, plazos legales, y para cada uno o bien un botón funcional o un texto explicando que la vía es por email al DPO (con la dirección visible).
 
 **Acceptance Scenarios**:
 
-1. **Given** un usuario autenticado, **When** entra en `Ajustes → Privacidad`, **Then** ve una sección "Tus derechos RGPD" con los 6 derechos listados, cada uno con explicación de una línea y plazo legal asociado.
+1. **Given** un usuario autenticado, **When** entra en la sección "Privacidad y datos" del panel de configuración personal (presente tanto en el panel del advertiser como en el del creator), **Then** ve una sección "Tus derechos RGPD" con los 6 derechos listados, cada uno con explicación de una línea y plazo legal asociado.
 2. **Given** la página de derechos, **When** la vista se renderiza, **Then** los derechos con endpoint disponible (acceso vía export, supresión) muestran botón directo; los demás (rectificación, oposición, limitación) muestran instrucciones para solicitar vía email al DPO.
 3. **Given** el botón "Descargar mis datos", **When** el usuario lo pulsa, **Then** se ejecuta el flujo de la User Story 2.
 4. **Given** el botón "Eliminar mi cuenta", **When** el usuario lo pulsa, **Then** se ejecuta el flujo de la User Story 1.
@@ -73,6 +73,11 @@ El usuario llega a sus ajustes y encuentra una sección dedicada que explica sus
 - **Anunciante con campaña activa y escrow retenido**: liquidación express con reembolso automático antes de iniciar la gracia (FR-007.b). Requiere Stripe live — hasta SPEC-F2, se pausa la solicitud con incidencia explicando el bloqueo.
 - **Canal con saldo pendiente de liberación**: liquidación express con payout antes del borrado (FR-007.c). Misma dependencia Stripe que el caso anterior.
 - **Operación pendiente con bloqueo humano** (KYC, banco rechaza, disputa colateral): FR-007.d — se pausa la solicitud con incidencia operativa concreta y cómo resolverla, manteniendo al usuario informado.
+- **Usuario tipo `agencia` con canales de clientes gestionados activos**: FR-008.a — se rechaza el borrado con lista de canales y vía para des-asignar. Decisión Q3 (2026-05-18) — opción conservadora elegida para evitar canales huérfanos en producción.
+- **Usuario con `referralCashBalance > 0`**: FR-007.e — se libera vía payout antes del borrado (mismo razonamiento que FR-007.c). Créditos no monetarios (`campaignCreditsBalance`, `referralCreditsBalance`) se queman.
+- **Creator con perfil público `/c/:slug` borrado**: FR-012.a — 404 inmediato + slug reservado 90 días. Tras 90 días, slug liberado para re-registro.
+- **Re-registro con email del usuario eliminado durante la gracia**: bloqueado — la unicidad del email se mantiene hasta completar la anonimización; tras ella, el slot queda libre (FR-012).
+- **Usuario sin password (Google OAuth puro)**: el flujo de confirmación por email funciona igual (FR-002); la anonimización limpia `googleId` y revoca el vínculo OAuth (FR-009).
 - **Usuario con disputa abierta**: se bloquea el borrado hasta resolver. La otra parte tiene derecho legítimo a la resolución del conflicto.
 - **Email de confirmación expira (24 h)**: la solicitud se descarta silenciosamente; el usuario puede reiniciar el proceso. No se reenvía automáticamente.
 - **Token de confirmación reutilizado**: solo válido una vez; segundo uso devuelve 410 Gone con mensaje claro.
@@ -89,7 +94,7 @@ El usuario llega a sus ajustes y encuentra una sección dedicada que explica sus
 
 **Solicitud y confirmación de borrado**:
 
-- **FR-001**: El sistema MUST exponer en `Ajustes → Privacidad` una opción "Eliminar mi cuenta" visible para todo usuario autenticado.
+- **FR-001**: El sistema MUST exponer en la sección "Privacidad y datos" del panel de configuración personal (presente tanto en el panel del advertiser como en el del creator) una opción "Eliminar mi cuenta" visible para todo usuario autenticado.
 - **FR-002**: El sistema MUST exigir confirmación por email mediante token de un solo uso con expiración de 24 horas antes de aceptar una solicitud de borrado.
 - **FR-003**: El sistema MUST cerrar todas las sesiones activas del usuario en cuanto la solicitud queda confirmada.
 - **FR-004**: El sistema MUST entrar en un periodo de gracia de **7 días naturales** entre la confirmación y el borrado efectivo, durante el cual el usuario puede cancelar la solicitud reiniciando sesión. Plazo alineado con estándar de la industria (Google, GitHub, Facebook) y holgado dentro del límite RGPD de 30 días naturales (Art. 12.3).
@@ -103,19 +108,28 @@ El usuario llega a sus ajustes y encuentra una sección dedicada que explica sus
   - **FR-007.b**: campañas en estado `Aceptada` o `En publicación` con escrow retenido (anunciante eliminándose) → reembolso íntegro automático al anunciante y notificación al canal de cancelación con motivo "Anunciante ha cerrado su cuenta".
   - **FR-007.c**: campañas en estado `Publicada` o `Verificada` con saldo pendiente de liberación (canal eliminándose) → liberar payout al canal antes del borrado, con factura emitida a tiempo.
   - **FR-007.d**: si alguna liquidación requiere intervención humana (KYC pendiente, banco rechaza payout, disputa que aparece en la transacción), la solicitud se pausa y se notifica al usuario con la incidencia concreta y cómo resolverla.
-  - **Fasing técnico**: FR-007.a se cumple desde el primer release (no requiere Stripe live). FR-007.b/c quedan bloqueados hasta que SPEC-F2 (Config Stripe prod) y SPEC-F1 (idempotency) estén operativos. Mientras tanto, los casos b/c se tratan como FR-007.d (pausa con incidencia) explicando que la liquidación express se completará automáticamente cuando la pasarela esté lista.
+  - **FR-007.e**: saldo de referidos en cash (`referralCashBalance > 0`) → liquidar al usuario antes del borrado vía payout (misma mecánica que FR-007.c). Créditos no convertibles a dinero (`campaignCreditsBalance`, `referralCreditsBalance`) se queman silenciosamente al ser instrumentos promocionales no convertibles, sin reclamación posible.
+  - **Fasing técnico**: FR-007.a se cumple desde el primer release (no requiere Stripe live). FR-007.b/c/e quedan bloqueados hasta que SPEC-F2 (Config Stripe prod) y SPEC-F1 (idempotency) estén operativos. Mientras tanto, esos casos se tratan como FR-007.d (pausa con incidencia) explicando que la liquidación express se completará automáticamente cuando la pasarela esté lista.
 - **FR-008**: El sistema MUST rechazar la solicitud si el usuario es el último administrador del sistema, con mensaje explicando que debe transferir el rol primero.
+- **FR-008.a**: El sistema MUST rechazar la solicitud si el usuario es de tipo `agencia` y gestiona uno o más canales activos pertenecientes a clientes, mostrando la lista de canales y la vía para des-asignar la gestión antes de poder solicitar el borrado. Conserva la integridad operativa de los clientes y evita huérfanos en producción.
 
 **Anonimización y retención**:
 
-- **FR-009**: Tras el periodo de gracia, el sistema MUST anonimizar irreversiblemente toda PII del usuario: nombre, email, teléfono, avatar, dirección, datos fiscales personales (DNI/NIF/CIF si aplica), IPs históricas, user agents.
+- **FR-009**: Tras el periodo de gracia, el sistema MUST anonimizar irreversiblemente toda PII del usuario, cubriendo las siguientes categorías:
+  - **Identidad personal**: nombre, apellido, email, teléfono, avatar.
+  - **Identidad OAuth y terceros**: `googleId`, `telegramUserId`, `channelUsername`, `botVerified`.
+  - **Datos fiscales personales** (si el usuario es persona física): DNI/NIF en `datosFacturacion.nif`, dirección postal completa (`direccion`, `cp`, `ciudad`, `provincia`, `pais`), `emailFacturacion`. Los datos fiscales de empresa (`razonSocial`, CIF en `nif` cuando `esEmpresa=true`) se anonimizan en perfil pero se conservan en facturas emitidas por obligación fiscal (FR-010).
+  - **Datos de agencia** (cuando aplique): `agencia.nombre`, `agencia.sitioWeb`, `agencia.cifNif`.
+  - **Credenciales y secretos**: `password` (wipe completo), `twoFactorSecret`, `twoFactorBackupCodes`, `emailVerificationToken`, `passwordResetToken`, todos los `sesiones[]` (incluyendo `userAgent` e `ip` históricas), todos los `pushSubscriptions[]`.
+  - **Identificadores recuperables**: `referralCode` se libera para re-uso por nuevos usuarios; `referredBy` se mantiene como referencia interna para integridad del programa de referidos pero apunta al usuario anonimizado.
 - **FR-010**: El sistema MUST preservar registros con obligación fiscal española (facturas emitidas, transacciones liquidadas, asientos contables) durante 6 años desde la fecha de operación, conforme a Ley General Tributaria 58/2003 Art. 70 y Reglamento de Facturación.
 - **FR-011**: El sistema MUST mantener la integridad referencial de objetos compartidos: disputas siguen visibles para la contraparte con autor "Usuario eliminado"; mensajes en hilos colaborativos se conservan con autoría anonimizada.
-- **FR-012**: El sistema MUST permitir el re-registro con el mismo email tras la anonimización.
+- **FR-012**: El sistema MUST permitir el re-registro con el mismo email **una vez completada la anonimización** (durante el periodo de gracia el email original sigue ocupando el slot único y rechaza nuevos registros).
+- **FR-012.a**: Para creators con perfil público en `/c/:slug`, tras el borrado el sistema MUST devolver **404** inmediatamente y MUST mantener el slug **reservado durante 90 días** (rechazando nuevos registros con ese slug). Pasado ese plazo, el slug queda libre para re-uso. Esto previene que un usuario con el link guardado caiga en un perfil distinto y confuso durante un periodo razonable.
 
 **Export de datos**:
 
-- **FR-013**: El sistema MUST exponer en `Ajustes → Privacidad` una opción "Descargar mis datos" visible para todo usuario autenticado.
+- **FR-013**: El sistema MUST exponer en la sección "Privacidad y datos" del panel de configuración personal (presente tanto en el panel del advertiser como en el del creator) una opción "Descargar mis datos" visible para todo usuario autenticado.
 - **FR-014**: El sistema MUST procesar la solicitud de export de forma asíncrona y entregar el resultado en menos de 24 horas.
 - **FR-015**: El sistema MUST enviar un email al usuario con un enlace de descarga cuando el export esté listo; el enlace MUST expirar a los 7 días.
 - **FR-016**: El export MUST incluir, en formato estructurado y legible: perfil del usuario, configuración de cuenta, historial de campañas, transacciones (sin secretos de pasarela de pago ni tokens internos), disputas y sus mensajes, datos de canal si aplica, métricas históricas del canal si aplica, preferencias de notificación, registro de consentimientos legales con fechas.
@@ -124,7 +138,7 @@ El usuario llega a sus ajustes y encuentra una sección dedicada que explica sus
 
 **Página "Mis derechos RGPD"**:
 
-- **FR-019**: El sistema MUST exponer en `Ajustes → Privacidad` una sección "Tus derechos RGPD" que enumere los 6 derechos del RGPD con explicación de una línea y el plazo legal asociado.
+- **FR-019**: El sistema MUST exponer en la sección "Privacidad y datos" del panel de configuración personal (presente tanto en el panel del advertiser como en el del creator) una sección "Tus derechos RGPD" que enumere los 6 derechos del RGPD con explicación de una línea y el plazo legal asociado.
 - **FR-020**: La sección MUST mostrar botón directo para los derechos con endpoint disponible (acceso vía export, supresión) e instrucciones para solicitar los demás vía email al DPO (`dpo@channelad.io` o equivalente operativo).
 
 **Auditoría y observabilidad**:
@@ -155,19 +169,23 @@ El usuario llega a sus ajustes y encuentra una sección dedicada que explica sus
 - **SC-004**: Tras la anonimización, **0** consultas del sistema operativo (búsqueda de usuarios, listados, perfiles públicos, autocompletados) devuelven la PII del usuario eliminado. Verificable mediante test forense sobre la base de datos en entorno de QA con datos representativos.
 - **SC-005**: **100 %** de los registros con obligación fiscal del usuario eliminado siguen recuperables vía auditoría tras la anonimización (verificable cruzando IDs anonimizados contra el journal contable).
 - **SC-006**: **100 %** de las acciones RGPD quedan registradas en el log de auditoría (verificable cruzando solicitudes ejecutadas contra entradas del log; cero discrepancias toleradas).
-- **SC-007**: **0** reclamaciones a la AEPD u homólogos LATAM relacionadas con la imposibilidad de ejercer derechos RGPD durante los primeros 6 meses tras el lanzamiento del MVP.
-- **SC-008**: Cumplimiento del plazo legal: cualquier solicitud de borrado se completa (incluido el periodo de gracia) en **menos de 30 días naturales** desde la confirmación, plazo máximo del RGPD (Art. 12.3).
+- **SC-007**: Cumplimiento del plazo legal: cualquier solicitud de borrado se completa (incluido el periodo de gracia) en **menos de 30 días naturales** desde la confirmación, plazo máximo del RGPD (Art. 12.3).
+
+### Tracking metrics (post-launch — no son criterio de release)
+
+- **TM-001**: **0** reclamaciones a la AEPD u homólogos LATAM relacionadas con la imposibilidad de ejercer derechos RGPD durante los primeros 6 meses tras el lanzamiento. Indicador de éxito a posteriori, no verificable durante desarrollo. Se monitoriza desde el alta de la plataforma en jurisdicción ES.
 
 ## Assumptions
 
 - **Plazo legal de borrado**: el RGPD obliga a responder en 30 días naturales (Art. 12.3). El periodo de gracia se ha fijado en **7 días** + tiempo de liquidación express (estimado <72 h) = ~10 días totales, holgadamente dentro del límite. Si la liquidación se pausa por intervención humana (FR-007.d), el plazo se cuenta desde la resolución de la incidencia.
 - **Retención fiscal española**: Ley General Tributaria 58/2003 Art. 70 + Reglamento de Facturación obligan a conservar facturas emitidas durante 6 años. El sistema preserva los registros contables anonimizados durante ese periodo independientemente del borrado de PII.
 - **Otros derechos no implementados como endpoint en MVP**: rectificación (ya cubierta parcialmente por la edición de perfil existente), oposición, limitación, y portabilidad ampliada (más allá del export simple) se delegan inicialmente al DPO vía email. Cubrir cada uno con endpoint dedicado es post-MVP.
-- **DPO operativo**: se asume que existe (o se habilita en paralelo) una dirección `dpo@channelad.io` o equivalente. La existencia formal del cargo de DPO no es obligatoria para Channelad por tamaño y tipo de tratamiento, pero la dirección de contacto sí (Art. 13.1.b RGPD).
+- **Dirección de contacto RGPD operativa**: la existencia formal del cargo de DPO no es obligatoria para Channelad por tamaño y tipo de tratamiento, pero la dirección de contacto sí (Art. 13.1.b RGPD). El spec usa el placeholder `dpo@channelad.io`; el plan debe sustituirlo por la dirección operativa real (probablemente `legal@channelad.io` o `soporte@channelad.io`) antes del primer release. Mientras no exista una dirección dedicada, debe redirigirse al buzón general con etiquetado interno para no perder solicitudes RGPD.
 - **Email transaccional disponible**: los emails de confirmación y de entrega de export dependen de SMTP en producción, que está pendiente (Fase F del backlog MVP). En desarrollo se trabaja con Mailtrap; el switch a SMTP prod ocurre en Fase F y no bloquea esta spec.
 - **Idioma**: castellano por defecto; variantes LATAM dependen de SPEC-C3 (i18n) y se incorporan cuando esa spec esté completada. Esta spec no bloquea por idioma — si SPEC-C3 no está, todo se entrega en castellano peninsular.
 - **Encriptación at-rest**: se asume que la base de datos ya cifra at-rest (MongoDB Atlas lo hace por defecto). No es responsabilidad de esta spec definir cifrado de campo.
 - **Tokens de pasarela de pago**: el export no incluye `paymentMethodId`, `customerId`, `accountId` ni cualquier token de Stripe — son referencias internas no portables que el usuario no posee.
+- **Audit log RGPD separado del de Auth**: el repo ya tiene `models/AuthAuditLog.js` y `lib/authAudit.js` para eventos de autenticación. El log RGPD (entidad `RGPDAuditLog` de esta spec) es **deliberadamente separado** por requisitos legales propios: inmutabilidad estricta (append-only), retención independiente, control de acceso restringido a admin/DPO, y trazabilidad post-anonimización. No reutilizar el AuthAuditLog existente para acciones RGPD.
 
 ## Constitution Check
 
@@ -175,7 +193,7 @@ Esta spec se alinea explícitamente con los principios de la [Channelad Constitu
 
 - **Principio I (Verificable)**: SC-005 y SC-006 son verificables mediante auditoría sobre el journal contable y el log RGPD. FR-021/22 garantizan la trazabilidad.
 - **Principio II (Directo)**: FR-019/20 obligan a explicar los derechos del usuario con plazos y vías concretas, sin esconder. FR-024 fuerza ausencia de vocabulario hueco.
-- **Principio III (Localizado)** ✓✓: marco RGPD aplicado con retención fiscal española (FR-010), vocabulario hispano (DPO, NIF/CIF, modelo 036 cuando aplique), preparado para variantes LATAM.
+- **Principio III (Localizado)** ✓✓: marco RGPD aplicado con retención fiscal española (FR-010, LGT 58/2003), vocabulario hispano (DPO, NIF/CIF, modelo 036 cuando aplique, VIES para B2B intra-UE), preparado para variantes LATAM. El export cumple a la vez Art. 15 (acceso) y Art. 20 (portabilidad) del RGPD UE.
 - **Principio IV (Operativo)**: cifras concretas en todos los plazos (24 h confirmación, 7 días enlace export, 24 h SLA generación, 6 años retención fiscal, 30 días plazo legal RGPD). Cero "rápidamente" o "pronto".
 - **Principio V (Reparador)**: FR-006/07/08 definen protocolo claro cuando algo bloquea el borrado, con acción concreta para el usuario. FR-024 obliga a usar la fórmula incidencia (§6.4 playbook) en errores. Email 24 h antes de fin de gracia (FR-005) actúa como salvaguarda contra borrado accidental.
 
@@ -185,7 +203,14 @@ Sin desalineamientos. Pasa el `Constitution Check` para Fase 0 de planning.
 
 ## Decision Log
 
-- **2026-05-18 — Q1 (operaciones pendientes)**: elegida opción **B (liquidación express automática)**. Plasmada en FR-007.a/b/c/d con fasing técnico explícito que permite shippear el flujo completo desde el primer release para casos `Borrador`/`Pendiente de aceptación` (FR-007.a) y posponer los casos con escrow/payout (FR-007.b/c) hasta SPEC-F1+F2, sin bloquear esta spec.
+- **2026-05-18 — Q1 (operaciones pendientes)**: elegida opción **B (liquidación express automática)**. Plasmada en FR-007.a/b/c/d/e con fasing técnico explícito que permite shippear el flujo completo desde el primer release para casos `Borrador`/`Pendiente de aceptación` (FR-007.a) y posponer los casos con escrow/payout/referidos (FR-007.b/c/e) hasta SPEC-F1+F2, sin bloquear esta spec.
 - **2026-05-18 — Q2 (duración gracia)**: elegida opción **A (7 días naturales)**. Plasmada en FR-004 sin condicionales. Total ciclo borrado: ~10 días (7 gracia + ≤72 h liquidación), dentro del límite RGPD de 30 días naturales.
+- **2026-05-18 — Q3 (agencia con canales de clientes)**: elegida opción **conservadora (bloquear hasta des-asignar)**. Plasmada en FR-008.a. Evita canales huérfanos sin gestor activo. El plan debe detallar la UI de listado de canales gestionados con acción "Des-asignar" y, eventualmente, "Transferir a otro gestor".
+- **2026-05-18 — Q4 (saldos al borrar)**: elegida opción **liquidar cash, quemar créditos**. Plasmada en FR-007.e. Cash de referidos (`referralCashBalance`) se libera vía payout antes del borrado; créditos no monetarios (`campaignCreditsBalance`, `referralCreditsBalance`) se queman silenciosamente como instrumentos promocionales no convertibles.
+- **2026-05-18 — Q5 (perfil público creator borrado)**: elegida opción **404 + slug reservado 90 días**. Plasmada en FR-012.a. Equilibrio entre respeto al borrado y protección de anunciantes que tuvieran el link guardado (evita que caigan en un perfil distinto durante el periodo de mayor probabilidad).
 
-> Spec lista para `/speckit-plan` (todos los `[NEEDS CLARIFICATION]` resueltos, checklist en verde).
+## Review Log
+
+- **2026-05-18 — Review crítica vs código real**: encontrados 5 huecos factuales (paths de settings, modelo `Usuario.js`, OAuth Google sin password, distinción Art. 15 / Art. 20, audit log existente). Enmendados en este mismo commit. Lista de PII en FR-009 expandida a 6 categorías (identidad personal, OAuth, fiscal, agencia, secretos, identificadores recuperables) basadas en el schema real de `models/Usuario.js`. SC-007 reclasificado como Tracking Metric (no es criterio de release verificable durante desarrollo).
+
+> Spec lista para `/speckit-plan` (todos los `[NEEDS CLARIFICATION]` resueltos, 5 decisiones registradas, checklist en verde).
