@@ -44,9 +44,9 @@ Excepciones permitidas (no requieren spec): hotfix aislado, cambio de copy de un
 - **Worktrees de Claude**: nunca mergear directo — cherry-pick o rebase a `main` primero.
 
 <!-- SPECKIT START -->
-**Plan vigente**: [specs/001-rgpd-delete-export/plan.md](specs/001-rgpd-delete-export/plan.md) — SPEC-B1 RGPD Delete + Export (Fase B del backlog MVP).
+**Spec vigente**: [SPEC-B1 RGPD Delete + Export](specs/001-rgpd-delete-export/) (Fase B del backlog MVP).
 
-Contexto técnico, estructura, decisiones de fasing (Stripe diferido a Fase F) y todos los artefactos asociados ([spec](specs/001-rgpd-delete-export/spec.md), [research](specs/001-rgpd-delete-export/research.md), [data-model](specs/001-rgpd-delete-export/data-model.md), [contracts/](specs/001-rgpd-delete-export/contracts/), [quickstart](specs/001-rgpd-delete-export/quickstart.md)) están en `specs/001-rgpd-delete-export/`.
+Pipeline cerrado: [spec](specs/001-rgpd-delete-export/spec.md) · [plan](specs/001-rgpd-delete-export/plan.md) · [research](specs/001-rgpd-delete-export/research.md) · [data-model](specs/001-rgpd-delete-export/data-model.md) · [contracts/](specs/001-rgpd-delete-export/contracts/) · [quickstart](specs/001-rgpd-delete-export/quickstart.md) · **[tasks](specs/001-rgpd-delete-export/tasks.md)** (58 tareas en 6 fases, ordenadas por dependencia).
 
-Próximo comando del pipeline: `/speckit-tasks` para descomponer el plan en tareas ejecutables.
+Próximo comando del pipeline: `/speckit-implement` para ejecutar las tareas. MVP mínimo legal = US1 + sub-US3 (botón borrado solo); MVP completo = US1+US2+US3.
 <!-- SPECKIT END -->
