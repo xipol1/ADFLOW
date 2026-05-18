@@ -195,6 +195,24 @@ const UsuarioSchema = new mongoose.Schema(
       // the lifecycle scheduler to warn 30 days before downgrade.
       grandfatheredUntil: { type: Date, default: null },
     },
+
+    // ── RGPD lifecycle state (SPEC-B1) ──────────────────────────────────
+    // Estado del ciclo de borrado RGPD. Se denormaliza aquí (en lugar de
+    // requerir JOIN con AccountDeletionRequest) para que el middleware
+    // auth.js pueda decidir en O(1) qué hacer en cada request autenticada.
+    // Transiciones gestionadas exclusivamente por rgpdController y
+    // rgpdDeletionWorker — ningún otro módulo debe escribir este campo.
+    //   active                       — operación normal
+    //   pending_email_confirmation   — solicitud de borrado creada, email enviado, no confirmado todavía
+    //   pending_deletion             — confirmado por email, en periodo de gracia 7d (cancelable)
+    //   anonymized                   — terminal; login bloqueado, PII sobreescrita
+    deletionStatus: {
+      type: String,
+      enum: ['active', 'pending_email_confirmation', 'pending_deletion', 'anonymized'],
+      default: 'active',
+      index: true,
+    },
+    anonymizedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
@@ -225,5 +243,32 @@ UsuarioSchema.pre('save', function(next) {
   }
   next()
 })
+
+// ── RGPD anonimización (SPEC-B1) ────────────────────────────────────────
+// Método estático que delega en anonymizationService. Importación lazy
+// para evitar circular dependency con services/anonymizationService.js,
+// que a su vez importa este modelo.
+//
+// Uso esperado: solo desde workers/rgpdDeletionWorker.js o desde
+// scripts admin de emergencia. Nunca desde código de negocio.
+UsuarioSchema.statics.anonymizeById = async function(usuarioId) {
+  // eslint-disable-next-line global-require
+  const { anonymizeUser } = require('../services/anonymizationService');
+  return anonymizeUser(usuarioId);
+};
+
+// Defensa en profundidad: si por error alguien intenta hacer save de un
+// usuario en estado 'anonymized' con PII visible, abortamos. La
+// anonimización es one-way y el doc debe quedar coherente.
+UsuarioSchema.pre('save', function(next) {
+  if (this.deletionStatus === 'anonymized') {
+    // Heurística mínima: email anonimizado sigue patrón "deleted-{id}@anonymized.local".
+    const looksAnonymized = typeof this.email === 'string' && /^deleted-.+@anonymized\.local$/.test(this.email);
+    if (!looksAnonymized) {
+      return next(new Error('Usuario.deletionStatus=anonymized requires email anonimizado (deleted-{id}@anonymized.local). Save rejected to preserve integrity.'));
+    }
+  }
+  next();
+});
 
 module.exports = mongoose.models.Usuario || mongoose.model('Usuario', UsuarioSchema);

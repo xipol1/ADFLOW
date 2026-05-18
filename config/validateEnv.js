@@ -44,7 +44,12 @@ const GROUPS = [
   {
     tag: 'cron',
     required: ['CRON_SECRET'],
-    note: 'Jobs programados (multiplatform-intel) rechazan si falta',
+    note: 'Jobs programados (multiplatform-intel, rgpd-grace) rechazan si falta',
+  },
+  {
+    tag: 'rgpd',
+    required: ['RGPD_TOKEN_SECRET', 'RGPD_EXPORT_SIGNING_KEY'],
+    note: 'SPEC-B1: borrado y export RGPD no funcionan sin estos secretos (hash de tokens de confirmación + firma JWT de URLs de descarga). Generar con `openssl rand -hex 32`',
   },
 ];
 

@@ -48,6 +48,10 @@
     {
       "path": "/api/jobs/auth-cleanup",
       "schedule": "30 4 * * *"
+    },
+    {
+      "path": "/api/jobs/rgpd-grace",
+      "schedule": "0 * * * *"
     }
   ],
   "headers": [

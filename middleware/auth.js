@@ -131,10 +131,69 @@ const verificarPropietario = () => {
   };
 };
 
+/**
+ * SPEC-B1: enforcement de Usuario.deletionStatus en el flujo authenticado.
+ *
+ * Se monta DESPUÉS de `autenticar` en cualquier ruta que requiera sesión activa.
+ * Hace una query ligera por id (~1ms con índice) y decide:
+ *   - 'anonymized'                   → 401 código 'account_deleted'
+ *   - 'pending_deletion'             → continuar pero setear cabecera para banner
+ *   - 'pending_email_confirmation'   → continuar (login normal, todavía no confirmado)
+ *   - 'active' (o ausente)           → continuar
+ *
+ * No usamos JOIN ni populate — el campo está denormalizado en Usuario
+ * precisamente para que el coste sea constante por request.
+ *
+ * Para mantener compatibilidad con código existente, este middleware NO se
+ * añade a `autenticar` directamente. Cada router decide si lo aplica
+ * (típicamente sí). Si en el futuro hace falta enforcement universal, mover
+ * la lógica a `autenticar` y eliminar este export.
+ */
+const verificarCuentaActiva = async (req, res, next) => {
+  try {
+    if (!req.usuario?.id) {
+      return res.status(401).json({ success: false, message: 'No autorizado' });
+    }
+
+    // Lazy-require para evitar dependencia circular con models que cargan config.
+    const Usuario = require('../models/Usuario');
+    const database = require('../config/database');
+    if (!database.estaConectado()) await database.conectar();
+
+    const user = await Usuario.findById(req.usuario.id).select('deletionStatus').lean();
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Usuario no encontrado' });
+    }
+
+    const status = user.deletionStatus || 'active';
+
+    if (status === 'anonymized') {
+      return res.status(401).json({
+        success: false,
+        code: 'account_deleted',
+        message: 'Esta cuenta ha sido eliminada.',
+      });
+    }
+
+    if (status === 'pending_deletion') {
+      // Marcador para el frontend: monta DeletionGraceBanner en el layout autenticado.
+      res.setHeader('X-Channelad-Deletion-Pending', 'true');
+    }
+
+    return next();
+  } catch (e) {
+    try {
+      require('../lib/logger').error('verificarCuentaActiva', { msg: e?.message });
+    } catch { /* logger unavailable */ }
+    return res.status(500).json({ success: false, message: 'Error interno' });
+  }
+};
+
 module.exports = {
   autenticar,
   autorizarRoles,
   requiereEmailVerificado,
   requiereDatosFacturacion,
-  verificarPropietario
+  verificarPropietario,
+  verificarCuentaActiva,
 };

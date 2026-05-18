@@ -15,6 +15,7 @@
     "build": "npm run blog:build && npm run frontend:build",
     "build:full": "npm run build && npm start",
     "migrate:roles": "node scripts/migrate-roles.js",
+    "migrate:rgpd": "node scripts/migrate-rgpd-deletionStatus.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint .",
@@ -26,6 +27,7 @@
   "dependencies": {
     "@react-oauth/google": "^0.13.5",
     "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "archiver": "^8.0.0",
     "axios": "^1.5.0",
     "bcryptjs": "^2.4.3",
     "chart.js": "^4.5.1",
