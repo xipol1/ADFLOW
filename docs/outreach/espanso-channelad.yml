@@ -1,0 +1,248 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Channelad · Daily 5 — paquete de plantillas para Espanso
+# ─────────────────────────────────────────────────────────────────────────
+#
+# QUÉ ES: Espanso (https://espanso.org) es un text-expander gratuito y open
+# source. Escribes un trigger (ej. ";dm-news") y se expande la plantilla
+# completa, abriendo un formulario para rellenar los huecos personalizables.
+#
+# INSTALACIÓN (Windows):
+#   1. Instala Espanso: https://espanso.org/install/
+#   2. Localiza tu carpeta de config:  %APPDATA%\espanso\match\
+#      (ábrela con: explorer %APPDATA%\espanso\match)
+#   3. Copia ESTE archivo dentro de esa carpeta.
+#   4. Espanso recarga solo. Si no: icono bandeja → "Reload config".
+#
+# USO:
+#   - Escribe el trigger en cualquier app (X, LinkedIn, Gmail…).
+#   - Se abre un formulario con los campos a rellenar. Tab para saltar.
+#   - Enter / botón → se inserta la plantilla completa.
+#
+# REGLA DE ORO (playbook): cada plantilla es una BASE. Personaliza siempre
+# el hueco {{detalle}} con algo concreto y real — una edición, un post, una
+# entrevista. Sin eso, esto es spam con buen formato.
+# ─────────────────────────────────────────────────────────────────────────
+
+matches:
+
+  # ═══ A · X DM — Newsletter independiente ═══════════════════════════════
+  - trigger: ";dm-news"
+    form: |
+      {{nombre}}, te leo desde hace tiempo. Una pregunta concreta: ¿estás monetizando ya canal de WhatsApp/Telegram o de momento solo email?
+
+      Estoy hablando con newsletteros ES estas semanas para entender cómo manejáis los dos canales. Si te encaja intercambiar 15 min, te paso lo que estoy viendo (CPMs, tarifas, formatos).
+
+      Cero pitch.
+
+  # ═══ A2 · X DM — variante benchmark ════════════════════════════════════
+  - trigger: ";dm-news2"
+    form: |
+      {{nombre}}, hola. Hago un benchmark anónimo de tarifas en canales privados ES (WhatsApp, Telegram).
+
+      Si me das 15 min para entender cómo lo trabajas tú, te paso el dataset completo cuando lo cierre.
+
+      Sin venta, lo prometo.
+
+  # ═══ B · X DM / Instagram — Microinfluencer ════════════════════════════
+  - trigger: ";dm-micro"
+    form: |
+      Hola {{nombre}}, soy fan del canal.
+
+      Trabajo en algo relacionado con monetización de canales WhatsApp y me ayudaría 10 min de tu cerebro entender cómo balanceas tú contenido orgánico vs patrocinios sin quemar audiencia.
+
+      Sin pitch ni venta, solo aprender. ¿Te encaja?
+
+  # ═══ C · LinkedIn DM — Medio digital ═══════════════════════════════════
+  - trigger: ";dm-medio"
+    form: |
+      Hola {{nombre}},
+
+      Vi una entrevista donde explicaste cómo planteáis el canal de WhatsApp en {{medio}} — de las pocas que escuchaba claras sobre qué hacer con el formato.
+
+      Estoy construyendo una plataforma específica para canales privados (WhatsApp/Telegram/Discord) y me ayudaría 20 min entender cómo veis el siguiente paso desde dentro del medio.
+
+      Sin pitch, prometido. ¿Te encaja una llamada esta semana o la siguiente?
+
+      Rafa
+
+  # ═══ D · LinkedIn InMail (sin conexión previa) ═════════════════════════
+  - trigger: ";inmail"
+    form: |
+      Hola {{nombre}},
+
+      Te escribo en frío. Hago research con responsables de canales WhatsApp en medios ES — concretamente sobre cómo se monetiza sin canibalizar el editorial.
+
+      ¿Te encajan 20 min en las próximas semanas? A cambio te paso los benchmarks ES que estoy recopilando (CPMs, tarifas, formatos).
+
+      Rafa · ChannelAd
+
+  # ═══ E · Email cold — área comercial medio digital ════════════════════
+  # Subject lines (elige uno por envío, no pruebes varios al mismo medio):
+  #   Pregunta sobre canal WhatsApp {{Medio}}
+  #   Benchmark de monetización en canales WhatsApp ES
+  - trigger: ";email-cold"
+    form: |
+      Hola,
+
+      Os escribo desde ChannelAd. Construimos un marketplace para canales privados de medios (WhatsApp, Telegram, Discord), centrado en mercado hispanohablante.
+
+      Vuestro canal de WhatsApp es uno de los que más me interesa entender por dentro: cómo gestionáis la monetización hoy, qué fricción tenéis con anunciantes, qué falta.
+
+      ¿Tendríais 15 min este mes? Cero pitch. A cambio comparto los benchmarks ES que llevamos recopilados (CPMs y tarifas por vertical, anonimizados cross-medio).
+
+      Si prefieres que no vuelva a escribirte, contéstame con "no" y te quito del seguimiento.
+
+      Gracias,
+      Rafa Ferrer
+      ChannelAd · channelad.io
+
+  # ═══ F · Email warm — vía intro de Carlos ══════════════════════════════
+  - trigger: ";email-warm"
+    form: |
+      {{nombre}},
+
+      Encantado de cruzarnos vía Carlos. Como te ha contado, llevo meses construyendo ChannelAd — marketplace para canales privados — y estamos hablando con responsables de monetización en medios ES estas semanas.
+
+      ¿Te encaja una llamada de 15 min en las próximas dos semanas? Tengo flexibilidad: https://cal.com/rafa-ferrer-xnpskg/15min
+
+      Gracias,
+      Rafa
+
+  # ═══ G · Personalización extrema — 4 perfiles clave ═══════════════════
+
+  # Charo Marcos · Kloshletter
+  - trigger: ";charo"
+    form: |
+      Charo, leo Kloshletter desde hace bastante. Te escribo con una pregunta concreta:
+
+      Estoy hablando con newsletteros ES sobre algo específico — si tiene sentido tener canal WhatsApp además del email o si canibaliza la lista. Tu opinión me importa porque vives del modelo.
+
+      ¿15 min en algún momento? Sin pitch, te lo prometo.
+
+      Rafa
+
+  # Samuel Gil · Suma Positiva
+  - trigger: ";samuel"
+    form: |
+      Samuel, te leo desde hace tiempo. Pregunta de fundador a fundador:
+
+      Construyo un marketplace para canales privados ES (WhatsApp/Telegram) — el Telega.io hispanohablante. Antes de avanzar más quería contrastarlo con alguien que vive del lado de la oferta como tú.
+
+      ¿15 min para que te lo cuente y me digas brutalmente qué falla del modelo?
+
+      Rafa
+
+  # Chus Naharro · Newsletter de Newsletters — partnership, no pitch
+  - trigger: ";chus"
+    replace: |
+      Chus, hola. Te escribo no para venderte nada sino porque creo que tenemos algo que hablar.
+
+      Llevo unos meses construyendo ChannelAd — marketplace para canales privados ES (WhatsApp/Telegram/Discord). Hay un solapamiento natural con lo que tú haces y veo dos caminos: o competimos sin sentido, o nos sentamos 30 min y vemos si hay cross-promo / co-creación útil para los dos.
+
+      Yo creo que es lo segundo. ¿Te encaja un café (físico o virtual) la próxima semana?
+
+      Rafa
+
+  # Néstor Sánchez · OhMyNewst — partnership, no pitch
+  - trigger: ";nestor"
+    replace: |
+      Néstor,
+
+      Te escribo en abierto. Estamos construyendo ChannelAd, marketplace para canales privados (WhatsApp/Telegram/Discord) — vosotros email, nosotros mensajería. Solapamos en filosofía pero no en producto.
+
+      Antes de que esto crezca creo que merece la pena que hablemos directamente. Hay dos caminos posibles y uno es claramente mejor para los dos.
+
+      ¿20 min en algún momento las próximas dos semanas?
+
+      Rafa · ChannelAd
+
+  # ═══ H · Follow-ups ════════════════════════════════════════════════════
+
+  # F1 — día +7, sin respuesta
+  - trigger: ";f1"
+    form: |
+      {{nombre}}, retomo el hilo arriba. Sé que la bandeja se llena rápido.
+
+      Una pregunta concreta para hacerte fácil la respuesta: ¿estás abierto a una llamada corta o ahora mismo no es momento? Las dos respuestas valen.
+
+  # F2 — día +14, último intento
+  - trigger: ";f2"
+    form: |
+      {{nombre}}, última. Si no me respondes me callo y desaparezco — sin drama.
+
+      Si en algún momento te encaja, mi calendario sigue abierto: https://cal.com/rafa-ferrer-xnpskg/15min
+
+      Cuídate.
+
+  # Reactivación natural — día +30, si quedó frío
+  - trigger: ";react"
+    form: |
+      {{nombre}}, han pasado unas semanas. He aprendido bastante en el research.
+
+      Si te interesa el resumen — los 5 hallazgos clave sobre cómo monetizan los newsletteros ES — te lo paso ahora sin más. Solo dilo.
+
+  # ═══ I · Situacionales ═════════════════════════════════════════════════
+
+  # Tras comentar su post de LinkedIn (esperar 24-48h)
+  - trigger: ";dm-comment"
+    form: |
+      Hola {{nombre}}, te he comentado el post sobre {{tema}} esta mañana porque genuinamente me interesó tu ángulo sobre {{detalle}}.
+
+      Estoy construyendo algo relacionado (marketplace para canales privados ES) y me ayudaría 15 min de tu cerebro. Cero pitch, solo curiosidad sobre cómo lo piensas tú.
+
+      ¿Te encaja?
+
+  # Cerrar founding partner tras Office Hours
+  - trigger: ";founding-close"
+    form: |
+      {{nombre}}, como hablamos en la call, te paso por aquí el audit del canal con las 3 recomendaciones concretas: {{link}}
+
+      Si quieres probar a activar una primera campaña con un anunciante, lo gestiono yo personalmente — los primeros founding partners entran con comisión preferente vitalicia (18% vs 20% estándar) + caso documentado.
+
+      Sin urgencia. Cuando quieras.
+
+      Rafa
+
+  # Responden con pregunta de comisión
+  - trigger: ";resp-comision"
+    replace: |
+      20% estándar. 18% vitalicio para los primeros founding partners. Cubre escrow vía Stripe, contrato, métricas verificadas y resolución de disputas.
+
+      ¿Cómo lo cobras tú ahora cuando cierras patrocinios directos?
+
+  # Ghosteo tras buen primer call (esperar mínimo 10 días)
+  - trigger: ";ghosteo"
+    form: |
+      {{nombre}}, no he querido insistir esta semana. Sé que el cierre de mes es lo que es.
+
+      Si quieres avanzamos cuando puedas — y si decides que no es el momento, también vale. Solo no me dejes adivinando :)
+
+  # ═══ J · Carlos — warm intro corporativa ═══════════════════════════════
+  - trigger: ";carlos-intro"
+    form: |
+      Hola {{nombre}},
+
+      Te quiero presentar a Rafa Ferrer, founder de ChannelAd.
+
+      Lo conozco desde {{contexto}}. Llevan meses construyendo un marketplace para publicidad en canales privados — WhatsApp, Telegram, Discord — el mercado hispanohablante específicamente. Verificación de canales, escrow vía Stripe, métricas reales (no screenshot).
+
+      Me parece de las cosas más serias que he visto en adtech ES este año. Creo que vuestro equipo de medios podría aportarles input útil y vosotros tenéis interés natural en entender por dónde va este formato.
+
+      Os dejo en copia para que sigáis directamente.
+
+      Rafa: te paso a {{nombre}}, que lleva {{cargo}} en {{empresa}}.
+
+      Un abrazo,
+      Carlos
+
+  # ═══ Enlaces rápidos ═══════════════════════════════════════════════════
+  - trigger: ";cal"
+    replace: "https://cal.com/rafa-ferrer-xnpskg/15min"
+  - trigger: ";link-wa"
+    replace: "https://channelad.io/whatsapp"
+  - trigger: ";link-bench"
+    replace: "https://channelad.io/benchmark"
+  - trigger: ";link-founding"
+    replace: "https://channelad.io/founding"
+  - trigger: ";link-audit"
+    replace: "https://channelad.io/audit"
