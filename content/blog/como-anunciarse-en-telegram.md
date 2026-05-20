@@ -1,6 +1,6 @@
 ---
-title: "Cómo anunciarse en Telegram 2026: guía de precios y formatos para marcas"
-description: "Todo para hacer publicidad en canales y grupos de Telegram en 2026. Formatos, precios (CPM 2-12€ por nicho), cómo encontrar canales verificados y errores a evitar."
+title: "Cómo anunciarse en Telegram 2026: precios y formatos"
+description: "Guía para hacer publicidad en canales y grupos de Telegram en 2026. Formatos, CPM 2-12€ por nicho y cómo encontrar canales verificados."
 slug: "como-anunciarse-en-telegram"
 date: "2026-05-11"
 dateModified: "2026-05-11"

@@ -1,6 +1,6 @@
 ---
-title: "Discord vs Telegram para anunciantes en 2026: cuál elegir según tu marca"
-description: "Comparativa honesta Discord vs Telegram para anunciantes en 2026. CPMs reales (Discord 1,5-3€ vs Telegram 4-12€), engagement, formatos y cuándo usar cada uno. Con tabla decisoria."
+title: "Discord vs Telegram para anunciantes 2026: comparativa"
+description: "Comparativa Discord vs Telegram para anunciantes 2026. CPMs (Discord 1,5-3€ vs Telegram 4-12€), engagement, formatos y cuándo usar cada uno."
 slug: "discord-vs-telegram-anunciantes"
 date: "2026-05-05"
 dateModified: "2026-05-05"

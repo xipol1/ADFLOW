@@ -1,5 +1,5 @@
 ---
-title: "Cuánto cobrar publicidad WhatsApp 2026: fórmula + tabla CPM por nicho"
+title: "Precio publicidad WhatsApp 2026: fórmula y CPM por nicho"
 description: "La fórmula exacta para poner precio a un post patrocinado en tu canal de WhatsApp en 2026. Tabla de CPMs por nicho (4-18 EUR) y 3 ejemplos con números reales."
 slug: "cuanto-cobrar-publicidad-whatsapp"
 date: "2026-04-17"

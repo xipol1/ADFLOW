@@ -1,6 +1,6 @@
 ---
-title: "Negociar publicidad en Telegram 2026: scripts, precios y 6 objeciones"
-description: "Scripts reales para negociar publicidad en tu canal de Telegram. Cómo responder a las 6 objeciones más comunes, condiciones que siempre incluir y cuándo decir no. Con ejemplos textuales."
+title: "Negociar publicidad en Telegram 2026: scripts y precios"
+description: "Scripts reales para negociar publicidad en tu canal de Telegram. Cómo responder a 6 objeciones, condiciones que incluir y cuándo decir no."
 slug: "negociar-publicidad-telegram"
 date: "2026-04-18"
 dateModified: "2026-04-26"

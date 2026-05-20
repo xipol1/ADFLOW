@@ -1,6 +1,6 @@
 ---
-title: "Publicidad en canales de difusión de Instagram para marcas 2026 (guía)"
-description: "Cómo anunciarse en canales de difusión de Instagram en 2026. Formatos disponibles, CPMs reales (6-15€), tasa de apertura del 60-75% y por qué Meta no ofrece esta segmentación."
+title: "Publicidad en canales de difusión de Instagram 2026"
+description: "Cómo anunciarse en canales de difusión de Instagram 2026. Formatos, CPMs reales (6-15€), tasa de apertura del 60-75% y por qué Meta no lo segmenta."
 slug: "publicidad-canal-difusion-instagram"
 date: "2026-05-05"
 dateModified: "2026-05-05"

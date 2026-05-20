@@ -1,6 +1,6 @@
 ---
-title: "Escrow en publicidad digital 2026: qué es y por qué protege tu inversión"
-description: "Todo sobre el pago custodiado en publicidad 2026: cómo funciona, qué plataformas lo ofrecen y por qué es imprescindible para anunciarse en Telegram, WhatsApp y Discord."
+title: "Escrow en publicidad digital 2026: qué es y cómo protege"
+description: "Pago custodiado en publicidad 2026: cómo funciona, qué plataformas lo ofrecen y por qué es clave para anunciarse en Telegram, WhatsApp y Discord."
 slug: "escrow-publicidad-digital"
 date: "2026-04-03"
 dateModified: "2026-04-15"

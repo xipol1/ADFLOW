@@ -21,8 +21,12 @@ const DOMAIN = 'https://channelad.io';
 
 // ─── Frontmatter parser ───
 function parseFrontmatter(content) {
-  const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-  if (!match) return { meta: {}, body: content };
+  // Normalise CRLF → LF so the regex works on files saved on Windows.
+  // Without this, posts edited on Windows silently skip the build because the
+  // \r terminator stops `^---\n` from matching the opening delimiter.
+  const normalised = content.replace(/\r\n/g, '\n');
+  const match = normalised.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+  if (!match) return { meta: {}, body: normalised };
   const meta = {};
   match[1].split('\n').forEach(line => {
     const idx = line.indexOf(':');
@@ -522,6 +526,19 @@ function build() {
   <section class="grid">
     ${gridCards}
   </section>
+
+  <footer style="max-width:960px;margin:0 auto;padding:48px 24px;border-top:1px solid rgba(0,0,0,0.08);display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#86868B;flex-wrap:wrap;gap:16px">
+    <span>&copy; 2026 <a href="/" style="color:#7C3AED;text-decoration:none">Channelad</a></span>
+    <span>
+      <a href="/para-anunciantes" style="color:#7C3AED;text-decoration:none">Anunciantes</a> ·
+      <a href="/para-canales" style="color:#7C3AED;text-decoration:none">Canales</a> ·
+      <a href="/pricing" style="color:#7C3AED;text-decoration:none">Precios</a> ·
+      <a href="/herramientas" style="color:#7C3AED;text-decoration:none">Herramientas</a> ·
+      <a href="/que-es-channelad" style="color:#7C3AED;text-decoration:none">Qué es</a> ·
+      <a href="/sobre-nosotros" style="color:#7C3AED;text-decoration:none">Nosotros</a> ·
+      <a href="/soporte" style="color:#7C3AED;text-decoration:none">Soporte</a>
+    </span>
+  </footer>
 </body>
 </html>`;
 
@@ -537,6 +554,8 @@ function build() {
     { url: '/explore', priority: '0.8', freq: 'weekly' },
     { url: '/rankings', priority: '0.7', freq: 'weekly' },
     { url: '/herramientas', priority: '0.7', freq: 'monthly' },
+    { url: '/pricing', priority: '0.9', freq: 'monthly' },
+    { url: '/que-es-channelad', priority: '0.7', freq: 'monthly' },
     { url: '/blog', priority: '0.8', freq: 'weekly', lastmod: posts[0]?.date },
     { url: '/sobre-nosotros', priority: '0.5', freq: 'monthly' },
     { url: '/soporte', priority: '0.5', freq: 'monthly' },
@@ -622,7 +641,7 @@ ${blogSitemapEntries.map(e => `  <url>
     <webMaster>rafa@channelad.io (Rafa Ferrer)</webMaster>
     <atom:link href="${DOMAIN}/blog/feed.xml" rel="self" type="application/rss+xml"/>
     <image>
-      <url>${DOMAIN}/logo.png</url>
+      <url>${DOMAIN}/logo.svg</url>
       <title>Channelad Blog</title>
       <link>${DOMAIN}/blog</link>
     </image>
