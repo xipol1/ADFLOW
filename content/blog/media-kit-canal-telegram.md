@@ -1,6 +1,6 @@
 ---
-title: "Media kit canal Telegram 2026: 7 elementos + plantilla gratuita"
-description: "Crea el media kit que convierte tu canal de Telegram en un negocio. Los 7 elementos clave, cómo conseguir estadísticas fiables con TGStat y plantilla descargable gratis."
+title: "Media kit canal Telegram 2026: 7 elementos + plantilla"
+description: "Crea el media kit que convierte tu canal de Telegram en negocio. Los 7 elementos clave, estadísticas vía TGStat y plantilla descargable gratis."
 slug: "media-kit-canal-telegram"
 date: "2026-04-11"
 dateModified: "2026-04-15"

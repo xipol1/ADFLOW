@@ -33,18 +33,47 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Channelad">
 
-    <!-- SEO: per-route metadata is owned by react-helmet-async (see ui/components/SEO.jsx).
-         The previous static fallbacks pointed canonical/og:url at the homepage URL for
-         every route (because Vite ships one index.html). Google's HTML-only first crawl
-         then read /soporte and /terminos as duplicates of the home and the URLs landed
-         in "Error de redirección". Removing the data-rh fallbacks lets Google self-
-         canonicalise on the request URL until React hydrates and SEO.jsx injects the
-         correct per-route values. -->
+    <!-- SEO baseline: per-route metadata is owned by react-helmet-async (see ui/components/SEO.jsx)
+         and overrides these defaults after hydration. The defaults below exist so that
+         HTML-only crawlers (Ahrefs Site Audit, social link unfurlers, slower bots) see
+         a complete description, OG card, Twitter card and canonical *before* React runs.
+         The canonical/og:url are rewritten to the actual pathname by the inline script
+         below, avoiding the previous bug where every route self-canonicalised to home. -->
     <meta name="robots" content="index,follow">
     <meta name="keywords" content="publicidad comunidades, WhatsApp ads, Telegram ads, Discord ads, marketplace publicidad, monetizar canal, comprar publicidad, channelad">
     <meta name="author" content="Rafa Ferrer">
+    <meta name="description" content="Marketplace de publicidad en comunidades reales de WhatsApp, Telegram y Discord. Pagos protegidos con escrow y métricas en tiempo real.">
+    <link rel="canonical" href="https://channelad.io/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Channelad">
+    <meta property="og:locale" content="es_ES">
+    <meta property="og:title" content="Channelad — Publicidad en comunidades que escuchan">
+    <meta property="og:description" content="Marketplace de publicidad en comunidades reales de WhatsApp, Telegram y Discord. Pagos protegidos con escrow y métricas en tiempo real.">
+    <meta property="og:url" content="https://channelad.io/">
+    <meta property="og:image" content="https://channelad.io/og-default.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Channelad — Publicidad en comunidades que escuchan">
+    <meta name="twitter:description" content="Marketplace de publicidad en comunidades reales de WhatsApp, Telegram y Discord. Pagos protegidos con escrow y métricas en tiempo real.">
+    <meta name="twitter:image" content="https://channelad.io/og-default.png">
+    <!-- Per-route canonical/og:url: rewrites the baseline above to the actual URL before
+         React hydrates. Runs early so any crawler that executes JS (Googlebot, modern
+         Ahrefs JS-render mode, social bots that follow redirects) sees the correct URL.
+         Helmet still owns per-route description/title overrides after hydration. -->
+    <script>
+      (function(){
+        try {
+          var origin = 'https://channelad.io';
+          var path = location.pathname.replace(/\/+$/, '') || '/';
+          var url = origin + path;
+          var canon = document.querySelector('link[rel="canonical"]');
+          if (canon) canon.setAttribute('href', url);
+          var ogUrl = document.querySelector('meta[property="og:url"]');
+          if (ogUrl) ogUrl.setAttribute('content', url);
+        } catch (e) {}
+      })();
+    </script>
     <link rel="alternate" type="application/rss+xml" title="Channelad Blog" href="https://channelad.io/blog/feed.xml">
     <link rel="icon" type="image/svg+xml" href="/logo.svg">
     <link rel="apple-touch-icon" href="/logo.svg">

@@ -1,6 +1,6 @@
 ---
-title: "Comunidades vs redes sociales 2026: comparativa CPM, CTR y ROI"
-description: "Publicidad en Telegram/WhatsApp/Discord vs Instagram y TikTok Ads en 2026. CPM real, engagement (15-40% vs 1-3%) y qué rinde más según tu objetivo. Datos de campañas reales."
+title: "Comunidades vs redes sociales 2026: CPM, CTR y ROI"
+description: "Publicidad en Telegram/WhatsApp/Discord vs Instagram y TikTok Ads 2026. CPM real, engagement (15-40% vs 1-3%) y qué rinde más según tu objetivo."
 slug: "publicidad-comunidades-vs-redes-sociales"
 date: "2026-04-05"
 dateModified: "2026-04-15"
