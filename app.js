@@ -6,6 +6,14 @@ const morgan = require('morgan');
 const path = require('path');
 const fs = require('fs');
 
+// Pasting a value into the Vercel dashboard can leave a trailing newline, which
+// corrupts every `${BASE_URL}/path` concatenation downstream (OAuth redirect_uri,
+// tracking links, Stripe return URLs). Trim these once at boot so no call site
+// has to remember to.
+for (const _k of ['FRONTEND_URL', 'BACKEND_URL']) {
+  if (process.env[_k]) process.env[_k] = process.env[_k].trim();
+}
+
 // Pre-load every route module so Vercel's static tracer can bundle
 // them. Each require() is a literal string at the top level so the
 // nft/esbuild tracer sees it. Errors are captured per-module so a
