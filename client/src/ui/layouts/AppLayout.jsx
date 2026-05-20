@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import NavBar from '../navigation/NavBar'
+import Footer from '../navigation/Footer'
 import ScarcityBanner from '../components/landing/ScarcityBanner'
 
 export default function AppLayout() {
@@ -28,6 +29,7 @@ export default function AppLayout() {
       <main style={isLanding || isFullWidth ? {} : { maxWidth: '1100px', margin: '0 auto', padding: '32px 24px 48px' }}>
         <Outlet />
       </main>
+      <Footer />
     </div>
   )
 }
