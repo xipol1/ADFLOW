@@ -1,6 +1,6 @@
 ---
-title: "Cómo monetizar un canal de Telegram en 2026: guía completa (PILAR)"
-description: "La guía definitiva para monetizar un canal de Telegram en 2026. 7 métodos reales, CPMs por nicho, ingresos según tamaño y los errores que cuestan dinero. Para España y LATAM."
+title: "Cómo monetizar un canal de Telegram en 2026 (guía pilar)"
+description: "Guía definitiva 2026 para monetizar un canal de Telegram. 7 métodos reales, CPMs por nicho, ingresos según tamaño y errores que cuestan dinero."
 slug: "como-monetizar-canal-telegram"
 date: "2026-05-05"
 dateModified: "2026-05-05"

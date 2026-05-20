@@ -1,6 +1,6 @@
 ---
-title: "Telegram para empresas en 2026: guía de publicidad B2B (formatos y precios)"
-description: "Cómo hacer publicidad en Telegram desde una empresa en 2026. Telegram Ads vs canales nicho, presupuestos desde 500€, cómo medir ROI y los 4 formatos que funcionan para B2B."
+title: "Telegram para empresas 2026: guía B2B de publicidad"
+description: "Cómo hacer publicidad en Telegram desde una empresa 2026. Telegram Ads vs canales nicho, presupuestos desde 500€, ROI y los 4 formatos B2B."
 slug: "telegram-publicidad-empresas"
 date: "2026-05-05"
 dateModified: "2026-05-05"

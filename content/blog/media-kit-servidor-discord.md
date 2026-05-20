@@ -1,6 +1,6 @@
 ---
-title: "Media kit servidor Discord 2026: 8 elementos + plantilla gratuita"
-description: "Cómo crear un media kit profesional para tu servidor de Discord en 2026: los 8 elementos clave, métricas que sí piden las marcas y plantilla descargable lista para usar."
+title: "Media kit servidor Discord 2026: 8 elementos + plantilla"
+description: "Crea un media kit profesional para tu servidor de Discord 2026: los 8 elementos clave, métricas que sí piden las marcas y plantilla descargable."
 slug: "media-kit-servidor-discord"
 date: "2026-05-18"
 dateModified: "2026-05-18"
