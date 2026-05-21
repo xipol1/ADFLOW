@@ -12,3 +12,8 @@ export const CHANNELS_TRACKED_TOOLTIP =
 export const PUBLIC_COMMISSION_RATE = 0.20
 export const PUBLIC_COMMISSION_LABEL = '20%'
 export const PUBLIC_COMMISSION_MULTIPLIER = 1 + PUBLIC_COMMISSION_RATE // 1.20
+
+// Founding cohort — primeros FOUNDING_TOTAL admins con comisión 18% vitalicia.
+// Fuente única: actualizar FOUNDING_RESERVED cuando entren partners nuevos.
+export const FOUNDING_RESERVED = 100
+export const FOUNDING_TOTAL = 150

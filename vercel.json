@@ -85,6 +85,18 @@
     { "source": "/blog/feed.xml", "destination": "/blog/feed.xml" },
     { "source": "/blog/calculadora-precios-publicidad", "destination": "/index.html" },
     { "source": "/blog/:slug", "destination": "/blog/:slug.html" },
+    { "source": "/para-anunciantes", "destination": "/para-anunciantes.html" },
+    { "source": "/para-canales", "destination": "/para-canales.html" },
+    { "source": "/marketplace", "destination": "/marketplace.html" },
+    { "source": "/explore", "destination": "/explore.html" },
+    { "source": "/rankings", "destination": "/rankings.html" },
+    { "source": "/herramientas", "destination": "/herramientas.html" },
+    { "source": "/pricing", "destination": "/pricing.html" },
+    { "source": "/que-es-channelad", "destination": "/que-es-channelad.html" },
+    { "source": "/sobre-nosotros", "destination": "/sobre-nosotros.html" },
+    { "source": "/soporte", "destination": "/soporte.html" },
+    { "source": "/privacidad", "destination": "/privacidad.html" },
+    { "source": "/terminos", "destination": "/terminos.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

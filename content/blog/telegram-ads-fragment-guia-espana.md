@@ -1,6 +1,6 @@
 ---
-title: "Telegram Ads y Fragment 2026: guía completa desde España (pago en TON)"
-description: "Cómo cobrar de Telegram Ads desde España en 2026: requisitos, pagos en TON, conversión a euros, fiscalidad y por qué la publicidad directa sigue pagando 5-10x más."
+title: "Telegram Ads y Fragment 2026: guía desde España (TON)"
+description: "Cómo cobrar de Telegram Ads desde España 2026: requisitos, pagos en TON, conversión a euros, fiscalidad y por qué la publicidad directa paga 5-10x más."
 slug: "telegram-ads-fragment-guia-espana"
 date: "2026-05-20"
 dateModified: "2026-05-20"

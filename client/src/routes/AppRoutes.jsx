@@ -25,6 +25,10 @@ const ClaimChannelPage = lazy(() => import('../ui/pages/claim/ClaimChannelPage')
 const ChannelDetailPage = lazy(() => import('../ui/pages/marketplace/ChannelDetailPage'))
 
 const ForChannelsPage = lazy(() => import('../ui/pages/landing/ForChannelsPage'))
+const WhatsAppPage = lazy(() => import('../ui/pages/landing/WhatsAppPage'))
+const BenchmarkPage = lazy(() => import('../ui/pages/landing/BenchmarkPage'))
+const FoundingPage = lazy(() => import('../ui/pages/landing/FoundingPage'))
+const AuditPage = lazy(() => import('../ui/pages/landing/AuditPage'))
 const HerramientasPage = lazy(() => import('../ui/pages/landing/HerramientasPage'))
 const PricingPage = lazy(() => import('../ui/pages/pricing/PricingPage'))
 const BillingPage = lazy(() => import('../ui/pages/account/BillingPage'))
@@ -181,6 +185,10 @@ export default function AppRoutes() {
           <Route path="politica-acceso-whatsapp" element={<DataProcessingPage />} />
           <Route path="para-canales" element={<ForChannelsPage />} />
           <Route path="para-anunciantes" element={<ForBrandsPage />} />
+          <Route path="whatsapp" element={<WhatsAppPage />} />
+          <Route path="benchmark" element={<BenchmarkPage />} />
+          <Route path="founding" element={<FoundingPage />} />
+          <Route path="audit" element={<AuditPage />} />
           <Route path="herramientas" element={<HerramientasPage />} />
           <Route path="pricing" element={<PricingPage />} />
           <Route path="precios" element={<PricingPage />} />

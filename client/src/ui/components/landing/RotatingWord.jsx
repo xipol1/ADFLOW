@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 
 /**
@@ -23,11 +23,18 @@ export default function RotatingWord({
   const [index, setIndex] = useState(0)
   const reducedMotion = useReducedMotion()
 
+  // Stable key derived from words content. Callers often pass an inline array,
+  // which would be a new reference every render and reset the interval before
+  // it ever fires. Joining once gives us a primitive that only changes when
+  // the actual word list changes.
+  const wordsKey = useMemo(() => (words || []).join('|'), [words])
+
   useEffect(() => {
     if (!words || words.length <= 1 || reducedMotion) return
     const id = setInterval(() => setIndex((i) => (i + 1) % words.length), interval)
     return () => clearInterval(id)
-  }, [words, interval, reducedMotion])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wordsKey, interval, reducedMotion])
 
   if (!words || words.length === 0) return null
 
@@ -49,7 +56,12 @@ export default function RotatingWord({
             whiteSpace: 'nowrap',
           }}
         >
-          {words[index]}
+          {words[index].split('\n').map((line, i, arr) => (
+            <React.Fragment key={i}>
+              {line}
+              {i < arr.length - 1 && <br />}
+            </React.Fragment>
+          ))}
         </motion.span>
       </AnimatePresence>
     </span>
