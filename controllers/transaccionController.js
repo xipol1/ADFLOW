@@ -349,14 +349,28 @@ const solicitarRetiro = async (req, res, next) => {
       return next(httpError(400, 'Método de pago inválido. Usa bank o paypal'));
     }
 
-    // Compute creator's available balance from completed campaigns
+    // Compute creator's available balance. Campaigns have no `creator` field —
+    // ownership is derived through the channel (Canal.propietario), so first
+    // resolve the creator's channels, then sum the net payout of their
+    // completed campaigns.
     const mongoose = require('mongoose');
     const creatorId = new mongoose.Types.ObjectId(userId);
+    const Canal = require('../models/Canal');
+    const PayoutAttempt = require('../models/PayoutAttempt');
 
-    const [completedEarnings, pendingRetiros] = await Promise.all([
+    const myChannelIds = (await Canal.find({ propietario: userId }).select('_id').lean())
+      .map((c) => c._id);
+
+    const [completedEarnings, autoPaid, pendingRetiros] = await Promise.all([
       Campaign.aggregate([
-        { $match: { creator: creatorId, status: 'COMPLETED' } },
+        { $match: { channel: { $in: myChannelIds }, status: 'COMPLETED' } },
         { $group: { _id: null, total: { $sum: '$netAmount' } } },
+      ]),
+      // Earnings already transferred (or in flight) via Stripe Connect must not
+      // be withdrawable again here, or the creator would be paid twice.
+      PayoutAttempt.aggregate([
+        { $match: { creator: creatorId, status: { $in: ['pending', 'processing', 'succeeded'] } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
       Retiro.aggregate([
         { $match: { creator: creatorId, status: { $in: ['pending', 'processing'] } } },
@@ -365,8 +379,9 @@ const solicitarRetiro = async (req, res, next) => {
     ]);
 
     const totalEarned = completedEarnings[0]?.total || 0;
+    const alreadyTransferred = autoPaid[0]?.total || 0;
     const reservedForRetiro = pendingRetiros[0]?.total || 0;
-    const availableBalance = totalEarned - reservedForRetiro;
+    const availableBalance = +(totalEarned - alreadyTransferred - reservedForRetiro).toFixed(2);
 
     if (availableBalance < amount) {
       return next(httpError(400, `Saldo insuficiente. Disponible: €${availableBalance.toFixed(2)}`));
