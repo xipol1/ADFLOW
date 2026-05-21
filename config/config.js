@@ -73,7 +73,7 @@ module.exports = {
     audience: process.env.JWT_AUDIENCE || 'channelad'
   },
   security: {
-    bcryptRounds: toInt(process.env.BCRYPT_ROUNDS, 10)
+    bcryptRounds: toInt(process.env.BCRYPT_ROUNDS, 12)
   },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY || '',

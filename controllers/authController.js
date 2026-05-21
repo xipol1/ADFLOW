@@ -234,7 +234,7 @@ const registro = async (req, res) => {
       return res.status(400).json({ success: false, message: 'El email ya está registrado' });
     }
 
-    const hashedPassword = await bcrypt.hash(password.trim(), 10);
+    const hashedPassword = await bcrypt.hash(password.trim(), config.security.bcryptRounds);
 
     const nombre = String(req.body?.nombre || req.body?.name || '').trim()
     const rol    = ['creator', 'advertiser'].includes(req.body?.role) ? req.body.role : 'advertiser'
@@ -895,7 +895,7 @@ const googleLogin = async (req, res) => {
       }
 
       const randomPassword = require('crypto').randomBytes(32).toString('hex');
-      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+      const hashedPassword = await bcrypt.hash(randomPassword, config.security.bcryptRounds);
 
       user = await Usuario.create({
         email,
