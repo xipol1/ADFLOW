@@ -32,9 +32,11 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
 DB_PATH = os.getenv("DB_PATH", "channelad_leads.db")
-API_URL = os.getenv("API_URL", "http://localhost:5000/api")
+# .strip() guards against a trailing newline left by a Vercel dashboard
+# copy-paste, which would corrupt every URL concatenated from these.
+API_URL = os.getenv("API_URL", "http://localhost:5000/api").strip()
 BOT_API_KEY = os.getenv("BOT_API_KEY", "")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://channelad.io")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://channelad.io").strip()
 
 logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
