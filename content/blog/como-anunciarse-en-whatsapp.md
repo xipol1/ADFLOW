@@ -1,6 +1,6 @@
 ---
-title: "Cómo anunciarse en WhatsApp 2026: canales, grupos y precios reales"
-description: "Guía paso a paso para hacer publicidad en canales y grupos de WhatsApp en 2026. Formatos, precios (30-200€/post), 80% open rate y cómo encontrar canales con métricas auditadas."
+title: "Cómo anunciarse en WhatsApp 2026: canales y precios"
+description: "Guía 2026 para hacer publicidad en canales y grupos de WhatsApp. Formatos, precios 30-200€/post, 80% open rate y canales auditados."
 slug: "como-anunciarse-en-whatsapp"
 date: "2026-05-13"
 dateModified: "2026-05-13"

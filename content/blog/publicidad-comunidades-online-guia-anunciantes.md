@@ -1,6 +1,6 @@
 ---
-title: "Publicidad en comunidades online 2026: guía completa para anunciantes"
-description: "Cómo anunciarse en comunidades de Telegram, WhatsApp y Discord en España en 2026. Estrategia, presupuesto (desde 200€), métricas y cómo medir el ROI. Con tabla comparativa."
+title: "Publicidad en comunidades online 2026: guía completa"
+description: "Cómo anunciarse en comunidades de Telegram, WhatsApp y Discord en España 2026. Estrategia, presupuesto desde 200€, métricas y cómo medir el ROI."
 slug: "publicidad-comunidades-online-guia-anunciantes"
 date: "2026-04-15"
 dateModified: "2026-04-15"

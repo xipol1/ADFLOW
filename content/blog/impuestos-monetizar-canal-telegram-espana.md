@@ -1,6 +1,6 @@
 ---
-title: "Impuestos canal Telegram España 2026: IRPF, IVA, autónomo y cripto"
-description: "Guía fiscal completa 2026 para creadores que monetizan canales o servidores en España: cuándo hacerse autónomo, IVA en publicidad, declarar TON y modelo 036/037 paso a paso."
+title: "Impuestos canal Telegram España 2026: IRPF, IVA y cripto"
+description: "Guía fiscal 2026 para creadores que monetizan canales en España: cuándo hacerse autónomo, IVA en publicidad, declarar TON y modelo 036/037."
 slug: "impuestos-monetizar-canal-telegram-espana"
 date: "2026-05-22"
 dateModified: "2026-05-22"

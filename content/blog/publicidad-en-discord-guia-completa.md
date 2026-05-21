@@ -1,6 +1,6 @@
 ---
-title: "Publicidad en Discord 2026: precios, formatos y el error del 80% de marcas"
-description: "Guía definitiva 2026 para anunciarse en servidores de Discord en España. Formatos que funcionan, CPMs reales (1,5-3€) y por qué Discord tiene 15% engagement vs 1-3% de IG."
+title: "Publicidad en Discord 2026: precios, formatos y errores"
+description: "Guía 2026 para anunciarse en servidores de Discord en España. Formatos que funcionan, CPMs reales (1,5-3€) y por qué Discord tiene 15% engagement."
 slug: "publicidad-en-discord-guia-completa"
 date: "2026-04-10"
 dateModified: "2026-04-15"

@@ -1,6 +1,6 @@
 ---
-title: "Publicidad en Discord para marcas 2026: formatos, precios y engagement"
-description: "Cómo anunciarse en servidores de Discord en 2026: formatos (posts, roles, eventos), precios reales (15-500€) y por qué el engagement en Discord supera al de cualquier red social."
+title: "Publicidad en Discord para marcas 2026: formatos y precios"
+description: "Cómo anunciarse en servidores de Discord 2026: formatos (posts, roles, eventos), precios (15-500€) y por qué el engagement supera a cualquier red."
 slug: "publicidad-discord-marcas"
 date: "2026-04-13"
 dateModified: "2026-04-15"

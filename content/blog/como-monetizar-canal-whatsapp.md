@@ -1,6 +1,6 @@
 ---
-title: "Monetizar canal de WhatsApp 2026: 6 métodos reales (y cuánto pagan)"
-description: "Guía paso a paso para ganar dinero con tu canal de WhatsApp en España en 2026. Las 6 formas reales (ads, suscripciones, afiliados), cifras por nicho y cómo empezar hoy."
+title: "Monetizar canal de WhatsApp 2026: 6 métodos reales"
+description: "Cómo ganar dinero con tu canal de WhatsApp en España 2026. Las 6 formas reales (ads, suscripciones, afiliados) y cifras por nicho."
 slug: "como-monetizar-canal-whatsapp"
 date: "2026-04-11"
 dateModified: "2026-04-15"

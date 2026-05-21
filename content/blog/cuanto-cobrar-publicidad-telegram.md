@@ -1,6 +1,6 @@
 ---
-title: "Precio publicidad Telegram 2026: fórmula + tabla CPM por nicho"
-description: "La fórmula exacta para poner precio a un post patrocinado en tu canal de Telegram en 2026. Tabla de CPMs por nicho (finanzas, cripto, tech, gaming). Datos reales de España."
+title: "Precio publicidad Telegram 2026: fórmula y CPM por nicho"
+description: "Fórmula exacta para poner precio a un post patrocinado en tu canal de Telegram 2026. Tabla de CPMs por nicho: finanzas, cripto, tech y gaming."
 slug: "cuanto-cobrar-publicidad-telegram"
 date: "2026-04-09"
 dateModified: "2026-04-15"

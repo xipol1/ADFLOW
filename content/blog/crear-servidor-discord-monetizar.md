@@ -1,6 +1,6 @@
 ---
-title: "Cómo crear un servidor de Discord y monetizarlo en 2026 (paso a paso)"
-description: "Guía completa para crear un servidor de Discord rentable en España en 2026: nicho, estructura, primeros 1.000 miembros, fórmula de precios y los 5 errores que matan la monetización."
+title: "Crear un servidor de Discord y monetizarlo 2026 (guía)"
+description: "Cómo montar un Discord rentable en España 2026: nicho, estructura, primeros 1.000 miembros, fórmula de precios y los 5 errores que matan ingresos."
 slug: "crear-servidor-discord-monetizar"
 date: "2026-05-15"
 dateModified: "2026-05-15"
