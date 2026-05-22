@@ -1,5 +1,5 @@
 // Service worker — bump CACHE_NAME on each release so clients drop stale assets.
-const CACHE_NAME = 'channelad-v3-plans';
+const CACHE_NAME = 'channelad-v4-chunkfix';
 
 // Install: take over immediately so users on a new bundle don't need to refresh twice.
 self.addEventListener('install', (e) => {
@@ -31,13 +31,24 @@ self.addEventListener('fetch', (e) => {
   // Vite emits hashed filenames under /assets/
   if (url.pathname.startsWith('/assets/')) {
     e.respondWith(
-      caches.match(e.request).then(cached => cached || fetch(e.request).then(response => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+      caches.match(e.request).then(cached => {
+        // A hashed asset missing from the current deploy falls through to
+        // the SPA rewrite and returns 200 text/html. Serving or caching
+        // that as a JS module poisons the cache and breaks every future
+        // lazy import — so a cached HTML body for an asset URL is ignored.
+        if (cached) {
+          const cachedCT = cached.headers.get('content-type') || '';
+          if (!cachedCT.includes('text/html')) return cached;
         }
-        return response;
-      }))
+        return fetch(e.request).then(response => {
+          const ct = response.headers.get('content-type') || '';
+          if (response.ok && !ct.includes('text/html')) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+          }
+          return response;
+        });
+      })
     );
     return;
   }
