@@ -104,55 +104,10 @@
     }
     </script>
 
-    <!-- Structured Data: FAQPage -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "Como funciona la publicidad en comunidades de WhatsApp, Telegram y Discord?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Channelad conecta anunciantes con canales verificados de WhatsApp, Telegram y Discord. El anunciante elige un canal, envia su anuncio y el pago se retiene en custodia hasta que el canal publica. Las metricas se verifican automaticamente."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Cuanto cuesta anunciarse en canales de Telegram y WhatsApp?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Los precios los fija cada canal. Encontraras opciones desde 50 euros hasta mas de 1.000 euros por publicacion segun el tamano de la audiencia y el nicho. No hay costes fijos, suscripciones ni minimos de gasto."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Es seguro pagar por publicidad en comunidades?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Si. Channelad usa un sistema de pago custodiado (escrow). El dinero se retiene de forma segura y solo se libera al creador cuando se confirma la publicacion del anuncio segun los terminos acordados. Si el canal no cumple, el pago se devuelve automaticamente."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Como puedo monetizar mi canal de Telegram, WhatsApp o Discord?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Registra tu canal en Channelad. Verificacion gratuita. Fijas tu tarifa por formato o usas la calculadora. Cuando un anunciante envia propuesta, aceptas o rechazas. Tras publicar y verificacion via API, el saldo se libera a tu cuenta SEPA en menos de 72 horas. Channelad cobra una comision del 20% sobre cada campana publicada. Cero cuotas, cero minimos."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Que alternativas existen a Collaborator y Telega para publicidad en Telegram?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Channelad es la alternativa en espanol que cubre WhatsApp, Telegram y Discord en un solo marketplace. A diferencia de Collaborator o Telega.in, Channelad ofrece pagos custodiados, verificacion automatica de metricas y soporte para comunidades en espanol."
-          }
-        }
-      ]
-    }
-    </script>
+    <!-- Structured Data: FAQPage is emitted per-route via react-helmet-async
+         (see landing pages). It is intentionally NOT placed here: index.html is
+         shared by every SPA route, so a static FAQPage would collide with the
+         per-route one and trigger Google's "FAQPage field is duplicated" error. -->
 
     <!-- Structured Data: WebSite (enables sitelinks search) -->
     <script type="application/ld+json">
