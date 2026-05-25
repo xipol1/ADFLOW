@@ -27,8 +27,10 @@ const normalizeEmail = (value) => {
   return String(value).trim().toLowerCase();
 };
 
-// Emails with full platform access — configurable via env, never sent to frontend bundle
-const FULL_ACCESS_EMAILS = (process.env.FULL_ACCESS_EMAILS || 'admin@channelad.io,creator@channelad.io,advertiser@channelad.io')
+// Emails with full platform access — configurable via env, never sent to frontend bundle.
+// No hardcoded fallback: if the env is unset or empty, the allow-list is empty so courtesy
+// addresses can never grant admin-equivalent access by accident.
+const FULL_ACCESS_EMAILS = String(process.env.FULL_ACCESS_EMAILS || '')
   .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 
 const buildUserResponse = (usuario) => {
