@@ -19,7 +19,7 @@ export default function PrivacyPage() {
       {[
         {
           title: '1. Responsable del tratamiento',
-          content: 'ChannelAd (en proceso de constitucion como SL en Espana) es responsable del tratamiento de tus datos personales. Contacto del responsable: soporte@channelad.io. Domicilio: Espana. A efectos del RGPD (Reglamento UE 2016/679), ChannelAd actua como responsable del tratamiento para los datos de usuarios registrados y como encargado del tratamiento para los datos procesados via Partner API en nombre de partners como Getalink.'
+          content: 'Sitio operado por [TITULAR PERSONA FÍSICA] (persona física, [NOMBRE Y NIF]) bajo la marca comercial Channelad. MICHI SOLUCIONS, S.L. está actualmente en constitución (reserva de denominación social del 10 de abril de 2026); hasta su inscripción en el Registro Mercantil, el responsable del tratamiento es la persona física titular indicada. Contacto del responsable: soporte@channelad.io. Domicilio: España. A efectos del RGPD (Reglamento UE 2016/679), Channelad actúa como responsable del tratamiento para los datos de usuarios registrados y como encargado del tratamiento para los datos procesados via Partner API en nombre de partners como Getalink.'
         },
         {
           title: '2. Datos que recopilamos',
@@ -73,6 +73,10 @@ export default function PrivacyPage() {
       ))}
 
       <div style={{ borderTop: '1px solid var(--border)', paddingTop: '24px', marginTop: '16px' }}>
+        <p style={{ fontSize: '13px', color: 'var(--muted2)', marginBottom: '10px' }}>
+          Sitio operado por <strong>[TITULAR PERSONA FÍSICA]</strong> bajo la marca comercial Channelad.
+          MICHI SOLUCIONS, S.L. en constitución (reserva de denominación social 2026-04-10).
+        </p>
         <p style={{ fontSize: '13px', color: 'var(--muted2)' }}>
           Si tienes preguntas sobre esta politica, contactanos en{' '}
           <a href="mailto:soporte@channelad.io" style={{ color: PURPLE, textDecoration: 'none' }}>soporte@channelad.io</a>

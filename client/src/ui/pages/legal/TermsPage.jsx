@@ -69,6 +69,10 @@ export default function TermsPage() {
       ))}
 
       <div style={{ borderTop: '1px solid var(--border)', paddingTop: '24px', marginTop: '16px' }}>
+        <p style={{ fontSize: '13px', color: 'var(--muted2)', marginBottom: '10px' }}>
+          Sitio operado por <strong>[TITULAR PERSONA FÍSICA]</strong> bajo la marca comercial Channelad.
+          MICHI SOLUCIONS, S.L. en constitución (reserva de denominación social 2026-04-10).
+        </p>
         <p style={{ fontSize: '13px', color: 'var(--muted2)' }}>
           Si tienes preguntas sobre estos terminos, contactanos en{' '}
           <a href="mailto:soporte@channelad.io" style={{ color: PURPLE, textDecoration: 'none' }}>soporte@channelad.io</a>
