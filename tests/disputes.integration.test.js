@@ -3,6 +3,7 @@ process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh
 
 const request = require('supertest');
 const app = require('../app');
+const { registerVerifiedUser } = require('./helpers/registerVerifiedUser');
 
 describe('Disputes integration — /api/disputes', () => {
   const uniqueId = Date.now();
@@ -17,27 +18,11 @@ describe('Disputes integration — /api/disputes', () => {
   let disputeId;
 
   beforeAll(async () => {
-    // Register + login advertiser (register no longer returns tokens)
-    const advRes = await request(app)
-      .post('/api/auth/registro')
-      .send({ email: advertiserEmail, password, nombre: 'Dispute Advertiser', role: 'advertiser' });
-    if (advRes.status === 503) return;
-    const advLogin = await request(app)
-      .post('/api/auth/login')
-      .send({ email: advertiserEmail, password });
-    if (advLogin.status === 503) return;
-    advertiserToken = advLogin.body.token;
+    const adv = await registerVerifiedUser(app, { email: advertiserEmail, password, nombre: 'Dispute Advertiser', role: 'advertiser' });
+    advertiserToken = adv.token;
 
-    // Register + login creator
-    const creRes = await request(app)
-      .post('/api/auth/registro')
-      .send({ email: creatorEmail, password, nombre: 'Dispute Creator', role: 'creator' });
-    if (creRes.status === 503) return;
-    const creLogin = await request(app)
-      .post('/api/auth/login')
-      .send({ email: creatorEmail, password });
-    if (creLogin.status === 503) return;
-    creatorToken = creLogin.body.token;
+    const cre = await registerVerifiedUser(app, { email: creatorEmail, password, nombre: 'Dispute Creator', role: 'creator' });
+    creatorToken = cre.token;
 
     // Create channel
     const chanRes = await request(app)

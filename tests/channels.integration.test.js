@@ -3,6 +3,7 @@ process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh
 
 const request = require('supertest');
 const app = require('../app');
+const { registerVerifiedUser } = require('./helpers/registerVerifiedUser');
 
 describe('Channels integration', () => {
   const uniqueId = Date.now();
@@ -15,27 +16,11 @@ describe('Channels integration', () => {
   let channelId;
 
   beforeAll(async () => {
-    // Register + login creator. Registration no longer returns auth tokens
-    // (email verification is required), so we follow up with login.
-    const creatorRes = await request(app)
-      .post('/api/auth/registro')
-      .send({ email: creatorEmail, password, nombre: 'Chan Creator', role: 'creator' });
-    if (creatorRes.status === 503) return;
-    const creatorLogin = await request(app)
-      .post('/api/auth/login')
-      .send({ email: creatorEmail, password });
-    if (creatorLogin.status !== 503) creatorToken = creatorLogin.body.token;
+    const creator = await registerVerifiedUser(app, { email: creatorEmail, password, nombre: 'Chan Creator', role: 'creator' });
+    creatorToken = creator.token;
 
-    // Register + login another user
-    const otherRes = await request(app)
-      .post('/api/auth/registro')
-      .send({ email: otherEmail, password, nombre: 'Chan Other', role: 'creator' });
-    if (otherRes.status !== 503) {
-      const otherLogin = await request(app)
-        .post('/api/auth/login')
-        .send({ email: otherEmail, password });
-      if (otherLogin.status !== 503) otherToken = otherLogin.body.token;
-    }
+    const other = await registerVerifiedUser(app, { email: otherEmail, password, nombre: 'Chan Other', role: 'creator' });
+    otherToken = other.token;
   });
 
   // ── Public channels list ──────────────────────────────────────────────────
