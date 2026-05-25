@@ -63,8 +63,10 @@ describe('Notifications integration — /api/notifications', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('success', true);
-      // Should have a count field (could be named count, total, noLeidas, etc.)
-      expect(typeof res.body.count === 'number' || typeof res.body.noLeidas === 'number' || typeof res.body.data === 'number').toBe(true);
+      // Endpoint returns { success: true, data: { count: <number> } }.
+      // Accept either shape just in case.
+      const count = res.body?.data?.count ?? res.body?.count ?? res.body?.noLeidas;
+      expect(typeof count).toBe('number');
     });
 
     test('returns 401 without auth', async () => {

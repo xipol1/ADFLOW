@@ -3,6 +3,7 @@ process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh
 
 const request = require('supertest');
 const app = require('../app');
+const { registerVerifiedUser } = require('./helpers/registerVerifiedUser');
 
 describe('Campaigns integration — /api/campaigns', () => {
   const uniqueId = Date.now();
@@ -16,28 +17,12 @@ describe('Campaigns integration — /api/campaigns', () => {
   let campaignId;
 
   beforeAll(async () => {
-    // Register + login advertiser. Registration no longer returns auth
-    // tokens (email verification is required), so we follow up with login.
-    const advRes = await request(app)
-      .post('/api/auth/registro')
-      .send({ email: advertiserEmail, password, nombre: 'Camp Advertiser', role: 'advertiser' });
-    if (advRes.status === 503) return;
-    const advLogin = await request(app)
-      .post('/api/auth/login')
-      .send({ email: advertiserEmail, password });
-    if (advLogin.status === 503) return;
-    advertiserToken = advLogin.body.token;
+    // Force-verified users with fiscal data so campaign middleware gates pass.
+    const adv = await registerVerifiedUser(app, { email: advertiserEmail, password, nombre: 'Camp Advertiser', role: 'advertiser' });
+    advertiserToken = adv.token;
 
-    // Register + login creator, then create a channel
-    const creRes = await request(app)
-      .post('/api/auth/registro')
-      .send({ email: creatorEmail, password, nombre: 'Camp Creator', role: 'creator' });
-    if (creRes.status === 503) return;
-    const creLogin = await request(app)
-      .post('/api/auth/login')
-      .send({ email: creatorEmail, password });
-    if (creLogin.status === 503) return;
-    creatorToken = creLogin.body.token;
+    const cre = await registerVerifiedUser(app, { email: creatorEmail, password, nombre: 'Camp Creator', role: 'creator' });
+    creatorToken = cre.token;
 
     // Create a channel for campaigns
     const chanRes = await request(app)
@@ -53,6 +38,10 @@ describe('Campaigns integration — /api/campaigns', () => {
     if (chanRes.status === 201) {
       const data = chanRes.body.data || chanRes.body.canal;
       channelId = data._id || data.id;
+      // createCampaign resolves price from the channel itself (req.body.price
+      // is ignored). Without a precio > 0 the controller returns 400.
+      const Canal = require('../models/Canal');
+      await Canal.findByIdAndUpdate(channelId, { precio: 100 });
     }
   });
 
@@ -126,21 +115,12 @@ describe('Campaigns integration — /api/campaigns', () => {
       expect(res.status).toBe(400);
     });
 
-    test('returns 400 with negative price', async () => {
-      if (!advertiserToken || !channelId) return;
-
-      const res = await request(app)
-        .post('/api/campaigns')
-        .set('Authorization', `Bearer ${advertiserToken}`)
-        .send({
-          channel: channelId,
-          content: 'Bad price content',
-          targetUrl: 'https://example.com',
-          price: -50,
-        });
-
-      expect(res.status).toBe(400);
-    });
+    // createCampaign ignores req.body.price entirely — the server resolves
+    // it from canal.precio / canal.CPMDinamico (campaignController.js:80).
+    // Sending a negative price has no effect, so this assertion no longer
+    // describes the contract. Skipping until the controller adds explicit
+    // body-price validation (if ever — the design choice is intentional).
+    test.skip('returns 400 with negative price', async () => {});
   });
 
   // ── List campaigns ────────────────────────────────────────────────────────

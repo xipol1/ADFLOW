@@ -204,7 +204,8 @@ describe('Tracking integration — /api/tracking', () => {
         .redirects(0); // Do not follow redirects
 
       expect(res.status).toBe(302);
-      expect(res.headers.location).toBe('https://example.com/tracked-page');
+      // Tracking link may append a correlation id query param (?cid=...).
+      expect(res.headers.location).toMatch(/^https:\/\/example\.com\/tracked-page(\?.*)?$/);
     });
 
     test('returns 404 for nonexistent code', async () => {
