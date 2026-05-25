@@ -286,7 +286,7 @@ const SECTIONS = [
   {
     title: '13. Contacto del responsable',
     paragraphs: [
-      'Responsable del tratamiento: Channelad (en proceso de constitución como sociedad en España).',
+      'Responsable del tratamiento: [TITULAR PERSONA FÍSICA] (persona física, [NOMBRE Y NIF]), operador del sitio bajo la marca comercial Channelad. MICHI SOLUCIONS, S.L. está en constitución (reserva de denominación social del 10 de abril de 2026); hasta su inscripción en el Registro Mercantil, el responsable es la persona física titular indicada.',
       'Contacto para ejercer tus derechos y cualquier consulta relacionada con esta política: soporte@channelad.io',
       'Te responderemos en un plazo máximo de 30 días naturales.',
     ],
