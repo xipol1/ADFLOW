@@ -2,87 +2,111 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://channelad.io/</loc>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://channelad.io/para-anunciantes</loc>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://channelad.io/para-canales</loc>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://channelad.io/marketplace</loc>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://channelad.io/explore</loc>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://channelad.io/rankings</loc>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://channelad.io/herramientas</loc>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://channelad.io/pricing</loc>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://channelad.io/que-es-channelad</loc>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://channelad.io/blog</loc>
-    <lastmod>2026-05-20</lastmod>
+    <lastmod>2026-05-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://channelad.io/sobre-nosotros</loc>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://channelad.io/soporte</loc>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://channelad.io/privacidad</loc>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://channelad.io/terminos</loc>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-25</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://channelad.io/blog/best-whatsapp-advertising-platforms</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://channelad.io/blog/channelad-vs-influencer-marketplaces</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://channelad.io/blog/channelad-vs-meta-ads</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://channelad.io/blog/impuestos-monetizar-canal-telegram-espana</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://channelad.io/blog/telegram-ads-fragment-guia-espana</loc>
