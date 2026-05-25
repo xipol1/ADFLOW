@@ -28,6 +28,7 @@ const ForChannelsPage = lazyWithRetry(() => import('../ui/pages/landing/ForChann
 const WhatsAppPage = lazyWithRetry(() => import('../ui/pages/landing/WhatsAppPage'))
 const BenchmarkPage = lazyWithRetry(() => import('../ui/pages/landing/BenchmarkPage'))
 const FoundingPage = lazyWithRetry(() => import('../ui/pages/landing/FoundingPage'))
+const ChannelOnePage = lazyWithRetry(() => import('../ui/pages/landing/ChannelOnePage'))
 const AuditPage = lazyWithRetry(() => import('../ui/pages/landing/AuditPage'))
 const HerramientasPage = lazyWithRetry(() => import('../ui/pages/landing/HerramientasPage'))
 const PricingPage = lazyWithRetry(() => import('../ui/pages/pricing/PricingPage'))
@@ -214,6 +215,7 @@ export default function AppRoutes() {
           <Route path="whatsapp" element={<WhatsAppPage />} />
           <Route path="benchmark" element={<BenchmarkPage />} />
           <Route path="founding" element={<FoundingPage />} />
+          <Route path="channel-one" element={<ChannelOnePage />} />
           <Route path="audit" element={<AuditPage />} />
           <Route path="herramientas" element={<HerramientasPage />} />
           <Route path="pricing" element={<PricingPage />} />

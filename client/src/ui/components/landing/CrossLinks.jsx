@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Megaphone, Wallet, Search, BookOpen, MessageCircle, Sparkles } from 'lucide-react'
+import { Megaphone, Wallet, Search, BookOpen, MessageCircle, Sparkles, Users } from 'lucide-react'
 import { FONT_BODY, FONT_DISPLAY, PURPLE, purpleAlpha } from '../../theme/tokens'
 
 const ALL_LINKS = [
@@ -8,6 +8,7 @@ const ALL_LINKS = [
   { to: '/para-canales', label: 'Para creadores', desc: 'Monetiza tu comunidad con publicidad nativa', Icon: Wallet, color: '#25d366' },
   { to: '/whatsapp', label: 'Canales WhatsApp', desc: 'Monetiza tu canal privado con escrow', Icon: MessageCircle, color: '#25d366' },
   { to: '/founding', label: 'Founding cohort', desc: 'Comisión 18% vitalicia · plazas limitadas', Icon: Sparkles, color: '#25d366' },
+  { to: '/channel-one', label: 'Channel One', desc: 'Pre-registro · 1.000 canales prioritarios para septiembre', Icon: Users, color: '#25d366' },
   { to: '/marketplace', label: 'Marketplace', desc: 'Explora canales por nicho, plataforma y precio', Icon: Search, color: '#3b82f6' },
   { to: '/blog', label: 'Blog', desc: 'Guías sobre publicidad en comunidades', Icon: BookOpen, color: '#f59e0b' },
 ]

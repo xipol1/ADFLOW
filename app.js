@@ -53,6 +53,7 @@ try { _routes['./routes/adminSubscriptions']  = require('./routes/adminSubscript
 try { _routes['./routes/subscriptions']       = require('./routes/subscriptions');       } catch (e) { _routes['./routes/subscriptions']       = e; }
 try { _routes['./routes/swapsCron']           = require('./routes/swapsCron');           } catch (e) { _routes['./routes/swapsCron']           = e; }
 try { _routes['./routes/authMaintenanceCron'] = require('./routes/authMaintenanceCron'); } catch (e) { _routes['./routes/authMaintenanceCron'] = e; }
+try { _routes['./routes/channelOne']          = require('./routes/channelOne');          } catch (e) { _routes['./routes/channelOne']          = e; }
 
 // Pre-load for Vercel nft tracer (require only, don't execute swagger-jsdoc at top level)
 let _swaggerPathsJson;
@@ -531,6 +532,7 @@ const enabledRoutes = [
   ['/api/swaps',     './routes/swaps'],
   ['/api/jobs',      './routes/swapsCron'],
   ['/api/jobs',      './routes/authMaintenanceCron'],
+  ['/api/channel-one', './routes/channelOne'],
 ];
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));
