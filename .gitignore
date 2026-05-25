@@ -4,6 +4,7 @@ node_modules/
 # ── Environment ───────────────────────────────────────────────────────────────
 .env
 .env.*
+*.env
 !.env.example
 
 # ── Build output ──────────────────────────────────────────────────────────────
@@ -69,11 +70,16 @@ Thumbs.db
 # ── Skill manifests (locally generated) ───────────────────────────────────────
 skills-lock.json
 
+# ── Python bytecode (telegram-bot/ etc.) ──────────────────────────────────────
+__pycache__/
+*.pyc
+
 # ── Sibling projects kept in this folder for convenience ──────────────────────
 channelad-pitch-video/
 channelad-ad-flow/
 channelad-advertiser-tour/
 channelad-client-pitch/
+channelad-remotion-video/
 
 # ── One-off scripts (investor deck, etc.) ─────────────────────────────────────
 scripts/create_burn_slide.py
