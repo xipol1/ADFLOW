@@ -44,12 +44,11 @@ describe('Partner API integration', () => {
     expect(response.body.requestId).toBeTruthy();
   });
 
-  // The remaining tests assert behavior that has drifted: the campaign
-  // contract was redesigned (`/register-publication`, `/confirm-execution`,
-  // `/release-funds` no longer exist; `nextRequiredStep` and
-  // `workflow.availableActions` are no longer in the response shape) and
-  // inventory now requires a real Mongo collection. Skipping until the
-  // partner API spec is re-locked and the suite is rewritten against it.
+  // TODO(prod-blocker): endpoint `/api/partners/inventory` was retired in favor of
+  // `/api/partners/channels`, and the new route requires a live Mongo collection
+  // (returns 500 against the test harness which has no DB). Re-write the test
+  // against `/channels` once the partner integration service is given a
+  // mockable repository seam.
   test.skip('inventory is restricted and sanitized', async () => {
     const response = await request(app)
       .get('/api/partners/inventory?limit=50')
@@ -63,6 +62,12 @@ describe('Partner API integration', () => {
     expect(response.headers['x-request-id']).toBeTruthy();
   });
 
+  // TODO(prod-blocker): contract drift — `/register-publication`,
+  // `/confirm-execution` and `/release-funds` no longer exist (replaced by
+  // `/publish` and `/complete`), `meta.nextRequiredStep` now returns
+  // `confirm_payment` (not `create_payment_session`), and
+  // `workflow.availableActions` was removed from the response shape. Re-locking
+  // the spec is a product decision, not a mock fix.
   test.skip('campaign flow enforces contract order', async () => {
     const created = await request(app)
       .post('/api/partners/campaigns')
@@ -136,6 +141,10 @@ describe('Partner API integration', () => {
     expect(released.body.data.workflow.availableActions).toContain('read_metrics');
   });
 
+  // TODO(prod-blocker): blocked on the same Mongo dependency as the campaign
+  // flow test — POST /api/partners/campaigns returns 500 without a live DB
+  // (no channel can be resolved). Re-enable once the partner service exposes a
+  // repository seam that the integration suite can stub.
   test.skip('idempotency key replays successful mutations', async () => {
     const payload = {
       title: 'Campana Idempotente',
