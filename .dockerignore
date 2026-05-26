@@ -1,0 +1,88 @@
+# ── Dependencies ──────────────────────────────────────────────────────────────
+node_modules/
+
+# ── Environment ───────────────────────────────────────────────────────────────
+.env
+.env.*
+*.env
+!.env.example
+
+# ── Build output ──────────────────────────────────────────────────────────────
+dist/
+build/
+*.tsbuildinfo
+
+# ── Archives & backups (kept locally, never committed) ────────────────────────
+*.zip
+*.tar.gz
+Adflow 1.0/
+adflow-unified/
+Adflow-1.0-clone/
+plataforma-*/
+Adflow Gestion/
+
+# ── Planning artefacts (kept locally) ─────────────────────────────────────────
+*.xlsx
+*.xls
+*.docx
+*.pdf
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+logs/
+*.log
+_server_fatal.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Runtime data ──────────────────────────────────────────────────────────────
+data/*.json
+data/whatsapp-session/
+!data/.gitkeep
+
+# ── User uploads (move to S3/R2 in production) ────────────────────────────────
+uploads/*
+!uploads/.gitkeep
+
+# ── Local databases ───────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Editor / OS ───────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Vercel ────────────────────────────────────────────────────────────────────
+.vercel/
+
+# ── Claude Code local state (never commit) ────────────────────────────────────
+.claude/
+.agents/
+
+# ── IDE / agent state ─────────────────────────────────────────────────────────
+.trae/
+
+# ── Skill manifests (locally generated) ───────────────────────────────────────
+skills-lock.json
+
+# ── Python bytecode (telegram-bot/ etc.) ──────────────────────────────────────
+__pycache__/
+*.pyc
+
+# ── Sibling projects kept in this folder for convenience ──────────────────────
+channelad-pitch-video/
+channelad-ad-flow/
+channelad-advertiser-tour/
+channelad-client-pitch/
+channelad-remotion-video/
+
+# ── One-off scripts (investor deck, etc.) ─────────────────────────────────────
+scripts/create_burn_slide.py
+
+# ── Project local settings ────────────────────────────────────────────────────
+settings.local.json
