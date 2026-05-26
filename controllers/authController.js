@@ -130,8 +130,9 @@ const login = async (req, res) => {
       // Increment failed attempts and lock after 5
       const attempts = (user.failedLoginAttempts || 0) + 1;
       const update = { failedLoginAttempts: attempts };
+      const lockMinutes = 30;
       if (attempts >= 5) {
-        update.lockedUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 min lock
+        update.lockedUntil = new Date(Date.now() + lockMinutes * 60 * 1000);
         update.failedLoginAttempts = 0;
       }
       await Usuario.findByIdAndUpdate(user._id, update);
@@ -141,6 +142,25 @@ const login = async (req, res) => {
         email,
         metadata: { reason: 'bad_password', attempts, lockedNow: attempts >= 5 },
       });
+
+      // M-3: notify the legitimate owner that the account just got locked.
+      // Fire-and-forget so we don't slow the 401 response.
+      if (attempts >= 5) {
+        setImmediate(() => {
+          const emailService = require('../services/emailService');
+          emailService.enviarEmailCuentaBloqueada({
+            email: user.email,
+            nombre: user.nombre,
+            minutesLocked: lockMinutes,
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent'],
+            lockedAt: update.lockedUntil,
+          }).catch((err) => {
+            logErr('auth.lockout.email_failed', err, { userId: user._id.toString() });
+          });
+        });
+      }
+
       return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
 

@@ -330,6 +330,31 @@ class EmailService {
   // ─── New transactional email methods ──────────────────────────────
 
   /**
+   * Notify a user that their account has been temporarily locked after too
+   * many failed login attempts. Used to (a) tell legitimate users why login
+   * is failing and (b) flag suspicious activity that wasn't them.
+   *
+   * Closes AUDIT.md finding M-3 (Account lockout sin notificacion).
+   */
+  async enviarEmailCuentaBloqueada({ email, nombre, minutesLocked = 30, ipAddress, userAgent, lockedAt }) {
+    const resetUrl = `${config.frontend.url}/auth/forgot-password`;
+    const html = await this.renderTemplate('cuenta-bloqueada', {
+      nombre: nombre || 'usuario',
+      minutesLocked,
+      ipAddress: ipAddress || 'desconocida',
+      userAgent: userAgent ? String(userAgent).slice(0, 80) : 'desconocido',
+      lockedAt: lockedAt ? this._formatDate(lockedAt) : this._formatDate(new Date()),
+      resetUrl,
+    });
+
+    return this.enviarEmail({
+      para: email,
+      asunto: `Cuenta bloqueada temporalmente - ${config.app.nombre}`,
+      html
+    });
+  }
+
+  /**
    * Send welcome email after registration.
    */
   async enviarBienvenida(user) {
