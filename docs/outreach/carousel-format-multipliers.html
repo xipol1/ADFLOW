@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Channelad · Carrusel · Multiplicadores de Formato</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #060C18;
+      --surface: #0D1526;
+      --border:  #1A2840;
+      --purple:  #7C3AED;
+      --pl:      #9D60F8;
+      --pa:      #C084FC;
+      --green:   #25D366;
+      --t1:      #F0F4FF;
+      --t2:      #8B9EBF;
+      --t3:      #3D5070;
+      --sz:      540px;
+    }
+
+    body {
+      background: #030609;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 24px 80px;
+      gap: 40px;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .page-header {
+      text-align: center;
+      max-width: 560px;
+    }
+    .page-header h1 {
+      font-family: 'Sora', sans-serif;
+      font-size: 14px; font-weight: 600;
+      color: #1e2d45; letter-spacing: -0.01em; margin-bottom: 4px;
+    }
+    .page-header p { font-size: 11px; color: #111f33; line-height: 1.6; }
+
+    .slide-group {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 6px;
+    }
+    .slide-label {
+      font-size: 9px; font-weight: 700; color: #1a2840;
+      text-transform: uppercase; letter-spacing: 0.18em;
+      align-self: flex-start; padding-left: 2px;
+    }
+
+    /* ── THE SLIDE ──────────────────────────────────────────────────── */
+    .slide {
+      width: var(--sz); height: var(--sz);
+      background: var(--bg);
+      position: relative; overflow: hidden;
+    }
+
+    /* Extremely subtle dot grid */
+    .slide::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(30,40,64,0.6) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none; z-index: 0;
+    }
+
+    .glow {
+      position: absolute; border-radius: 50%;
+      filter: blur(80px); pointer-events: none; z-index: 0;
+    }
+
+    .slide > *:not(.glow) { position: relative; z-index: 1; }
+
+    /* Footer */
+    .sf {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 0 44px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 2;
+    }
+    .sf .num {
+      font-size: 10px; font-weight: 500; color: var(--t3);
+      letter-spacing: 0.12em; white-space: nowrap;
+    }
+    .sf .brand {
+      font-family: 'Sora', sans-serif; font-size: 10px; font-weight: 700;
+      color: rgba(139,158,191,0.3); letter-spacing: 0.04em; white-space: nowrap;
+    }
+
+    /* ═══ SLIDE 01 · PORTADA ═══════════════════════════════════════ */
+    .s1 {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 52px 96px;
+    }
+    .s1-tag {
+      display: inline-flex; align-items: center; gap: 7px;
+      margin-bottom: 40px;
+    }
+    .s1-tag .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+    .s1-tag span {
+      font-size: 10px; font-weight: 600; color: var(--green);
+      text-transform: uppercase; letter-spacing: 0.16em;
+    }
+    .s1-h1 {
+      font-family: 'Sora', sans-serif; font-weight: 800;
+      font-size: 52px; line-height: 1.04; letter-spacing: -0.03em;
+      color: var(--t1); margin-bottom: 20px;
+    }
+    .s1-h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--pl) 0%, var(--pa) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .s1-sub {
+      font-size: 15px; font-weight: 400; color: var(--t2);
+      line-height: 1.6; letter-spacing: 0.01em;
+    }
+
+    /* ═══ SLIDE 02 · PROBLEMA ═══════════════════════════════════════ */
+    .s2 {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-start;
+      padding: 0 52px 96px;
+    }
+    .eyebrow {
+      font-size: 10px; font-weight: 700; color: var(--t3);
+      text-transform: uppercase; letter-spacing: 0.2em;
+      margin-bottom: 24px;
+    }
+    .s2-h2 {
+      font-family: 'Sora', sans-serif; font-weight: 800;
+      font-size: 44px; line-height: 1.07; letter-spacing: -0.025em;
+      color: var(--t1); margin-bottom: 52px; max-width: 420px;
+    }
+    .s2-formats {
+      display: flex; align-items: stretch; gap: 0;
+      width: 100%; margin-bottom: 32px;
+    }
+    .s2-fmt {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: flex-start; gap: 8px;
+      padding: 20px 22px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      border-left: 1px solid var(--border);
+    }
+    .s2-fmt:last-child { border-right: 1px solid var(--border); }
+    .s2-fmt-label {
+      font-size: 9px; font-weight: 700; color: var(--t3);
+      text-transform: uppercase; letter-spacing: 0.15em;
+    }
+    .s2-fmt-name {
+      font-size: 13px; font-weight: 500; color: var(--t2); line-height: 1.3;
+    }
+    .s2-fmt-price {
+      font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700; color: var(--t3);
+      margin-top: auto;
+    }
+    .s2-note {
+      font-size: 13px; font-weight: 400; color: var(--t3); font-style: italic;
+    }
+
+    /* ═══ SLIDE 03 · INSIGHT ═══════════════════════════════════════ */
+    .s3 {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      padding: 0 64px 96px; text-align: center;
+    }
+    .s3-rule {
+      width: 32px; height: 2px;
+      background: linear-gradient(90deg, var(--pl), var(--pa));
+      border-radius: 2px; margin-bottom: 32px;
+    }
+    .s3-h2 {
+      font-family: 'Sora', sans-serif; font-weight: 800;
+      font-size: 38px; line-height: 1.12; letter-spacing: -0.025em;
+      color: var(--t1); margin-bottom: 24px; max-width: 400px;
+    }
+    .s3-h2 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--pl), var(--pa));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .s3-sub {
+      font-size: 15px; font-weight: 400; color: var(--t2);
+      line-height: 1.65; max-width: 340px;
+    }
+
+    /* ═══ SLIDES 04-06 · MULTIPLICADOR ═══════════════════════════════ */
+    .sm {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      padding: 0 52px 96px; text-align: center;
+    }
+    .sm-label {
+      font-size: 10px; font-weight: 600; color: var(--t3);
+      text-transform: uppercase; letter-spacing: 0.18em;
+      margin-bottom: 16px;
+    }
+    .sm-n {
+      font-family: 'Sora', sans-serif; font-weight: 800;
+      line-height: 0.85; letter-spacing: -0.05em;
+      background: linear-gradient(150deg, #B57FFB 0%, var(--pl) 40%, #7C3AED 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 36px;
+    }
+    .sm-n.lg { font-size: 176px; }
+    .sm-n.md { font-size: 148px; }
+    .sm-divider {
+      width: 32px; height: 1px;
+      background: var(--border); margin: 0 auto 28px;
+    }
+    .sm-title {
+      font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700;
+      color: var(--t1); margin-bottom: 10px;
+    }
+    .sm-desc {
+      font-size: 15px; font-weight: 400; color: var(--t2);
+      line-height: 1.65; max-width: 320px;
+    }
+
+    /* ═══ SLIDE 07 · RESUMEN ═══════════════════════════════════════ */
+    .s7 {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 0 52px 96px;
+    }
+    .s7-h2 {
+      font-family: 'Sora', sans-serif; font-weight: 800;
+      font-size: 36px; line-height: 1.08; letter-spacing: -0.025em;
+      color: var(--t1); margin-bottom: 36px;
+    }
+    .s7-rows { display: flex; flex-direction: column; gap: 8px; }
+    .s7-row {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .s7-row:first-child { border-top: 1px solid var(--border); }
+    .s7-row.top {
+      background: rgba(124,58,237,0.06);
+      border-color: rgba(157,96,248,0.25);
+      border-radius: 8px;
+    }
+    .s7-left { display: flex; align-items: center; gap: 16px; }
+    .s7-idx {
+      font-size: 10px; font-weight: 600; color: var(--t3);
+      letter-spacing: 0.08em; width: 18px;
+    }
+    .s7-name { font-size: 14px; font-weight: 400; color: var(--t2); }
+    .s7-row.top .s7-name { color: var(--t1); font-weight: 500; }
+    .s7-mult {
+      font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700;
+      background: linear-gradient(135deg, var(--pl), var(--pa));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ═══ SLIDE 08 · CTA ═══════════════════════════════════════════ */
+    .s8 {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      padding: 0 60px 96px; text-align: center;
+    }
+    .s8-mark {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--purple), var(--pa));
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 32px;
+      box-shadow: 0 0 40px rgba(124,58,237,0.25);
+    }
+    .s8-h2 {
+      font-family: 'Sora', sans-serif; font-weight: 800;
+      font-size: 44px; line-height: 1.06; letter-spacing: -0.025em;
+      color: var(--t1); margin-bottom: 16px;
+    }
+    .s8-sub {
+      font-size: 15px; font-weight: 400; color: var(--t2);
+      line-height: 1.65; margin-bottom: 40px; max-width: 300px;
+    }
+    .s8-url {
+      font-size: 12px; font-weight: 600; color: var(--pl);
+      letter-spacing: 0.03em; padding: 12px 24px;
+      border: 1px solid rgba(157,96,248,0.25);
+      border-radius: 8px; background: rgba(124,58,237,0.06);
+    }
+
+    /* ═══ PRINT / PDF ═══════════════════════════════════════════════ */
+    @media print {
+      *, *::before, *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      @page { size: 1080px 1080px; margin: 0; }
+
+      body { padding: 0 !important; gap: 0 !important; background: var(--bg) !important; width: 1080px; }
+      .page-header, .slide-label { display: none !important; }
+
+      .slide-group {
+        break-after: page; page-break-after: always;
+        display: block !important;
+        width: 1080px !important; height: 1080px !important;
+        margin: 0 !important; padding: 0 !important;
+      }
+      .slide {
+        width: 1080px !important; height: 1080px !important;
+        border-radius: 0 !important; border: none !important;
+      }
+
+      /* Scale ×2 for 1080px */
+      .s1      { padding: 0 104px 192px !important; }
+      .s1-tag  { margin-bottom: 80px !important; }
+      .s1-tag span { font-size: 20px !important; }
+      .s1-tag .dot { width: 10px !important; height: 10px !important; }
+      .s1-h1   { font-size: 96px !important; margin-bottom: 40px !important; }
+      .s1-sub  { font-size: 30px !important; }
+
+      .s2      { padding: 0 104px 192px !important; }
+      .eyebrow { font-size: 20px !important; margin-bottom: 48px !important; }
+      .s2-h2   { font-size: 80px !important; margin-bottom: 96px !important; max-width: 840px !important; }
+      .s2-fmt  { padding: 36px 40px !important; gap: 16px !important; }
+      .s2-fmt-label { font-size: 18px !important; }
+      .s2-fmt-name { font-size: 26px !important; }
+      .s2-fmt-price { font-size: 44px !important; }
+      .s2-note { font-size: 26px !important; }
+
+      .s3      { padding: 0 128px 192px !important; }
+      .s3-rule { width: 64px !important; height: 4px !important; margin-bottom: 64px !important; }
+      .s3-h2   { font-size: 72px !important; margin-bottom: 48px !important; max-width: 800px !important; }
+      .s3-sub  { font-size: 30px !important; max-width: 680px !important; }
+
+      .sm      { padding: 0 104px 192px !important; }
+      .sm-label { font-size: 20px !important; margin-bottom: 32px !important; }
+      .sm-n.lg { font-size: 320px !important; }
+      .sm-n.md { font-size: 280px !important; }
+      .sm-n    { margin-bottom: 64px !important; }
+      .sm-divider { width: 64px !important; height: 2px !important; margin-bottom: 56px !important; }
+      .sm-title { font-size: 40px !important; margin-bottom: 20px !important; }
+      .sm-desc { font-size: 30px !important; max-width: 640px !important; }
+
+      .s7      { padding: 0 104px 192px !important; }
+      .s7-h2   { font-size: 72px !important; margin-bottom: 72px !important; }
+      .s7-rows { gap: 0 !important; }
+      .s7-row  { padding: 28px 40px !important; }
+      .s7-idx  { font-size: 20px !important; width: 36px !important; }
+      .s7-name { font-size: 28px !important; }
+      .s7-mult { font-size: 40px !important; }
+      .s7-left { gap: 32px !important; }
+
+      .s8      { padding: 0 120px 192px !important; }
+      .s8-mark { width: 104px !important; height: 104px !important; border-radius: 28px !important; margin-bottom: 64px !important; }
+      .s8-mark svg { width: 48px !important; height: 48px !important; }
+      .s8-h2   { font-size: 88px !important; margin-bottom: 32px !important; }
+      .s8-sub  { font-size: 30px !important; margin-bottom: 80px !important; max-width: 600px !important; }
+      .s8-url  { font-size: 24px !important; padding: 24px 48px !important; border-radius: 16px !important; }
+
+      .sf      { padding: 0 80px 64px !important; }
+      .sf .num { font-size: 20px !important; }
+      .sf .brand { font-size: 20px !important; }
+
+      .glow    { filter: blur(160px) !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Channelad · Carrusel LinkedIn · 8 slides · Apple-level</h1>
+  <p>540×540px preview · PDF 1080×1080px · Sube el PDF como documento en LinkedIn</p>
+</div>
+
+<!-- ══ 01 · PORTADA ══════════════════════════════════════════════════ -->
+<div class="slide-group">
+  <div class="slide-label">01 — Portada</div>
+  <div class="slide">
+    <div class="glow" style="width:500px;height:500px;background:rgba(124,58,237,0.12);top:-160px;right:-120px;"></div>
+    <div class="glow" style="width:200px;height:200px;background:rgba(37,211,102,0.06);bottom:-40px;left:40px;"></div>
+
+    <div class="s1">
+      <div class="s1-tag"><div class="dot"></div><span>Canales WhatsApp · ES</span></div>
+      <h1 class="s1-h1">El formato que<br>cobras igual…<br><em>no vale igual.</em></h1>
+      <p class="s1-sub">Cinco multiplicadores de precio que la mayoría de admins no aplica.</p>
+    </div>
+
+    <div class="sf"><span class="num">01 · 08</span><span class="brand">channelad</span></div>
+  </div>
+</div>
+
+<!-- ══ 02 · EL PROBLEMA ══════════════════════════════════════════════ -->
+<div class="slide-group">
+  <div class="slide-label">02 — El problema</div>
+  <div class="slide">
+    <div class="glow" style="width:400px;height:400px;background:rgba(124,58,237,0.09);top:-80px;left:50%;transform:translateX(-50%);"></div>
+
+    <div class="s2">
+      <div class="eyebrow">El error más común</div>
+      <h2 class="s2-h2">Un solo precio<br>para todo.</h2>
+
+      <div class="s2-formats">
+        <div class="s2-fmt">
+          <div class="s2-fmt-label">Post</div>
+          <div class="s2-fmt-name">Estándar</div>
+          <div class="s2-fmt-price">50€</div>
+        </div>
+        <div class="s2-fmt">
+          <div class="s2-fmt-label">Fijado 48h</div>
+          <div class="s2-fmt-name">Top del canal</div>
+          <div class="s2-fmt-price">50€</div>
+        </div>
+        <div class="s2-fmt">
+          <div class="s2-fmt-label">Voz</div>
+          <div class="s2-fmt-name">Nota de voz</div>
+          <div class="s2-fmt-price">50€</div>
+        </div>
+      </div>
+
+      <p class="s2-note">No funcionan igual. No deberían costar igual.</p>
+    </div>
+
+    <div class="sf"><span class="num">02 · 08</span><span class="brand">channelad</span></div>
+  </div>
+</div>
+
+<!-- ══ 03 · INSIGHT ══════════════════════════════════════════════════ -->
+<div class="slide-group">
+  <div class="slide-label">03 — El insight</div>
+  <div class="slide">
+    <div class="glow" style="width:420px;height:420px;background:rgba(124,58,237,0.13);top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+
+    <div class="s3">
+      <div class="s3-rule"></div>
+      <h2 class="s3-h2">Los anunciantes pagan por <em>atención</em>.<br>No por espacio.</h2>
+      <p class="s3-sub">Un post fijado tiene más atención que uno estándar. Una nota de voz genera más confianza. La descripción es permanente. El precio debería reflejarlo.</p>
+    </div>
+
+    <div class="sf"><span class="num">03 · 08</span><span class="brand">channelad</span></div>
+  </div>
+</div>
+
+<!-- ══ 04 · ×3 ═══════════════════════════════════════════════════════ -->
+<div class="slide-group">
+  <div class="slide-label">04 — Post fijado ×3</div>
+  <div class="slide">
+    <div class="glow" style="width:500px;height:500px;background:rgba(124,58,237,0.15);top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+
+    <div class="sm">
+      <div class="sm-label">Post fijado 48 horas</div>
+      <div class="sm-n lg">×3</div>
+      <div class="sm-divider"></div>
+      <div class="sm-title">Ocupa el primer lugar dos días.</div>
+      <p class="sm-desc">La posición más vista del canal. Tres veces más atención — tres veces más precio.</p>
+    </div>
+
+    <div class="sf"><span class="num">04 · 08</span><span class="brand">channelad</span></div>
+  </div>
+</div>
+
+<!-- ══ 05 · ×1.8 ══════════════════════════════════════════════════════ -->
+<div class="slide-group">
+  <div class="slide-label">05 — Nota de voz ×1.8</div>
+  <div class="slide">
+    <div class="glow" style="width:460px;height:460px;background:rgba(124,58,237,0.13);top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+
+    <div class="sm">
+      <div class="sm-label">Nota de voz patrocinada</div>
+      <div class="sm-n md">×1.8</div>
+      <div class="sm-divider"></div>
+      <div class="sm-title">La voz del admin genera confianza.</div>
+      <p class="sm-desc">Formato nativo. El oyente no lo procesa como publicidad. Por eso convierte más.</p>
+    </div>
+
+    <div class="sf"><span class="num">05 · 08</span><span class="brand">channelad</span></div>
+  </div>
+</div>
+
+<!-- ══ 06 · ×2.5 ══════════════════════════════════════════════════════ -->
+<div class="slide-group">
+  <div class="slide-label">06 — Descripción permanente ×2.5</div>
+  <div class="slide">
+    <div class="glow" style="width:460px;height:460px;background:rgba(124,58,237,0.13);top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+
+    <div class="sm">
+      <div class="sm-label">Mención en descripción del canal</div>
+      <div class="sm-n md">×2.5</div>
+      <div class="sm-divider"></div>
+      <div class="sm-title">Visible antes de entrar al canal.</div>
+      <p class="sm-desc">Cada nuevo suscriptor ve al anunciante desde el primer momento. Exposición permanente.</p>
+    </div>
+
+    <div class="sf"><span class="num">06 · 08</span><span class="brand">channelad</span></div>
+  </div>
+</div>
+
+<!-- ══ 07 · RESUMEN ══════════════════════════════════════════════════ -->
+<div class="slide-group">
+  <div class="slide-label">07 — Tabla resumen</div>
+  <div class="slide">
+    <div class="glow" style="width:380px;height:380px;background:rgba(124,58,237,0.09);top:-60px;right:-60px;"></div>
+
+    <div class="s7">
+      <h2 class="s7-h2">Los cinco<br>multiplicadores.</h2>
+      <div class="s7-rows">
+        <div class="s7-row">
+          <div class="s7-left"><span class="s7-idx">01</span><span class="s7-name">Post estándar</span></div>
+          <span class="s7-mult">×1</span>
+        </div>
+        <div class="s7-row">
+          <div class="s7-left"><span class="s7-idx">02</span><span class="s7-name">Post + reenvío del admin</span></div>
+          <span class="s7-mult">×1.5</span>
+        </div>
+        <div class="s7-row">
+          <div class="s7-left"><span class="s7-idx">03</span><span class="s7-name">Nota de voz patrocinada</span></div>
+          <span class="s7-mult">×1.8</span>
+        </div>
+        <div class="s7-row">
+          <div class="s7-left"><span class="s7-idx">04</span><span class="s7-name">Mención en descripción</span></div>
+          <span class="s7-mult">×2.5</span>
+        </div>
+        <div class="s7-row top">
+          <div class="s7-left"><span class="s7-idx">05</span><span class="s7-name">Post fijado 48 horas</span></div>
+          <span class="s7-mult">×3</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sf"><span class="num">07 · 08</span><span class="brand">channelad</span></div>
+  </div>
+</div>
+
+<!-- ══ 08 · CTA ═══════════════════════════════════════════════════════ -->
+<div class="slide-group">
+  <div class="slide-label">08 — CTA</div>
+  <div class="slide">
+    <div class="glow" style="width:460px;height:460px;background:rgba(124,58,237,0.14);top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+
+    <div class="s8">
+      <div class="s8-mark">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="2" width="16" height="20" rx="2"/>
+          <line x1="8" y1="7" x2="16" y2="7"/>
+          <line x1="8" y1="12" x2="10" y2="12"/>
+          <line x1="14" y1="12" x2="16" y2="12"/>
+          <line x1="8" y1="17" x2="10" y2="17"/>
+          <line x1="14" y1="17" x2="16" y2="17"/>
+        </svg>
+      </div>
+      <h2 class="s8-h2">Calcula tu<br>precio real.</h2>
+      <p class="s8-sub">Metes tus suscriptores y nicho. En segundos tienes el precio por cada formato.</p>
+      <div class="s8-url">channelad.io/blog/calculadora-precios-publicidad</div>
+    </div>
+
+    <div class="sf"><span class="num">08 · 08</span><span class="brand">channelad</span></div>
+  </div>
+</div>
+
+</body>
+</html>

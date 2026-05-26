@@ -22,6 +22,7 @@ try { _routes['./routes/partnerApi']    = require('./routes/partnerApi');    } c
 try { _routes['./routes/anuncios']      = require('./routes/anuncios');      } catch (e) { _routes['./routes/anuncios']      = e; }
 try { _routes['./routes/notifications'] = require('./routes/notifications'); } catch (e) { _routes['./routes/notifications'] = e; }
 try { _routes['./routes/files']         = require('./routes/files');         } catch (e) { _routes['./routes/files']         = e; }
+try { _routes['./routes/uploads']       = require('./routes/uploads');       } catch (e) { _routes['./routes/uploads']       = e; }
 try { _routes['./routes/disputes']      = require('./routes/disputes');      } catch (e) { _routes['./routes/disputes']      = e; }
 try { _routes['./routes/userLists']     = require('./routes/userLists');     } catch (e) { _routes['./routes/userLists']     = e; }
 try { _routes['./routes/autobuy']       = require('./routes/autobuy');       } catch (e) { _routes['./routes/autobuy']       = e; }
@@ -502,6 +503,7 @@ const enabledRoutes = [
   ['/api/anuncios', './routes/anuncios'],
   ['/api/notifications', './routes/notifications'],
   ['/api/files', './routes/files'],
+  ['/api/uploads', './routes/uploads'],
   ['/api/disputes', './routes/disputes'],
   ['/api/autobuy', './routes/autobuy'],
   ['/api/tracking', './routes/tracking'],
