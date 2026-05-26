@@ -32,10 +32,11 @@ const qrcode = require('qrcode');
 const { useMongoAuthState, loadBaileys } = require('./authStore');
 const BaileysSession = require('../../models/BaileysSession');
 const WhatsAppAuditLog = require('../../models/WhatsAppAuditLog');
-
-// Aptitude thresholds — channels must clear these to be considered
-// monetizable. Tuned conservatively; revisit with sales data.
-const APTO_MIN_PARTICIPANTS = 200;
+const {
+  APTO_MIN_PARTICIPANTS,
+  evaluateGroupAptitude,
+  normalizeJid,
+} = require('./groupAptitude');
 
 class BaileysSessionManager {
   constructor() {
@@ -188,20 +189,26 @@ class BaileysSessionManager {
       raw = {};
     }
 
-    const meJid = (sock.user?.id || '').split(':')[0] + '@s.whatsapp.net';
-    const meLid = sock.user?.lid || '';
+    // Normalise the user's identity so JID comparisons work regardless of
+    // whether Baileys returns `34611:5@s.whatsapp.net`, `34611@s.whatsapp.net`
+    // or bare `34611` — the previous string-concat approach produced
+    // `…@s.whatsapp.net@s.whatsapp.net` in the middle case and falsely
+    // marked every group as "no eres admin".
+    const meId = normalizeJid(sock.user?.id);
+    const meLid = normalizeJid(sock.user?.lid);
 
     for (const jid of Object.keys(raw)) {
       const g = raw[jid] || {};
       const participants = Array.isArray(g.participants) ? g.participants : [];
-      const me = participants.find(
-        (p) => p.id === meJid || (meLid && p.id === meLid) || p.id === sock.user?.id
-      );
+      const me = participants.find((p) => {
+        const pid = normalizeJid(p.id);
+        return (meId && pid === meId) || (meLid && pid === meLid);
+      });
       const isAdmin = !!me && (me.admin === 'admin' || me.admin === 'superadmin');
       const isAnnounce = !!g.announce;
       const count = participants.length || g.size || 0;
 
-      const { apto, reasons } = this._evaluateGroupAptitude({
+      const { apto, reasons } = evaluateGroupAptitude({
         isAdmin,
         isAnnounce,
         count,
@@ -232,6 +239,14 @@ class BaileysSessionManager {
       { new: true }
     );
 
+    // The session could have been revoked / deleted between the controller's
+    // assertOwnership check and this update. Skip the audit log in that case
+    // — losing one row is preferable to crashing with a null dereference.
+    if (!session) {
+      console.warn('[baileys] listGroups: session vanished mid-update', sessionId);
+      return groups;
+    }
+
     await WhatsAppAuditLog.record({
       usuarioId: session.usuarioId,
       sessionId,
@@ -247,23 +262,13 @@ class BaileysSessionManager {
   }
 
   /**
-   * Pure helper — apply the aptitude rules without side effects so it's
-   * easy to unit-test and to tweak the thresholds in one place.
+   * Backwards-compat shim — older callers (and the unit-test that came with
+   * the first version of this feature) reach for `_evaluateGroupAptitude`
+   * on the singleton. New code should import the helper directly from
+   * `./groupAptitude`.
    */
-  _evaluateGroupAptitude({ isAdmin, isAnnounce, count }) {
-    const reasons = [];
-    if (!isAdmin) reasons.push('No eres administrador del grupo');
-    if (count < APTO_MIN_PARTICIPANTS) {
-      reasons.push(`Tiene ${count} miembros — mínimo ${APTO_MIN_PARTICIPANTS} para monetizar`);
-    }
-    if (isAnnounce) {
-      reasons.push('Grupo solo-anuncios — conviértelo en Canal (Newsletter) para Channelad');
-    }
-
-    const apto = isAdmin && count >= APTO_MIN_PARTICIPANTS && !isAnnounce;
-    if (apto) reasons.push(`Cumple criterios: eres admin y tiene ${count} miembros`);
-
-    return { apto, reasons };
+  _evaluateGroupAptitude(input) {
+    return evaluateGroupAptitude(input);
   }
 
   /**

@@ -180,6 +180,13 @@ export default function LinkWhatsAppPage() {
   }
 
   const handleLinkNewsletter = async (newsletterJid) => {
+    // Demo mode uses a synthetic sessionId that isn't a real Mongo ObjectId —
+    // hitting the backend would 400. Fake-link locally instead.
+    if (isDemo) {
+      setSelectedNewsletterJid(newsletterJid)
+      setStep(3)
+      return
+    }
     if (!selectedCanalId) {
       setError('Selecciona primero un canal de Channelad para vincular')
       return
@@ -205,6 +212,12 @@ export default function LinkWhatsAppPage() {
   }
 
   const handleRevoke = async () => {
+    // Demo mode never created a real session; just bounce back to the start
+    // without confirming or calling DELETE on a fake sessionId.
+    if (isDemo) {
+      navigate('/dashboard/creator')
+      return
+    }
     if (!sessionId) return
     const ok = await confirm({
       title: 'Cancelar vinculación',
