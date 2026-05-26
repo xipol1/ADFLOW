@@ -104,6 +104,27 @@ const BaileysSessionSchema = new mongoose.Schema(
       ],
       default: [],
     },
+
+    // Groups (community chats) the user participates in. Read after connection
+    // to give the user an audit report — which groups would be eligible to
+    // monetize via Channelad once they convert them to Newsletters.
+    groups: {
+      type: [
+        {
+          jid: String,                // "120363012345678901@g.us"
+          name: String,
+          description: String,
+          participantsCount: Number,
+          isAdmin: Boolean,           // user is admin/superadmin
+          isAnnounce: Boolean,        // announcement-only ("broadcast group")
+          creationDate: Date,
+          picture: String,
+          apto: Boolean,              // meets monetization criteria
+          aptoReasons: [String],      // human-readable reasons for the verdict
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true }
 );

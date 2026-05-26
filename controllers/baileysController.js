@@ -164,6 +164,41 @@ async function refreshNewsletters(req, res) {
 }
 
 /**
+ * POST /api/baileys/sessions/:sessionId/refresh-groups
+ * Re-fetch the WhatsApp groups for a connected session and evaluate which
+ * ones are eligible for monetization.
+ */
+async function refreshGroups(req, res) {
+  try {
+    const userId = req.usuario?.id || req.usuario?._id;
+    const { sessionId } = req.params;
+
+    const session = await assertOwnership(sessionId, userId);
+    if (session.status !== 'connected') {
+      return res.status(409).json({
+        success: false,
+        message: `Sesión en estado ${session.status}. Debe estar conectada.`,
+      });
+    }
+
+    const manager = getManager();
+    const groups = await manager.listGroups(sessionId);
+    res.json({
+      success: true,
+      groups,
+      summary: {
+        total: groups.length,
+        apto: groups.filter((g) => g.apto).length,
+        noApto: groups.filter((g) => !g.apto).length,
+      },
+    });
+  } catch (err) {
+    console.error('[baileys] refreshGroups error:', err);
+    res.status(err.status || 500).json({ success: false, message: err.message });
+  }
+}
+
+/**
  * POST /api/baileys/sessions/:sessionId/link-canal
  * Body: { newsletterJid, canalId }
  *
@@ -294,6 +329,7 @@ module.exports = {
   getLinkState,
   listSessions,
   refreshNewsletters,
+  refreshGroups,
   linkNewsletterToCanal,
   revokeSession,
   listAuditLog,

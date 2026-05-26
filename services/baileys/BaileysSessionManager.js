@@ -18,8 +18,9 @@
  *
  * Public API:
  *   - startLinking(usuarioId, opts)   → { sessionId, status }
- *   - getSessionState(sessionId)      → { status, qr, deviceNumber, newsletters }
+ *   - getSessionState(sessionId)      → { status, qr, deviceNumber, newsletters, groups }
  *   - listNewsletters(sessionId)      → [{ jid, name, subscribers, ... }]
+ *   - listGroups(sessionId)           → [{ jid, name, participantsCount, isAdmin, apto, ... }]
  *   - getNewsletterMetadata(sessionId, jid)
  *   - revokeSession(sessionId)
  *   - shutdown()
@@ -31,6 +32,10 @@ const qrcode = require('qrcode');
 const { useMongoAuthState, loadBaileys } = require('./authStore');
 const BaileysSession = require('../../models/BaileysSession');
 const WhatsAppAuditLog = require('../../models/WhatsAppAuditLog');
+
+// Aptitude thresholds — channels must clear these to be considered
+// monetizable. Tuned conservatively; revisit with sales data.
+const APTO_MIN_PARTICIPANTS = 200;
 
 class BaileysSessionManager {
   constructor() {
@@ -89,6 +94,7 @@ class BaileysSessionManager {
       deviceNumber: session.deviceNumber,
       deviceName: session.deviceName,
       newsletters: session.newsletters || [],
+      groups: session.groups || [],
       lastError: session.lastError,
       lastConnectedAt: session.lastConnectedAt,
     };
@@ -151,6 +157,113 @@ class BaileysSessionManager {
     });
 
     return administered;
+  }
+
+  /**
+   * Fetch the WhatsApp groups (community chats) the user participates in.
+   * Each group is evaluated against monetization criteria so the UI can
+   * surface an "apto / no apto" verdict next to it.
+   *
+   * Eligibility (apto = true) requires:
+   *   - user is admin or superadmin in the group
+   *   - participantsCount >= APTO_MIN_PARTICIPANTS
+   *   - not an announcement-only group (those should be Newsletters instead)
+   */
+  async listGroups(sessionId) {
+    const entry = this.sockets.get(sessionId);
+    if (!entry || !entry.sock) {
+      throw new Error('Session not connected');
+    }
+
+    const sock = entry.sock;
+    const groups = [];
+
+    let raw = {};
+    try {
+      if (typeof sock.groupFetchAllParticipating === 'function') {
+        raw = (await sock.groupFetchAllParticipating()) || {};
+      }
+    } catch (err) {
+      console.warn('[baileys] groupFetchAllParticipating failed:', err.message);
+      raw = {};
+    }
+
+    const meJid = (sock.user?.id || '').split(':')[0] + '@s.whatsapp.net';
+    const meLid = sock.user?.lid || '';
+
+    for (const jid of Object.keys(raw)) {
+      const g = raw[jid] || {};
+      const participants = Array.isArray(g.participants) ? g.participants : [];
+      const me = participants.find(
+        (p) => p.id === meJid || (meLid && p.id === meLid) || p.id === sock.user?.id
+      );
+      const isAdmin = !!me && (me.admin === 'admin' || me.admin === 'superadmin');
+      const isAnnounce = !!g.announce;
+      const count = participants.length || g.size || 0;
+
+      const { apto, reasons } = this._evaluateGroupAptitude({
+        isAdmin,
+        isAnnounce,
+        count,
+      });
+
+      groups.push({
+        jid,
+        name: g.subject || '',
+        description: g.desc || '',
+        participantsCount: count,
+        isAdmin,
+        isAnnounce,
+        creationDate: g.creation ? new Date(g.creation * 1000) : null,
+        picture: '',
+        apto,
+        aptoReasons: reasons,
+      });
+    }
+
+    groups.sort((a, b) => {
+      if (a.apto !== b.apto) return a.apto ? -1 : 1;
+      return (b.participantsCount || 0) - (a.participantsCount || 0);
+    });
+
+    const session = await BaileysSession.findByIdAndUpdate(
+      sessionId,
+      { $set: { groups } },
+      { new: true }
+    );
+
+    await WhatsAppAuditLog.record({
+      usuarioId: session.usuarioId,
+      sessionId,
+      action: 'groups.list_fetched',
+      summary: `Leídos ${groups.length} grupos (${groups.filter((g) => g.apto).length} aptos)`,
+      data: {
+        total: groups.length,
+        apto: groups.filter((g) => g.apto).length,
+      },
+    });
+
+    return groups;
+  }
+
+  /**
+   * Pure helper — apply the aptitude rules without side effects so it's
+   * easy to unit-test and to tweak the thresholds in one place.
+   */
+  _evaluateGroupAptitude({ isAdmin, isAnnounce, count }) {
+    const reasons = [];
+    if (!isAdmin) reasons.push('No eres administrador del grupo');
+    if (count < APTO_MIN_PARTICIPANTS) {
+      reasons.push(`Tiene ${count} miembros — mínimo ${APTO_MIN_PARTICIPANTS} para monetizar`);
+    }
+    if (isAnnounce) {
+      reasons.push('Grupo solo-anuncios — conviértelo en Canal (Newsletter) para Channelad');
+    }
+
+    const apto = isAdmin && count >= APTO_MIN_PARTICIPANTS && !isAnnounce;
+    if (apto) reasons.push(`Cumple criterios: eres admin y tiene ${count} miembros`);
+
+    return { apto, reasons };
   }
 
   /**
@@ -307,9 +420,12 @@ class BaileysSessionManager {
             data: { jid: user.id, name: user.name },
           });
 
-          // Fetch newsletters in background — don't block
+          // Fetch newsletters AND groups in background — don't block
           this.listNewsletters(sessionId).catch((err) => {
             console.warn('[baileys] auto listNewsletters failed:', err.message);
+          });
+          this.listGroups(sessionId).catch((err) => {
+            console.warn('[baileys] auto listGroups failed:', err.message);
           });
         }
       }
