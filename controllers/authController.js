@@ -199,6 +199,26 @@ const registro = async (req, res) => {
       });
     }
 
+    // M-4: Cloudflare Turnstile verification. Skipped silently when the
+    // secret is not configured (local dev / preview / CI). When configured,
+    // a bad / missing token returns 403 before we touch the database.
+    {
+      const { verifyCaptcha } = require('../lib/captcha');
+      const captchaToken = req.body?.captchaToken || req.body?.['cf-turnstile-response'];
+      const cap = await verifyCaptcha(captchaToken, req.ip);
+      if (!cap.ok) {
+        authAudit.record('register.failed', req, {
+          email,
+          metadata: { reason: 'captcha_failed', code: cap.code },
+        });
+        return res.status(403).json({
+          success: false,
+          message: 'Verificación anti-bot fallida. Recarga la página y vuelve a intentarlo.',
+          code: 'CAPTCHA_FAILED',
+        });
+      }
+    }
+
     if (!process.env.MONGODB_URI) {
       console.warn('REGISTER: MONGODB_URI no definida');
       return res.status(503).json({ success: false, message: 'Servicio no disponible' });
