@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const config = require('./config');
 
 let lastConnectionError = null;
 let connectPromise = null;
@@ -57,7 +56,7 @@ const conectar = async () => {
   if (mongoose.connection?.readyState === 1) return true;
   if (connectPromise) return connectPromise;
 
-  const { uri, source } = getConfiguredUri();
+  const { uri } = getConfiguredUri();
   if (!uri) {
     console.warn('⚠️ MONGODB_URI no definida');
     if (process.env.DATABASE_URL) console.warn('⚠️ DATABASE_URL está definida pero la app requiere MONGODB_URI (Render env vars)');

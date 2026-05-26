@@ -91,7 +91,7 @@ class OnboardingController {
 
       const channelInfo = await bot.fetchChannelMetrics(chatId);
 
-      const verificationMsg = await bot.sendMessage(
+      await bot.sendMessage(
         chatId,
         `✅ <b>Canal verificado en ChannelAd</b>\n\nEste canal está ahora conectado a ChannelAd. Las publicaciones patrocinadas se gestionarán automáticamente.`
       ).catch(() => null);
@@ -692,7 +692,7 @@ class OnboardingController {
     }
   }
 
-  _completeTelegramOnboarding(req, res, chatId, bot) {
+  _completeTelegramOnboarding(req, res, chatId, _bot) {
     return this.telegramVerify(
       { ...req, body: { ...req.body, chatId } },
       res

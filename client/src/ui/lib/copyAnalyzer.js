@@ -32,7 +32,7 @@ const SPAMMY_MARKERS = [
   /[A-ZÁÉÍÓÚÑ]{6,}/,           // 6+ uppercase letters in a row
   /[!?]{3,}/,                    // !!! or ???
   /[💸💰💵🤑]{3,}/u,            // money emoji spam
-  /(\$\$\$|\€\€\€)/,            // currency spam
+  /(\$\$\$|€€€)/,            // currency spam
 ]
 
 const URL_REGEX = /https?:\/\/\S+|www\.\S+/i
@@ -358,7 +358,7 @@ function cleanSpam(text) {
     .replace(/([A-ZÁÉÍÓÚÑ]{6,})/g, (m) => m.charAt(0) + m.slice(1).toLowerCase())
     .replace(/[!?]{2,}/g, (m) => m[0])
     .replace(/([💸💰💵🤑])\1{2,}/gu, '$1')
-    .replace(/(\$\$\$|\€\€\€)/g, '€')
+    .replace(/(\$\$\$|€€€)/g, '€')
 }
 
 // Fix: trim long copy to ~200 chars without breaking mid-sentence

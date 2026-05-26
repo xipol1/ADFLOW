@@ -352,6 +352,57 @@ class ApiService {
   async getAdminScoring() {
     return this.request('/admin/dashboard/scoring');
   }
+  async getAdminFounders() {
+    return this.request('/founders/admin');
+  }
+  async grantFounder(email) {
+    return this.request('/founders/admin/grant', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  async revokeFounder(id) {
+    return this.request(`/founders/admin/${id}/revoke`, { method: 'POST' });
+  }
+  async getAdminPayouts(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/admin/payouts${qs ? `?${qs}` : ''}`);
+  }
+  async getAdminPayout(id) {
+    return this.request(`/admin/payouts/${id}`);
+  }
+  async retryAdminPayout(id) {
+    return this.request(`/admin/payouts/${id}/retry`, { method: 'POST' });
+  }
+  async grantSubscription(userId, data) {
+    return this.request(`/admin/subscriptions/${userId}/grant`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  async revokeSubscription(userId, data = {}) {
+    return this.request(`/admin/subscriptions/${userId}/revoke`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  async getSubscriptionEvents(userId) {
+    return this.request(`/admin/subscriptions/${userId}/events`);
+  }
+  async getSubscriptionLeads(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/admin/subscriptions/leads${qs ? `?${qs}` : ''}`);
+  }
+  async updateSubscriptionLead(id, data) {
+    return this.request(`/admin/subscriptions/leads/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   // ── Niche Intelligence (public, no auth) ──────────────────────────────
   async getNicheLeaderboard(nicho, limit = 10) {
@@ -879,6 +930,57 @@ class ApiService {
         Authorization: `Bearer ${this.getAuthToken()}`,
         // No incluir Content-Type para FormData
       },
+    });
+  }
+
+  /**
+   * Subir un archivo de campaña a Cloudflare R2 vía nuestro backend.
+   *
+   * Devuelve { url, key, type, mime, size } donde `url` es la URL pública
+   * que el wizard puede meter directamente en campaign.media[].url.
+   *
+   * Tipos permitidos: image/* video/* application/pdf (max 25MB).
+   * Errores comunes:
+   *   - 400 MIME_NOT_ALLOWED · tipo no soportado
+   *   - 413 LIMIT_FILE_SIZE · archivo > 25MB
+   *   - 503 STORAGE_NOT_CONFIGURED · operadores aún no han puesto las env
+   *     vars R2_*. El wizard cae en modo "solo texto" — la UI se lo dice.
+   *
+   * @param {File} file
+   * @param {(loaded:number,total:number)=>void} [onProgress]
+   */
+  async uploadCampaignMedia(file, onProgress) {
+    return new Promise((resolve, reject) => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const xhr = new XMLHttpRequest();
+      if (typeof onProgress === 'function' && xhr.upload) {
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) onProgress(e.loaded, e.total);
+        });
+      }
+      xhr.open('POST', `${this.baseURL}/uploads/campaign-media`);
+      xhr.setRequestHeader('Authorization', `Bearer ${this.getAuthToken()}`);
+      xhr.onload = () => {
+        try {
+          const body = xhr.responseText ? JSON.parse(xhr.responseText) : {};
+          if (xhr.status >= 200 && xhr.status < 300 && body?.success) {
+            resolve(body);
+          } else {
+            resolve({
+              success: false,
+              status: xhr.status,
+              message: body?.message || `Upload failed (${xhr.status})`,
+              code: body?.code || 'UPLOAD_FAILED',
+            });
+          }
+        } catch (err) {
+          reject(err);
+        }
+      };
+      xhr.onerror = () => reject(new Error('Network error during upload.'));
+      xhr.send(formData);
     });
   }
 

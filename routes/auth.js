@@ -571,7 +571,7 @@ router.post('/bot-token', authController.createBotToken);
 router.get('/validate-bot-token', authController.validateBotToken);
 
 // Middleware de manejo de errores específico para rutas de auth
-router.use((error, req, res, next) => {
+router.use((error, req, res, _next) => {
   console.error('Error en rutas de autenticación:', error);
   
   // Error de validación de Mongoose — return generic message, don't leak field names

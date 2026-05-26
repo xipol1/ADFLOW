@@ -1,7 +1,7 @@
 const fs = require('fs');
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-  Header, Footer, AlignmentType, LevelFormat, ExternalHyperlink,
+  Header, Footer, AlignmentType, LevelFormat,
   HeadingLevel, BorderStyle, WidthType, ShadingType,
   PageNumber, PageBreak, TabStopType, TabStopPosition
 } = require('docx');
@@ -24,7 +24,7 @@ const BLUE_TXT = '2563EB';
 const border = { style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' };
 const borders = { top: border, bottom: border, left: border, right: border };
 const noBorder = { style: BorderStyle.NONE, size: 0 };
-const noBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder };
+const _noBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder };
 const cellMargins = { top: 60, bottom: 60, left: 100, right: 100 };
 
 const TABLE_WIDTH = 9360;

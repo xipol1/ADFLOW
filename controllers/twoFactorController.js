@@ -4,7 +4,6 @@
 
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const { OTPAuth } = require('otpauth') || {};
 const Usuario = require('../models/Usuario');
 const { ensureDb } = require('../lib/ensureDb');
 const { encrypt, decrypt } = require('../lib/encryption');

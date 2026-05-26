@@ -4,11 +4,8 @@
  * smoke-tested at the boundary — we don't hit the real Stripe API here.
  */
 
-const path = require('path');
-
 // Stub Stripe so require('stripe')(key) returns a controllable mock.
 jest.mock('stripe', () => {
-  const mock = jest.fn();
   return jest.fn(() => ({
     customers: { create: jest.fn(async () => ({ id: 'cus_mock' })) },
     checkout: {

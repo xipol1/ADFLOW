@@ -3,7 +3,6 @@ const Campaign = require('../models/Campaign');
 const Canal = require('../models/Canal');
 const TrackingLink = require('../models/TrackingLink');
 const Transaccion = require('../models/Transaccion');
-const Retiro = require('../models/Retiro');
 const Review = require('../models/Review');
 const { ensureDb } = require('../lib/ensureDb');
 
@@ -580,7 +579,6 @@ const getCampaignAnalytics = async (req, res, next) => {
 
     // Determine granularity: hourly for 7d, daily otherwise
     const isRecent = period === '7d';
-    const timeFmt = isRecent ? '%Y-%m-%dT%H:00' : '%Y-%m-%d';
 
     // Get all tracking links for this campaign
     const trackingLinks = await TrackingLink.find({ campaign: campId }).lean();

@@ -23,7 +23,6 @@
 
 const {
   calcularPercentilCTR,
-  calcularPercentilViewRate,
   calcularCPMDinamico,
 } = require('../config/nicheBenchmarks');
 const { NICHE_BENCHMARKS } = require('../config/nicheBenchmarks');

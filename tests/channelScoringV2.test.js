@@ -1,8 +1,5 @@
 const {
   calcularCAS,
-  calcularCAF,
-  calcularCTF,
-  calcularCER,
   calcularCVS,
   calcularCAP,
   calcularConfianzaScore,

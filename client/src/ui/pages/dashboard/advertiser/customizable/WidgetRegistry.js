@@ -1,8 +1,8 @@
 import {
   DollarSign, Megaphone, Activity, Eye, MousePointerClick,
-  TrendingUp, BarChart3, LineChart, PieChart, Table2,
-  AlertTriangle, Zap, CalendarDays, Users, Target,
-  StickyNote, Layout, Sparkles, MessageSquare, Clock,
+  TrendingUp, BarChart3, PieChart, Table2,
+  AlertTriangle, Zap, CalendarDays, Users,
+  StickyNote, Sparkles, Clock,
   Lightbulb,
 } from 'lucide-react'
 

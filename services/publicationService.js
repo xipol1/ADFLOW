@@ -1,7 +1,5 @@
 const TelegramAPI = require('../integraciones/telegram');
 const WhatsAppAPI = require('../integraciones/whatsapp');
-const DiscordAPI = require('../integraciones/discord');
-const config = require('../config/config');
 
 /**
  * Servicio para manejar la publicación automática de anuncios en diferentes plataformas

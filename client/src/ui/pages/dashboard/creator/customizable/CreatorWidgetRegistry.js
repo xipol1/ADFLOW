@@ -1,6 +1,6 @@
 import {
   Wallet, Inbox, Star, Radio, TrendingUp, BarChart3, Table2,
-  Users, CalendarDays, Sparkles, MessageSquare, Clock,
+  Users, CalendarDays, Sparkles, Clock,
   StickyNote, Zap, Target, AlertTriangle, Activity, ShieldCheck,
   LineChart,
 } from 'lucide-react'

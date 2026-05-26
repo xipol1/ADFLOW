@@ -20,8 +20,6 @@
  * ones (tecnologia, marketing).
  */
 
-const { NICHE_BENCHMARKS } = require('../../config/nicheBenchmarks');
-
 // ─── Keyword → niche dictionary ───────────────────────────────────────────
 // Each niche has a set of keywords with weights. Weight defaults to 1.
 // Classification scores all niches by (sum of matched keyword weights ×
@@ -174,7 +172,7 @@ const NICHE_KEYWORDS = [
 ];
 
 // Flat list of keywords for tag extraction (preserving order, no weights)
-const ALL_KEYWORDS_FLAT = NICHE_KEYWORDS.flatMap((n) => Object.keys(n.keywords));
+const _ALL_KEYWORDS_FLAT = NICHE_KEYWORDS.flatMap((n) => Object.keys(n.keywords));
 
 // ─── Provider detection ───────────────────────────────────────────────────
 // Ordered: more specific hostnames first. LinkedIn newsletter URLs follow

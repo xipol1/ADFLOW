@@ -13,7 +13,7 @@ const mongoose = require('mongoose');
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     const ScrapingRotation = require('../models/ScrapingRotation');
-    const { getRotatingKeywords, ALL_KEYWORDS } = require('../services/telegramIntelService');
+    const { getRotatingKeywords } = require('../services/telegramIntelService');
 
     // Clean slate for both sources so the test is reproducible
     await ScrapingRotation.deleteMany({
@@ -31,7 +31,6 @@ const mongoose = require('mongoose');
     const mt4 = await getRotatingKeywords('mtproto_keywords', 60);
     console.log(`Call 4: ${mt4.length} keywords, first=${mt4[0]}, last=${mt4[mt4.length - 1]}`);
 
-    const mt1Set = new Set(mt1);
     const mt2Set = new Set(mt2);
     const overlapMT12 = mt1.filter((k) => mt2Set.has(k)).length;
     console.log(`Overlap call1 vs call2: ${overlapMT12}/60 keywords shared`);

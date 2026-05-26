@@ -126,7 +126,7 @@ class WhatsAppAdminClient {
   }
 
   _rejectAllPending(reason) {
-    for (const [id, pending] of this.pendingRequests) {
+    for (const [, pending] of this.pendingRequests) {
       clearTimeout(pending.timer);
       pending.reject(new Error(reason));
     }

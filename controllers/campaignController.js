@@ -9,6 +9,12 @@ const {
   REFERRAL_RATE,
   getReferralTier,
 } = require('../config/commissions');
+const { checkUrl } = require('../lib/urlBlocklist');
+const { checkContentPieces } = require('../lib/contentFilter');
+const {
+  applyFormatPricing,
+  validateFormatPayload,
+} = require('../lib/postFormats');
 
 // Resolve the campaign's net payout amount. Trusts campaign.netAmount when
 // the pre-save hook populated it; otherwise recomputes from price and the
@@ -56,44 +62,121 @@ const createCampaign = async (req, res, next) => {
     if (!channelId || !content || !targetUrl) {
       return next(httpError(400, 'Datos inválidos'));
     }
-
-    // Content length limit: 5000 chars
     if (content.length > 5000) {
       return next(httpError(400, 'El contenido no puede superar los 5000 caracteres'));
     }
-
-    // URL validation
     try { new URL(targetUrl); } catch {
       return next(httpError(400, 'URL de destino inválida'));
     }
 
-    const canal = await Canal.findById(channelId).select('_id CPMDinamico precio propietario disponibilidad').lean();
+    // ── Compliance: URL blocklist + content filter ──────────────────────
+    // Defensa en profundidad. NO sustituye moderación humana — sólo
+    // detiene los casos obvios (gambling, adult, armas, fraude, hate).
+    const urlCheck = checkUrl(targetUrl);
+    if (!urlCheck.allowed) {
+      const err = httpError(400, `La URL de destino no está permitida (categoría: ${urlCheck.category}).`);
+      err.code = 'URL_BLOCKED';
+      err.details = { category: urlCheck.category, match: urlCheck.match };
+      return next(err);
+    }
+
+    // ── Payload rico ───────────────────────────────────────────────────
+    const rawMedia = Array.isArray(req.body?.media) ? req.body.media : [];
+    const media = rawMedia
+      .filter((m) => m && m.url && m.type)
+      .slice(0, 10)
+      .map((m) => ({
+        type: String(m.type),
+        url: String(m.url).trim().slice(0, 500),
+        caption: String(m.caption || '').trim().slice(0, 1000),
+      }));
+    const rawButtons = Array.isArray(req.body?.buttons) ? req.body.buttons : [];
+    const buttons = rawButtons
+      .filter((b) => b && b.label && b.url)
+      .slice(0, 4)
+      .map((b) => ({
+        label: String(b.label).slice(0, 64).trim(),
+        url: String(b.url).trim().slice(0, 500),
+      }));
+    const embed = req.body?.embed && typeof req.body.embed === 'object' ? {
+      title: String(req.body.embed.title || '').slice(0, 256).trim(),
+      description: String(req.body.embed.description || '').slice(0, 4000).trim(),
+      color: String(req.body.embed.color || '').slice(0, 12),
+      thumbnail: String(req.body.embed.thumbnail || '').trim().slice(0, 500),
+      image: String(req.body.embed.image || '').trim().slice(0, 500),
+    } : null;
+    const formatId = String(req.body?.format || 'text').trim().slice(0, 50) || 'text';
+
+    // Compliance buttons URLs
+    for (const btn of buttons) {
+      const btnCheck = checkUrl(btn.url);
+      if (!btnCheck.allowed) {
+        const err = httpError(400, `El botón "${btn.label || 'CTA'}" apunta a una URL no permitida (categoría: ${btnCheck.category}).`);
+        err.code = 'BUTTON_URL_BLOCKED';
+        err.details = { category: btnCheck.category, button: btn.label };
+        return next(err);
+      }
+    }
+
+    // Compliance contenido textual (copy + button labels + embed)
+    const contentCheck = checkContentPieces([
+      { label: 'content', text: content },
+      ...buttons.map((b, i) => ({ label: `button[${i}].label`, text: b.label || '' })),
+      { label: 'embed.title', text: embed?.title || '' },
+      { label: 'embed.description', text: embed?.description || '' },
+    ]);
+    if (!contentCheck.allowed) {
+      const err = httpError(400, `El contenido contiene términos no permitidos (categoría: ${contentCheck.category}).`);
+      err.code = 'CONTENT_FLAGGED';
+      err.details = { category: contentCheck.category, match: contentCheck.match, piece: contentCheck.piece };
+      return next(err);
+    }
+
+    const canal = await Canal.findById(channelId).select('_id CPMDinamico precio propietario disponibilidad plataforma').lean();
     if (!canal) return next(httpError(404, 'Canal no encontrado'));
 
-    // Prevent advertising on own channel
     if (canal.propietario?.toString() === String(userId)) {
       return next(httpError(400, 'No puedes crear una campaña en tu propio canal'));
     }
 
-    // Server-side price: resolve from per-day pricing or base CPM
+    // Validar el payload rico contra el catálogo del formato
+    const formatCheck = validateFormatPayload({
+      platform: canal.plataforma,
+      formatId,
+      content,
+      media,
+      buttons,
+      embed,
+    });
+    if (!formatCheck.ok) {
+      const err = httpError(400, formatCheck.message);
+      err.code = 'FORMAT_INVALID';
+      return next(err);
+    }
+    // Server-side base price: resuelve del calendar dinámico o el CPM base
     const publishDateStr = (req.body?.publishDate || req.body?.deadline || '').trim();
-    let price = canal.CPMDinamico || canal.precio || 0;
-
+    let basePrice = canal.CPMDinamico || canal.precio || 0;
     if (publishDateStr) {
       const pubDate = new Date(publishDateStr + 'T12:00:00');
       if (!isNaN(pubDate.getTime())) {
-        const dow = pubDate.getDay(); // 0=Sun..6=Sat
+        const dow = pubDate.getDay();
         const dispo = canal.disponibilidad || {};
         const dayPricing = (dispo.preciosPorDia || []).find(p => p.day === dow);
         if (dayPricing && dayPricing.enabled && dayPricing.price > 0) {
-          price = dayPricing.price;
+          basePrice = dayPricing.price;
         }
       }
     }
-
-    if (!Number.isFinite(price) || price < 1) {
+    if (!Number.isFinite(basePrice) || basePrice < 1) {
       return next(httpError(400, 'Este canal no tiene un precio configurado. Contacta al creador.'));
     }
+
+    // Aplicar el multiplier del formato (×1.6 album, ×3.0 broadcast IG, etc.)
+    const price = applyFormatPricing(basePrice, {
+      platform: canal.plataforma,
+      formatId,
+      urgent: Boolean(req.body?.urgent),
+    });
 
     const deadline = publishDateStr ? new Date(publishDateStr + 'T12:00:00') : (req.body?.deadline ? new Date(req.body.deadline) : null);
     const trackingLinkFormat = ['short', 'domain', 'custom'].includes(req.body?.trackingLinkFormat) ? req.body.trackingLinkFormat : 'domain';
@@ -104,6 +187,10 @@ const createCampaign = async (req, res, next) => {
       channel: canal._id,
       content,
       targetUrl,
+      format: formatId,
+      media,
+      buttons,
+      embed,
       price,
       deadline,
       trackingLinkFormat,
@@ -129,7 +216,7 @@ const createCampaign = async (req, res, next) => {
         titulo: 'Nueva solicitud de campaña',
         mensaje: `Un anunciante quiere publicar en tu canal por €${price}`,
         datos: { campaignId: campaign._id },
-        canales: ['database', 'realtime'],
+        canales: ['database', 'realtime', 'email'],
         prioridad: 'normal'
       });
     }
@@ -403,7 +490,7 @@ const confirmCampaign = async (req, res, next) => {
       titulo: 'Campaña publicada',
       mensaje: 'Tu campaña ha sido aceptada y publicada por el creador.',
       datos: { campaignId: campaign._id },
-      canales: ['database', 'realtime'],
+      canales: ['database', 'realtime', 'email'],
       prioridad: 'alta'
     });
 
@@ -549,7 +636,7 @@ const completeCampaign = async (req, res, next) => {
       titulo: 'Campaña completada',
       mensaje: 'Tu campaña ha sido completada exitosamente.',
       datos: { campaignId: campaign._id },
-      canales: ['database', 'realtime'],
+      canales: ['database', 'realtime', 'email'],
       prioridad: 'alta'
     });
     if (channelOwner?.propietario) {
@@ -560,7 +647,7 @@ const completeCampaign = async (req, res, next) => {
         titulo: 'Campaña completada',
         mensaje: `Campaña completada. Has ganado €${earnings}.`,
         datos: { campaignId: campaign._id, earnings },
-        canales: ['database', 'realtime'],
+        canales: ['database', 'realtime', 'email'],
         prioridad: 'alta'
       });
     }
@@ -658,7 +745,7 @@ const cancelCampaign = async (req, res, next) => {
         titulo: 'Campaña cancelada',
         mensaje: 'El anunciante ha cancelado una campaña.',
         datos: { campaignId: campaign._id },
-        canales: ['database', 'realtime'],
+        canales: ['database', 'realtime', 'email'],
         prioridad: 'normal'
       });
     }
@@ -1160,7 +1247,7 @@ const launchAutoCampaign = async (req, res, next) => {
           titulo: 'Nueva solicitud de campaña',
           mensaje: `Un anunciante quiere publicar en tu canal por €${price}`,
           datos: { campaignId: campaign._id },
-          canales: ['database', 'realtime'],
+          canales: ['database', 'realtime', 'email'],
           prioridad: 'normal',
         });
       }
