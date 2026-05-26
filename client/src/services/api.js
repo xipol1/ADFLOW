@@ -352,6 +352,57 @@ class ApiService {
   async getAdminScoring() {
     return this.request('/admin/dashboard/scoring');
   }
+  async getAdminFounders() {
+    return this.request('/founders/admin');
+  }
+  async grantFounder(email) {
+    return this.request('/founders/admin/grant', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  async revokeFounder(id) {
+    return this.request(`/founders/admin/${id}/revoke`, { method: 'POST' });
+  }
+  async getAdminPayouts(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/admin/payouts${qs ? `?${qs}` : ''}`);
+  }
+  async getAdminPayout(id) {
+    return this.request(`/admin/payouts/${id}`);
+  }
+  async retryAdminPayout(id) {
+    return this.request(`/admin/payouts/${id}/retry`, { method: 'POST' });
+  }
+  async grantSubscription(userId, data) {
+    return this.request(`/admin/subscriptions/${userId}/grant`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  async revokeSubscription(userId, data = {}) {
+    return this.request(`/admin/subscriptions/${userId}/revoke`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  async getSubscriptionEvents(userId) {
+    return this.request(`/admin/subscriptions/${userId}/events`);
+  }
+  async getSubscriptionLeads(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/admin/subscriptions/leads${qs ? `?${qs}` : ''}`);
+  }
+  async updateSubscriptionLead(id, data) {
+    return this.request(`/admin/subscriptions/leads/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   // ── Niche Intelligence (public, no auth) ──────────────────────────────
   async getNicheLeaderboard(nicho, limit = 10) {

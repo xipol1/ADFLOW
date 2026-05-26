@@ -13,7 +13,7 @@ import {
   Columns3, Map, Calculator, Target, ClipboardList, Calendar,
   Activity, Filter, Bookmark, Layers, FlaskConical,
   Rocket, Hash, PieChart, GitCompare, User as UserIcon, MessageSquare,
-  Compass, Building2, Wrench, Receipt, Sparkles, BellRing, Repeat,
+  Compass, Building2, Wrench, Receipt, Sparkles, BellRing, Repeat, Trophy, CreditCard, Award,
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../services/api'
@@ -139,8 +139,11 @@ const ROLE_CONFIG = {
         { path: '/disputes',   icon: ShieldAlert,     label: 'Disputas'              },
       ]},
       { group: 'Sistema', items: [
-        { path: '/finances',   icon: DollarSign,      label: 'Finanzas'              },
-        { path: '/scoring',    icon: Database,         label: 'Scoring'               },
+        { path: '/finances',     icon: DollarSign,    label: 'Finanzas'              },
+        { path: '/scoring',      icon: Database,      label: 'Scoring'               },
+        { path: '/founders',     icon: Trophy,        label: 'Founders'              },
+        { path: '/payouts',      icon: CreditCard,    label: 'Pagos'                 },
+        { path: '/subscriptions',icon: Award,         label: 'Suscripciones'         },
       ]},
     ],
     bottomNav: [
