@@ -374,7 +374,7 @@ class BaileysSessionManager {
   }
 
   async shutdown() {
-    for (const [id, entry] of this.sockets) {
+    for (const [, entry] of this.sockets) {
       try {
         entry.sock?.end();
       } catch (_) {}

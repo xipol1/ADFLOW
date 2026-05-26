@@ -19,7 +19,7 @@ const { ensureDb } = require('../lib/ensureDb');
 const config = require('../config/config');
 const subscriptionService = require('../services/subscriptionService');
 const { getUserPlan, getUserPlanKey } = require('../lib/plans');
-const { PLANS, TRIAL_DAYS } = require('../config/plans');
+const { TRIAL_DAYS } = require('../config/plans');
 
 // ─── GET /me ────────────────────────────────────────────────────────────────
 router.get('/me', autenticar, async (req, res) => {

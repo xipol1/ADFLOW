@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { autenticar, requiereEmailVerificado } = require('../middleware/auth')
+const { autenticar } = require('../middleware/auth')
 const Usuario = require('../models/Usuario')
 const Transaccion = require('../models/Transaccion')
 const { getReferralTier, REFERRAL_TIERS } = require('../config/commissions')

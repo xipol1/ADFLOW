@@ -1,12 +1,6 @@
 const Canal = require('../models/Canal');
 const { ensureDb } = require('../lib/ensureDb');
 
-const httpError = (status, message) => {
-  const err = new Error(message);
-  err.status = status;
-  return err;
-};
-
 // GET /api/lists/channels — public channel discovery
 const getChannels = async (req, res, next) => {
   try {

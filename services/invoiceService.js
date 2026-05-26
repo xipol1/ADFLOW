@@ -23,7 +23,6 @@ const Usuario = require('../models/Usuario');
 const Transaccion = require('../models/Transaccion');
 const { determineIvaTreatment, computeInvoiceTotals } = require('../lib/fiscalValidation');
 const { DEFAULT_COMMISSION_RATE } = require('../config/commissions');
-const logger = require('../lib/logger');
 
 // ──────────────────────────────────────────────────────────────────────────────
 // LEGAL TEXT helpers

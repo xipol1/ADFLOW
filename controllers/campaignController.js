@@ -12,7 +12,6 @@ const {
 const { checkUrl } = require('../lib/urlBlocklist');
 const { checkContentPieces } = require('../lib/contentFilter');
 const {
-  getFormat: getPostFormat,
   applyFormatPricing,
   validateFormatPayload,
 } = require('../lib/postFormats');
@@ -154,8 +153,6 @@ const createCampaign = async (req, res, next) => {
       err.code = 'FORMAT_INVALID';
       return next(err);
     }
-    const formatDef = getPostFormat(canal.plataforma, formatId);
-
     // Server-side base price: resuelve del calendar dinámico o el CPM base
     const publishDateStr = (req.body?.publishDate || req.body?.deadline || '').trim();
     let basePrice = canal.CPMDinamico || canal.precio || 0;

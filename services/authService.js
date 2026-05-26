@@ -341,7 +341,7 @@ class AuthService {
       errores.push('La contraseña debe contener al menos un número');
     }
 
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
       errores.push('La contraseña debe contener al menos un carácter especial');
     }
 
@@ -383,11 +383,11 @@ class AuthService {
     if (/[a-z]/.test(password)) puntuacion += 10;
     if (/[A-Z]/.test(password)) puntuacion += 10;
     if (/\d/.test(password)) puntuacion += 10;
-    if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) puntuacion += 15;
+    if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) puntuacion += 15;
 
     // Complejidad adicional
     if (/[a-z].*[A-Z]|[A-Z].*[a-z]/.test(password)) puntuacion += 5;
-    if (/\d.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]|[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?].*\d/.test(password)) puntuacion += 5;
+    if (/\d.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]|[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?].*\d/.test(password)) puntuacion += 5;
 
     return Math.min(puntuacion, 100);
   }

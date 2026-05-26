@@ -42,7 +42,7 @@ function sleep(ms) {
  * access token or null if the refresh failed.
  */
 async function ensureFreshToken(canal) {
-  const { decrypt, encryptIfNeeded } = require('../lib/encryption');
+  const { decrypt } = require('../lib/encryption');
   const linkedinOAuth = require('./linkedinOAuthService');
 
   const tokenType = canal.credenciales?.tokenType || '';

@@ -5,9 +5,7 @@ const WhatsAppAPI = require('../integraciones/whatsapp');
 const FacebookAPI = require('../integraciones/facebook');
 const NewsletterAPI = require('../integraciones/newsletter');
 const Canal = require('../models/Canal');
-const Anuncio = require('../models/Anuncio');
 const Estadistica = require('../models/Estadistica');
-const config = require('../config/config');
 const { getDecryptedCreds } = require('../lib/encryption');
 
 let CampaignMetrics;

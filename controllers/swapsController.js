@@ -1,7 +1,6 @@
 const crypto = require('crypto');
 const ChannelSwap = require('../models/ChannelSwap');
 const Canal = require('../models/Canal');
-const Usuario = require('../models/Usuario');
 const TrackingLink = require('../models/TrackingLink');
 const { ensureDb } = require('../lib/ensureDb');
 

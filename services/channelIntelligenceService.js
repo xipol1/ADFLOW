@@ -18,7 +18,6 @@ const { ensureDb } = require('../lib/ensureDb');
 const {
   NICHE_BENCHMARKS,
   calcularCPMDinamico,
-  calcularPercentilCTR,
 } = require('../config/nicheBenchmarks');
 
 // Public-safe flags. Internal signals like bot_farm_sospechoso and

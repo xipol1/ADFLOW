@@ -25,7 +25,6 @@ const {
   SIZE_IDS,
   PLATFORM_IDS,
   NICHE_ALMOST_FULL_AT,
-  ANCHOR_COUNT,
   computeDisplayedCount,
   computeNichePadding,
 } = require('../config/channelOne');

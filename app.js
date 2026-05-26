@@ -628,7 +628,7 @@ try {
   app.use(errorLoggingMiddleware);
 } catch {}
 
-app.use((error, req, res, next) => {
+app.use((error, req, res, _next) => {
   if (ENV !== 'production') console.error(error);
   res.status(error.status || 500).json({
     success: false,

@@ -14,7 +14,7 @@
 const { v4: uuidv4 } = require('uuid');
 
 const MIN_SUBSCRIBERS = 200;
-const KEYWORD_DELAY_MS = 2000;
+const _KEYWORD_DELAY_MS = 2000;
 const METRICS_DELAY_MS = 1500;
 const FLOOD_EXTRA_WAIT_MS = 5000;
 

@@ -91,7 +91,6 @@ const verifyClaim = async (req, res) => {
     }
 
     // Fetch current channel description via MTProto
-    const pkg = 'telegram';
     let description = '';
     try {
       const { getClient, disconnectClient, loadGramJS } = require('../services/telegramIntelService');

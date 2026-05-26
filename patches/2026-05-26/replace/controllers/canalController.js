@@ -95,7 +95,7 @@ const stripCanalSecrets = (canal) => {
   }
   if (Array.isArray(canal.metaOAuth?.connectedPages)) {
     canal.metaOAuth.connectedPages = canal.metaOAuth.connectedPages.map((p) => {
-      const { pageAccessToken, ...rest } = p || {};
+      const { pageAccessToken: _pageAccessToken, ...rest } = p || {};
       return rest;
     });
   }

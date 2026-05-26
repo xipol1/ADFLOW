@@ -118,7 +118,7 @@ async function runDiscordScrapers() {
   // iGrupos (Discord tags only)
   try {
     console.log('[2/2] iGrupos (Discord) — scraping tags...');
-    const { scrapeTagPage, sleep: iSleep } = require('../services/scrapers/igruposScraperService');
+    const { scrapeTagPage } = require('../services/scrapers/igruposScraperService');
     const discordTags = ['gaming', 'marketing', 'programacion', 'criptomonedas', 'comunidad'];
     for (const tag of discordTags) {
       const items = await scrapeTagPage('discord', tag);

@@ -112,7 +112,7 @@ router.post('/whatsapp', express.raw({ type: 'application/json', limit: '1mb' })
  * Procesa un mensaje entrante de WhatsApp.
  * Si contiene un código de 6 dígitos, intenta verificarlo como OTP.
  */
-async function processIncomingMessage(message, metadata) {
+async function processIncomingMessage(message, _metadata) {
   // Solo procesar mensajes de texto
   if (message.type !== 'text') return;
 

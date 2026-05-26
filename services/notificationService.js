@@ -270,7 +270,7 @@ class NotificationService extends EventEmitter {
   /**
    * Filtrar canales según preferencias del usuario
    */
-  filtrarCanalesPorPreferencias(canales, preferencias, tipo) {
+  filtrarCanalesPorPreferencias(canales, preferencias, _tipo) {
     const canalesFiltrados = [];
 
     for (const canal of canales) {

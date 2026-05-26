@@ -10,7 +10,6 @@
 
 const whatsappAdmin = require('./WhatsAppAdminClient');
 const CampaignMetrics = require('../models/CampaignMetrics');
-const Canal = require('../models/Canal');
 
 const SYNC_INTERVALS_HOURS = [1, 6, 24, 72, 168];
 const MAX_CONCURRENT = 5;
