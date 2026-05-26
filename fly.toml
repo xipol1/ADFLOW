@@ -9,7 +9,7 @@
 # Reference: https://fly.io/docs/reference/configuration/
 
 app = "channelad-api-test"           # change to whatever `fly launch` names it
-primary_region = "mad"                # Madrid — close to channelad.io target users
+primary_region = "cdg"                # Paris — Fly deprecated 'mad' (Madrid) in 2026, cdg is the closest replacement (~30 ms to Iberia)
 
 kill_signal = "SIGTERM"
 kill_timeout = "15s"                  # server.js shutdown allows 10s grace
