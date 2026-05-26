@@ -1,0 +1,72 @@
+# fly.toml — Channelad backend test deploy
+#
+# Free-tier sizing: 1 shared-cpu-1x VM, 512 MB RAM. Auto-stop when idle so
+# the free allowance lasts. Bump to 1 GB + min_machines_running=1 once we
+# start running the Baileys worker for real (sessions can't survive
+# auto-stop without re-pairing).
+#
+# After editing, validate with:  flyctl config validate
+# Reference: https://fly.io/docs/reference/configuration/
+
+app = "channelad-api-test"           # change to whatever `fly launch` names it
+primary_region = "mad"                # Madrid — close to channelad.io target users
+
+kill_signal = "SIGTERM"
+kill_timeout = "15s"                  # server.js shutdown allows 10s grace
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  HOST = "0.0.0.0"
+  PORT = "8080"
+  # Hint to the app that we are NOT on Vercel (some code paths key off this).
+  RUNTIME_PLATFORM = "fly"
+
+# ── HTTP service ─────────────────────────────────────────────────────────────
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"         # free-tier friendly; flip to "off" for prod
+  auto_start_machines = true
+  min_machines_running = 0            # set 1 once Baileys worker is on
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+  [[http_service.checks]]
+    grace_period = "30s"
+    interval = "15s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
+
+# ── VM sizing ────────────────────────────────────────────────────────────────
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+# ── Persistent volume (uncomment when enabling Baileys worker) ───────────────
+# Baileys writes the WhatsApp pairing state to disk. Without a volume the
+# session is lost every redeploy. 1 GB is plenty (sessions are < 50 MB each).
+#
+# [mounts]
+#   source = "channelad_wa_sessions"
+#   destination = "/app/data/whatsapp-session"
+#   processes = ["app"]
+#
+# Then set the env var so server.js:138 starts the worker:
+#   fly secrets set WHATSAPP_SESSION_PATH=/app/data/whatsapp-session
+
+# ── Crons (use fly machines run for now; see MIGRATION_FLY.md) ───────────────
+# Fly does not have a native cron primitive yet. Options documented in
+# MIGRATION_FLY.md §Crons:
+#   (a) keep node-cron in-process (already wired in lib/campaignCron.js)
+#   (b) trigger via GitHub Actions hitting the existing /api/jobs/* paths
+#   (c) `fly machines run` from an external scheduler
