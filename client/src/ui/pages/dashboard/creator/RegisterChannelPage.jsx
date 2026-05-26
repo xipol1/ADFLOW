@@ -252,7 +252,7 @@ export default function RegisterChannelPage() {
   const [step, setStep] = useState(0)       // 0=platform, 1=connect, 2=info, 3=verify-post, 4=result
   const [platform, setPlatform] = useState(null)
   const [credentials, setCredentials] = useState({})
-  const [form, setForm] = useState({ name: '', url: '', category: 'Tecnologia', desc: '', price: '' })
+  const [form, setForm] = useState({ name: '', url: '', category: 'Tecnologia', desc: '', price: '', broadcastChannelId: '' })
   const [connecting, setConnecting] = useState(false)
   const [creating, setCreating] = useState(false)
   const [connectionResult, setConnectionResult] = useState(null)
@@ -399,6 +399,12 @@ export default function RegisterChannelPage() {
         categoria: form.category,
         precio: Number(form.price),
         identificadorCanal: form.url.trim() || createdChannel.identificadorCanal,
+        // Solo se manda si el canal es Instagram y el creador rellenó el campo.
+        // El controller lo persiste en identificadores.broadcastChannelId tras
+        // limpiar la URL si fuera necesario.
+        ...(platform === 'instagram' && form.broadcastChannelId?.trim()
+          ? { broadcastChannelId: form.broadcastChannelId.trim() }
+          : {}),
       })
       if (res?.success) {
         // Generate verification link for test post
@@ -773,6 +779,25 @@ export default function RegisterChannelPage() {
                   placeholder={platform === 'telegram' ? 'https://t.me/tucanal' : platform === 'instagram' ? 'https://instagram.com/tuuser' : 'URL de tu canal'}
                   style={inp} />
               </div>
+
+              {platform === 'instagram' && (
+                <div style={{ background: AG(0.05), border: `1px solid ${AG(0.18)}`, borderRadius: '12px', padding: '14px' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: A, display: 'block', marginBottom: '4px' }}>
+                    Broadcast Channel ID
+                    <span style={{ color: 'var(--muted)', fontWeight: 500, marginLeft: 6, fontSize: '11px' }}>(opcional pero recomendado)</span>
+                  </label>
+                  <p style={{ fontSize: '11px', color: 'var(--muted)', margin: '0 0 8px', lineHeight: 1.4 }}>
+                    Si tu canal es <strong>unidireccional</strong> (canal de difusión 1-a-muchos), pega aquí su ID o el enlace de invitación. Es el formato premium con mayor CTR.
+                  </p>
+                  <input
+                    className="rcp-inp"
+                    value={form.broadcastChannelId}
+                    onChange={e => update('broadcastChannelId', e.target.value)}
+                    placeholder="https://ig.me/j/AbCd1234... o el ID puro"
+                    style={inp}
+                  />
+                </div>
+              )}
 
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: '8px' }}>Categoria</label>

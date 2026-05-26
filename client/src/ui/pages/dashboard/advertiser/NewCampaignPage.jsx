@@ -5,6 +5,12 @@ import { ArrowLeft, Send, Calendar, Link2, FileText, DollarSign, CheckCircle, Lo
 import apiService from '../../../../services/api'
 import { Badge } from '../../../../components/ui'
 import CopyAnalyzerCompact from '../../../components/CopyAnalyzerCompact'
+import {
+  FormatSelector, MediaUploader, InlineButtonsEditor, EmbedEditor,
+} from '../../../components/format/FormatEditor'
+import {
+  getFormat as getPostFormat, getPlatformFormats,
+} from '../../../../config/postFormats'
 
 function scoreColor(v) {
   if (v >= 90) return 'var(--gold)'
@@ -141,6 +147,28 @@ export default function NewCampaignPage() {
   const [linkSlug, setLinkSlug] = useState('')
   const [showAdvanced, setShowAdvanced] = useState(false)
 
+  // ── Rich post payload (format + media + buttons + embed) ─────────────────
+  // El catálogo es por plataforma; cuando el creador cambie de canal en
+  // Step 1 hay que resetear el formato al primero del catálogo de la nueva
+  // plataforma (no tiene sentido conservar "broadcast" si pasas a Telegram).
+  const [format, setFormat] = useState('text')
+  const [media, setMedia] = useState([])
+  const [buttons, setButtons] = useState([])
+  const [embed, setEmbed] = useState(null)
+  const channelPlatform = String(channel?.plataforma || '').toLowerCase()
+  useEffect(() => {
+    if (!channelPlatform) return
+    const formats = getPlatformFormats(channelPlatform)
+    if (!formats.find((f) => f.id === format)) {
+      setFormat(formats[0].id)
+      setMedia([]); setButtons([]); setEmbed(null)
+    }
+  }, [channelPlatform])
+  const formatDef = getPostFormat(channelPlatform, format)
+  const formatNeedsMedia = formatDef?.fields?.includes('media')
+  const formatNeedsButtons = formatDef?.fields?.includes('buttons')
+  const formatNeedsEmbed = formatDef?.fields?.includes('embed')
+
   // ── Progressive disclosure state ─────────────────────────────────────────
   // Tracks which sub-step of Step 2 is currently expanded. Allows the user
   // to reopen a previous section via the "Editar" button.
@@ -150,7 +178,21 @@ export default function NewCampaignPage() {
   const dateRef    = useRef(null)
 
   // Validation helpers — also drive section unlocking.
-  const isContentValid = content.trim().length >= 30
+  // El texto debe tener al menos 30 chars Y, si el formato pide media,
+  // toda la media tiene que estar subida (sin items 'uploading' o 'error').
+  const mediaOk = (() => {
+    if (!formatNeedsMedia) return true
+    const cfg = formatDef?.media || {}
+    if ((cfg.min || 0) > media.length) return false
+    if ((cfg.max || Infinity) < media.length) return false
+    return media.every((m) => !m._status || m._status === 'uploaded')
+  })()
+  const buttonsOk = (() => {
+    if (!formatNeedsButtons) return true
+    if (buttons.length === 0) return false
+    return buttons.every((b) => b.label?.trim() && /^https?:\/\//.test(b.url || ''))
+  })()
+  const isContentValid = content.trim().length >= 30 && mediaOk && buttonsOk
   const isUrlValid = (() => {
     try { new URL(targetUrl); return /^https?:/.test(targetUrl) } catch { return false }
   })()
@@ -248,6 +290,13 @@ export default function NewCampaignPage() {
         publishDate: selectedDate.date,
         trackingLinkFormat: linkFormat,
         trackingLinkSlug: linkFormat === 'custom' ? linkSlug : undefined,
+        // Payload rico — el backend persiste y el dispatcher entrega a cada API
+        format,
+        media: media
+          .filter((m) => !m._status || m._status === 'uploaded')
+          .map((m) => ({ type: m.type, url: m.url, caption: m.caption || '' })),
+        buttons,
+        embed,
       })
       if (res?.success) {
         setSuccess(res.data)
@@ -382,6 +431,14 @@ export default function NewCampaignPage() {
 
           <style>{`@keyframes sectionReveal { from { opacity:0; transform: translateY(-6px) } to { opacity:1; transform: translateY(0) } }`}</style>
 
+          {/* ── Format selector arriba de las Sections ─────────────────
+              El formato cambia qué campos pide la propia sección de
+              contenido (texto solo, +imagen, álbum, embed). Multiplicador
+              del catálogo se aplicará al precio en backend. */}
+          <div style={{ padding: 14, borderRadius: 14, background: 'var(--bg)', border: '1px solid var(--border)' }}>
+            <FormatSelector platform={channelPlatform} value={format} onChange={setFormat} />
+          </div>
+
           {/* ── 1. Contenido del anuncio ── */}
           <Section
             sectionRef={contentRef}
@@ -408,6 +465,24 @@ export default function NewCampaignPage() {
               </div>
             </div>
             <CopyAnalyzerCompact text={content} channelId={channel?.id || channel?._id} />
+
+            {/* Editores condicionales según formato. Si el formato no pide
+                media/buttons/embed, no se renderiza nada extra. */}
+            {formatNeedsMedia && (
+              <div style={{ marginTop: 14 }}>
+                <MediaUploader format={formatDef} value={media} onChange={setMedia} />
+              </div>
+            )}
+            {formatNeedsButtons && (
+              <div style={{ marginTop: 14 }}>
+                <InlineButtonsEditor format={formatDef} value={buttons} onChange={setButtons} />
+              </div>
+            )}
+            {formatNeedsEmbed && (
+              <div style={{ marginTop: 14 }}>
+                <EmbedEditor value={embed} onChange={setEmbed} />
+              </div>
+            )}
 
             {/* Manual advance — content writing is creative, don't interrupt the flow */}
             <div className="flex items-center justify-end mt-3">

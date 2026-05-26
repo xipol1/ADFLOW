@@ -35,6 +35,13 @@ const CanalSchema = new mongoose.Schema(
       phoneNumber: { type: String, default: '' },
       provider: { type: String, default: '' },       // newsletter provider (mailchimp/beehiiv/substack)
       linkedinUrn: { type: String, default: '' },     // urn:li:person:xxx or urn:li:organization:xxx
+      // Instagram Broadcast Channel ID (canales unidireccionales). Es el
+      // producto principal de Channelad en Instagram. Distinto del IG
+      // Business ID — se obtiene vía Graph API `/{ig-user}/broadcast_channels`
+      // y requiere el scope `instagram_manage_messages` (ticket pendiente).
+      // Mientras tanto el campo se acepta como declaración manual durante
+      // el onboarding y se valida luego por el equipo de moderación.
+      broadcastChannelId: { type: String, default: '' },
     },
     credenciales: {
       botToken: { type: String, default: '' },
@@ -132,6 +139,11 @@ const CanalSchema = new mongoose.Schema(
         username: String,
         tokenExpiresAt: Date,
         verificadoEn: Date,
+        // Broadcast Channel ID asociado a esta cuenta IG (cuando aplique).
+        // Sigue la convención de identificadores.broadcastChannelId — este
+        // espejo en botConfig es para cuando se descubre por OAuth en el
+        // futuro (vs. declarado manualmente en onboarding).
+        broadcastChannelId: { type: String, default: '' },
       },
       whatsapp: {
         adminNumber: String,
