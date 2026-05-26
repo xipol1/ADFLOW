@@ -1,5 +1,10 @@
 # Mirror of .vercelignore + extras specific to the container build.
 # Smaller image = faster fly deploy + less surface area.
+# The single most important entry is node_modules — without it the build
+# context balloons to >400 MB and the remote builder takes ~10 min.
+
+# Node dependencies — re-installed inside the image by `npm ci`
+node_modules
 
 # Git & CI metadata
 .git
