@@ -61,6 +61,15 @@ router.post(
 );
 
 router.post(
+  '/sessions/:sessionId/refresh-groups',
+  autenticar,
+  limitadorGeneral,
+  [param('sessionId').isMongoId()],
+  validarCampos,
+  c.refreshGroups
+);
+
+router.post(
   '/sessions/:sessionId/link-canal',
   autenticar,
   [
