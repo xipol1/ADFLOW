@@ -487,7 +487,7 @@ const doc = new Document({
           statusRow(['OCR WhatsApp', 'Tesseract.js (lazy-loaded, wasm 30MB) \u2014 swap path Cloud Vision', 'operativo'], [2200, 5000, 2160], 2),
           statusRow(['WhatsApp Baileys', 'QR link, newsletters, audit log \u2014 requiere VPS (no serverless)', 'en-progreso'], [2200, 5000, 2160], 2),
           statusRow(['SEO / Blog', '19 HTMLs indexables + calculadora + FAQPage + HowTo schema', 'operativo'], [2200, 5000, 2160], 2),
-          statusRow(['Seguridad', 'Helmet, CORS, HPP, rate limiting, mongo-sanitize, xss-clean', 'operativo'], [2200, 5000, 2160], 2),
+          statusRow(['Seguridad', 'Helmet, CORS allowlist, HPP, rate-limit-mongo, express-mongo-sanitize', 'operativo'], [2200, 5000, 2160], 2),
           statusRow(['CI/CD', 'GitHub Actions (.github/workflows/ci.yml)', 'operativo'], [2200, 5000, 2160], 2),
           statusRow(['Deploy', 'Vercel serverless (Hobby plan \u2014 1 cron/d\u00EDa m\u00E1ximo)', 'operativo'], [2200, 5000, 2160], 2),
           statusRow(['Scoring Engine v2', 'channelScoringV2.js \u2014 funci\u00F3n pura, sin queries, testeable sin DB', 'operativo'], [2200, 5000, 2160], 2),
