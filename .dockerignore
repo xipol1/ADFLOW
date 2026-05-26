@@ -1,0 +1,89 @@
+# Mirror of .vercelignore + extras specific to the container build.
+# Smaller image = faster fly deploy + less surface area.
+# The single most important entry is node_modules — without it the build
+# context balloons to >400 MB and the remote builder takes ~10 min.
+
+# Node dependencies — re-installed inside the image by `npm ci`
+node_modules
+
+# Git & CI metadata
+.git
+.github
+.gitignore
+.gitattributes
+
+# Editor / agent state — NEVER ship to a remote host
+.claude
+.agents
+.idea
+.vscode
+.trae
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Vercel artefacts (we are migrating away — don't bake them in)
+.vercel
+vercel.json
+.vercelignore
+
+# Environment files (secrets come from `fly secrets`, never from disk)
+.env
+.env.*
+!.env.example
+
+# Frontend sources — Vercel builds these; the backend image doesn't serve them
+client
+public/*
+!public/.gitkeep
+dist
+build
+*.tsbuildinfo
+
+# Local persistence
+uploads/*
+!uploads/.gitkeep
+data/*.json
+data/whatsapp-session
+logs
+*.log
+_server_fatal.log
+npm-debug.log*
+
+# Tests & docs — not needed at runtime
+tests
+__tests__
+docs
+AUDIT.md
+*.md
+!MIGRATION_FLY.md
+!README.md
+
+# Sibling projects parked in this folder
+Adflow 1.0
+adflow-unified
+Adflow-1.0-clone
+Adflow Gestion
+plataforma-*
+channelad-pitch-video
+channelad-ad-flow
+channelad-advertiser-tour
+channelad-client-pitch
+channelad-remotion-video
+
+# Planning artefacts
+*.xlsx
+*.xls
+*.docx
+*.pdf
+*.zip
+*.tar.gz
+
+# Python helpers
+__pycache__
+*.pyc
+
+# Local-only state
+settings.local.json
+skills-lock.json

@@ -4,21 +4,26 @@ let lastConnectionError = null;
 let connectPromise = null;
 let listenersAttached = false;
 
+// NEVER use `new URL(mongoUri)` here — Node 20+ emits a DEP0170
+// deprecation warning for non-special schemes (mongodb, mongodb+srv) and the
+// warning text prints the FULL URI including the password. The same applies
+// to redis://, amqp://, postgres:// etc. Use a regex-based extractor so we
+// never hand the raw URI to WHATWG URL.
 const redactMongoUriForLog = (value) => {
   if (!value) return '';
   const raw = String(value);
-  try {
-    const url = new URL(raw);
-    const username = url.username ? decodeURIComponent(url.username) : '';
-    const hasPassword = Boolean(url.password);
-    const auth = username ? `${username}${hasPassword ? ':***' : ''}@` : '';
-    const host = url.host || '';
-    const path = url.pathname || '';
-    const dbName = path && path !== '/' ? path : '';
-    return `${url.protocol}//${auth}${host}${dbName}${url.search ? '?…' : ''}`;
-  } catch {
-    return raw.substring(0, 20) + (raw.length > 20 ? '...' : '');
-  }
+  // <scheme>://[<user>[:<pass>]@]<host>[/<path>][?<query>]
+  const m = raw.match(/^([a-z][a-z0-9+.-]*):\/\/(?:([^:@/?#]+)(?::([^@/?#]*))?@)?([^/?#]+)(\/[^?#]*)?(\?.*)?$/i);
+  if (!m) return raw.substring(0, 20) + (raw.length > 20 ? '...' : '');
+  const [, scheme, user, pass, host, path, query] = m;
+  const decodedUser = user ? safeDecode(user) : '';
+  const auth = decodedUser ? `${decodedUser}${pass !== undefined ? ':***' : ''}@` : '';
+  const dbName = path && path !== '/' ? path : '';
+  return `${scheme}://${auth}${host}${dbName}${query ? '?…' : ''}`;
+};
+
+const safeDecode = (s) => {
+  try { return decodeURIComponent(s); } catch { return s; }
 };
 
 const isValidMongoScheme = (value) => {
