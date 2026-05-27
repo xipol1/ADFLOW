@@ -23,13 +23,13 @@ const limitarIntentos = (options = {}) => {
   const windowMs = options.windowMs ?? 15 * 60 * 1000;
   const max = options.max ?? 100;
 
-  // In the jest test environment we bypass rate limiting entirely —
-  // suites burst many requests against /auth/registro, /auth/login etc.
-  // and would otherwise trip the 5-per-hour cap. Behavior in dev/prod
-  // is unchanged because NODE_ENV is only 'test' under jest.
+  // Bypass rate limiting in test (jest bursts many requests) and in local
+  // development (so iterating on forms / wizards doesn't lock you out of
+  // your own endpoints). Production behavior unchanged.
   const baseSkip = options.skip;
   const skip = (req, res) => {
     if (process.env.NODE_ENV === 'test') return true;
+    if (process.env.NODE_ENV === 'development') return true;
     return baseSkip ? baseSkip(req, res) : false;
   };
 

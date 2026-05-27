@@ -42,6 +42,9 @@ export default function EmailCaptureCard({ snapshot, source = 'calculator', acce
   const [state, setState] = useState('idle') // idle | loading | success | error
   const [errorMsg, setErrorMsg] = useState('')
   const [suggestion, setSuggestion] = useState(null)
+  // Emails ya enviados con éxito en esta sesión — evita doble-disparo y
+  // que el usuario reenviar al mismo email queme su cuota de rate limit.
+  const [sentEmails, setSentEmails] = useState(() => new Set())
 
   function onEmailChange(value) {
     setEmail(value)
@@ -51,6 +54,7 @@ export default function EmailCaptureCard({ snapshot, source = 'calculator', acce
 
   async function handleSubmit(e) {
     e?.preventDefault?.()
+    if (state === 'loading') return
     setErrorMsg('')
 
     if (!EMAIL_RX.test(email)) {
@@ -61,6 +65,12 @@ export default function EmailCaptureCard({ snapshot, source = 'calculator', acce
     if (!consent) {
       setState('error')
       setErrorMsg('Tienes que aceptar el consentimiento para enviarte el reporte')
+      return
+    }
+
+    const normalized = email.trim().toLowerCase()
+    if (sentEmails.has(normalized)) {
+      setState('success')
       return
     }
 
@@ -84,9 +94,24 @@ export default function EmailCaptureCard({ snapshot, source = 'calculator', acce
       const data = await res.json().catch(() => ({}))
       if (!res.ok || !data?.success) {
         setState('error')
-        setErrorMsg(data?.message || 'No hemos podido guardar tu email. Inténtalo en un minuto.')
+        if (res.status === 429) {
+          // express-rate-limit envía RateLimit-Reset en segundos
+          const reset = Number(res.headers.get('RateLimit-Reset') || res.headers.get('Retry-After'))
+          if (Number.isFinite(reset) && reset > 0 && reset < 600) {
+            setErrorMsg(`Has hecho varios intentos seguidos. Espera ${reset}s y vuelve a probar.`)
+          } else {
+            setErrorMsg(data?.message || 'Demasiadas solicitudes en poco tiempo. Espera un minuto.')
+          }
+        } else {
+          setErrorMsg(data?.message || 'No hemos podido guardar tu email. Inténtalo en un minuto.')
+        }
         return
       }
+      setSentEmails((prev) => {
+        const next = new Set(prev)
+        next.add(normalized)
+        return next
+      })
       setState('success')
     } catch (err) {
       setState('error')

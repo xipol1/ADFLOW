@@ -10,7 +10,7 @@ const { runAnalysis } = require('../services/calculatorAnalyzer');
 // enumeración / spam. Aplican por IP.
 const leadLimiterPerMinute = limitarIntentos({
   windowMs: 60 * 1000,
-  max: 6,
+  max: 12,
   message: { success: false, message: 'Demasiadas solicitudes en poco tiempo. Espera un minuto.' },
 });
 
