@@ -90,7 +90,7 @@
     { "source": "/health", "destination": "/api/index.js" },
     { "source": "/blog", "destination": "/blog/index.html" },
     { "source": "/blog/feed.xml", "destination": "/blog/feed.xml" },
-    { "source": "/blog/calculadora-precios-publicidad", "destination": "/index.html" },
+    { "source": "/blog/calculadora-precios-publicidad", "destination": "/blog/calculadora-precios-publicidad.html" },
     { "source": "/blog/:slug", "destination": "/blog/:slug.html" },
     { "source": "/para-anunciantes", "destination": "/para-anunciantes.html" },
     { "source": "/para-canales", "destination": "/para-canales.html" },
