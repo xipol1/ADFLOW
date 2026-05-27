@@ -692,7 +692,7 @@ export default function ForChannelsPage() {
           5 · EARNINGS CALCULATOR (Phase 2: replaces IncomeCalculator with
           richer simulator + comparison vs Adsense / Patreon / networks)
       ══════════════════════════════════════════════════════ */}
-      <ChannelCalculator variant="landing" background="transparent" />
+      <ChannelCalculator variant="landing" background="transparent" initialRole="creator" />
 
       {/* ══════════════════════════════════════════════════════
           6 · HOW IT WORKS (Phase 3: CampaignFlow with creator-side steps

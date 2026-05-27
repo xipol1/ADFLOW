@@ -15,6 +15,7 @@ import EmailCaptureCard from './EmailCaptureCard'
 import UrlInputCard from './UrlInputCard'
 import MediaKitScoreCard from './MediaKitScoreCard'
 import BenchmarkCard from './BenchmarkCard'
+import RoleSelectionScreen from './RoleSelectionScreen'
 import MultiChannelInput from './MultiChannelInput'
 import MediaKitConsolidated from './MediaKitConsolidated'
 import AdvertiserResultCard from './AdvertiserResultCard'
@@ -167,10 +168,14 @@ export default function ChannelCalculator({
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
 
-  // ── Rol del usuario: creator (default) o advertiser. Si initialRole se
-  //    pasa por prop (páginas dedicadas /para-canales o /para-anunciantes),
-  //    no mostramos el toggle. Si no, el usuario puede cambiar libremente. ──
+  // ── Rol del usuario: creator o advertiser.
+  // - Si initialRole viene por prop (páginas dedicadas /para-canales o
+  //   /para-anunciantes), el rol queda fijado y arrancamos directos al wizard.
+  // - Si no hay initialRole, mostramos primero RoleSelectionScreen para que
+  //   el usuario elija de forma explícita. Una vez elige, roleConfirmed=true
+  //   y el wizard arranca normalmente. ──
   const [role, setRole] = useState(initialRole || 'creator')
+  const [roleConfirmed, setRoleConfirmed] = useState(!!initialRole)
   const showRoleToggle = !initialRole
 
   const isAdvertiser = role === 'advertiser'
@@ -729,9 +734,6 @@ export default function ChannelCalculator({
 
   const HeaderEl = (
     <div style={{ textAlign: 'center', marginBottom: 'clamp(28px, 4vw, 48px)' }}>
-      {showRoleToggle && (
-        <RoleToggle role={role} onChange={(r) => { setRole(r); reset() }} />
-      )}
       <p style={{
         fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
         letterSpacing: '0.12em', color: accent, marginBottom: 14,
@@ -749,6 +751,31 @@ export default function ChannelCalculator({
     </div>
   )
 
+  // Mini botón "Cambiar de modo" en el wizard (solo cuando el usuario eligió
+  // role libremente, no cuando está fijado por initialRole en una página
+  // dedicada).
+  const SwitchRoleButton = (
+    showRoleToggle && roleConfirmed && (
+      <div style={{
+        display: 'flex', justifyContent: 'flex-end', marginBottom: 14,
+      }}>
+        <button
+          type="button"
+          onClick={() => { setRoleConfirmed(false); reset() }}
+          style={{
+            background: 'none', border: '1px solid var(--border)',
+            color: 'var(--muted)', fontSize: 12, fontWeight: 500,
+            padding: '6px 12px', borderRadius: 999,
+            cursor: 'pointer', fontFamily: FONT_BODY,
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+          }}
+        >
+          ← Cambiar de modo
+        </button>
+      </div>
+    )
+  )
+
   const CardEl = (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -763,10 +790,20 @@ export default function ChannelCalculator({
           ? '0 8px 24px -12px rgba(15,23,42,0.12)'
           : '0 24px 60px -24px rgba(15,23,42,0.18)',
         padding: `clamp(${isBlog ? 22 : 28}px, ${isBlog ? '3vw' : '4vw'}, ${isBlog ? 32 : 40}px)`,
-        maxWidth: 720, margin: '0 auto',
+        maxWidth: roleConfirmed ? 720 : 880, margin: '0 auto',
+        transition: 'max-width 0.4s',
       }}
     >
-      {wizardBody}
+      {!roleConfirmed ? (
+        <RoleSelectionScreen
+          onSelect={(r) => { setRole(r); setRoleConfirmed(true); reset() }}
+        />
+      ) : (
+        <>
+          {SwitchRoleButton}
+          {wizardBody}
+        </>
+      )}
     </motion.div>
   )
 
@@ -806,55 +843,6 @@ export default function ChannelCalculator({
         {FooterEl}
       </div>
     </section>
-  )
-}
-
-// ─── RoleToggle: Creador / Anunciante (solo si la calc no tiene initialRole) ──
-function RoleToggle({ role, onChange }) {
-  return (
-    <div style={{
-      display: 'inline-flex',
-      background: 'var(--bg2)',
-      borderRadius: 999,
-      padding: 4,
-      gap: 4,
-      marginBottom: 20,
-      border: '1px solid var(--border)',
-    }}>
-      <RoleButton active={role === 'creator'}    onClick={() => onChange('creator')}    color={GREEN}  label="Soy creador" sub="Calcular mi tarifa" />
-      <RoleButton active={role === 'advertiser'} onClick={() => onChange('advertiser')} color={PURPLE} label="Soy anunciante" sub="Calcular mi alcance" />
-    </div>
-  )
-}
-
-function RoleButton({ active, onClick, color, label, sub }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        padding: '8px 18px',
-        borderRadius: 999,
-        border: 'none',
-        background: active ? 'var(--surface)' : 'transparent',
-        color: active ? color : 'var(--muted)',
-        fontFamily: FONT_BODY,
-        fontSize: 13,
-        fontWeight: active ? 600 : 500,
-        cursor: 'pointer',
-        boxShadow: active ? '0 2px 6px rgba(15,23,42,0.10)' : 'none',
-        transition: 'all 0.2s',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      {label}
-      {sub && (
-        <span style={{
-          fontSize: 11, color: 'var(--muted)', fontWeight: 500,
-          marginLeft: 8, display: 'inline-block',
-        }}>· {sub}</span>
-      )}
-    </button>
   )
 }
 
