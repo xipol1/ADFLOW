@@ -14,7 +14,7 @@ export default function PrivacyPage() {
       <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: '32px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px', letterSpacing: '-0.5px' }}>
         Politica de Privacidad
       </h1>
-      <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '40px' }}>Ultima actualizacion: 8 de abril de 2026</p>
+      <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '40px' }}>Ultima actualizacion: 27 de mayo de 2026</p>
 
       {[
         {
@@ -60,6 +60,10 @@ export default function PrivacyPage() {
         {
           title: '11. Cambios en esta politica',
           content: 'Nos reservamos el derecho de actualizar esta politica. Los cambios sustanciales se notificaran por email y mediante aviso destacado en la plataforma con al menos 15 dias de antelacion. El uso continuado de la plataforma tras la notificacion constituye aceptacion de la politica actualizada.'
+        },
+        {
+          title: '12. Calculadora de tarifa y captacion de leads',
+          content: 'Cuando completas la calculadora publica de tarifa (en /para-canales, /whatsapp o el post del blog "calculadora-precios-publicidad") y dejas tu email para recibir el reporte, recogemos los siguientes datos: tu email, el snapshot del analisis (plataforma, nicho, suscriptores aproximados, tarifa calculada), parametros UTM si entraste desde una campana, referrer del navegador, idioma del navegador y un hash irreversible de tu IP (no la IP en si). Base legal: consentimiento explicito (Art. 6.1.a RGPD) mediante un checkbox cuyo texto literal se guarda en tu registro como prueba. Finalidad: enviarte el reporte solicitado y, ocasionalmente, comunicaciones sobre Channelad relacionadas con tu analisis (lanzamiento, founding cohort, novedades de producto). Conservacion: 24 meses desde tu ultima interaccion o hasta que solicites la baja. Como darte de baja: cada email incluye un enlace de baja con un token firmado por HMAC; con un solo click te excluimos de futuras comunicaciones de la calculadora. Tambien puedes escribir a soporte@channelad.io. No usamos tu email para perfilado automatizado ni decisiones automatizadas con efectos juridicos (Art. 22 RGPD).'
         },
       ].map(section => (
         <div key={section.title} style={{ marginBottom: '32px' }}>
