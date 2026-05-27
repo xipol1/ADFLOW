@@ -1,0 +1,65 @@
+name: Blog scheduled publish
+
+# Disparador diario que materializa posts con `date` == hoy.
+#
+# Cómo funciona: el build (`npm run blog:build`) ya filtra por `date <= today`,
+# así que un post programado para una fecha futura solo se emite HTML el primer
+# deploy posterior a esa fecha. Vercel no se redeploya solo — necesita un push.
+# Este workflow:
+#   1. Cada día a las 06:00 UTC (08:00 ES verano, 07:00 ES invierno).
+#   2. Mira si hay algún .md en content/blog/ con `date: "<hoy>"`.
+#   3. Si sí, hace un commit vacío y empuja a main → Vercel rebuilda y
+#      publica el post automáticamente.
+#   4. Si no hay nada que publicar, no hace nada (zero noise).
+#
+# Manual: Actions → "Blog scheduled publish" → "Run workflow" para forzar.
+
+on:
+  schedule:
+    # 06:00 UTC todos los días. GitHub puede demorarse 15-30 min en horas pico,
+    # asumimos esa ventana como aceptable. Cron único para evitar doble publicación.
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect posts due today
+        id: detect
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          echo "today=$TODAY" >> "$GITHUB_OUTPUT"
+          # Cualquier .md en content/blog con `date: "YYYY-MM-DD"` igual a hoy
+          MATCHES=$(grep -l -E "^date:\s*\"$TODAY\"" content/blog/*.md 2>/dev/null || true)
+          if [ -z "$MATCHES" ]; then
+            echo "count=0" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Nothing scheduled::No posts dated $TODAY in content/blog/"
+          else
+            COUNT=$(echo "$MATCHES" | wc -l)
+            SLUGS=$(echo "$MATCHES" | xargs -n1 basename | sed 's/\.md$//' | paste -sd ',' -)
+            echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+            echo "slugs=$SLUGS" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Publishing $COUNT post(s)::$SLUGS"
+          fi
+
+      - name: Push empty commit to trigger Vercel build
+        if: steps.detect.outputs.count != '0'
+        run: |
+          git config user.name "channelad-blog-bot"
+          git config user.email "blog-bot@channelad.io"
+          git commit --allow-empty -m "chore(blog): scheduled publish for ${{ steps.detect.outputs.today }}
+
+Materializes scheduled post(s): ${{ steps.detect.outputs.slugs }}
+
+Triggered by .github/workflows/blog-publish.yml. The blog builder filters
+by date <= today and emits HTML for any post whose date has just arrived."
+          git push origin HEAD:main
