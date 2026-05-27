@@ -604,7 +604,7 @@ export default function WhatsAppPage() {
       </Section>
 
       {/* 3 · CHANNEL CALCULATOR — followers + reactions + format → precio/ingreso */}
-      <ChannelCalculator variant="landing" background="transparent" initialState={{ platform: 'whatsapp' }} />
+      <ChannelCalculator variant="landing" background="transparent" initialRole="creator" initialState={{ platform: 'whatsapp' }} />
 
       {/* 4 · CÓMO FUNCIONA — phone real cambiando con cada step */}
       <Section style={{ padding: '110px 48px', background: 'var(--bg2)' }}>
