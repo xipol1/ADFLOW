@@ -21,7 +21,7 @@ const CONTACT_MAIL = 'mailto:contact@channelad.io?subject=Benchmark%20canales%20
    DATOS REALES — consolidados de:
    - content/blog/cuanto-cobrar-publicidad-whatsapp.md
    - content/blog/cuanto-cobrar-publicidad-telegram.md
-   - EarningsCalculator multipliers (theme/stats.js)
+   - ChannelCalculator multipliers (lib/channelPricing.js)
    - 2.500 canales en seguimiento propio (theme/stats.js · CHANNELS_TRACKED)
 
    Actualizado: 2026-05-19. Próxima revisión tras 25 entrevistas nuevas.

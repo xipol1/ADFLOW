@@ -5,7 +5,7 @@ import SEO from '../../components/SEO'
 import CrossLinks from '../../components/landing/CrossLinks'
 import EscrowFlowAnimation from '../../components/landing/EscrowFlowAnimation'
 import ComparisonSection from '../../components/landing/ComparisonSection'
-import EarningsCalculator from '../../components/landing/EarningsCalculator'
+import ChannelCalculator from '../../components/calculator/ChannelCalculator'
 import RotatingWord from '../../components/landing/RotatingWord'
 import EarningsCard from '../../components/landing/hero/EarningsCard'
 import MiniChannelCard from '../../components/landing/hero/MiniChannelCard'
@@ -692,7 +692,7 @@ export default function ForChannelsPage() {
           5 · EARNINGS CALCULATOR (Phase 2: replaces IncomeCalculator with
           richer simulator + comparison vs Adsense / Patreon / networks)
       ══════════════════════════════════════════════════════ */}
-      <EarningsCalculator background="transparent" />
+      <ChannelCalculator variant="landing" background="transparent" />
 
       {/* ══════════════════════════════════════════════════════
           6 · HOW IT WORKS (Phase 3: CampaignFlow with creator-side steps
