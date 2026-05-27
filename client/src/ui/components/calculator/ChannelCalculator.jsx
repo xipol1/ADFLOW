@@ -11,6 +11,7 @@ import {
   computeChannelPricing, fmtEur, fmtFollowers,
 } from '../../lib/channelPricing'
 import WhatsAppQuestionnaire from './WhatsAppQuestionnaire'
+import EmailCaptureCard from './EmailCaptureCard'
 import {
   ProgressBar, ChoiceCard, PillCard, WizardSlider, WizardFooter,
 } from './wizardHelpers'
@@ -435,8 +436,22 @@ export default function ChannelCalculator({
             </div>
           )}
 
+          {/* Captura email — opt-in opcional para recibir el reporte detallado */}
+          <EmailCaptureCard
+            snapshot={{
+              platform, niche, followers, reactionsPerPost, postsPerMonth, format,
+              featuredFormatPrice: result.featuredFormatPrice,
+              monthlyEarnings:     result.monthlyEarnings,
+              yearlyEarnings:      result.yearlyEarnings,
+              effectiveCpm:        result.effectiveCpm,
+              reachPerPost:        result.reachPerPost,
+            }}
+            source={isBlog ? 'blog_calculator' : 'calculator'}
+            accent={accent}
+          />
+
           {/* Botón empezar de nuevo */}
-          <div style={{ marginTop: 26, textAlign: 'center' }}>
+          <div style={{ marginTop: 22, textAlign: 'center' }}>
             <button
               type="button"
               onClick={reset}

@@ -8,6 +8,7 @@ import { FONT_DISPLAY, FONT_BODY, GREEN, greenAlpha } from '../../theme/tokens'
 import { PUBLIC_COMMISSION_LABEL } from '../../theme/stats'
 import { NICHES, computeChannelPricing, fmtEur } from '../../lib/channelPricing'
 import { ProgressBar, ChoiceCard, PillCard } from './wizardHelpers'
+import EmailCaptureCard from './EmailCaptureCard'
 
 // ─── Wizard visual de WhatsApp ──────────────────────────────────────────────
 // WhatsApp no expone suscriptores ni engagement públicamente (privacidad por
@@ -470,6 +471,30 @@ export default function WhatsAppQuestionnaire({ onBack, oauthUrl = '/creator/cha
                 30 segundos · Sin compartir contraseña · API oficial de Meta · Te leeremos solo las
                 métricas del canal (no los mensajes privados de tu audiencia)
               </p>
+
+              {/* Captura email — alternativa para los que no quieren verificar aún */}
+              <EmailCaptureCard
+                snapshot={{
+                  platform: 'whatsapp',
+                  niche,
+                  followers: SUBSCRIBER_BUCKETS.find((b) => b.id === subsBucket)?.midpoint || 0,
+                  reactionsPerPost: Math.round(
+                    (SUBSCRIBER_BUCKETS.find((b) => b.id === subsBucket)?.midpoint || 0) *
+                      (REACTIONS_LEVELS.find((r) => r.id === reactionsLevel)?.ratio || 0)
+                  ),
+                  postsPerMonth: POSTING_FREQUENCIES.find((f) => f.id === postingFreq)?.postsPerMonth || 0,
+                  format: 'standard',
+                  featuredFormatPrice: computed.pricePerFormat[0].price,
+                  monthlyEarnings:     computed.monthlyEarnings,
+                  yearlyEarnings:      computed.yearlyEarnings,
+                  effectiveCpm:        computed.effectiveCpm,
+                  reachPerPost:        computed.reachPerPost,
+                  whatsappType:        waType,
+                  whatsappBucket:      subsBucket,
+                }}
+                source="calculator_whatsapp"
+                accent={GREEN}
+              />
             </div>
           )}
       </motion.div>
