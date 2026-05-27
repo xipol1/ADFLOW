@@ -563,7 +563,19 @@ app.get('/blog/feed.xml', (req, res, next) => {
   next();
 });
 app.get('/blog/:slug', (req, res, next) => {
-  const file = path.join(blogDir, `${req.params.slug}.html`);
+  const slug = req.params.slug;
+  // Static assets co-located with the blog (filter.js, sitemap.xml, etc.) — serve as-is
+  // when the file already has an extension. Without this, /blog/filter.js becomes
+  // filter.js.html and falls through to the SPA shell, which CSP-blocks the script.
+  if (slug.includes('.')) {
+    const assetFile = path.join(blogDir, slug);
+    if (fs.existsSync(assetFile)) {
+      res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+      return res.sendFile(assetFile);
+    }
+    return next();
+  }
+  const file = path.join(blogDir, `${slug}.html`);
   if (fs.existsSync(file)) {
     res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
     return res.sendFile(file);

@@ -30,6 +30,10 @@ const OG_IMAGE = `${DOMAIN}/og-default.png`;
 // route → { title, description }. Titles <= 60 chars, descriptions <= 160.
 // Kept in sync with each page's <SEO>/<Helmet> props (client/src/ui/pages/**).
 const ROUTES = {
+  '/blog/calculadora-precios-publicidad': {
+    title: 'Calculadora precios publicidad Telegram/WhatsApp/Discord 2026',
+    description: 'Calculadora interactiva 2026: cuánto cobrar por publicidad en tu canal en 30 segundos. CPMs reales del mercado español para Telegram, WhatsApp y Discord.',
+  },
   '/para-anunciantes': {
     title: 'Publicidad en canales privados para marcas — Channelad',
     description: 'Compra publicidad en canales verificados de Telegram, WhatsApp, Discord y newsletters. Pago en escrow, métricas certificadas y benchmarks de CPM.',

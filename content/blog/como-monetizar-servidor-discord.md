@@ -2,6 +2,7 @@
 title: "Monetizar un servidor de Discord 2026: 5 métodos probados"
 description: "Las 5 formas reales de ganar dinero con tu servidor de Discord en 2026: publicidad, roles premium, merch, cursos y servicios."
 slug: "como-monetizar-servidor-discord"
+pillar: "true"
 date: "2026-04-08"
 dateModified: "2026-04-15"
 howto: "true"

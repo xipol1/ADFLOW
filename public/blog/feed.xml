@@ -5,7 +5,7 @@
     <link>https://channelad.io/blog</link>
     <description>Guias, estrategias y comparativas sobre publicidad en comunidades de WhatsApp, Telegram y Discord. Por Rafa Ferrer, CEO de Channelad.</description>
     <language>es</language>
-    <lastBuildDate>Thu, 21 May 2026 12:08:12 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 27 May 2026 15:51:22 GMT</lastBuildDate>
     <managingEditor>rafa@channelad.io (Rafa Ferrer)</managingEditor>
     <webMaster>rafa@channelad.io (Rafa Ferrer)</webMaster>
     <atom:link href="https://channelad.io/blog/feed.xml" rel="self" type="application/rss+xml"/>
@@ -14,6 +14,42 @@
       <title>Channelad Blog</title>
       <link>https://channelad.io/blog</link>
     </image>
+    <item>
+      <title><![CDATA[Best WhatsApp Advertising Platforms in 2026 (Tested & Compared)]]></title>
+      <link>https://channelad.io/blog/best-whatsapp-advertising-platforms</link>
+      <guid isPermaLink="true">https://channelad.io/blog/best-whatsapp-advertising-platforms</guid>
+      <pubDate>Fri, 22 May 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[The 6 best WhatsApp advertising platforms in 2026, compared. How brands buy WhatsApp channel promotions, real CPM benchmarks, escrow protection and the best setup for ecommerce.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Comparativas</category>
+    </item>
+    <item>
+      <title><![CDATA[Channelad vs Influencer Marketplaces: Which Delivers Better ROI? (2026)]]></title>
+      <link>https://channelad.io/blog/channelad-vs-influencer-marketplaces</link>
+      <guid isPermaLink="true">https://channelad.io/blog/channelad-vs-influencer-marketplaces</guid>
+      <pubDate>Fri, 22 May 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Channelad vs influencer marketplaces compared on cost, verification and ROI. Why closed channels are measurable influencer marketing, and when to use each in 2026.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Comparativas</category>
+    </item>
+    <item>
+      <title><![CDATA[Channelad vs Meta Ads: A Real Cost & Performance Comparison (2026)]]></title>
+      <link>https://channelad.io/blog/channelad-vs-meta-ads</link>
+      <guid isPermaLink="true">https://channelad.io/blog/channelad-vs-meta-ads</guid>
+      <pubDate>Fri, 22 May 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Channelad vs Meta Ads compared on real CPM, CTR and ROI. Why Meta CPMs keep rising in 2026, where closed-channel ads win, and when to use each as a Meta Ads alternative.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Comparativas</category>
+    </item>
+    <item>
+      <title><![CDATA[Impuestos canal Telegram España 2026: IRPF, IVA y cripto]]></title>
+      <link>https://channelad.io/blog/impuestos-monetizar-canal-telegram-espana</link>
+      <guid isPermaLink="true">https://channelad.io/blog/impuestos-monetizar-canal-telegram-espana</guid>
+      <pubDate>Fri, 22 May 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Guía fiscal 2026 para creadores que monetizan canales en España: cuándo hacerse autónomo, IVA en publicidad, declarar TON y modelo 036/037.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Guias</category>
+    </item>
     <item>
       <title><![CDATA[Telegram Ads y Fragment 2026: guía desde España (TON)]]></title>
       <link>https://channelad.io/blog/telegram-ads-fragment-guia-espana</link>
@@ -174,7 +210,7 @@
       <pubDate>Sat, 11 Apr 2026 10:00:00 GMT</pubDate>
       <description><![CDATA[Calculadora interactiva 2026: cuánto cobrar por publicidad en tu canal en 30 segundos. CPMs reales del mercado español para Telegram, WhatsApp y Discord.]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>
-      <category>Guias</category>
+      <category>Herramientas</category>
     </item>
     <item>
       <title><![CDATA[Monetizar canal de WhatsApp 2026: 6 métodos reales]]></title>

@@ -334,6 +334,14 @@ function build() {
     const howtoSchema = buildHowToSchema(meta);
     const canonicalSlug = meta.canonical || meta.slug;
     const canonicalUrl = `${DOMAIN}/blog/${canonicalSlug}`;
+    // Locale for og:locale — Notion strategy targets ES primarily, EN cluster for global reach.
+    const ogLocale = (meta.lang === 'en') ? 'en_US' : 'es_ES';
+    // wordCount for Article schema — strip markdown noise, count tokens by whitespace.
+    const wordCount = (meta._body || '')
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/[*#_>`~|\-]+/g, ' ')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .split(/\s+/).filter(Boolean).length;
 
     if (meta.canonical) {
       console.log(`  🔗 ${meta.slug} → canonical: ${canonicalSlug}`);
@@ -357,7 +365,9 @@ function build() {
       .replace(/{{prev_next_html}}/g, prevNextHtml)
       .replace(/{{related_html}}/g, relatedHtml)
       .replace(/{{faq_schema}}/g, faqSchema)
-      .replace(/{{howto_schema}}/g, howtoSchema);
+      .replace(/{{howto_schema}}/g, howtoSchema)
+      .replace(/{{ogLocale}}/g, ogLocale)
+      .replace(/{{wordCount}}/g, String(wordCount));
 
     // Skip static HTML for posts that need SPA (interactive components)
     if (meta.spaOnly === 'true') {
@@ -373,37 +383,100 @@ function build() {
   }
 
   // ─── Generate blog index.html ───
-  const featuredPost = posts[0];
-  const restPosts = posts.slice(1);
+  // Pillars: posts with pillar:"true" — surface at top in dedicated section.
+  // Order: Telegram pillar, WhatsApp pillar, Discord pillar, Calculadora (Herramientas).
+  const PILLAR_ORDER = [
+    'como-monetizar-canal-telegram',
+    'como-monetizar-canal-whatsapp',
+    'como-monetizar-servidor-discord',
+    'calculadora-precios-publicidad',
+  ];
+  // Include React-only pillar posts (calculadora) by enriching from blogPosts.js when missing.
+  const pillarBySlug = new Map(posts.filter(p => p.pillar === 'true' || p.pillar === true).map(p => [p.slug, p]));
+  // Calculadora is spaOnly → not in posts[] (skipped in pass 2). Pull from blogPostsJs:
+  if (!pillarBySlug.has('calculadora-precios-publicidad')) {
+    try {
+      const src = fs.readFileSync(BLOG_POSTS_PATH, 'utf-8');
+      const m = src.match(/slug:\s*['"]calculadora-precios-publicidad['"][\s\S]*?title:\s*['"]([^'"]+)['"][\s\S]*?description:\s*['"]([^'"]+)['"][\s\S]*?readTime:\s*['"]([^'"]+)['"]/);
+      if (m) {
+        pillarBySlug.set('calculadora-precios-publicidad', {
+          slug: 'calculadora-precios-publicidad',
+          title: m[1],
+          description: m[2],
+          readTime: m[3],
+          category: 'Herramientas',
+          platform: 'all',
+          date: '2026-04-11',
+        });
+      }
+    } catch { /* ignore */ }
+  }
+  const pillars = PILLAR_ORDER.map(slug => pillarBySlug.get(slug)).filter(Boolean);
+  const pillarSet = new Set(pillars.map(p => p.slug));
+  const restPosts = posts.filter(p => !pillarSet.has(p.slug));
 
-  const featuredHtml = featuredPost ? `
-    <section class="featured">
-      <a href="/blog/${featuredPost.slug}" class="featured-card">
-        <div class="featured-ghost">DESTACADO</div>
-        <div class="featured-inner">
-          <div class="featured-meta">
-            <span class="card-category">${featuredPost.category || 'Guias'}</span>
-            <span class="card-meta-text">${featuredPost.readTime}</span>
-          </div>
-          <h2>${featuredPost.title}</h2>
-          <p>${featuredPost.description || ''}</p>
-          <span class="featured-link">Leer articulo <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 7h12M8 2l5 5-5 5"/></svg></span>
-        </div>
-      </a>
+  // Platform meta for pillars (icon + tagline)
+  const PILLAR_META = {
+    'como-monetizar-canal-telegram': { icon: '✉️', platform: 'Telegram', tagline: 'Guía pilar · monetización' },
+    'como-monetizar-canal-whatsapp': { icon: '💬', platform: 'WhatsApp', tagline: 'Guía pilar · monetización' },
+    'como-monetizar-servidor-discord': { icon: '🎮', platform: 'Discord', tagline: 'Guía pilar · monetización' },
+    'calculadora-precios-publicidad': { icon: '🛠️', platform: 'Herramienta', tagline: 'Lead-gen · gratis 30s' },
+  };
+
+  const pillarsHtml = pillars.length > 0 ? `
+    <div class="section-label">Empezar aquí — Pilares del blog</div>
+    <section class="pillars">${pillars.map(p => {
+      const meta = PILLAR_META[p.slug] || {};
+      const isCalc = p.slug === 'calculadora-precios-publicidad';
+      const cta = isCalc ? 'Calcula tu tarifa →' : 'Leer guía pilar →';
+      return `
+      <a href="/blog/${p.slug}" class="pillar-card pillar-${(meta.platform || '').toLowerCase()}${isCalc ? ' pillar-tool' : ''}">
+        <div class="pillar-icon">${meta.icon || '★'}</div>
+        <div class="pillar-tagline">${meta.tagline || 'Pilar'}</div>
+        <h3 class="pillar-title">${p.title}</h3>
+        <p class="pillar-desc">${p.description || ''}</p>
+        <span class="pillar-cta">${cta}</span>
+      </a>`;
+    }).join('')}
     </section>` : '';
 
-  const gridCards = restPosts.map(p => `
-      <a href="/blog/${p.slug}" class="blog-card">
-        <div class="card-category">${p.category || 'Guias'}</div>
+  const cardsByCategory = (cat) => restPosts.filter(p => cat === 'Todos' || p.category === cat);
+  const gridCards = restPosts.map(p => {
+    const cat = p.category || 'Guias';
+    const platform = p.platform ? ` data-platform="${p.platform}"` : '';
+    const platformBadge = p.platform && p.platform !== 'all'
+      ? `<span class="card-platform card-platform-${p.platform}">${p.platform}</span>`
+      : '';
+    return `
+      <a href="/blog/${p.slug}" class="blog-card" data-category="${cat}"${platform}>
+        <div class="card-pills">
+          <span class="card-category card-cat-${cat.toLowerCase()}">${cat}</span>
+          ${platformBadge}
+        </div>
         <h2>${p.title}</h2>
         <p>${p.description || ''}</p>
         <div class="card-footer">
           <span>${p.readTime || '10 min'}</span>
           <span>${p.date || ''}</span>
         </div>
-      </a>`).join('\n');
+      </a>`;
+  }).join('\n');
 
   const totalMinutes = posts.reduce((s, p) => s + parseInt(p.readTime || '10'), 0);
+  // Categories actually present, ordered. "Todos" first.
+  const presentCategories = Array.from(new Set(restPosts.map(p => p.category || 'Guias')));
+  const CATEGORY_ORDER = ['Guias', 'Monetizacion', 'Comparativas', 'Herramientas'];
+  const orderedCategories = CATEGORY_ORDER.filter(c => presentCategories.includes(c));
+  const filterButtons = ['Todos', ...orderedCategories].map((c, i) =>
+    `<button class="filter-btn${i === 0 ? ' active' : ''}" data-filter="${c}">${c}</button>`
+  ).join('');
+
+  // Human-friendly latest date: "Mayo 2026" instead of "2026-05"
+  const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const latestRaw = posts[0]?.date || '';
+  const latestHuman = latestRaw && latestRaw.length >= 7
+    ? `${MONTHS_ES[parseInt(latestRaw.slice(5, 7), 10) - 1]} ${latestRaw.slice(0, 4)}`
+    : '—';
 
   const indexHtml = `<!DOCTYPE html>
 <html lang="es">
@@ -486,17 +559,59 @@ function build() {
     .featured-link { font-size: 13px; font-weight: 600; color: #7C3AED; display: inline-flex; align-items: center; gap: 6px; }
     .card-meta-text { font-size: 12px; color: #86868B; }
 
+    /* ─── Pillars (4 cards: 3 platforms + calculator) ─── */
+    .pillars { max-width: 960px; margin: 0 auto 56px; padding: 0 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+    .pillar-card { position: relative; padding: 28px 24px 24px; border-radius: 18px; background: #fff; border: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 10px; transition: transform 0.3s cubic-bezier(.22,1,.36,1), border-color 0.3s, box-shadow 0.3s; overflow: hidden; }
+    .pillar-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent, #7C3AED); }
+    .pillar-card:hover { transform: translateY(-3px); border-color: rgba(0,0,0,0.1); box-shadow: 0 12px 32px rgba(0,0,0,0.06); }
+    .pillar-telegram { --accent: #229ED9; }
+    .pillar-whatsapp { --accent: #25D366; }
+    .pillar-discord { --accent: #5865F2; }
+    .pillar-tool { --accent: #F59E0B; background: linear-gradient(180deg, #fffbeb 0%, #fff 50%); }
+    .pillar-icon { font-size: 26px; line-height: 1; }
+    .pillar-tagline { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--accent, #7C3AED); }
+    .pillar-title { font-family: 'Instrument Serif', serif; font-size: 22px; font-weight: 400; line-height: 1.25; color: #1D1D1F; margin-top: 2px; }
+    .pillar-desc { font-size: 13px; color: #86868B; line-height: 1.55; flex: 1; }
+    .pillar-cta { font-size: 13px; font-weight: 600; color: var(--accent, #7C3AED); margin-top: 8px; }
+
+    /* ─── Filter bar ─── */
+    .filter-bar { max-width: 960px; margin: 0 auto 24px; padding: 0 24px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .filter-btn { font-family: inherit; font-size: 13px; font-weight: 500; padding: 7px 14px; border-radius: 100px; border: 1px solid rgba(0,0,0,0.08); background: #fff; color: #1D1D1F; cursor: pointer; transition: all 0.2s; }
+    .filter-btn:hover { border-color: rgba(124,58,237,0.3); color: #7C3AED; }
+    .filter-btn.active { background: #1D1D1F; color: #fff; border-color: #1D1D1F; }
+    .filter-count { margin-left: auto; font-size: 12px; color: #86868B; }
+
+    /* ─── Grid of cards ─── */
     .grid { max-width: 960px; margin: 0 auto; padding: 0 24px 120px; display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px; }
-    .blog-card { border-radius: 16px; background: #F5F5F7; border: 1px solid rgba(0,0,0,0.04); padding: 28px 24px; display: flex; flex-direction: column; gap: 14px; transition: transform 0.3s cubic-bezier(.22,1,.36,1), border-color 0.3s, box-shadow 0.3s; }
+    .blog-card { border-radius: 16px; background: #F5F5F7; border: 1px solid rgba(0,0,0,0.04); padding: 24px; display: flex; flex-direction: column; gap: 12px; transition: transform 0.3s cubic-bezier(.22,1,.36,1), border-color 0.3s, box-shadow 0.3s; }
     .blog-card:hover { transform: translateY(-2px); border-color: rgba(124,58,237,0.2); box-shadow: 0 8px 32px rgba(139,92,246,0.08); }
-    .card-category { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #7C3AED; background: rgba(124,58,237,0.08); padding: 3px 8px; border-radius: 5px; width: fit-content; }
+    .blog-card.hidden { display: none; }
+    .card-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .card-category { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 3px 8px; border-radius: 5px; width: fit-content; }
+    .card-cat-guias { color: #2563eb; background: rgba(37,99,235,0.08); }
+    .card-cat-monetizacion { color: #059669; background: rgba(5,150,105,0.08); }
+    .card-cat-comparativas { color: #7C3AED; background: rgba(124,58,237,0.08); }
+    .card-cat-herramientas { color: #d97706; background: rgba(217,119,6,0.1); }
+    .card-platform { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; padding: 3px 7px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.08); color: #86868B; background: #fff; }
+    .card-platform-telegram { color: #229ED9; border-color: rgba(34,158,217,0.25); }
+    .card-platform-whatsapp { color: #128C7E; border-color: rgba(18,140,126,0.25); }
+    .card-platform-discord { color: #5865F2; border-color: rgba(88,101,242,0.25); }
+    .card-platform-instagram { color: #E1306C; border-color: rgba(225,48,108,0.25); }
+    .card-platform-newsletter { color: #d97706; border-color: rgba(217,119,6,0.25); }
     .blog-card h2 { font-family: 'Instrument Serif', serif; font-size: 20px; font-weight: 400; line-height: 1.3; }
     .blog-card p { font-size: 14px; color: #86868B; line-height: 1.6; flex: 1; }
-    .card-footer { display: flex; justify-content: space-between; padding-top: 14px; border-top: 1px solid rgba(0,0,0,0.04); font-size: 12px; color: #86868B; }
+    .card-footer { display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.04); font-size: 12px; color: #86868B; }
+    .grid-empty { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #86868B; font-size: 14px; }
 
     .grain { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; opacity: 0.028; }
-
     .section-label { max-width: 960px; margin: 0 auto; padding: 0 24px 16px; font-size: 11px; color: #86868B; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+
+    @media (max-width: 640px) {
+      .pillars { grid-template-columns: 1fr 1fr; }
+      .pillar-card { padding: 22px 18px 18px; }
+      .filter-bar { padding: 0 16px; gap: 6px; }
+      .filter-btn { padding: 6px 12px; font-size: 12px; }
+    }
   </style>
 </head>
 <body>
@@ -516,16 +631,23 @@ function build() {
     <div class="stats-grid">
       <div class="stat"><div class="stat-value">${posts.length}</div><div class="stat-label">Articulos</div></div>
       <div class="stat"><div class="stat-value">${totalMinutes} min</div><div class="stat-label">Lectura total</div></div>
-      <div class="stat"><div class="stat-value">${posts[0]?.date?.slice(0, 7) || '2026'}</div><div class="stat-label">Ultima actualizacion</div></div>
+      <div class="stat"><div class="stat-value">${latestHuman}</div><div class="stat-label">Ultima actualizacion</div></div>
     </div>
   </section>
 
-  ${featuredHtml}
+  ${pillarsHtml}
 
   ${restPosts.length > 0 ? `<div class="section-label">Todos los articulos</div>` : ''}
-  <section class="grid">
+  <div class="filter-bar">
+    ${filterButtons}
+    <span class="filter-count" id="filterCount">${restPosts.length} articulos</span>
+  </div>
+  <section class="grid" id="blogGrid">
     ${gridCards}
+    <div class="grid-empty" id="gridEmpty" style="display:none">No hay articulos en esta categoria todavia.</div>
   </section>
+
+  <script src="/blog/filter.js" defer></script>
 
   <footer style="max-width:960px;margin:0 auto;padding:48px 24px;border-top:1px solid rgba(0,0,0,0.08);display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#86868B;flex-wrap:wrap;gap:16px">
     <span>&copy; 2026 <a href="/" style="color:#7C3AED;text-decoration:none">Channelad</a></span>
@@ -563,11 +685,13 @@ function build() {
     { url: '/terminos', priority: '0.3', freq: 'yearly' },
   ];
 
+  // Pillars get higher priority + weekly freq to signal canonical entry points.
+  const PILLAR_SLUGS = new Set(PILLAR_ORDER);
   const blogEntries = posts.map(p => ({
     url: `/blog/${p.slug}`,
-    priority: '0.7',
-    freq: 'monthly',
-    lastmod: p.date,
+    priority: PILLAR_SLUGS.has(p.slug) ? '0.9' : '0.7',
+    freq: PILLAR_SLUGS.has(p.slug) ? 'weekly' : 'monthly',
+    lastmod: p.dateModified || p.date,
   }));
 
   // Include React-only posts (no markdown) in sitemap too
@@ -575,8 +699,8 @@ function build() {
   const reactOnlyPosts = loadReactOnlyPosts(mdSlugs);
   const reactEntries = reactOnlyPosts.map(p => ({
     url: `/blog/${p.slug}`,
-    priority: '0.7',
-    freq: 'monthly',
+    priority: PILLAR_SLUGS.has(p.slug) ? '0.9' : '0.7',
+    freq: PILLAR_SLUGS.has(p.slug) ? 'weekly' : 'monthly',
     lastmod: p.date,
   }));
   if (reactEntries.length > 0) {
