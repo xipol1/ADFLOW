@@ -3,6 +3,7 @@ const router = express.Router();
 const crypto = require('crypto');
 const { ensureDb } = require('../lib/ensureDb');
 const { limitarIntentos } = require('../middleware/rateLimiter');
+const { runAnalysis } = require('../services/calculatorAnalyzer');
 
 // ─── Rate limits ────────────────────────────────────────────────────────────
 // Generosos en granularidad por minuto pero estrictos por día para evitar
@@ -17,6 +18,20 @@ const leadLimiterPerDay = limitarIntentos({
   windowMs: 24 * 60 * 60 * 1000,
   max: 30,
   message: { success: false, message: 'Has alcanzado el límite diario de envíos.' },
+});
+
+// Analyze tiene su propio rate limit — más generoso por minuto pero
+// estricto por día porque cada análisis pega a una fuente externa.
+const analyzeLimiterPerMinute = limitarIntentos({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { success: false, message: 'Demasiadas peticiones de análisis. Espera un minuto.' },
+});
+
+const analyzeLimiterPerDay = limitarIntentos({
+  windowMs: 24 * 60 * 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Has alcanzado el límite diario de análisis.' },
 });
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -246,7 +261,7 @@ router.post('/lead', leadLimiterPerDay, leadLimiterPerMinute, async (req, res) =
         // Notif interna a growth (no bloqueante)
         if (emailService?.sendRaw) {
           emailService.sendRaw({
-            to: 'growth@channelad.io',
+            to: 'contact@channelad.io',
             subject: `[Calc lead] ${cleanSnapshot.platform || '?'} · ${cleanSnapshot.niche || '?'} · ${cleanSnapshot.followers || 0} subs`,
             text: `Email: ${cleanEmail}\nPrecio post: ${cleanSnapshot.featuredFormatPrice} €\nMensual: ${cleanSnapshot.monthlyEarnings} €\nFuente: ${cleanSource}\nUTM: ${JSON.stringify(cleanUtm)}\nDisposable: ${isDisposable(cleanEmail)}\n\nLead ID: ${lead._id}`,
           }).catch(() => {});
@@ -319,6 +334,119 @@ router.get('/unsubscribe', async (req, res) => {
       'Error procesando la baja',
       'Algo ha fallado. Vuelve a intentarlo o escríbenos a contact@channelad.io.'
     ));
+  }
+});
+
+// ─── POST /api/calculator/analyze ───────────────────────────────────────────
+// Recibe { link } público, detecta plataforma, analiza datos públicos del
+// canal y devuelve un snapshot que el frontend usa para pre-rellenar el
+// wizard. Si el link es WhatsApp, devolvemos un redirect al questionnaire.
+router.post('/analyze', analyzeLimiterPerDay, analyzeLimiterPerMinute, async (req, res) => {
+  try {
+    const { link } = req.body || {};
+    if (!link || typeof link !== 'string' || link.length > 500) {
+      return res.status(400).json({ success: false, message: 'Link inválido o demasiado largo' });
+    }
+
+    // Cache lookup ── solo si Mongo disponible. Si falla la BD, ejecutamos
+    // el analyzer de todas formas — el cache es optimización, no requisito.
+    const { detectPlatform } = require('../services/calculatorAnalyzer/platformDetector');
+    const detected = detectPlatform(link);
+
+    let cachedResult = null;
+    let CalculatorAnalysis = null;
+    const dbOk = await ensureDb();
+    if (dbOk && detected) {
+      try {
+        CalculatorAnalysis = require('../models/CalculatorAnalysis');
+        const fingerprint = CalculatorAnalysis.fingerprintOf(detected.platform, detected.externalId);
+        const cached = await CalculatorAnalysis.findOne({
+          fingerprint,
+          expiresAt: { $gt: new Date() },
+        }).lean();
+        if (cached && cached.status === 'ok') {
+          cachedResult = {
+            ok: true,
+            platform: cached.platform,
+            externalId: cached.externalId,
+            normalizedUrl: cached.inputUrl,
+            status: cached.status,
+            data: cached.data,
+            cached: true,
+            scrapedFrom: 'cache',
+            analysisId: cached._id,
+          };
+        }
+      } catch (err) {
+        console.warn('[calculator/analyze] cache lookup failed:', err?.message);
+      }
+    }
+
+    if (cachedResult) {
+      return res.json({ success: true, ...cachedResult });
+    }
+
+    // ── Ejecutar el analyzer ──
+    const result = await runAnalysis(link);
+
+    if (!result.ok) {
+      return res.status(400).json({ success: false, ...result });
+    }
+
+    // ── Persistir (best-effort) ──
+    let analysisId = null;
+    if (dbOk && CalculatorAnalysis && result.platform && result.externalId) {
+      try {
+        const rawIp =
+          req.headers?.['x-forwarded-for']?.split(',')[0]?.trim() ||
+          req.headers?.['x-real-ip'] ||
+          req.ip ||
+          req.socket?.remoteAddress ||
+          '';
+        const ipHash = CalculatorAnalysis.hashIp(rawIp);
+        const fingerprint = CalculatorAnalysis.fingerprintOf(result.platform, result.externalId);
+
+        // Sólo persistimos plataformas que están en el enum del schema
+        const platformEnumMap = {
+          telegram:           'telegram',
+          discord:            'discord',
+          newsletter:         'newsletter',
+          whatsapp:           'whatsapp_channel', // por defecto channel — el group viene aparte
+        };
+        const mappedPlatform = platformEnumMap[result.platform];
+
+        if (mappedPlatform) {
+          const doc = await CalculatorAnalysis.findOneAndUpdate(
+            { fingerprint },
+            {
+              $set: {
+                inputUrl:     result.normalizedUrl || link,
+                platform:     mappedPlatform,
+                externalId:   result.externalId,
+                status:       result.status === 'redirect_questionnaire' ? 'redirect_oauth' : result.status,
+                data:         result.data || {},
+                scrapedFrom:  result.scrapedFrom || 'html_public',
+                durationMs:   result.durationMs || 0,
+                errorMessage: result.errorMessage || '',
+                ipHash,
+                userAgent:    (req.headers?.['user-agent'] || '').slice(0, 500),
+                expiresAt:    new Date(Date.now() + 24 * 60 * 60 * 1000),
+              },
+              $setOnInsert: { fingerprint },
+            },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+          );
+          analysisId = doc._id;
+        }
+      } catch (err) {
+        console.warn('[calculator/analyze] persist failed:', err?.message);
+      }
+    }
+
+    return res.json({ success: true, ...result, analysisId, cached: false });
+  } catch (err) {
+    console.error('[calculator/analyze] error:', err?.message || err);
+    return res.status(500).json({ success: false, message: 'Error analizando el canal' });
   }
 });
 

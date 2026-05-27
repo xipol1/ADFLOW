@@ -12,6 +12,7 @@ import {
 } from '../../lib/channelPricing'
 import WhatsAppQuestionnaire from './WhatsAppQuestionnaire'
 import EmailCaptureCard from './EmailCaptureCard'
+import UrlInputCard from './UrlInputCard'
 import {
   ProgressBar, ChoiceCard, PillCard, WizardSlider, WizardFooter,
 } from './wizardHelpers'
@@ -227,6 +228,18 @@ export default function ChannelCalculator({
     if (currentStep === 'platform') {
       return (
         <div>
+          {/* Atajo: pega el link y autocompletamos los inputs */}
+          <UrlInputCard
+            accent={accent}
+            onAnalyzed={(snapshot) => {
+              if (snapshot.platform) setPlatform(snapshot.platform)
+              if (snapshot.followers) setFollowers(snapshot.followers)
+              // Saltar al Step 3 (datos) — el usuario revisa los sliders
+              // y completa los que falten antes del resultado final.
+              setStepIdx(2)
+            }}
+            onWhatsApp={() => setPlatform('whatsapp')}
+          />
           <StepHeader
             title="¿En qué plataforma está tu canal?"
             subtitle="Cada plataforma tiene un CPM mediano distinto. Selecciona la principal."
