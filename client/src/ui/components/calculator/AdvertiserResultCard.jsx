@@ -14,35 +14,29 @@ function fmtEur(n) {
 }
 
 // ─── AdvertiserResultCard ───────────────────────────────────────────────────
-// Vista del Step 4 cuando role=advertiser. Reemplaza la tarjeta de tarifa
-// del creador por alcance/clicks/comparativa con paid media.
+// Vista del Step 4 cuando role=advertiser. El anunciante introduce un
+// precio por publicación + número de publicaciones; mostramos:
+//   - Card grande: alcance total estimado (suma de todas las publicaciones)
+//   - Línea sutil: alcance por publicación
+//   - Mini-stats:  clicks totales, engaged users, budget total
+//   - Comparativa: Channelad vs Meta/Google al mismo budget total
+//   - CTA grande:  "Ver canales que encajan con mi campaña"
 //
-// Diseño paralelo a la vista de creador para mantener consistencia visual
-// pero con métricas distintas:
-//   - Card grande:  alcance estimado (impresiones)
-//   - Mini-stats:   clicks, engaged users
-//   - Comparativa:  Channelad vs paid media (Meta/Google) con %
-//   - CTA grande:   "Ver canales que encajan" (deeplink al marketplace)
+// Props:
+//   pricePerPost   — €/publicación
+//   postsPlanned   — número de publicaciones planeadas
+//   platform       — id (telegram/whatsapp/discord/newsletter/mixto)
+//   niche          — id del nicho
+//   accent         — color (PURPLE por defecto)
 export default function AdvertiserResultCard({
-  budget, platform, niche, durationWeeks = 4,
+  pricePerPost, postsPlanned = 4, platform, niche,
   accent = PURPLE,
 }) {
-  const r = computeAdvertiserReach({ budget, platform, niche })
-  // Ajuste por duración: si la campaña dura más, el reach total es mensual.
-  // Si dura menos de 4 semanas, escalamos proporcionalmente.
-  const weeks = Math.max(1, Math.min(12, durationWeeks))
-  const monthMult = weeks / 4
-
-  const monthly = {
-    reach:   r.reach   * monthMult,
-    clicks:  r.clicks  * monthMult,
-    engaged: r.engaged * monthMult,
-  }
-  const totalSpend = budget * monthMult
+  const r = computeAdvertiserReach({ pricePerPost, postsPlanned, platform, niche })
 
   return (
     <div style={{ fontFamily: FONT_BODY }}>
-      {/* Tarjeta principal: alcance */}
+      {/* Tarjeta principal: alcance total */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -60,7 +54,7 @@ export default function AdvertiserResultCard({
           fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
           letterSpacing: '0.1em', color: accent, margin: '0 0 8px',
         }}>
-          Alcance estimado · {weeks} {weeks === 1 ? 'semana' : 'semanas'}
+          Alcance total · {postsPlanned} {postsPlanned === 1 ? 'publicación' : 'publicaciones'}
         </p>
         <div style={{
           fontFamily: FONT_DISPLAY, fontSize: 'clamp(32px, 4.5vw, 44px)',
@@ -68,28 +62,39 @@ export default function AdvertiserResultCard({
           color: 'var(--text)', lineHeight: 1,
           fontVariantNumeric: 'tabular-nums',
         }}>
-          {fmtNum(monthly.reach)}
+          {fmtNum(r.reachTotal)}
         </div>
         <p style={{ fontSize: 13.5, color: 'var(--muted)', margin: '10px 0 0', lineHeight: 1.5 }}>
-          Impresiones únicas estimadas con un presupuesto de <strong style={{ color: 'var(--text)' }}>{fmtEur(totalSpend)}</strong>{' '}
-          ({fmtEur(budget)} / mes durante {weeks} {weeks === 1 ? 'semana' : 'semanas'})
+          Impresiones únicas estimadas · <strong style={{ color: 'var(--text)' }}>{fmtNum(r.reachPerPost)}</strong> por publicación
+          {' '}· budget total <strong style={{ color: 'var(--text)' }}>{fmtEur(r.totalBudget)}</strong>
         </p>
       </motion.div>
 
-      {/* Mini-stats: clicks + engaged */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 18 }}>
+      {/* Mini-stats: clicks + engaged + CPC */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+        gap: 10, marginBottom: 18,
+      }}>
         <MiniStat
           icon={MousePointerClick}
           label="Clicks estimados"
-          value={fmtNum(monthly.clicks)}
+          value={fmtNum(r.clicksTotal)}
           sub={`CPC efectivo ${fmtEur(r.cpcEffective)}`}
           accent={accent}
         />
         <MiniStat
           icon={TrendingUp}
           label="Engaged users"
-          value={fmtNum(monthly.engaged)}
+          value={fmtNum(r.engagedTotal)}
           sub="Usuarios activos viendo el anuncio"
+          accent={accent}
+        />
+        <MiniStat
+          icon={Users}
+          label="Por publicación"
+          value={fmtNum(r.reachPerPost)}
+          sub={`${fmtNum(r.clicksPerPost)} clicks/post`}
           accent={accent}
         />
       </div>
@@ -108,27 +113,27 @@ export default function AdvertiserResultCard({
             fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
             letterSpacing: '0.1em', color: 'var(--muted)',
           }}>
-            Frente al mismo presupuesto en Meta / Google Ads
+            Frente al mismo budget en Meta / Google Ads
           </span>
         </div>
         <ComparisonBar
           label="Channelad"
-          value={r.reach}
-          baseline={r.reach}
+          value={r.reachTotal}
+          baseline={r.reachTotal}
           accent={accent}
           sub={`+${Math.round(r.reachDeltaPct)}% más alcance · CPC ${fmtEur(r.cpcEffective)}`}
         />
         <ComparisonBar
           label="Meta / Google Ads"
           value={r.paidEquivalent.reach}
-          baseline={r.reach}
+          baseline={r.reachTotal}
           accent="rgba(99,102,241,0.55)"
           sub={`Mismo budget compraría ${fmtNum(r.paidEquivalent.reach)} impresiones genéricas`}
         />
       </div>
 
       <a
-        href={`/marketplace?utm_source=calculator&utm_medium=advertiser_cta&budget=${budget}&platform=${platform}&niche=${niche}`}
+        href={`/marketplace?utm_source=calculator&utm_medium=advertiser_cta&price_per_post=${pricePerPost}&posts=${postsPlanned}&platform=${platform}&niche=${niche}`}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           width: '100%', boxSizing: 'border-box',

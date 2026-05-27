@@ -193,8 +193,10 @@ export default function ChannelCalculator({
   const [format, setFormat] = useState(initialState.format ?? 'standard')
 
   // ── Inputs de modo anunciante ──
-  const [budget, setBudget] = useState(initialState.budget ?? 500)
-  const [durationWeeks, setDurationWeeks] = useState(initialState.durationWeeks ?? 4)
+  // Un anunciante razona en "precio por publicación" + "número de
+  // publicaciones que compro", no en "presupuesto mensual abstracto".
+  const [pricePerPost, setPricePerPost] = useState(initialState.pricePerPost ?? 100)
+  const [postsPlanned, setPostsPlanned] = useState(initialState.postsPlanned ?? 4)
 
   // Datos opcionales del canal que vienen del analyzer del link (no inputs
   // del wizard). Si están, el MediaKitScoreCard puede evaluar los items de
@@ -370,29 +372,30 @@ export default function ChannelCalculator({
     if (currentStep === 'numbers') {
       // Inputs distintos según el rol del usuario
       if (isAdvertiser) {
+        const totalBudget = pricePerPost * postsPlanned
         return (
           <div>
             <StepHeader
               title="Tu campaña"
-              subtitle="Ajusta presupuesto y duración. El alcance se calcula en directo."
+              subtitle="Ajusta el precio por publicación y cuántas publicaciones planeas. El alcance se calcula en directo."
             />
             <WizardSlider
-              label="Presupuesto mensual"
-              value={budget}
-              min={50} max={10000} step={50}
-              onChange={setBudget}
+              label="Precio por publicación"
+              value={pricePerPost}
+              min={20} max={5000} step={10}
+              onChange={setPricePerPost}
               formatValue={(v) => v.toLocaleString('es-ES') + ' €'}
               accent={accent}
-              hint="Lo que el anunciante pone en escrow al lanzar la campaña. Channelad cobra el 20% de comisión sobre este importe."
+              hint="Lo que pagas a Channelad por un post patrocinado en el canal elegido. La comisión del 20% va incluida en este importe — el creador recibe el precio íntegro que él lista."
             />
             <WizardSlider
-              label="Duración de la campaña"
-              value={durationWeeks}
-              min={1} max={12} step={1}
-              onChange={setDurationWeeks}
-              formatValue={(v) => v === 1 ? '1 semana' : `${v} semanas`}
+              label="Publicaciones planeadas"
+              value={postsPlanned}
+              min={1} max={30} step={1}
+              onChange={setPostsPlanned}
+              formatValue={(v) => v === 1 ? '1 publicación' : `${v} publicaciones`}
               accent={accent}
-              hint="Cuánto dura activa la campaña. Las semanales (1-2) son típicas para promos puntuales; 4-8 semanas para sostenidas."
+              hint={`Cuántos posts patrocinados compras en total. Budget total: ${totalBudget.toLocaleString('es-ES')} €.`}
             />
           </div>
         )
@@ -445,10 +448,10 @@ export default function ChannelCalculator({
               subtitle="Estimación basada en CPMs medianos de canales reales del marketplace. Cambia presupuesto en el paso anterior para recalcular."
             />
             <AdvertiserResultCard
-              budget={budget}
+              pricePerPost={pricePerPost}
+              postsPlanned={postsPlanned}
               platform={platform}
               niche={niche}
-              durationWeeks={durationWeeks}
               accent={accent}
             />
 
