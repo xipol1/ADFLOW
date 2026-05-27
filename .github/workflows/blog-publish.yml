@@ -53,13 +53,12 @@ jobs:
 
       - name: Push empty commit to trigger Vercel build
         if: steps.detect.outputs.count != '0'
+        env:
+          TODAY: ${{ steps.detect.outputs.today }}
+          SLUGS: ${{ steps.detect.outputs.slugs }}
         run: |
           git config user.name "channelad-blog-bot"
           git config user.email "blog-bot@channelad.io"
-          git commit --allow-empty -m "chore(blog): scheduled publish for ${{ steps.detect.outputs.today }}
-
-Materializes scheduled post(s): ${{ steps.detect.outputs.slugs }}
-
-Triggered by .github/workflows/blog-publish.yml. The blog builder filters
-by date <= today and emits HTML for any post whose date has just arrived."
+          MSG=$(printf 'chore(blog): scheduled publish for %s\n\nMaterializes scheduled post(s): %s\n\nTriggered by .github/workflows/blog-publish.yml. The blog builder filters by date <= today and emits HTML for any post whose date has just arrived.' "$TODAY" "$SLUGS")
+          git commit --allow-empty -m "$MSG"
           git push origin HEAD:main
