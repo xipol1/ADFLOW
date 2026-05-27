@@ -450,4 +450,153 @@ router.post('/analyze', analyzeLimiterPerDay, analyzeLimiterPerMinute, async (re
   }
 });
 
+// ─── GET /api/calculator/benchmark ──────────────────────────────────────────
+// Devuelve percentiles agregados de la cohorte (plataforma + nicho + bucket
+// de tamaño) sobre los canales actualmente en seguimiento. No expone datos
+// individuales — solo p25/p50/p75/p95, sampleSize, y dónde queda el canal
+// del usuario.
+//
+// Query params:
+//   platform   — telegram|whatsapp|discord|newsletter
+//   niche      — id del nicho (cripto, finanzas, b2bsaas, ...)
+//   followers  — número de suscriptores del canal del usuario (para situarlo)
+//
+// Rate limit reusa el de analyze: lectura barata pero no abusar.
+const benchmarkLimiter = limitarIntentos({
+  windowMs: 60 * 1000,
+  max: 20,
+  message: { success: false, message: 'Demasiadas consultas. Espera un minuto.' },
+});
+
+// Mapeo de nicho ID (del wizard) → patrón regex que matchea Canal.categoria
+// (texto libre en DB). El admin a veces escribe "Cripto", a veces "Crypto",
+// a veces "Cripto / Trading". Hacemos lookup case-insensitive y tolerante.
+const NICHE_CATEGORY_PATTERNS = {
+  finanzas:        /finanz|invers/i,
+  b2bsaas:         /b2b|saas/i,
+  cripto:          /cripto|crypto|trading/i,
+  tech:            /tecnolog|tech|software/i,
+  educacion:       /educac|cursos|formaci/i,
+  marketing:       /marketing|negoc/i,
+  ecommerce:       /e-commerce|ecommerce|tiend/i,
+  fitness:         /fitness|salud|deport/i,
+  lifestyle:       /lifestyle|moda/i,
+  gaming:          /gaming|videojueg/i,
+  noticias:        /notici|actualid/i,
+  entretenimiento: /entreteni|memes|humor/i,
+};
+
+// Buckets de tamaño (en suscriptores) para la cohorte
+const SIZE_BUCKETS = [
+  { id: 'xs', label: 'menos de 1K',  min: 0,      max: 999 },
+  { id: 'sm', label: '1K – 5K',      min: 1000,   max: 4999 },
+  { id: 'md', label: '5K – 20K',     min: 5000,   max: 19999 },
+  { id: 'lg', label: '20K – 100K',   min: 20000,  max: 99999 },
+  { id: 'xl', label: 'más de 100K',  min: 100000, max: 100_000_000 },
+];
+
+function bucketForFollowers(n) {
+  return SIZE_BUCKETS.find((b) => n >= b.min && n <= b.max) || SIZE_BUCKETS[2];
+}
+
+// Calcula el percentil p (0-100) en un array de números.
+function percentile(arr, p) {
+  if (!arr.length) return null;
+  const sorted = [...arr].sort((a, b) => a - b);
+  const idx = Math.min(sorted.length - 1, Math.max(0, Math.floor((p / 100) * sorted.length)));
+  return sorted[idx];
+}
+
+// Dónde queda `value` dentro del array (en %).
+function whichPercentile(arr, value) {
+  if (!arr.length) return null;
+  const sorted = [...arr].sort((a, b) => a - b);
+  // Cuántos elementos son menores o iguales que value
+  let below = 0;
+  for (const v of sorted) { if (v < value) below++; else break; }
+  return Math.round((below / sorted.length) * 100);
+}
+
+router.get('/benchmark', benchmarkLimiter, async (req, res) => {
+  try {
+    const platform  = String(req.query.platform || '').toLowerCase().trim();
+    const nicheId   = String(req.query.niche    || '').toLowerCase().trim();
+    const followers = parseInt(req.query.followers, 10);
+
+    if (!platform || !nicheId || !Number.isFinite(followers) || followers < 0) {
+      return res.status(400).json({ success: false, message: 'Parámetros inválidos' });
+    }
+
+    const nichePattern = NICHE_CATEGORY_PATTERNS[nicheId];
+    if (!nichePattern) {
+      return res.status(400).json({ success: false, message: 'Nicho no reconocido' });
+    }
+
+    if (!(await ensureDb())) {
+      return res.status(503).json({ success: false, message: 'DB unavailable' });
+    }
+
+    const bucket = bucketForFollowers(followers);
+    const Canal = require('../models/Canal');
+
+    // Agregación: cohorte = (plataforma OR todas si "mixed") + nicho regex +
+    // bucket de tamaño + estado válido.
+    const match = {
+      plataforma: platform,
+      categoria: { $regex: nichePattern },
+      estado: { $in: ['activo', 'verificado', 'aprobado'] },
+      'estadisticas.seguidores': { $gte: bucket.min, $lte: bucket.max },
+    };
+
+    const rows = await Canal.aggregate([
+      { $match: match },
+      { $project: { subs: '$estadisticas.seguidores', price: '$precio' } },
+      { $limit: 500 }, // safety cap
+    ]);
+
+    const sampleSize = rows.length;
+
+    // Si no hay suficientes datos en la cohorte estricta, ampliamos:
+    // mismo platform + nicho pero SIN restringir bucket (más amplio).
+    let fallbackUsed = false;
+    let workingRows = rows;
+    if (sampleSize < 5) {
+      fallbackUsed = true;
+      workingRows = await Canal.aggregate([
+        { $match: { ...match, 'estadisticas.seguidores': { $gte: 100 } } },
+        { $project: { subs: '$estadisticas.seguidores', price: '$precio' } },
+        { $limit: 500 },
+      ]);
+    }
+
+    const subsArr  = workingRows.map((r) => r.subs).filter((n) => Number.isFinite(n) && n > 0);
+    const priceArr = workingRows.map((r) => r.price).filter((n) => Number.isFinite(n) && n > 0);
+
+    return res.json({
+      success: true,
+      platform,
+      niche: nicheId,
+      bucket: { id: bucket.id, label: bucket.label, min: bucket.min, max: bucket.max },
+      sampleSize: subsArr.length,
+      fallbackUsed,           // true si tuvimos que ampliar fuera del bucket
+      yourFollowers: followers,
+      yourPercentile: whichPercentile(subsArr, followers),
+      subscribers: {
+        p25: percentile(subsArr, 25),
+        p50: percentile(subsArr, 50),
+        p75: percentile(subsArr, 75),
+        p95: percentile(subsArr, 95),
+      },
+      price: {
+        p25: percentile(priceArr, 25),
+        p50: percentile(priceArr, 50),
+        p75: percentile(priceArr, 75),
+      },
+    });
+  } catch (err) {
+    console.error('[calculator/benchmark] error:', err?.message || err);
+    return res.status(500).json({ success: false, message: 'Error obteniendo benchmark' });
+  }
+});
+
 module.exports = router;

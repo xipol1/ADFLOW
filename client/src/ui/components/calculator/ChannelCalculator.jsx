@@ -13,6 +13,8 @@ import {
 import WhatsAppQuestionnaire from './WhatsAppQuestionnaire'
 import EmailCaptureCard from './EmailCaptureCard'
 import UrlInputCard from './UrlInputCard'
+import MediaKitScoreCard from './MediaKitScoreCard'
+import BenchmarkCard from './BenchmarkCard'
 import {
   ProgressBar, ChoiceCard, PillCard, WizardSlider, WizardFooter,
 } from './wizardHelpers'
@@ -177,6 +179,16 @@ export default function ChannelCalculator({
   const [postsPerMonth, setPosts] = useState(initialState.postsPerMonth ?? 4)
   const [format, setFormat] = useState(initialState.format ?? 'standard')
 
+  // Datos opcionales del canal que vienen del analyzer del link (no inputs
+  // del wizard). Si están, el MediaKitScoreCard puede evaluar los items de
+  // foto, descripción, nombre, verified. Si no, esos items fallan (honesto).
+  const [channelMeta, setChannelMeta] = useState({
+    name:         initialState.name         ?? '',
+    description:  initialState.description  ?? '',
+    profileImage: initialState.profileImage ?? '',
+    verified:     initialState.verified     ?? false,
+  })
+
   // ── Modo WhatsApp: si la plataforma elegida es WhatsApp, sustituimos el
   //    wizard normal por el cuestionario WA. WhatsApp no expone datos
   //    públicamente, así que su flujo es distinto y termina en un CTA de
@@ -234,6 +246,14 @@ export default function ChannelCalculator({
             onAnalyzed={(snapshot) => {
               if (snapshot.platform) setPlatform(snapshot.platform)
               if (snapshot.followers) setFollowers(snapshot.followers)
+              // Guardar metadatos del canal para que el MediaKitScoreCard
+              // pueda evaluar foto/descripción/verified más adelante.
+              setChannelMeta({
+                name:         snapshot.name         || '',
+                description:  snapshot.description  || '',
+                profileImage: snapshot.profileImage || '',
+                verified:     !!snapshot.verified,
+              })
               // Saltar al Step 3 (datos) — el usuario revisa los sliders
               // y completa los que falten antes del resultado final.
               setStepIdx(2)
@@ -448,6 +468,26 @@ export default function ChannelCalculator({
               />
             </div>
           )}
+
+          {/* Score media-kit ready — diagnóstico visual antes de la captura */}
+          <MediaKitScoreCard
+            snapshot={{
+              platform, niche, followers, reactionsPerPost, postsPerMonth, format,
+              name:         channelMeta.name,
+              description:  channelMeta.description,
+              profileImage: channelMeta.profileImage,
+              verified:     channelMeta.verified,
+            }}
+            accent={accent}
+          />
+
+          {/* Benchmark vs cohorte (plataforma + nicho + tamaño) */}
+          <BenchmarkCard
+            platform={platform}
+            niche={niche}
+            followers={followers}
+            accent={accent}
+          />
 
           {/* Captura email — opt-in opcional para recibir el reporte detallado */}
           <EmailCaptureCard
