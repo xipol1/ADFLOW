@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import SEO from '../../components/SEO'
 import CrossLinks from '../../components/landing/CrossLinks'
-import EarningsCalculator from '../../components/landing/EarningsCalculator'
+import ChannelCalculator from '../../components/calculator/ChannelCalculator'
 import EscrowFlowAnimation from '../../components/landing/EscrowFlowAnimation'
 import RotatingWord from '../../components/landing/RotatingWord'
 import PhoneFrame from '../../components/landing/PhoneFrame'
@@ -603,8 +603,8 @@ export default function WhatsAppPage() {
         </div>
       </Section>
 
-      {/* 3 · EARNINGS CALCULATOR */}
-      <EarningsCalculator background="transparent" />
+      {/* 3 · CHANNEL CALCULATOR — followers + reactions + format → precio/ingreso */}
+      <ChannelCalculator variant="landing" background="transparent" initialState={{ platform: 'whatsapp' }} />
 
       {/* 4 · CÓMO FUNCIONA — phone real cambiando con cada step */}
       <Section style={{ padding: '110px 48px', background: 'var(--bg2)' }}>
