@@ -17,6 +17,7 @@ import MediaKitScoreCard from './MediaKitScoreCard'
 import BenchmarkCard from './BenchmarkCard'
 import MultiChannelInput from './MultiChannelInput'
 import MediaKitConsolidated from './MediaKitConsolidated'
+import AdvertiserResultCard from './AdvertiserResultCard'
 import {
   ProgressBar, ChoiceCard, PillCard, WizardSlider, WizardFooter,
 } from './wizardHelpers'
@@ -161,12 +162,22 @@ export default function ChannelCalculator({
   title,
   subtitle,
   initialState = {},
+  initialRole = null,    // 'creator' | 'advertiser' | null (muestra toggle)
 } = {}) {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
 
+  // ── Rol del usuario: creator (default) o advertiser. Si initialRole se
+  //    pasa por prop (páginas dedicadas /para-canales o /para-anunciantes),
+  //    no mostramos el toggle. Si no, el usuario puede cambiar libremente. ──
+  const [role, setRole] = useState(initialRole || 'creator')
+  const showRoleToggle = !initialRole
+
+  const isAdvertiser = role === 'advertiser'
   const isBlog = variant === 'blog'
-  const accent = isBlog ? PURPLE : GREEN
+  // Accent: advertiser siempre púrpura (paleta del anunciante en el sitio);
+  // creator es verde, salvo en blog que es púrpura para encajar con el artículo.
+  const accent = isAdvertiser ? PURPLE : (isBlog ? PURPLE : GREEN)
   const includeComparison = showComparison ?? (variant === 'landing')
 
   // ── Estado del wizard ──
@@ -180,6 +191,10 @@ export default function ChannelCalculator({
   const [reactionsPerPost, setReactions] = useState(initialState.reactionsPerPost ?? 120)
   const [postsPerMonth, setPosts] = useState(initialState.postsPerMonth ?? 4)
   const [format, setFormat] = useState(initialState.format ?? 'standard')
+
+  // ── Inputs de modo anunciante ──
+  const [budget, setBudget] = useState(initialState.budget ?? 500)
+  const [durationWeeks, setDurationWeeks] = useState(initialState.durationWeeks ?? 4)
 
   // Datos opcionales del canal que vienen del analyzer del link (no inputs
   // del wizard). Si están, el MediaKitScoreCard puede evaluar los items de
@@ -353,6 +368,35 @@ export default function ChannelCalculator({
     }
 
     if (currentStep === 'numbers') {
+      // Inputs distintos según el rol del usuario
+      if (isAdvertiser) {
+        return (
+          <div>
+            <StepHeader
+              title="Tu campaña"
+              subtitle="Ajusta presupuesto y duración. El alcance se calcula en directo."
+            />
+            <WizardSlider
+              label="Presupuesto mensual"
+              value={budget}
+              min={50} max={10000} step={50}
+              onChange={setBudget}
+              formatValue={(v) => v.toLocaleString('es-ES') + ' €'}
+              accent={accent}
+              hint="Lo que el anunciante pone en escrow al lanzar la campaña. Channelad cobra el 20% de comisión sobre este importe."
+            />
+            <WizardSlider
+              label="Duración de la campaña"
+              value={durationWeeks}
+              min={1} max={12} step={1}
+              onChange={setDurationWeeks}
+              formatValue={(v) => v === 1 ? '1 semana' : `${v} semanas`}
+              accent={accent}
+              hint="Cuánto dura activa la campaña. Las semanales (1-2) son típicas para promos puntuales; 4-8 semanas para sostenidas."
+            />
+          </div>
+        )
+      }
       return (
         <div>
           <StepHeader
@@ -392,6 +436,40 @@ export default function ChannelCalculator({
     }
 
     if (currentStep === 'result') {
+      // Vista de anunciante: alcance/clicks/comparativa con paid media.
+      if (isAdvertiser) {
+        return (
+          <div>
+            <StepHeader
+              title="Lo que consigues con tu campaña"
+              subtitle="Estimación basada en CPMs medianos de canales reales del marketplace. Cambia presupuesto en el paso anterior para recalcular."
+            />
+            <AdvertiserResultCard
+              budget={budget}
+              platform={platform}
+              niche={niche}
+              durationWeeks={durationWeeks}
+              accent={accent}
+            />
+
+            {/* Empezar de nuevo */}
+            <div style={{ marginTop: 22, textAlign: 'center' }}>
+              <button
+                type="button"
+                onClick={reset}
+                style={{
+                  background: 'none', border: 'none',
+                  color: 'var(--muted)', fontSize: 13, fontWeight: 500,
+                  cursor: 'pointer', fontFamily: FONT_BODY,
+                }}
+              >
+                ← Empezar de nuevo
+              </button>
+            </div>
+          </div>
+        )
+      }
+
       return (
         <div>
           {/* Media kit consolidado: solo cuando hay >=2 canales analizados */}
@@ -648,10 +726,13 @@ export default function ChannelCalculator({
 
   const HeaderEl = (
     <div style={{ textAlign: 'center', marginBottom: 'clamp(28px, 4vw, 48px)' }}>
+      {showRoleToggle && (
+        <RoleToggle role={role} onChange={(r) => { setRole(r); reset() }} />
+      )}
       <p style={{
         fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
         letterSpacing: '0.12em', color: accent, marginBottom: 14,
-      }}>Calculadora de tarifa</p>
+      }}>{isAdvertiser ? 'Calculadora de campaña' : 'Calculadora de tarifa'}</p>
       <h2 style={{
         fontFamily: FONT_DISPLAY, fontWeight: 700,
         fontSize: isBlog ? 'clamp(22px, 3vw, 30px)' : 'clamp(28px, 4vw, 44px)',
@@ -722,6 +803,55 @@ export default function ChannelCalculator({
         {FooterEl}
       </div>
     </section>
+  )
+}
+
+// ─── RoleToggle: Creador / Anunciante (solo si la calc no tiene initialRole) ──
+function RoleToggle({ role, onChange }) {
+  return (
+    <div style={{
+      display: 'inline-flex',
+      background: 'var(--bg2)',
+      borderRadius: 999,
+      padding: 4,
+      gap: 4,
+      marginBottom: 20,
+      border: '1px solid var(--border)',
+    }}>
+      <RoleButton active={role === 'creator'}    onClick={() => onChange('creator')}    color={GREEN}  label="Soy creador" sub="Calcular mi tarifa" />
+      <RoleButton active={role === 'advertiser'} onClick={() => onChange('advertiser')} color={PURPLE} label="Soy anunciante" sub="Calcular mi alcance" />
+    </div>
+  )
+}
+
+function RoleButton({ active, onClick, color, label, sub }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        padding: '8px 18px',
+        borderRadius: 999,
+        border: 'none',
+        background: active ? 'var(--surface)' : 'transparent',
+        color: active ? color : 'var(--muted)',
+        fontFamily: FONT_BODY,
+        fontSize: 13,
+        fontWeight: active ? 600 : 500,
+        cursor: 'pointer',
+        boxShadow: active ? '0 2px 6px rgba(15,23,42,0.10)' : 'none',
+        transition: 'all 0.2s',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {label}
+      {sub && (
+        <span style={{
+          fontSize: 11, color: 'var(--muted)', fontWeight: 500,
+          marginLeft: 8, display: 'inline-block',
+        }}>· {sub}</span>
+      )}
+    </button>
   )
 }
 

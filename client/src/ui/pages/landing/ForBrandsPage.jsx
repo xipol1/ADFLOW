@@ -22,7 +22,7 @@ import SettlementCard from '../../components/landing/hero/SettlementCard'
 import CampaignFlow from '../../components/landing/CampaignFlow'
 import ComparisonSection from '../../components/landing/ComparisonSection'
 import EscrowFlowAnimation from '../../components/landing/EscrowFlowAnimation'
-import ROICalculator from '../../components/landing/ROICalculator'
+import ChannelCalculator from '../../components/calculator/ChannelCalculator'
 import {
   PURPLE as A,
   purpleAlpha as AG,
@@ -1251,11 +1251,16 @@ export default function ForBrandsPage() {
       <EscrowFlowAnimation background="transparent" sectionId="escrow-flow" />
 
       {/* ══════════════════════════════════════════════════════════════════
-          8 · ROI CALCULATOR — interactive sliders (budget · platform · niche)
-             Reuses ROICalculator from main landing. Lets the user simulate
-             reach/clicks/engagement before reaching Pricing.
+          8 · CALCULADORA DE CAMPAÑA — el mismo ChannelCalculator unificado
+             pero con role="advertiser": inputs presupuesto + duración,
+             outputs alcance + comparativa con Meta/Google.
           ══════════════════════════════════════════════════════════════════ */}
-      <ROICalculator background="transparent" sectionId="calculadora" />
+      <ChannelCalculator
+        variant="landing"
+        sectionId="calculadora"
+        background="transparent"
+        initialRole="advertiser"
+      />
 
       {/* ══════════════════════════════════════════════════════════════════
           9 · PRICING — premium 2-col card with savings example + CTA
