@@ -47,12 +47,12 @@ function extractMetaContent(html, property) {
 
 function extractSubscribers(html) {
   // El número aparece en <div class="tgme_page_extra">8 542 subscribers, ...</div>
-  // o "members" para grupos. Telegram usa NBSP ( ) como separador de miles.
+  // o "members" para grupos. Telegram usa NBSP ( ) como separador de miles.
   const blockMatch = html.match(/<div class="tgme_page_extra">([\s\S]*?)<\/div>/);
   if (!blockMatch) return null;
   const text = blockMatch[1].replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ');
   // Buscar "N subscribers" o "N members" (en inglés siempre)
-  const m = text.match(/([\d][\d\s., ]*)\s*(?:subscribers?|members?)/i);
+  const m = text.match(/([\d][\d\s., ]*)\s*(?:subscribers?|members?)/i);
   if (!m) return null;
   const cleaned = m[1].replace(/[^\d]/g, '');
   const n = parseInt(cleaned, 10);

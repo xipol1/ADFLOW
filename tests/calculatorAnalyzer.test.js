@@ -6,8 +6,6 @@
  * Substack en producción.
  */
 
-const path = require('path');
-
 // El platformDetector es pure, sin I/O — test directo.
 const { detectPlatform, normalizeUrl } = require('../services/calculatorAnalyzer/platformDetector');
 const telegramAnalyzer  = require('../services/calculatorAnalyzer/telegramAnalyzer');
@@ -146,8 +144,8 @@ describe('telegramAnalyzer', () => {
   });
 
   test('handles HTML with NBSP separator in subscriber count', () => {
-    // Telegram usa NBSP ( ) entre dígitos para miles
-    const html = '<div class="tgme_page_extra">12 345 subscribers</div>';
+    // Telegram usa NBSP ( ) entre dígitos para miles
+    const html = '<div class="tgme_page_extra">12 345 subscribers</div>';
     const subs = telegramAnalyzer._extractSubscribers(html);
     expect(subs).toBe(12345);
   });

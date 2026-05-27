@@ -81,7 +81,7 @@ function extractBeehiivSubs(html) {
  * analyze({ externalId, normalizedUrl, subtype })
  *   subtype: 'substack' | 'beehiiv'  (lo pasa el detector)
  */
-async function analyze({ externalId, normalizedUrl, subtype }) {
+async function analyze({ externalId: _externalId, normalizedUrl, subtype }) {
   if (!normalizedUrl || !subtype) {
     return { status: 'failed', errorMessage: 'invalid_newsletter_url', data: {} };
   }
