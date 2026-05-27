@@ -15,6 +15,8 @@ import EmailCaptureCard from './EmailCaptureCard'
 import UrlInputCard from './UrlInputCard'
 import MediaKitScoreCard from './MediaKitScoreCard'
 import BenchmarkCard from './BenchmarkCard'
+import MultiChannelInput from './MultiChannelInput'
+import MediaKitConsolidated from './MediaKitConsolidated'
 import {
   ProgressBar, ChoiceCard, PillCard, WizardSlider, WizardFooter,
 } from './wizardHelpers'
@@ -189,6 +191,13 @@ export default function ChannelCalculator({
     verified:     initialState.verified     ?? false,
   })
 
+  // Media-kit multi-canal: cuando hay 2+ canales analizados, Step 4 muestra
+  // la vista consolidada en lugar de la tarjeta single. Cada canal tiene
+  // su propio platform + followers; nicho/reacciones/posts/format son
+  // compartidos por todos.
+  const [multiMode, setMultiMode] = useState(false)
+  const [multiChannels, setMultiChannels] = useState([])
+
   // ── Modo WhatsApp: si la plataforma elegida es WhatsApp, sustituimos el
   //    wizard normal por el cuestionario WA. WhatsApp no expone datos
   //    públicamente, así que su flujo es distinto y termina en un CTA de
@@ -240,26 +249,59 @@ export default function ChannelCalculator({
     if (currentStep === 'platform') {
       return (
         <div>
-          {/* Atajo: pega el link y autocompletamos los inputs */}
-          <UrlInputCard
-            accent={accent}
-            onAnalyzed={(snapshot) => {
-              if (snapshot.platform) setPlatform(snapshot.platform)
-              if (snapshot.followers) setFollowers(snapshot.followers)
-              // Guardar metadatos del canal para que el MediaKitScoreCard
-              // pueda evaluar foto/descripción/verified más adelante.
-              setChannelMeta({
-                name:         snapshot.name         || '',
-                description:  snapshot.description  || '',
-                profileImage: snapshot.profileImage || '',
-                verified:     !!snapshot.verified,
-              })
-              // Saltar al Step 3 (datos) — el usuario revisa los sliders
-              // y completa los que falten antes del resultado final.
-              setStepIdx(2)
-            }}
-            onWhatsApp={() => setPlatform('whatsapp')}
-          />
+          {/* Toggle modo: 1 canal vs media kit (varios canales) */}
+          <ModeToggle multiMode={multiMode} onChange={setMultiMode} accent={accent} />
+
+          {/* Atajo: pega el link (single) o varios links (media kit) */}
+          {multiMode ? (
+            <MultiChannelInput
+              accent={accent}
+              onSwitchToSingle={() => { setMultiMode(false); setMultiChannels([]) }}
+              onAnalyzedAll={(channels) => {
+                setMultiChannels(channels)
+                // Si todos los canales tienen una plataforma común, la
+                // ponemos en el state; si no, dejamos la actual.
+                const platforms = new Set(channels.map((c) => c.platform).filter(Boolean))
+                if (platforms.size === 1) {
+                  setPlatform([...platforms][0])
+                }
+                // Usar el canal más grande como representante para metadata
+                const biggest = [...channels].sort((a, b) => (b.followers || 0) - (a.followers || 0))[0]
+                if (biggest) {
+                  setFollowers(biggest.followers || 0)
+                  setChannelMeta({
+                    name:         biggest.name || '',
+                    description:  biggest.description || '',
+                    profileImage: biggest.profileImage || '',
+                    verified:     !!biggest.verified,
+                  })
+                }
+                // Saltar a Step 2 (nicho) — el creador comparte nicho
+                // entre todos sus canales en >90% de los casos.
+                setStepIdx(1)
+              }}
+            />
+          ) : (
+            <UrlInputCard
+              accent={accent}
+              onAnalyzed={(snapshot) => {
+                if (snapshot.platform) setPlatform(snapshot.platform)
+                if (snapshot.followers) setFollowers(snapshot.followers)
+                // Guardar metadatos del canal para que el MediaKitScoreCard
+                // pueda evaluar foto/descripción/verified más adelante.
+                setChannelMeta({
+                  name:         snapshot.name         || '',
+                  description:  snapshot.description  || '',
+                  profileImage: snapshot.profileImage || '',
+                  verified:     !!snapshot.verified,
+                })
+                // Saltar al Step 3 (datos) — el usuario revisa los sliders
+                // y completa los que falten antes del resultado final.
+                setStepIdx(2)
+              }}
+              onWhatsApp={() => setPlatform('whatsapp')}
+            />
+          )}
           <StepHeader
             title="¿En qué plataforma está tu canal?"
             subtitle="Cada plataforma tiene un CPM mediano distinto. Selecciona la principal."
@@ -352,9 +394,27 @@ export default function ChannelCalculator({
     if (currentStep === 'result') {
       return (
         <div>
+          {/* Media kit consolidado: solo cuando hay >=2 canales analizados */}
+          {multiMode && multiChannels.length >= 2 && (
+            <div style={{ marginBottom: 28, paddingBottom: 24, borderBottom: '1px solid var(--border)' }}>
+              <MediaKitConsolidated
+                channels={multiChannels}
+                niche={niche}
+                reactionsPerPost={reactionsPerPost}
+                postsPerMonth={postsPerMonth}
+                format={format}
+                accent={accent}
+              />
+            </div>
+          )}
+
           <StepHeader
-            title="Tu tarifa"
-            subtitle="Estimación basada en tus respuestas y CPMs medianos de +2.500 canales en seguimiento propio."
+            title={multiMode && multiChannels.length >= 2 ? 'Tarifa por canal' : 'Tu tarifa'}
+            subtitle={
+              multiMode && multiChannels.length >= 2
+                ? 'Estos son los detalles del canal principal del media kit. Cambia formato para ver cómo varía.'
+                : 'Estimación basada en tus respuestas y CPMs medianos de +2.500 canales en seguimiento propio.'
+            }
           />
 
           {/* Selector de formato */}
@@ -676,6 +736,55 @@ function StepHeader({ title, subtitle }) {
       <p style={{ fontSize: 14, color: 'var(--muted)', margin: 0, lineHeight: 1.55 }}>
         {subtitle}
       </p>
+    </div>
+  )
+}
+
+// ─── ModeToggle: 1 canal vs Media kit (2-5) ────────────────────────────────
+function ModeToggle({ multiMode, onChange, accent }) {
+  const Option = ({ value, label, sub }) => {
+    const active = multiMode === value
+    return (
+      <button
+        type="button"
+        onClick={() => onChange(value)}
+        style={{
+          flex: 1,
+          padding: '10px 14px',
+          borderRadius: 10,
+          border: 'none',
+          background: active ? 'var(--surface)' : 'transparent',
+          color: active ? 'var(--text)' : 'var(--muted)',
+          fontFamily: FONT_BODY,
+          fontSize: 13,
+          fontWeight: active ? 600 : 500,
+          cursor: 'pointer',
+          textAlign: 'center',
+          boxShadow: active ? '0 2px 6px rgba(15,23,42,0.08)' : 'none',
+          transition: 'all 0.2s',
+        }}
+      >
+        <div>{label}</div>
+        {sub && (
+          <div style={{
+            fontSize: 11, color: active ? accent : 'var(--muted)',
+            marginTop: 2, fontWeight: 500,
+          }}>{sub}</div>
+        )}
+      </button>
+    )
+  }
+  return (
+    <div style={{
+      display: 'flex',
+      background: 'var(--bg2)',
+      borderRadius: 12,
+      padding: 4,
+      gap: 4,
+      marginBottom: 16,
+    }}>
+      <Option value={false} label="Un canal" sub="Análisis individual" />
+      <Option value={true}  label="Media kit" sub="2-5 canales · vista consolidada" />
     </div>
   )
 }
