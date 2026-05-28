@@ -3,11 +3,73 @@ import { Link, useParams, Navigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import SEO from '../../components/SEO'
 import CrossLinks from '../../components/landing/CrossLinks'
+import InterestCounter from '../../components/landing/InterestCounter'
 import { PURPLE, purpleAlpha, PLATFORM_BRAND } from '../../theme/tokens'
 import { getPostBySlug, getPublishedPosts } from './blogPosts'
 
 const SERIF = "'Instrument Serif', Georgia, serif"
 const SANS = "'DM Sans', system-ui, sans-serif"
+
+// Slug keyword heuristic for "this post is read by channel owners, not brands".
+// Channel One is a creator-side pre-registration, so it only makes sense to
+// surface the callout on creator-bound articles. ES-only for now.
+const CREATOR_SLUG_KEYWORDS = [
+  'monetizar', 'cuanto-cobrar', 'cuanto-paga', 'media-kit',
+  'crear-canal', 'crear-servidor', 'casos-exito', 'impuestos-canal',
+  'negociar-publicidad', 'monetizacion',
+]
+const isCreatorPost = (post) =>
+  post?.lang === 'es' &&
+  CREATOR_SLUG_KEYWORDS.some(k => (post.slug || '').includes(k))
+
+// Compact inline block used inside blog posts. Wraps InterestCounter card
+// with a short context paragraph so a reader who landed via SEO understands
+// why Channel One is relevant to them.
+function ChannelOneInlineCallout() {
+  return (
+    <aside style={{
+      margin: '40px 0', padding: 'clamp(20px, 3vw, 28px)',
+      borderRadius: 16, border: '1px solid rgba(37,211,102,0.25)',
+      background: 'rgba(37,211,102,0.04)',
+      display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 24, alignItems: 'center',
+    }} className="blog-co-callout">
+      <div>
+        <p style={{
+          fontSize: 10, fontWeight: 700, color: '#1ea952',
+          textTransform: 'uppercase', letterSpacing: '0.12em',
+          margin: '0 0 8px', fontFamily: SANS,
+        }}>
+          Para creadores · pre-registro
+        </p>
+        <h3 style={{
+          fontFamily: SERIF, fontSize: 22, fontWeight: 400, lineHeight: 1.25,
+          margin: '0 0 10px', letterSpacing: '-0.01em',
+        }}>
+          ¿Quieres activarte antes que el marketplace público?
+        </h3>
+        <p style={{
+          fontSize: 14, color: 'var(--muted)', lineHeight: 1.6, margin: 0,
+          fontFamily: SANS,
+        }}>
+          Channel One es el pre-registro para el lanzamiento de Channelad en septiembre.
+          Los 1.000 primeros canales pagan 0% comisión el primer trimestre y se activan
+          antes que el marketplace abierto.
+        </p>
+      </div>
+      <div>
+        <InterestCounter variant="card" ctaLabel="Reservar mi slot" />
+      </div>
+      <style>{`
+        @media (max-width: 720px) {
+          .blog-co-callout {
+            grid-template-columns: 1fr !important;
+            gap: 18px !important;
+          }
+        }
+      `}</style>
+    </aside>
+  )
+}
 
 /* ─── Grain Overlay ─── */
 function GrainOverlay() {
@@ -292,6 +354,13 @@ export default function BlogPost() {
           <TableOfContents />
         </aside>
       </div>
+
+      {/* ─── CHANNEL ONE CALLOUT (only for creator-bound ES posts) ─── */}
+      {isCreatorPost(post) && (
+        <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 24px' }}>
+          <ChannelOneInlineCallout />
+        </div>
+      )}
 
       {/* ─── AUTHOR BOX ─── */}
       <AuthorBox />

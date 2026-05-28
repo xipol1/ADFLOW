@@ -38,12 +38,34 @@ try {
 // The counter is read on every landing page render — without a cache,
 // even a small traffic spike turns into a Mongo countDocuments storm.
 const CACHE_TTL_MS = 30 * 1000;
+const RECENT_CACHE_TTL_MS = 60 * 1000; // activity ticker — slightly cooler
 let _counterCache = { at: 0, value: null };
 let _nicheCache = { at: 0, value: null };
+let _recentCache = { at: 0, value: null };
 
 function invalidateCache() {
   _counterCache = { at: 0, value: null };
   _nicheCache = { at: 0, value: null };
+  _recentCache = { at: 0, value: null };
+}
+
+// Masks a handle so we never publish personal data. Anything that looks
+// like an email (contains @ + .) but doesn't lead with @ or http is treated
+// as private and rendered as "ab***". Public-looking handles
+// (@something, t.me/x, http(s)://...) are returned verbatim.
+function publicHandle(raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  const trimmed = raw.trim();
+  if (!trimmed) return '';
+  const looksPublic =
+    trimmed.startsWith('@') ||
+    /^https?:\/\//i.test(trimmed) ||
+    /^t\.me\//i.test(trimmed) ||
+    /^(wa|whatsapp)\.me\//i.test(trimmed) ||
+    /^discord\.gg\//i.test(trimmed);
+  if (looksPublic) return trimmed.slice(0, 60);
+  // Looks like email — mask. Other free text — keep first 2 chars + ***.
+  return trimmed.slice(0, 2).toLowerCase() + '***';
 }
 
 // ── Per-IP rate limit (best-effort, in-process) ───────────────────────
@@ -151,6 +173,42 @@ router.get('/niches', async (req, res) => {
 
     const value = { niches, slotsPerNiche: SLOTS_PER_NICHE };
     _nicheCache = { at: Date.now(), value };
+    res.json({ success: true, data: value });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ── GET /recent ───────────────────────────────────────────────────────
+// Tiny activity feed for the hero ticker. Returns the latest confirmed
+// signups with a masked handle + niche + relative timestamp. We never
+// return emails, IPs, or referral tokens. Cached 60s.
+router.get('/recent', async (req, res) => {
+  try {
+    if (_recentCache.value && Date.now() - _recentCache.at < RECENT_CACHE_TTL_MS) {
+      return res.json({ success: true, data: _recentCache.value });
+    }
+
+    let items = [];
+    const dbOk = await ensureDb().catch(() => false);
+    if (dbOk && ChannelOneRegistration) {
+      try {
+        const raw = await ChannelOneRegistration
+          .find({ confirmed: true })
+          .sort({ confirmedAt: -1, createdAt: -1 })
+          .limit(5)
+          .select('handle nicho confirmedAt createdAt')
+          .lean();
+        items = raw.map(r => ({
+          handle: publicHandle(r.handle),
+          nicho: r.nicho,
+          at: (r.confirmedAt || r.createdAt || new Date()).toISOString(),
+        })).filter(x => x.handle);
+      } catch (_) { /* fall through with empty list */ }
+    }
+
+    const value = { items };
+    _recentCache = { at: Date.now(), value };
     res.json({ success: true, data: value });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import SEO from '../../components/SEO'
 import CrossLinks from '../../components/landing/CrossLinks'
+import ChannelOnePromoBlock from '../../components/landing/ChannelOnePromoBlock'
 import ChannelCalculator from '../../components/calculator/ChannelCalculator'
 import EscrowFlowAnimation from '../../components/landing/EscrowFlowAnimation'
 import RotatingWord from '../../components/landing/RotatingWord'
@@ -1082,6 +1083,8 @@ export default function WhatsAppPage() {
           </div>
         </motion.div>
       </Section>
+
+      <ChannelOnePromoBlock context="whatsapp" />
 
       <CrossLinks exclude="/whatsapp" />
     </main>

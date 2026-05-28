@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import SEO from '../../components/SEO'
 import CrossLinks from '../../components/landing/CrossLinks'
+import ChannelOnePromoBlock from '../../components/landing/ChannelOnePromoBlock'
 import PhoneFrame from '../../components/landing/PhoneFrame'
 import DemoCreatorInbox from '../../components/landing/demo/DemoCreatorInbox'
 import DemoCreatorPublish from '../../components/landing/demo/DemoCreatorPublish'
@@ -878,6 +879,8 @@ export default function FoundingPage() {
           </div>
         </motion.div>
       </Section>
+
+      <ChannelOnePromoBlock context="founding" />
 
       <CrossLinks exclude="/founding" />
     </main>

@@ -1,12 +1,14 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 // Pre-launch scarcity for landing pages. Hooks into the hero CTA via
 // #hero-cta anchor — the hero must render an element with that id somewhere
 // in its email capture / form.
 //
 // Two palette variants:
-//   - "advertiser" (default): warm amber, points at the brands batch
-//   - "creator":              soft green, points at the channels batch
+//   - "advertiser" (default): warm amber, points at the brands batch (anchors #hero-cta)
+//   - "creator":              soft green, surfaces the live Channel One counter
+//                             and links straight to /channel-one (cross-surface funnel)
 
 const VARIANTS = {
   advertiser: {
@@ -22,15 +24,31 @@ const VARIANTS = {
     bg: '#DCFCE7',
     border: '#BBF7D0',
     text: '#166534',
-    prefix: 'Lanzamiento septiembre 2026 · ',
-    slots: '200',
-    middle: ' canales del batch piloto cobran sin comisión los 3 primeros meses',
-    cta: 'Reservar plaza →',
+    prefix: 'Channel One · ',
+    middle: ' canales reservan slot prioritario · 0% comisión primer trimestre',
+    cta: 'Reservar mi slot →',
   },
 }
 
+const CHANNEL_ONE_CAP = 1000
+
 export default function ScarcityBanner({ variant = 'advertiser' } = {}) {
   const v = VARIANTS[variant] || VARIANTS.advertiser
+  const isCreator = variant === 'creator'
+
+  // Live counter — only fetched for the creator variant since it points
+  // at the Channel One funnel. Falls back to the optimistic anchor (247)
+  // so the banner renders something sensible while the request resolves.
+  const [counter, setCounter] = useState(null)
+  useEffect(() => {
+    if (!isCreator) return
+    let alive = true
+    fetch('/api/channel-one/counter')
+      .then(r => r.json())
+      .then(j => { if (alive && j?.success && j.data) setCounter(j.data) })
+      .catch(() => {})
+    return () => { alive = false }
+  }, [isCreator])
 
   const handleScrollToCTA = (e) => {
     e.preventDefault()
@@ -38,23 +56,64 @@ export default function ScarcityBanner({ variant = 'advertiser' } = {}) {
     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
+  // Creator: dynamic count + hard link to /channel-one (cross-surface).
+  // Advertiser: legacy in-page anchor scroll.
+  if (isCreator) {
+    const displayed = counter?.displayed ?? 247
+    const cap = counter?.cap ?? CHANNEL_ONE_CAP
+    return (
+      <div style={{ background: v.bg, borderBottom: `1px solid ${v.border}`, width: '100%' }}>
+        <div
+          style={{
+            maxWidth: 1280, margin: '0 auto',
+            padding: '10px 16px', textAlign: 'center',
+            fontSize: 13, color: v.text, fontWeight: 500,
+          }}
+        >
+          <span style={{
+            display: 'inline-block', width: 7, height: 7, borderRadius: '50%',
+            background: v.text, marginRight: 8, verticalAlign: 'middle',
+            animation: 'sb-pulse 1.8s infinite',
+          }} />
+          <span className="scarcity-prefix">{v.prefix}</span>
+          <strong style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+            {displayed.toLocaleString('es-ES')}/{cap.toLocaleString('es-ES')}
+          </strong>
+          <span className="scarcity-prefix">{v.middle}</span>
+          <span> · </span>
+          <Link
+            to="/channel-one"
+            style={{
+              color: v.text, fontWeight: 700, textDecoration: 'none', textUnderlineOffset: 2,
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+            onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+          >
+            {v.cta}
+          </Link>
+        </div>
+        <style>{`
+          @keyframes sb-pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(22,101,52,0.55); }
+            70%  { box-shadow: 0 0 0 5px rgba(22,101,52,0); }
+            100% { box-shadow: 0 0 0 0 rgba(22,101,52,0); }
+          }
+          @media (max-width: 640px) {
+            .scarcity-prefix { display: none; }
+          }
+        `}</style>
+      </div>
+    )
+  }
+
+  // Advertiser (legacy behaviour, unchanged).
   return (
-    <div
-      style={{
-        background: v.bg,
-        borderBottom: `1px solid ${v.border}`,
-        width: '100%',
-      }}
-    >
+    <div style={{ background: v.bg, borderBottom: `1px solid ${v.border}`, width: '100%' }}>
       <div
         style={{
-          maxWidth: 1280,
-          margin: '0 auto',
-          padding: '10px 16px',
-          textAlign: 'center',
-          fontSize: 13,
-          color: v.text,
-          fontWeight: 500,
+          maxWidth: 1280, margin: '0 auto',
+          padding: '10px 16px', textAlign: 'center',
+          fontSize: 13, color: v.text, fontWeight: 500,
         }}
       >
         <span className="scarcity-prefix">{v.prefix}</span>
@@ -64,12 +123,7 @@ export default function ScarcityBanner({ variant = 'advertiser' } = {}) {
         <a
           href="#hero-cta"
           onClick={handleScrollToCTA}
-          style={{
-            color: v.text,
-            fontWeight: 600,
-            textDecoration: 'none',
-            textUnderlineOffset: 2,
-          }}
+          style={{ color: v.text, fontWeight: 600, textDecoration: 'none', textUnderlineOffset: 2 }}
           onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
           onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
         >
