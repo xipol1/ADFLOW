@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vinos en canales WhatsApp de Alemania · Propuesta de campaña · Channelad</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAFBFC; --bg2:#F6F8FA; --surface:#FFFFFF;
+    --border:#E5E9F0; --border2:#D0D7DE;
+    --text:#0D1117; --muted:#5B6573; --muted2:#8B949E;
+    --purple:#7C3AED; --purple-light:#9D60F8; --purple-bg:#F5F0FF;
+    --green:#25D366; --green-bg:#E8F8EE; --green-dark:#1FA855;
+    --wine:#7F1D1D; --wine-light:#991B1B; --wine-bg:#FEF2F2;
+    --amber:#F59E0B; --amber-bg:#FEF3C7;
+    --shadow-sm:0 1px 2px rgba(13,17,23,0.05);
+    --shadow-md:0 4px 12px rgba(13,17,23,0.06);
+    --shadow-lg:0 12px 28px rgba(13,17,23,0.08);
+    --shadow-glow:0 8px 32px rgba(124,58,237,0.18);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--purple);text-decoration:none}
+  a:hover{text-decoration:underline}
+  h1,h2,h3,h4{font-family:Sora,sans-serif;color:var(--text);letter-spacing:-0.02em;font-weight:700}
+  p{color:var(--muted)}
+  strong{color:var(--text);font-weight:600}
+
+  nav.top{position:sticky;top:0;z-index:50;background:rgba(250,251,252,0.85);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--border)}
+  .nav-inner{max-width:1100px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:24px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-family:Sora;font-weight:800;font-size:16px}
+  .brand-name{font-family:Sora;font-weight:700;font-size:16px;letter-spacing:-0.02em}
+  .nav-links{display:flex;gap:18px;flex:1;margin-left:24px}
+  .nav-links a{font-size:13px;color:var(--muted);font-weight:500;transition:color .2s}
+  .nav-links a:hover{color:var(--text);text-decoration:none}
+  .nav-cta{padding:8px 14px;background:var(--text);color:#fff;border-radius:8px;font-size:13px;font-weight:600;transition:background .2s}
+  .nav-cta:hover{background:var(--wine);text-decoration:none;color:#fff}
+  @media (max-width:900px){.nav-links{display:none}}
+
+  main{max-width:1100px;margin:0 auto;padding:0 24px}
+  section{padding:72px 0;border-bottom:1px solid var(--border)}
+  section:last-of-type{border-bottom:none}
+  .section-eyebrow{display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--wine);background:var(--wine-bg);padding:6px 12px;border-radius:6px;margin-bottom:18px}
+  .section-title{font-size:32px;line-height:1.15;margin-bottom:14px;max-width:720px}
+  .section-lead{font-size:17px;color:var(--muted);max-width:680px;margin-bottom:36px}
+
+  /* ── HERO ───────────────────────────────────────── */
+  .hero{padding:88px 0 64px;position:relative;overflow:hidden}
+  .hero::before{content:'';position:absolute;top:-300px;right:-200px;width:700px;height:700px;background:radial-gradient(circle,rgba(127,29,29,0.10) 0%,transparent 65%);pointer-events:none;z-index:-1}
+  .hero::after{content:'';position:absolute;bottom:-200px;left:-150px;width:500px;height:500px;background:radial-gradient(circle,rgba(124,58,237,0.08) 0%,transparent 65%);pointer-events:none;z-index:-1}
+  .hero h1{font-size:52px;font-weight:800;line-height:1.05;letter-spacing:-0.03em;margin-bottom:22px;max-width:880px}
+  .hero h1 .accent{background:linear-gradient(135deg,var(--wine) 0%,var(--wine-light) 50%,var(--purple) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .hero-lead{font-size:18px;color:var(--muted);max-width:680px;line-height:1.55;margin-bottom:40px}
+  .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:36px;max-width:780px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow-md);transition:transform .25s,box-shadow .25s}
+  .stat:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+  .stat-val{font-family:Sora;font-weight:800;font-size:34px;line-height:1;letter-spacing:-0.02em}
+  .stat-val.wine{color:var(--wine)}
+  .stat-val.green{color:var(--green-dark)}
+  .stat-val.text{color:var(--text)}
+  .stat-label{font-size:13px;color:var(--muted);margin-top:10px;font-weight:500;line-height:1.4}
+  .hero-cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:8px}
+  .btn-primary{padding:14px 24px;background:linear-gradient(135deg,var(--wine) 0%,var(--wine-light) 100%);color:#fff;border-radius:11px;font-weight:600;font-size:15px;border:none;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 8px 24px rgba(127,29,29,0.25);display:inline-flex;align-items:center;gap:8px}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(127,29,29,0.32);text-decoration:none;color:#fff}
+  .btn-secondary{padding:14px 22px;background:var(--surface);border:1px solid var(--border2);color:var(--text);border-radius:11px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:8px;transition:border-color .2s}
+  .btn-secondary:hover{border-color:var(--wine);text-decoration:none}
+  @media (max-width:760px){.hero h1{font-size:36px}.hero-stats{grid-template-columns:1fr}}
+
+  /* ── WHY THIS AUDIENCE ──────────────────────────── */
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:14px}
+  @media (max-width:760px){.why-grid{grid-template-columns:1fr}}
+  .why-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;transition:border-color .2s}
+  .why-card:hover{border-color:var(--wine)}
+  .why-icon{width:48px;height:48px;border-radius:12px;background:var(--wine-bg);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:14px}
+  .why-card h4{font-family:Sora;font-size:17px;margin-bottom:8px}
+  .why-card p{font-size:14px;color:var(--muted);line-height:1.55;margin:0}
+
+  /* ── CHANNELS ──────────────────────────────────── */
+  .channels-summary{background:linear-gradient(135deg,var(--wine-bg) 0%,var(--purple-bg) 100%);border-radius:16px;padding:24px 28px;margin-bottom:30px;display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+  .cs-flag{font-size:36px;line-height:1}
+  .cs-text{flex:1;min-width:200px}
+  .cs-text h3{font-family:Sora;font-size:18px;margin-bottom:4px}
+  .cs-text p{font-size:13px;color:var(--muted);margin:0}
+  .cs-stat{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right}
+  .cs-stat strong{font-family:Sora;font-weight:800;font-size:22px;color:var(--wine);letter-spacing:-0.015em}
+  .cs-stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:600}
+
+  .ch-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  @media (max-width:760px){.ch-grid{grid-template-columns:1fr}}
+  .ch{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px;transition:border-color .2s,box-shadow .2s;position:relative}
+  .ch:hover{border-color:var(--border2);box-shadow:var(--shadow-md)}
+  .ch.starred{border-color:var(--wine);background:linear-gradient(180deg,rgba(127,29,29,0.04) 0%,var(--surface) 100%)}
+  .ch.starred::before{content:'⭐ Recomendado';position:absolute;top:-10px;left:18px;font-size:10px;font-weight:700;color:#fff;background:var(--wine);padding:4px 10px;border-radius:99px;text-transform:uppercase;letter-spacing:0.08em}
+  .ch-name{font-family:Sora;font-weight:700;font-size:16px;margin-bottom:6px;letter-spacing:-0.01em}
+  .ch-theme{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin-bottom:14px}
+  .ch-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+  .ch-cell{background:var(--bg2);border-radius:8px;padding:8px 10px}
+  .ch-cell-l{font-size:10px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px}
+  .ch-cell-v{font-family:Sora;font-weight:700;font-size:15px;letter-spacing:-0.01em}
+  .ch-cell-v.wine{color:var(--wine)}
+  .ch-foot{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px dashed var(--border2);font-size:11.5px;color:var(--muted)}
+  .ch-foot a{color:var(--purple);font-family:'SF Mono',Menlo,monospace;font-size:10.5px}
+
+  /* ── JOURNEY ───────────────────────────────────── */
+  .journey-stepper{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin:30px 0 42px;position:relative}
+  @media (max-width:900px){.journey-stepper{grid-template-columns:repeat(5,1fr);gap:4px}}
+  @media (max-width:600px){.journey-stepper{grid-template-columns:1fr;gap:14px}}
+  .jstep{text-align:center;position:relative;padding:0 8px}
+  .jstep:not(:last-child)::after{content:'→';position:absolute;right:-10px;top:24px;font-size:24px;color:var(--wine);font-weight:300;z-index:2}
+  @media (max-width:600px){.jstep:not(:last-child)::after{display:none}}
+  .jstep-num{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--wine) 0%,var(--wine-light) 100%);color:#fff;font-family:Sora;font-weight:800;font-size:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;box-shadow:0 4px 12px rgba(127,29,29,0.25);position:relative;z-index:1}
+  .jstep-title{font-family:Sora;font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px}
+  .jstep-time{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.06em}
+
+  .journey-detail{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:14px}
+  @media (max-width:760px){.journey-detail{grid-template-columns:1fr}}
+  .jcard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;transition:border-color .2s,box-shadow .2s}
+  .jcard:hover{border-color:var(--border2);box-shadow:var(--shadow-sm)}
+  .jcard-head{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+  .jcard-num{width:34px;height:34px;border-radius:50%;background:var(--wine-bg);color:var(--wine);font-family:Sora;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .jcard-title{font-family:Sora;font-weight:700;font-size:16px;color:var(--text);letter-spacing:-0.01em}
+  .jcard-body{font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:10px}
+  .jcard-foot{padding-top:12px;border-top:1px dashed var(--border2);font-size:12px;color:var(--muted2);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .jcard-foot strong{color:var(--text)}
+
+  /* ── PROPOSAL ──────────────────────────────────── */
+  .proposal{background:linear-gradient(135deg,#0D1526 0%,#1A2840 100%);color:#F0F4FF;border-radius:24px;padding:44px;position:relative;overflow:hidden}
+  .proposal::before{content:'';position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(127,29,29,0.20) 0%,transparent 65%)}
+  .proposal-inner{position:relative;z-index:1}
+  .proposal-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;background:rgba(127,29,29,0.18);color:#FCA5A5;padding:7px 12px;border-radius:6px;margin-bottom:18px;border:1px solid rgba(127,29,29,0.35)}
+  .proposal h2{color:#F0F4FF;font-size:30px;line-height:1.18;margin-bottom:14px;max-width:680px}
+  .proposal > .proposal-inner > p{font-size:15.5px;color:#C5D2E0;max-width:680px;margin-bottom:28px;line-height:1.6}
+
+  .prop-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:24px;align-items:start}
+  @media (max-width:760px){.prop-grid{grid-template-columns:1fr}}
+  .prop-list{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:20px 24px}
+  .prop-list h4{color:#F0F4FF;font-size:13px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:16px;font-family:Inter;font-weight:600}
+  .prop-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed rgba(255,255,255,0.08);font-size:14px;gap:10px}
+  .prop-row:last-child{border-bottom:none}
+  .prop-row span:first-child{color:#A6B5CC}
+  .prop-row span:last-child{color:#F0F4FF;font-family:Sora;font-weight:600;text-align:right}
+  .prop-total{margin-top:14px;padding:18px 24px;background:linear-gradient(135deg,var(--wine) 0%,var(--wine-light) 100%);border-radius:14px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px}
+  .prop-total-label{font-size:13px;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.1em;font-weight:600}
+  .prop-total-val{font-family:Sora;font-weight:800;font-size:38px;color:#fff;letter-spacing:-0.02em}
+  .prop-side{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:22px}
+  .prop-side h4{color:#F0F4FF;font-size:13px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:14px;font-family:Inter;font-weight:600}
+  .prop-side .big{font-family:Sora;font-weight:800;font-size:32px;color:#25D366;letter-spacing:-0.02em;line-height:1.1;margin-bottom:6px}
+  .prop-side p{color:#A6B5CC;font-size:13px;line-height:1.5;margin:0}
+  .prop-cta{margin-top:24px;display:flex;gap:12px;flex-wrap:wrap}
+  .prop-cta .btn{padding:14px 22px;background:#fff;color:var(--wine);border-radius:11px;font-weight:700;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:transform .2s,box-shadow .2s}
+  .prop-cta .btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+  .prop-cta .btn.ghost{background:rgba(255,255,255,0.10);color:#fff;border:1px solid rgba(255,255,255,0.30)}
+  .prop-cta .btn.ghost:hover{background:rgba(255,255,255,0.16)}
+
+  /* ── FORMATS ───────────────────────────────────── */
+  .formats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+  @media (max-width:760px){.formats-grid{grid-template-columns:1fr}}
+  .fmt{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;transition:border-color .2s,transform .2s}
+  .fmt:hover{border-color:var(--wine);transform:translateY(-3px)}
+  .fmt-emoji{font-size:30px;margin-bottom:10px}
+  .fmt-name{font-family:Sora;font-weight:700;font-size:16px;margin-bottom:6px}
+  .fmt-mult{display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.08em;background:var(--wine-bg);color:var(--wine);padding:3px 8px;border-radius:99px;text-transform:uppercase;margin-bottom:10px}
+  .fmt-desc{font-size:13px;color:var(--muted);line-height:1.5}
+
+  /* ── CTA ───────────────────────────────────────── */
+  .cta-block{background:linear-gradient(135deg,var(--wine) 0%,var(--wine-light) 60%,var(--purple) 130%);border-radius:24px;padding:52px 44px;color:#fff;text-align:center;position:relative;overflow:hidden}
+  .cta-block::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 30%,rgba(255,255,255,0.15) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(255,255,255,0.10) 0%,transparent 50%)}
+  .cta-inner{position:relative;z-index:1}
+  .cta-block h2{color:#fff;font-size:32px;line-height:1.15;margin-bottom:12px;max-width:680px;margin-left:auto;margin-right:auto}
+  .cta-block p{color:rgba(255,255,255,0.9);font-size:16px;max-width:560px;margin:0 auto 28px;line-height:1.6}
+  .cta-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .cta-actions .btn-primary{background:#fff;color:var(--wine);box-shadow:0 12px 32px rgba(0,0,0,0.15)}
+  .cta-actions .btn-primary:hover{background:#fff;color:#5C0F0F}
+  .cta-actions .btn-secondary{background:rgba(255,255,255,0.10);color:#fff;border:1px solid rgba(255,255,255,0.30)}
+  .cta-actions .btn-secondary:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.5)}
+  .cta-contact{margin-top:20px;font-size:13px;color:rgba(255,255,255,0.75)}
+  .cta-contact a{color:#fff;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+
+  /* ── FOOTER ────────────────────────────────────── */
+  footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0 36px;margin-top:48px}
+  footer .inner{max-width:1100px;margin:0 auto;padding:0 24px}
+  .legal-block{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 26px;margin-bottom:22px}
+  .legal-block h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);margin-bottom:12px;font-family:Inter}
+  .legal-block p{font-size:11.5px;color:var(--muted);line-height:1.6;margin-bottom:8px}
+  .legal-block p:last-child{margin-bottom:0}
+  .legal-block strong{color:var(--text);font-weight:600}
+  .footer-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--muted2)}
+
+  @media print{
+    section{padding:32px 0;border-bottom:none;page-break-inside:avoid}
+    .hero{padding:32px 0}
+    .ch,.jcard,.fmt,.stat{page-break-inside:avoid}
+    .proposal,.cta-block{background:#0D1526!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{size:A4;margin:18mm}
+  }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="nav-inner">
+    <div class="brand">
+      <div class="brand-mark">C</div>
+      <div class="brand-name">Channelad</div>
+    </div>
+    <div class="nav-links">
+      <a href="#audiencia">Audiencia</a>
+      <a href="#canales">Canales</a>
+      <a href="#journey">Paso a paso</a>
+      <a href="#propuesta">Propuesta</a>
+      <a href="#formatos">Formatos</a>
+    </div>
+    <a href="#cta" class="nav-cta">Lanzar mi campaña</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ── HERO ──────────────────────────────────────── -->
+<section class="hero" id="hero">
+  <span class="section-eyebrow">Propuesta · Vinos en Alemania</span>
+  <h1>
+    Llega a <span class="accent">2,3 millones de cocineros alemanes</span><br>
+    con un solo post.
+  </h1>
+  <p class="hero-lead">
+    Tienes acceso a una red de 9 canales de WhatsApp en Alemania especializados en
+    cocina, recetas Airfryer y Thermomix — exactamente la audiencia que decide qué
+    vino acompaña la cena del fin de semana. Te explicamos quién es, cuánto cuesta
+    llegar a ellos y cómo se lanza una campaña en menos de 24 horas.
+  </p>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-val wine">2,3 M</div>
+      <div class="stat-label">Seguidores totales<br>9 canales DE</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val text">752 K</div>
+      <div class="stat-label">Personas alcanzadas<br>por post promedio</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val green">9,80 €</div>
+      <div class="stat-label">CPM medio<br>(coste por mil impresiones)</div>
+    </div>
+  </div>
+
+  <div class="hero-cta">
+    <a href="#propuesta" class="btn-primary">Ver propuesta de campaña →</a>
+    <a href="#canales" class="btn-secondary">Explorar los 9 canales</a>
+  </div>
+</section>
+
+<!-- ── AUDIENCIA ─────────────────────────────────── -->
+<section id="audiencia">
+  <span class="section-eyebrow">Por qué esta audiencia</span>
+  <h2 class="section-title">Cocina + vino = encaje natural.</h2>
+  <p class="section-lead">
+    La audiencia de los canales de recetas alemanes está formada por personas que
+    cocinan en casa los fines de semana, planifican menús y compran productos
+    premium para la mesa. El maridaje es uno de sus búsquedas habituales.
+  </p>
+
+  <div class="why-grid">
+    <div class="why-card">
+      <div class="why-icon">🎯</div>
+      <h4>Intención de compra alta</h4>
+      <p>El 78 % de los seguidores de canales de recetas en Alemania compra ingredientes "premium" al menos una vez al mes (vino, aceite de oliva, especias importadas, quesos curados).</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">👨‍🍳</div>
+      <h4>Decisor del hogar</h4>
+      <p>Audiencia 35-65 años, mayoría con vivienda propia y poder adquisitivo medio-alto. Es quien decide la compra del fin de semana y la celebración familiar.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">📱</div>
+      <h4>WhatsApp se lee</h4>
+      <p>Los canales de WhatsApp tienen un open rate cercano al 90 % — frente al 25 % típico de Instagram. Tu mensaje llega y se ve, no se pierde en un feed.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── CANALES ───────────────────────────────────── -->
+<section id="canales">
+  <span class="section-eyebrow">Inventario disponible</span>
+  <h2 class="section-title">Los 9 canales de Alemania.</h2>
+  <p class="section-lead">
+    Puedes elegir uno solo, combinar varios o lanzar en todos simultáneamente. Los
+    precios son el coste total que pagas tú — Channelad gestiona la facturación,
+    el cobro al creador y la entrega.
+  </p>
+
+  <div class="channels-summary">
+    <span class="cs-flag">🇩🇪</span>
+    <div class="cs-text">
+      <h3>Red completa de canales alemanes</h3>
+      <p>Audiencia DE-DACH · Cocina, recetas, lifestyle del hogar</p>
+    </div>
+    <div class="cs-stat">
+      <strong>7.400 €</strong>
+      <span>Coste total para 9 canales</span>
+    </div>
+  </div>
+
+  <div class="ch-grid">
+    <div class="ch starred">
+      <div class="ch-name">Rezepte für Heißluftfritteusen</div>
+      <div class="ch-theme">🍳 Airfryer · #1 en alcance</div>
+      <div class="ch-row">
+        <div class="ch-cell"><div class="ch-cell-l">Seguidores</div><div class="ch-cell-v">1,3 M</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Reach / post</div><div class="ch-cell-v">390 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Coste post</div><div class="ch-cell-v wine">3.833 €</div></div>
+      </div>
+      <div class="ch-foot"><span>CPM: <strong>9,80 €</strong></span><span>Recomendado para campaña masiva</span></div>
+    </div>
+
+    <div class="ch starred">
+      <div class="ch-name">Thermomix Rezepte</div>
+      <div class="ch-theme">🥄 Thermomix · audiencia premium</div>
+      <div class="ch-row">
+        <div class="ch-cell"><div class="ch-cell-l">Seguidores</div><div class="ch-cell-v">550 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Reach / post</div><div class="ch-cell-v">165 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Coste post</div><div class="ch-cell-v wine">1.621 €</div></div>
+      </div>
+      <div class="ch-foot"><span>CPM: <strong>9,80 €</strong></span><span>Mejor encaje para vino</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="ch-name">Heißluftfritteusen — Rezepte</div>
+      <div class="ch-theme">🍳 Airfryer</div>
+      <div class="ch-row">
+        <div class="ch-cell"><div class="ch-cell-l">Seguidores</div><div class="ch-cell-v">300 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Reach / post</div><div class="ch-cell-v">120 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Coste post</div><div class="ch-cell-v wine">1.180 €</div></div>
+      </div>
+      <div class="ch-foot"><span>CPM: <strong>9,80 €</strong></span><span>Punto intermedio ideal</span></div>
+    </div>
+
+    <div class="ch starred">
+      <div class="ch-name">Diät- und gesunde Rezepte</div>
+      <div class="ch-theme">🥗 Salud · vino moderado</div>
+      <div class="ch-row">
+        <div class="ch-cell"><div class="ch-cell-l">Seguidores</div><div class="ch-cell-v">110 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Reach / post</div><div class="ch-cell-v">44 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Coste post</div><div class="ch-cell-v wine">432 €</div></div>
+      </div>
+      <div class="ch-foot"><span>CPM: <strong>9,80 €</strong></span><span>Ángulo "vino saludable" / vino bio</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="ch-name">Heißluftfritteuse: 1001 Rezepte</div>
+      <div class="ch-theme">🍳 Airfryer</div>
+      <div class="ch-row">
+        <div class="ch-cell"><div class="ch-cell-l">Seguidores</div><div class="ch-cell-v">50 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Reach / post</div><div class="ch-cell-v">20 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Coste post</div><div class="ch-cell-v wine">197 €</div></div>
+      </div>
+      <div class="ch-foot"><span>CPM: <strong>9,80 €</strong></span><span>Test de bajo coste</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="ch-name">Desserts mit Thermomix</div>
+      <div class="ch-theme">🥄 Thermomix · postres</div>
+      <div class="ch-row">
+        <div class="ch-cell"><div class="ch-cell-l">Seguidores</div><div class="ch-cell-v">9 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Reach / post</div><div class="ch-cell-v">4,9 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Coste post</div><div class="ch-cell-v wine">49 €</div></div>
+      </div>
+      <div class="ch-foot"><span>CPM: <strong>9,90 €</strong></span><span>Vinos dulces / Eiswein</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="ch-name">Deko-Ideen fürs Zuhause</div>
+      <div class="ch-theme">🏠 Hogar · mesa &amp; ocasiones</div>
+      <div class="ch-row">
+        <div class="ch-cell"><div class="ch-cell-l">Seguidores</div><div class="ch-cell-v">7 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Reach / post</div><div class="ch-cell-v">3,9 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Coste post</div><div class="ch-cell-v wine">38 €</div></div>
+      </div>
+      <div class="ch-foot"><span>CPM: <strong>9,90 €</strong></span><span>Vinos para celebraciones</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="ch-name">Diätrezepte mit Thermomix</div>
+      <div class="ch-theme">🥄 Thermomix · dieta</div>
+      <div class="ch-row">
+        <div class="ch-cell"><div class="ch-cell-l">Seguidores</div><div class="ch-cell-v">5 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Reach / post</div><div class="ch-cell-v">2,8 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Coste post</div><div class="ch-cell-v wine">28 €</div></div>
+      </div>
+      <div class="ch-foot"><span>CPM: <strong>10,20 €</strong></span><span>Nicho específico</span></div>
+    </div>
+
+    <div class="ch">
+      <div class="ch-name">Rezepte: einfach und unglaublich</div>
+      <div class="ch-theme">🥗 Recetas generales</div>
+      <div class="ch-row">
+        <div class="ch-cell"><div class="ch-cell-l">Seguidores</div><div class="ch-cell-v">4 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Reach / post</div><div class="ch-cell-v">2,2 K</div></div>
+        <div class="ch-cell"><div class="ch-cell-l">Coste post</div><div class="ch-cell-v wine">22 €</div></div>
+      </div>
+      <div class="ch-foot"><span>CPM: <strong>10,00 €</strong></span><span>Test mínimo</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── JOURNEY ───────────────────────────────────── -->
+<section id="journey">
+  <span class="section-eyebrow">Tu paso a paso</span>
+  <h2 class="section-title">De idea a campaña publicada en 5 pasos.</h2>
+  <p class="section-lead">
+    Todo el proceso, desde que decides anunciarte hasta que tu post está visible
+    en los canales, no lleva más de 24 horas hábiles. Sin contratos largos, sin
+    intermediarios, sin permanencia.
+  </p>
+
+  <!-- Visual stepper -->
+  <div class="journey-stepper">
+    <div class="jstep">
+      <div class="jstep-num">1</div>
+      <div class="jstep-title">Eliges canales</div>
+      <div class="jstep-time">5 min</div>
+    </div>
+    <div class="jstep">
+      <div class="jstep-num">2</div>
+      <div class="jstep-title">Subes tu anuncio</div>
+      <div class="jstep-time">10 min</div>
+    </div>
+    <div class="jstep">
+      <div class="jstep-num">3</div>
+      <div class="jstep-title">Pagas con tarjeta</div>
+      <div class="jstep-time">2 min</div>
+    </div>
+    <div class="jstep">
+      <div class="jstep-num">4</div>
+      <div class="jstep-title">Creator publica</div>
+      <div class="jstep-time">&lt; 24 h</div>
+    </div>
+    <div class="jstep">
+      <div class="jstep-num">5</div>
+      <div class="jstep-title">Ves resultados</div>
+      <div class="jstep-time">En vivo</div>
+    </div>
+  </div>
+
+  <!-- Detail cards -->
+  <div class="journey-detail">
+    <div class="jcard">
+      <div class="jcard-head">
+        <div class="jcard-num">1</div>
+        <div class="jcard-title">Eliges los canales y el formato</div>
+      </div>
+      <div class="jcard-body">
+        Entras en el panel de Channelad, ves los 9 canales alemanes con su precio
+        y audiencia, y eliges los que encajan con tu campaña. Puedes coger uno,
+        tres o los nueve. Cada canal tiene varios formatos: post estándar, fijado
+        24 h, fijado 48 h o mención orgánica integrada en una receta.
+      </div>
+      <div class="jcard-foot"><span>Tú decides</span><strong>Total visible antes de pagar</strong></div>
+    </div>
+
+    <div class="jcard">
+      <div class="jcard-head">
+        <div class="jcard-num">2</div>
+        <div class="jcard-title">Subes tu anuncio</div>
+      </div>
+      <div class="jcard-body">
+        Una imagen o vídeo + un texto corto en alemán (te ayudamos con la traducción
+        si la necesitas) + el enlace a tu tienda online o landing page. El sistema
+        previsualiza cómo se verá el post en el canal. Puedes incluir código de
+        descuento para medir la conversión real.
+      </div>
+      <div class="jcard-foot"><span>Soporte traducción incluido</span><strong>Vista previa antes de aprobar</strong></div>
+    </div>
+
+    <div class="jcard">
+      <div class="jcard-head">
+        <div class="jcard-num">3</div>
+        <div class="jcard-title">Pagas con tarjeta de forma segura</div>
+      </div>
+      <div class="jcard-body">
+        Stripe gestiona el pago. La tarjeta se pre-autoriza por el importe del
+        post — el dinero queda retenido pero no se cobra hasta que el creator
+        publique y verifiquemos la entrega. Si por cualquier motivo la campaña
+        no sale, se libera la pre-autorización sin coste para ti.
+      </div>
+      <div class="jcard-foot"><span>Visa · Mastercard · SEPA</span><strong>Stripe certificado PCI DSS</strong></div>
+    </div>
+
+    <div class="jcard">
+      <div class="jcard-head">
+        <div class="jcard-num">4</div>
+        <div class="jcard-title">El creator acepta y publica</div>
+      </div>
+      <div class="jcard-body">
+        El administrador del canal recibe la propuesta. Si la acepta (la mayoría
+        de campañas alimentación/cocina se aceptan), tienes un horario de publicación
+        pactado — habitualmente en las siguientes 24 horas. Tú recibes notificación
+        en cuanto el post va en vivo, con el enlace directo.
+      </div>
+      <div class="jcard-foot"><span>Aprobación: típica &lt; 4 h</span><strong>Tú apruebas el horario</strong></div>
+    </div>
+
+    <div class="jcard">
+      <div class="jcard-head">
+        <div class="jcard-num">5</div>
+        <div class="jcard-title">Mides resultados en tiempo real</div>
+      </div>
+      <div class="jcard-body">
+        Panel con métricas: impresiones del post, clicks al enlace, conversiones
+        si has integrado tracking, y reach efectivo del canal. Cada post tiene un
+        link único para que sepas exactamente qué tráfico generó esta campaña vs.
+        otros canales. Informe descargable al finalizar.
+      </div>
+      <div class="jcard-foot"><span>Real-time dashboard</span><strong>Informe PDF descargable</strong></div>
+    </div>
+
+    <div class="jcard" style="background:linear-gradient(135deg,var(--wine-bg) 0%,var(--purple-bg) 100%);border-color:var(--wine)">
+      <div class="jcard-head">
+        <div class="jcard-num" style="background:var(--wine);color:#fff">✓</div>
+        <div class="jcard-title">Garantías incluidas</div>
+      </div>
+      <div class="jcard-body">
+        Si el post no se publica en la ventana pactada o el reach efectivo es
+        inferior al 70 % del prometido, devolución completa del importe
+        proporcional. Sin permanencia, sin contratos a largo plazo: cada campaña
+        es independiente.
+      </div>
+      <div class="jcard-foot"><span>Política de reembolso clara</span><strong>Sin permanencia</strong></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PROPOSAL ──────────────────────────────────── -->
+<section id="propuesta">
+  <span class="section-eyebrow">Recomendación de primera campaña</span>
+  <h2 class="section-title">Lo que haríamos en tu lugar.</h2>
+  <p class="section-lead">
+    Para un primer post de vino en este vertical, recomendamos combinar el canal
+    de mejor encaje (Thermomix Rezepte, audiencia 35-65 con poder adquisitivo)
+    con un test paralelo en el ángulo "vino bio / saludable". Coste contenido,
+    cobertura suficiente para sacar conclusiones de conversión.
+  </p>
+
+  <div class="proposal">
+    <div class="proposal-inner">
+      <span class="proposal-tag">🍷 Pack inicial recomendado</span>
+      <h2>Test en Thermomix + Diät-und-gesund</h2>
+      <p>
+        Combinación pensada para validar el encaje de tu vino con la audiencia
+        alemana de cocineros premium. Reach total estimado: 209.000 personas
+        cualificadas. Permite comparar conversión en el canal premium (Thermomix)
+        vs. el canal salud (Diät).
+      </p>
+
+      <div class="prop-grid">
+        <div>
+          <div class="prop-list">
+            <h4>Composición del pack</h4>
+            <div class="prop-row">
+              <span>Thermomix Rezepte (550 K seguidores) · Post estándar</span>
+              <span>1.621 €</span>
+            </div>
+            <div class="prop-row">
+              <span>Diät- und gesunde Rezepte (110 K) · Post estándar</span>
+              <span>432 €</span>
+            </div>
+            <div class="prop-row">
+              <span>Reach total estimado</span>
+              <span>209.000 personas</span>
+            </div>
+            <div class="prop-row">
+              <span>CPM efectivo</span>
+              <span>9,82 €</span>
+            </div>
+            <div class="prop-row">
+              <span>Coste por mil personas alcanzadas</span>
+              <span>9,82 €</span>
+            </div>
+          </div>
+
+          <div class="prop-total">
+            <div class="prop-total-label">Coste total IVA no incluido</div>
+            <div class="prop-total-val">2.053 €</div>
+          </div>
+        </div>
+
+        <div class="prop-side">
+          <h4>Comparativa</h4>
+          <div class="big">−51 %</div>
+          <p>vs. CPM equivalente en Instagram Reels Alemania (€20 medio en cocina/lifestyle según Pinkhy Events).</p>
+          <div style="height:14px"></div>
+          <h4 style="margin-top:6px">Open rate</h4>
+          <div class="big">~90 %</div>
+          <p>de quienes están en el canal verán el post — frente al 20-25 % de un anuncio en feed Instagram.</p>
+        </div>
+      </div>
+
+      <div class="prop-cta">
+        <a href="mailto:contact@channelad.io?subject=Quiero%20lanzar%20la%20campa%C3%B1a%20pack%20inicial%20vinos%20DE&amp;body=Hola%2C%20me%20interesa%20lanzar%20la%20campa%C3%B1a%20pack%20inicial%20vinos%20DE%20%28Thermomix%20Rezepte%20%2B%20Di%C3%A4t-%20und%20gesunde%20Rezepte%29.%20%C2%BFC%C3%B3mo%20procedemos%3F" class="btn">Quiero este pack →</a>
+        <a href="mailto:contact@channelad.io?subject=Consulta%20vinos%20canales%20DE" class="btn ghost">Quiero una propuesta personalizada</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FORMATOS ──────────────────────────────────── -->
+<section id="formatos">
+  <span class="section-eyebrow">Formatos publicitarios</span>
+  <h2 class="section-title">Cómo puede aparecer tu vino en el canal.</h2>
+  <p class="section-lead">
+    Cuatro formatos disponibles. El precio base es el del "post estándar" (lo
+    indicado en cada canal); los demás aplican un multiplicador sobre ese precio.
+  </p>
+
+  <div class="formats-grid">
+    <div class="fmt">
+      <div class="fmt-emoji">📝</div>
+      <div class="fmt-name">Post estándar</div>
+      <span class="fmt-mult">×1 · precio base</span>
+      <div class="fmt-desc">Post normal en el feed del canal. Imagen + texto + link. Es el formato más común y el que recomendamos para un primer test.</div>
+    </div>
+
+    <div class="fmt">
+      <div class="fmt-emoji">📌</div>
+      <div class="fmt-name">Fijado 24 h</div>
+      <span class="fmt-mult">×2 · doble del estándar</span>
+      <div class="fmt-desc">Permanece en la parte superior del canal durante 24 horas. Ideal para lanzamientos puntuales: catas, ofertas de temporada, eventos.</div>
+    </div>
+
+    <div class="fmt">
+      <div class="fmt-emoji">📌📌</div>
+      <div class="fmt-name">Fijado 48 h</div>
+      <span class="fmt-mult">×3 · triple del estándar</span>
+      <div class="fmt-desc">Fin de semana completo arriba del canal. Para campañas de regalos navideños, Black Friday, San Valentín o lanzamientos importantes.</div>
+    </div>
+
+    <div class="fmt">
+      <div class="fmt-emoji">🍝</div>
+      <div class="fmt-name">Mención orgánica</div>
+      <span class="fmt-mult">×1,5 · más natural</span>
+      <div class="fmt-desc">El creator integra tu vino dentro de una receta que publica como contenido normal — "maridaje recomendado para esta pasta". Mayor credibilidad, menos "publicidad".</div>
+    </div>
+
+    <div class="fmt">
+      <div class="fmt-emoji">📦</div>
+      <div class="fmt-name">Pack 5 posts</div>
+      <span class="fmt-mult">×5 · −15 % descuento</span>
+      <div class="fmt-desc">Cinco publicaciones repartidas en varias semanas en el mismo canal. Descuento por volumen. Sirve para campañas continuadas y branding.</div>
+    </div>
+
+    <div class="fmt">
+      <div class="fmt-emoji">📦📦</div>
+      <div class="fmt-name">Pack 10 posts</div>
+      <span class="fmt-mult">×10 · −25 % descuento</span>
+      <div class="fmt-desc">Diez publicaciones espaciadas en uno o dos meses. Máximo descuento por volumen. Pensado para colaboraciones recurrentes.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ───────────────────────────────────────── -->
+<section id="cta">
+  <div class="cta-block">
+    <div class="cta-inner">
+      <h2>Lanzamos tu primera campaña esta semana</h2>
+      <p>
+        45 minutos por videollamada para definir contigo el ángulo de la campaña,
+        seleccionar canales, preparar la creatividad (traducción incluida si la
+        necesitas) y dejar el post programado. Sin coste de gestión.
+      </p>
+      <div class="cta-actions">
+        <a href="mailto:contact@channelad.io?subject=Reservar%20llamada%20campa%C3%B1a%20vinos%20DE&amp;body=Hola%2C%20me%20interesa%20lanzar%20una%20campa%C3%B1a%20de%20vinos%20en%20los%20canales%20WhatsApp%20de%20Alemania.%20%C2%BFCu%C3%A1ndo%20podemos%20agendar%2045%20min%3F" class="btn-primary">Agendar llamada →</a>
+        <a href="https://channelad.io" class="btn-secondary">Ver Channelad</a>
+      </div>
+      <div class="cta-contact">
+        Contacto directo: <a href="mailto:contact@channelad.io">contact@channelad.io</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="inner">
+    <div class="legal-block">
+      <h4>Aviso legal</h4>
+      <p>
+        <strong>1.</strong> Este documento es una propuesta comercial privada y orientativa
+        entregada al destinatario, no constituye oferta vinculante ni compromiso contractual.
+        Los precios, audiencias y formatos están sujetos a disponibilidad del inventario
+        en el momento de la contratación efectiva.
+      </p>
+      <p>
+        <strong>2.</strong> Las cifras de seguidores y reach se basan en datos públicos
+        visibles en cada canal a la fecha de emisión y en estimaciones del motor de
+        pricing de Channelad. Los resultados reales de campañas (impresiones, CTR,
+        conversiones) dependen del contenido creativo, la hora de publicación y otros
+        factores fuera del control directo de Channelad.
+      </p>
+      <p>
+        <strong>3.</strong> La política de reembolso por reach insuficiente o no publicación
+        está sujeta a los términos generales del servicio que se firman al contratar.
+        Stripe aplica sus propias condiciones para los pagos pre-autorizados y reembolsos.
+      </p>
+      <p>
+        <strong>4.</strong> La aceptación final de la campaña por parte del administrador
+        de cada canal es discrecional. Channelad gestiona la negociación pero no garantiza
+        la aceptación en todos los canales solicitados. Si un canal rechaza la propuesta,
+        el importe asignado a ese canal se libera de la pre-autorización.
+      </p>
+      <p>
+        <strong>5.</strong> El destinatario es responsable del cumplimiento de la normativa
+        de publicidad de bebidas alcohólicas en Alemania y la UE (incluida la Jugendschutzgesetz
+        sobre protección de menores y la normativa de etiquetado de alcohol). Channelad
+        no presta asesoramiento jurídico sobre el contenido publicitario.
+      </p>
+      <p>
+        <strong>6.</strong> Vigencia de las cifras y condiciones: 60 días desde la fecha
+        de emisión. Channelad se reserva el derecho a actualizar tarifas si cambian las
+        condiciones del marketplace.
+      </p>
+      <p style="margin-top:12px;font-size:11px;color:var(--muted2)">
+        Emitido el <strong>27 de mayo de 2026</strong>. Channelad · MICHI SOLUCIONS S.L.
+        (en constitución) · contact@channelad.io · channelad.io
+      </p>
+    </div>
+    <div class="footer-meta">
+      <span>© 2026 Channelad — Propuesta comercial privada</span>
+      <span>contact@channelad.io · channelad.io</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Smooth nav highlighting
+  (function(){
+    const links = document.querySelectorAll('.nav-links a');
+    const sections = Array.from(links).map(l => document.querySelector(l.getAttribute('href'))).filter(Boolean);
+    function onScroll() {
+      const y = window.scrollY + 120;
+      let active = null;
+      sections.forEach(s => { if (s.offsetTop <= y) active = s; });
+      links.forEach(l => {
+        const match = active && l.getAttribute('href') === '#' + active.id;
+        l.style.color = match ? 'var(--text)' : '';
+        l.style.fontWeight = match ? '700' : '';
+      });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+
+  // Reveal animations
+  (function(){
+    if (!('IntersectionObserver' in window)) return;
+    const elements = document.querySelectorAll('section h2, .section-lead, .why-card, .ch, .jcard, .fmt, .stat, .jstep');
+    elements.forEach(el => { el.style.opacity = '0'; el.style.transform = 'translateY(12px)'; });
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.style.transition = 'opacity .55s ease, transform .55s ease';
+          e.target.style.opacity = '1';
+          e.target.style.transform = 'translateY(0)';
+          obs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    elements.forEach(el => obs.observe(el));
+  })();
+</script>
+
+</body>
+</html>

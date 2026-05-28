@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Portada — El inventario publicitario invisible</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #060C18;
+      --surface: #0D1526;
+      --border:  #1A2840;
+      --purple:  #7C3AED;
+      --pl:      #9D60F8;
+      --pa:      #C084FC;
+      --green:   #25D366;
+      --t1:      #F0F4FF;
+      --t2:      #8B9EBF;
+      --t3:      #3D5070;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: var(--bg);
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .cover {
+      width: 1920px;
+      height: 1080px;
+      background: var(--bg);
+      position: relative;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* Dot grid */
+    .cover::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(139,92,246,0.15) 1.5px, transparent 1.5px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    /* Glow top-right */
+    .glow-tr {
+      position: absolute;
+      top: -300px;
+      right: -150px;
+      width: 900px;
+      height: 900px;
+      background: radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    /* Glow bottom-left */
+    .glow-bl {
+      position: absolute;
+      bottom: -300px;
+      left: -150px;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(37,211,102,0.06) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    /* ── Left content ─────────────────────────────────── */
+    .content {
+      position: relative;
+      z-index: 2;
+      padding: 0 0 0 120px;
+      width: 960px;
+      flex-shrink: 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--pl);
+      margin-bottom: 48px;
+    }
+
+    .tag-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+    }
+
+    h1 {
+      font-family: 'Sora', sans-serif;
+      font-size: 100px;
+      font-weight: 800;
+      line-height: 1.0;
+      letter-spacing: -0.035em;
+      color: var(--t1);
+      margin-bottom: 36px;
+    }
+
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--pl) 0%, var(--pa) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-family: 'Inter', sans-serif;
+      font-size: 36px;
+      font-weight: 400;
+      line-height: 1.6;
+      color: var(--t2);
+      max-width: 740px;
+    }
+
+    /* ── Right stats panel ────────────────────────────── */
+    .stats {
+      position: absolute;
+      right: 120px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .stat-row {
+      padding: 36px 40px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .stat-n {
+      font-family: 'Sora', sans-serif;
+      font-size: 64px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--pl);
+      line-height: 1;
+    }
+
+    .stat-n.dim {
+      color: var(--t3);
+    }
+
+    .stat-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--t3);
+      margin-top: 6px;
+    }
+
+    /* Vertical divider between content and stats */
+    .vdivider {
+      position: absolute;
+      right: 460px;
+      top: 10%;
+      height: 80%;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent 0%, var(--border) 20%, var(--border) 80%, transparent 100%);
+      z-index: 2;
+    }
+
+    /* ── Footer ───────────────────────────────────────── */
+    .footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 0 120px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 2;
+    }
+
+    .brand {
+      font-family: 'Sora', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--t2);
+    }
+
+    .brand span {
+      color: var(--pl);
+    }
+
+    .footer-meta {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--t3);
+    }
+
+    /* Purple accent bar bottom-left */
+    .accent-bar {
+      position: absolute;
+      bottom: 52px;
+      left: 120px;
+      width: 48px;
+      height: 3px;
+      background: var(--purple);
+      border-radius: 2px;
+      z-index: 2;
+    }
+
+    /* ── Print ────────────────────────────────────────── */
+    @media print {
+      @page { size: 1920px 1080px; margin: 0; }
+      html, body { width: 1920px; height: 1080px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cover">
+    <div class="glow-tr"></div>
+    <div class="glow-bl"></div>
+
+    <div class="content">
+      <div class="tag">
+        <span class="tag-dot"></span>
+        Channelad &nbsp;·&nbsp; Análisis de mercado
+      </div>
+      <h1>
+        El inventario<br>
+        publicitario<br>
+        <em>invisible.</em>
+      </h1>
+      <p class="subtitle">
+        Cientos de millones de personas eligen<br>
+        sus canales favoritos cada día.<br>
+        Los anunciantes no tienen forma de comprar<br>
+        ese acceso. Aún.
+      </p>
+    </div>
+
+    <div class="vdivider"></div>
+
+    <div class="stats">
+      <div class="stat-row">
+        <div class="stat-n">8-15%</div>
+        <div class="stat-label">CTR canales Telegram</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-n dim">0,9%</div>
+        <div class="stat-label">CTR Meta Ads</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-n">&lt; 3%</div>
+        <div class="stat-label">inventario monetizado</div>
+      </div>
+    </div>
+
+    <div class="accent-bar"></div>
+
+    <div class="footer">
+      <div class="brand">channel<span>ad</span></div>
+      <div class="footer-meta">channelad.io &nbsp;·&nbsp; 2026</div>
+    </div>
+  </div>
+</body>
+</html>
