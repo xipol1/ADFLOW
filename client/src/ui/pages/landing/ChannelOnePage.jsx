@@ -187,7 +187,7 @@ export default function ChannelOnePage() {
       )}
 
       {/* ── 1 · Hero ──────────────────────────────────────────── */}
-      <section style={{ padding: '90px 32px 50px', position: 'relative', overflow: 'hidden' }}>
+      <section className="co-hero-section" style={{ padding: 'clamp(56px, 8vw, 90px) clamp(16px, 4vw, 32px) clamp(36px, 5vw, 50px)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div className="co-hero-grid" style={{
             display: 'grid', gridTemplateColumns: '1.05fr 1fr',
@@ -468,6 +468,11 @@ export default function ChannelOnePage() {
                 borderRadius: 18, padding: 'clamp(22px, 3vw, 32px)',
               }}
             >
+              <style>{`
+                @media (max-width: 560px) {
+                  .co-form-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+                }
+              `}</style>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }} className="co-form-grid">
                 <Field label="Email" required>
                   <input
@@ -816,16 +821,18 @@ function RegistrationSuccess({ result }) {
         <a href={twUrl} target="_blank" rel="noopener noreferrer"
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
+            minHeight: 44, padding: '11px 20px',
             background: '#000', color: '#fff', textDecoration: 'none',
-            borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 600,
+            borderRadius: 10, fontSize: 13, fontWeight: 600,
           }}>
           <Twitter size={14} strokeWidth={2.4} /> Compartir en X
         </a>
         <a href={waUrl} target="_blank" rel="noopener noreferrer"
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
+            minHeight: 44, padding: '11px 20px',
             background: GREEN, color: '#fff', textDecoration: 'none',
-            borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 600,
+            borderRadius: 10, fontSize: 13, fontWeight: 600,
           }}>
           <MessageCircle size={14} strokeWidth={2.4} /> WhatsApp
         </a>
@@ -999,12 +1006,17 @@ function PostConfirmShareModal({ refToken }) {
         <button
           onClick={() => setOpen(false)} aria-label="Cerrar"
           style={{
-            position: 'absolute', top: 14, right: 14,
+            position: 'absolute', top: 10, right: 10,
             background: 'transparent', border: 'none', cursor: 'pointer',
-            color: 'var(--muted)', padding: 6, lineHeight: 0,
+            color: 'var(--muted)',
+            width: 44, height: 44, padding: 0, borderRadius: 10,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'background .15s',
           }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg3)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M18 6 6 18M6 6l12 12"/>
           </svg>
         </button>
@@ -1057,16 +1069,18 @@ function PostConfirmShareModal({ refToken }) {
           <a href={twUrl} target="_blank" rel="noopener noreferrer"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
+              minHeight: 44, padding: '11px 20px',
               background: '#000', color: '#fff', textDecoration: 'none',
-              borderRadius: 10, padding: '11px 18px', fontSize: 13, fontWeight: 600,
+              borderRadius: 10, fontSize: 13, fontWeight: 600,
             }}>
             <Twitter size={14} strokeWidth={2.4} /> Compartir en X
           </a>
           <a href={waUrl} target="_blank" rel="noopener noreferrer"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
+              minHeight: 44, padding: '11px 20px',
               background: GREEN, color: '#fff', textDecoration: 'none',
-              borderRadius: 10, padding: '11px 18px', fontSize: 13, fontWeight: 600,
+              borderRadius: 10, fontSize: 13, fontWeight: 600,
             }}>
             <MessageCircle size={14} strokeWidth={2.4} /> WhatsApp
           </a>
@@ -1342,6 +1356,7 @@ function StickyCTA({ displayed, cap, hideWhen }) {
     >
       <a
         href="#registro" onClick={onClick}
+        className="co-sticky-pill"
         style={{
           display: 'inline-flex', alignItems: 'center', gap: 14,
           padding: '10px 14px 10px 18px',
@@ -1367,7 +1382,7 @@ function StickyCTA({ displayed, cap, hideWhen }) {
             · {remaining.toLocaleString('es-ES')} libres
           </span>
         </span>
-        <span style={{
+        <span className="co-sticky-cta" style={{
           display: 'inline-flex', alignItems: 'center', gap: 6,
           background: GREEN, color: '#fff',
           padding: '8px 14px', borderRadius: 999,
@@ -1379,6 +1394,8 @@ function StickyCTA({ displayed, cap, hideWhen }) {
       <style>{`
         @media (max-width: 480px) {
           .co-sticky-remaining { display: none; }
+          .co-sticky-pill { gap: 10px !important; padding: 8px 12px 8px 14px !important; }
+          .co-sticky-cta { padding: 7px 12px !important; font-size: 12px !important; }
         }
       `}</style>
     </div>

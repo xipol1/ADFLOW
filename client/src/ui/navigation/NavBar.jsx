@@ -378,23 +378,100 @@ const menuItemStyle = {
 // ─── Mobile drawer with accordion sections ──────────────────────────
 function MobileDrawer({ open, onClose, topNav, isAuthenticated, dashboardPath, onLogout }) {
   const [expanded, setExpanded] = useState(null) // id of expanded section
+  const [dragX, setDragX] = useState(0)
+  const touchStartX = useRef(null)
+  const touchStartY = useRef(null)
+  const isHorizontalSwipe = useRef(false)
+  const closeBtnRef = useRef(null)
+  const backdropRef = useRef(null)
+
+  // Move focus to the close button so screen readers and keyboard users
+  // can leave the drawer without tabbing through the whole list.
+  useEffect(() => {
+    if (!open) return
+    setDragX(0)
+    const t = setTimeout(() => closeBtnRef.current?.focus(), 60)
+    return () => clearTimeout(t)
+  }, [open])
+
+  // Swipe-to-close: track horizontal drag and only commit if the user
+  // actually meant to swipe right (vs scrolling the list vertically).
+  const SWIPE_CLOSE_PX = 90
+  const SWIPE_AXIS_LOCK_PX = 8
+
+  const onTouchStart = (e) => {
+    const t = e.touches[0]
+    touchStartX.current = t.clientX
+    touchStartY.current = t.clientY
+    isHorizontalSwipe.current = false
+  }
+  const onTouchMove = (e) => {
+    if (touchStartX.current == null) return
+    const t = e.touches[0]
+    const dx = t.clientX - touchStartX.current
+    const dy = t.clientY - touchStartY.current
+    // Decide axis only once, after enough movement, so vertical scroll wins
+    // when the user is browsing the menu list.
+    if (!isHorizontalSwipe.current && Math.max(Math.abs(dx), Math.abs(dy)) > SWIPE_AXIS_LOCK_PX) {
+      isHorizontalSwipe.current = Math.abs(dx) > Math.abs(dy)
+    }
+    if (isHorizontalSwipe.current && dx > 0) {
+      setDragX(dx)
+      // Backdrop fades proportionally to the drag.
+      if (backdropRef.current) backdropRef.current.style.opacity = String(Math.max(0, 1 - dx / 320))
+    }
+  }
+  const onTouchEnd = () => {
+    const final = dragX
+    touchStartX.current = null
+    touchStartY.current = null
+    isHorizontalSwipe.current = false
+    if (backdropRef.current) backdropRef.current.style.opacity = ''
+    if (final > SWIPE_CLOSE_PX) onClose()
+    else setDragX(0)
+  }
+
   if (!open) return null
+  const dragging = dragX > 0
   return (
-    <div className="fixed inset-0 z-[99]">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+    <div className="nav-drawer-root" style={{ position: 'fixed', inset: 0, zIndex: 99 }}>
       <div
-        className="absolute top-0 right-0 h-full overflow-y-auto"
+        ref={backdropRef}
+        onClick={onClose}
         style={{
-          width: 'min(340px, 100vw)', background: 'var(--surface)',
-          borderLeft: '1px solid var(--border)', padding: 18,
+          position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)',
+          animation: 'nav-drawer-fade .22s ease-out',
+        }}
+      />
+      <div
+        role="dialog" aria-modal="true" aria-label="Menú"
+        onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
+        style={{
+          position: 'absolute', top: 0, right: 0, height: '100%',
+          width: 'min(340px, calc(100vw - 40px))',
+          background: 'var(--surface)',
+          borderLeft: '1px solid var(--border)',
+          padding: 18,
           display: 'flex', flexDirection: 'column', gap: 4,
+          overflowY: 'auto', overscrollBehavior: 'contain',
+          WebkitOverflowScrolling: 'touch',
+          transform: dragging ? `translateX(${dragX}px)` : undefined,
+          transition: dragging ? 'none' : 'transform .25s cubic-bezier(.22,1,.36,1)',
+          animation: dragging ? 'none' : 'nav-drawer-slide .28s cubic-bezier(.22,1,.36,1)',
+          boxShadow: '-12px 0 40px -12px rgba(0,0,0,0.25)',
+          touchAction: 'pan-y',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-          <button onClick={onClose} aria-label="Cerrar menú" style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--text-secondary)', padding: 4,
-          }}><XIcon /></button>
+          <button ref={closeBtnRef} onClick={onClose} aria-label="Cerrar menú"
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--text-secondary)',
+              width: 44, height: 44, padding: 0,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: 10,
+            }}
+          ><XIcon size={22} /></button>
         </div>
 
         {/* Channel One pill — always at top, the most active promo */}
@@ -432,19 +509,27 @@ function MobileDrawer({ open, onClose, topNav, isAuthenticated, dashboardPath, o
           if (entry.to) {
             return (
               <Link key={entry.id} to={entry.to} onClick={onClose}
-                style={{ padding: '11px 14px', fontSize: 15, fontWeight: 500, color: 'var(--text)', textDecoration: 'none' }}
+                style={{
+                  display: 'flex', alignItems: 'center',
+                  minHeight: 48, padding: '12px 14px',
+                  fontSize: 15, fontWeight: 500, color: 'var(--text)', textDecoration: 'none',
+                  borderRadius: 10,
+                }}
               >{entry.label}</Link>
             )
           }
           const isExp = expanded === entry.id
           return (
-            <div key={entry.id} style={{ borderRadius: 8, overflow: 'hidden' }}>
+            <div key={entry.id} style={{ borderRadius: 10, overflow: 'hidden' }}>
               <button onClick={() => setExpanded(isExp ? null : entry.id)}
                 aria-expanded={isExp}
                 style={{
                   width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '11px 14px', background: 'transparent', border: 'none',
-                  fontSize: 15, fontWeight: 500, color: 'var(--text)', cursor: 'pointer', textAlign: 'left',
+                  minHeight: 48, padding: '12px 14px',
+                  background: isExp ? 'var(--bg3)' : 'transparent', border: 'none',
+                  fontSize: 15, fontWeight: 500, color: 'var(--text)',
+                  cursor: 'pointer', textAlign: 'left',
+                  transition: 'background .15s',
                 }}>
                 {entry.label}
                 <ChevronRight size={14} strokeWidth={2.4}
@@ -461,13 +546,15 @@ function MobileDrawer({ open, onClose, topNav, isAuthenticated, dashboardPath, o
                       {col.items.map((it) => (
                         <Link key={it.label} to={it.to} onClick={onClose}
                           style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 8,
-                            padding: '7px 8px', fontSize: 13, color: 'var(--text-secondary)',
+                            display: 'flex', alignItems: 'center', gap: 10,
+                            minHeight: 40, padding: '8px 10px',
+                            fontSize: 14, color: 'var(--text-secondary)',
                             textDecoration: 'none', width: '100%',
+                            borderRadius: 8,
                           }}
                         >
-                          {it.Icon ? <it.Icon size={13} strokeWidth={2} style={{ color: 'var(--muted)' }} />
-                            : it.dot ? <span style={{ width: 7, height: 7, borderRadius: '50%', background: it.dot }} />
+                          {it.Icon ? <it.Icon size={15} strokeWidth={2} style={{ color: 'var(--muted)' }} />
+                            : it.dot ? <span style={{ width: 8, height: 8, borderRadius: '50%', background: it.dot }} />
                             : null}
                           {it.label}
                         </Link>
@@ -496,11 +583,17 @@ function MobileDrawer({ open, onClose, topNav, isAuthenticated, dashboardPath, o
         {isAuthenticated ? (
           <>
             <Link to={dashboardPath} onClick={onClose}
-              style={{ padding: '11px 14px', fontSize: 15, fontWeight: 500, color: 'var(--accent)', textDecoration: 'none' }}
+              style={{
+                display: 'flex', alignItems: 'center',
+                minHeight: 48, padding: '12px 14px', borderRadius: 10,
+                fontSize: 15, fontWeight: 500, color: 'var(--accent)', textDecoration: 'none',
+              }}
             >Mi Dashboard</Link>
             <button onClick={onLogout}
               style={{
-                padding: '11px 14px', fontSize: 15, fontWeight: 500,
+                display: 'flex', alignItems: 'center',
+                minHeight: 48, padding: '12px 14px', borderRadius: 10,
+                fontSize: 15, fontWeight: 500,
                 color: 'var(--text-secondary)', background: 'none', border: 'none',
                 cursor: 'pointer', textAlign: 'left', width: '100%',
               }}
@@ -509,11 +602,17 @@ function MobileDrawer({ open, onClose, topNav, isAuthenticated, dashboardPath, o
         ) : (
           <>
             <Link to="/auth/login" onClick={onClose}
-              style={{ padding: '11px 14px', fontSize: 15, fontWeight: 500, color: 'var(--text)', textDecoration: 'none' }}
+              style={{
+                display: 'flex', alignItems: 'center',
+                minHeight: 48, padding: '12px 14px', borderRadius: 10,
+                fontSize: 15, fontWeight: 500, color: 'var(--text)', textDecoration: 'none',
+              }}
             >Iniciar sesión</Link>
             <Link to="/auth/register" onClick={onClose}
               style={{
-                marginTop: 6, padding: '12px 14px', borderRadius: 12, textAlign: 'center',
+                marginTop: 6,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                minHeight: 48, padding: '12px 14px', borderRadius: 12,
                 background: 'var(--accent)', color: '#080C10',
                 fontSize: 15, fontWeight: 600, textDecoration: 'none',
               }}>Registrarse</Link>
@@ -550,9 +649,28 @@ export default function NavBar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // iOS-safe scroll lock — body.overflow:hidden alone leaks scroll on Safari
+  // because the body isn't taken out of the document flow. Switch to
+  // position:fixed + negative top, and restore scrollY on close. Same trick
+  // is used by Stripe, Apple Shop, Tailwind UI.
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
+    if (!mobileOpen) return
+    const scrollY = window.scrollY
+    const { style } = document.body
+    const prev = {
+      position: style.position, top: style.top, left: style.left,
+      right: style.right, width: style.width, overflow: style.overflow,
+    }
+    style.position = 'fixed'
+    style.top = `-${scrollY}px`
+    style.left = '0'
+    style.right = '0'
+    style.width = '100%'
+    style.overflow = 'hidden'
+    return () => {
+      Object.assign(style, prev)
+      window.scrollTo(0, scrollY)
+    }
   }, [mobileOpen])
 
   // Close megas on route change.
@@ -590,7 +708,12 @@ export default function NavBar() {
           <Link to="/" aria-label="Channelad"
             style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 }}
           >
-            <img src="/logo.svg" alt="Channelad" style={{ height: 26, width: 'auto', display: 'block' }} />
+            <img
+              src="/logo.svg" alt="Channelad"
+              width={26} height={26}
+              loading="eager" decoding="sync" fetchpriority="high"
+              style={{ height: 26, width: 26, display: 'block' }}
+            />
           </Link>
 
           <NavLink to="/marketplace"
@@ -692,10 +815,15 @@ export default function NavBar() {
             aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
             style={{
               display: 'none', background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--text)', padding: 4,
+              color: 'var(--text)', width: 44, height: 44,
+              alignItems: 'center', justifyContent: 'center',
+              borderRadius: 10, padding: 0,
+              transition: 'background .15s',
             }}
+            onTouchStart={(e) => { e.currentTarget.style.background = 'var(--bg3)' }}
+            onTouchEnd={(e) => { e.currentTarget.style.background = 'transparent' }}
           >
-            {mobileOpen ? <XIcon /> : <MenuIcon />}
+            {mobileOpen ? <XIcon size={24} /> : <MenuIcon size={24} />}
           </button>
         </div>
       </header>
@@ -714,6 +842,19 @@ export default function NavBar() {
           0%   { box-shadow: 0 0 0 0 rgba(37,211,102,0.6); }
           70%  { box-shadow: 0 0 0 5px rgba(37,211,102,0); }
           100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); }
+        }
+        @keyframes nav-drawer-fade {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes nav-drawer-slide {
+          from { transform: translateX(100%); }
+          to   { transform: translateX(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .nav-channel-one span,
+          .nav-drawer-root *,
+          .nav-header { animation: none !important; transition: none !important; }
         }
         @media (max-width: 1024px) {
           .nav-channel-one { display: none !important; }
