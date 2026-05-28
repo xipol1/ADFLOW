@@ -291,8 +291,18 @@ const getLinkAnalytics = async (req, res, next) => {
     const ok = await ensureDb();
     if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
 
+    const userId = req.usuario?.id;
+    if (!userId) return next(httpError(401, 'No autorizado'));
+
     const link = await TrackingLink.findById(req.params.id);
     if (!link) return next(httpError(404, 'Link no encontrado'));
+
+    // Ownership: a tracking link's analytics (clicks, IPs, referers, UTMs)
+    // are PII-adjacent and competitive intel — only the creator who minted
+    // the link or an admin may read them.
+    const isOwner = link.createdBy && String(link.createdBy) === String(userId);
+    const isAdmin = (req.usuario?.rol || req.usuario?.role) === 'admin';
+    if (!isOwner && !isAdmin) return next(httpError(403, 'No autorizado'));
 
     const origin = BASE_URL || `${req.protocol}://${req.get('host')}`;
 

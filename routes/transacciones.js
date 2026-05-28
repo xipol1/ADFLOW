@@ -6,8 +6,9 @@ const transaccionController = require('../controllers/transaccionController');
 
 const router = express.Router();
 
-// Stripe webhook — raw body required for signature verification
-router.post('/webhook', express.raw({ type: 'application/json' }), transaccionController.webhookPago);
+// Stripe webhook for campaign payments is now mounted directly in app.js
+// (before express.json() global) so stripe.webhooks.constructEvent receives
+// the raw Buffer. See app.js — search for '/api/transacciones/webhook'.
 
 // Create Stripe Checkout Session for wallet top-up.
 // Gated by datos fiscales: cargar saldo implica una factura emitida → necesitamos NIF.

@@ -5,6 +5,21 @@ const { ensureDb } = require('../lib/ensureDb');
 const userIdOf = (req) => req.usuario?.id || req.usuario?._id;
 const roleOf   = (req) => req.usuario?.rol || req.usuario?.role;
 
+// Ownership guard — load the anuncio and reject if the caller is neither
+// the advertiser who created it nor an admin. Centralised so every write
+// path uses the same check. Returns the anuncio doc on success, or sends a
+// 403/404 and returns null on failure (caller must early-return).
+const loadOwnedAnuncio = async (req, res) => {
+  const anuncio = await Anuncio.findById(req.params.id);
+  if (!anuncio) { res.status(404).json({ success: false, message: 'Anuncio no encontrado' }); return null; }
+  const isOwner = anuncio.anunciante && String(anuncio.anunciante) === String(userIdOf(req));
+  if (!isOwner && roleOf(req) !== 'admin') {
+    res.status(403).json({ success: false, message: 'No autorizado' });
+    return null;
+  }
+  return anuncio;
+};
+
 const crearAnuncio = async (req, res) => {
   const ok = await ensureDb(); if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
   const { titulo, descripcion, presupuesto, canal, tipoAnuncio } = req.body || {};
@@ -29,8 +44,8 @@ const obtenerAnuncio = async (req, res) => {
 
 const actualizarAnuncio = async (req, res) => {
   const ok = await ensureDb(); if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
-  const anuncio = await Anuncio.findById(req.params.id);
-  if (!anuncio) return res.status(404).json({ success: false, message: 'Anuncio no encontrado' });
+  const anuncio = await loadOwnedAnuncio(req, res);
+  if (!anuncio) return;
   const { titulo, descripcion, presupuesto, tipoAnuncio } = req.body || {};
   if (titulo !== undefined) anuncio.titulo = String(titulo).trim();
   if (descripcion !== undefined) anuncio.descripcion = String(descripcion).trim();
@@ -42,33 +57,49 @@ const actualizarAnuncio = async (req, res) => {
 
 const eliminarAnuncio = async (req, res) => {
   const ok = await ensureDb(); if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
-  await Anuncio.findByIdAndDelete(req.params.id);
+  const anuncio = await loadOwnedAnuncio(req, res);
+  if (!anuncio) return;
+  await Anuncio.deleteOne({ _id: anuncio._id });
   return res.json({ success: true, message: 'Anuncio eliminado' });
 };
 
 const enviarParaAprobacion = async (req, res) => {
   const ok = await ensureDb(); if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
-  const anuncio = await Anuncio.findByIdAndUpdate(req.params.id, { estado: 'pendiente_aprobacion' }, { new: true });
+  const anuncio = await loadOwnedAnuncio(req, res);
+  if (!anuncio) return;
+  anuncio.estado = 'pendiente_aprobacion';
+  await anuncio.save();
   return res.json({ success: true, data: anuncio });
 };
 
+// Admin-only: approve/reject ad submitted by an advertiser.
 const responderAprobacion = async (req, res) => {
   const ok = await ensureDb(); if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
+  if (roleOf(req) !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Solo administradores' });
+  }
   const { aprobado } = req.body || {};
   const estado = aprobado ? 'aprobado' : 'rechazado';
   const anuncio = await Anuncio.findByIdAndUpdate(req.params.id, { estado }, { new: true });
+  if (!anuncio) return res.status(404).json({ success: false, message: 'Anuncio no encontrado' });
   return res.json({ success: true, data: anuncio });
 };
 
 const activarAnuncio = async (req, res) => {
   const ok = await ensureDb(); if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
-  const anuncio = await Anuncio.findByIdAndUpdate(req.params.id, { estado: 'activo' }, { new: true });
+  const anuncio = await loadOwnedAnuncio(req, res);
+  if (!anuncio) return;
+  anuncio.estado = 'activo';
+  await anuncio.save();
   return res.json({ success: true, data: anuncio });
 };
 
 const completarAnuncio = async (req, res) => {
   const ok = await ensureDb(); if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
-  const anuncio = await Anuncio.findByIdAndUpdate(req.params.id, { estado: 'completado' }, { new: true });
+  const anuncio = await loadOwnedAnuncio(req, res);
+  if (!anuncio) return;
+  anuncio.estado = 'completado';
+  await anuncio.save();
   return res.json({ success: true, data: anuncio });
 };
 

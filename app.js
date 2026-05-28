@@ -126,6 +126,22 @@ logger.info('ChannelAd API starting', { env: ENV });
       subsRoute.webhookHandler
     );
   }
+  // Campaign payment webhook — same raw-body requirement. Previously mounted
+  // inside routes/transacciones.js but that runs AFTER express.json() global
+  // below, so the body was already consumed and constructEvent() always
+  // failed → no campaign payment ever confirmed. Mount it here instead.
+  try {
+    const txController = require('./controllers/transaccionController');
+    if (txController?.webhookPago) {
+      app.post(
+        '/api/transacciones/webhook',
+        express.raw({ type: 'application/json' }),
+        txController.webhookPago
+      );
+    }
+  } catch (e) {
+    console.error('Failed to mount transacciones webhook:', e.message);
+  }
 }
 
 app.use(express.json({ limit: MAX_REQUEST_SIZE }));

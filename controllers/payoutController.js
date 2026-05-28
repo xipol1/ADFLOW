@@ -92,7 +92,10 @@ const getDashboardLink = async (req, res, next) => {
   }
 };
 
-// POST /api/payouts/withdraw — Request manual withdrawal
+// POST /api/payouts/withdraw — Instant Stripe Connect transfer.
+// SECURITY: must verify the creator actually has the requested amount as
+// available balance before calling Stripe, otherwise any authenticated user
+// with Connect onboarded would be able to drain the platform account.
 const withdraw = async (req, res, next) => {
   try {
     const ok = await ensureDb();
@@ -101,14 +104,58 @@ const withdraw = async (req, res, next) => {
     const userId = req.usuario?.id;
     if (!userId) return next(httpError(401, 'No autorizado'));
 
-    const { amount } = req.body;
-    if (!amount || amount < 10) return next(httpError(400, 'Monto minimo: 10 EUR'));
+    const amount = Number(req.body?.amount);
+    if (!Number.isFinite(amount) || amount < 10) return next(httpError(400, 'Monto minimo: 10 EUR'));
 
     const user = await Usuario.findById(userId);
     if (!user) return next(httpError(404, 'Usuario no encontrado'));
     if (!user.stripeConnectAccountId) return next(httpError(400, 'Debes conectar tu cuenta de Stripe primero'));
 
-    // Verify account is active
+    // ─── Balance check (mirrors transaccionController.solicitarRetiro) ───
+    // Sum creator's completed campaign earnings, then subtract anything
+    // already transferred or reserved across the three payout paths:
+    //   - PayoutAttempt: auto Stripe Connect transfers fired on campaign completion
+    //   - Retiro (pending/processing): manual bank/paypal queue
+    //   - Transaccion tipo='retiro' paid: prior /api/payouts/withdraw calls (this endpoint)
+    const mongoose = require('mongoose');
+    const creatorId = new mongoose.Types.ObjectId(userId);
+    const Canal = require('../models/Canal');
+    const Campaign = require('../models/Campaign');
+    const PayoutAttempt = require('../models/PayoutAttempt');
+    const Retiro = require('../models/Retiro');
+
+    const myChannelIds = (await Canal.find({ propietario: userId }).select('_id').lean()).map((c) => c._id);
+
+    const [completedEarnings, autoPaid, pendingRetiros, manualWithdrawals] = await Promise.all([
+      Campaign.aggregate([
+        { $match: { channel: { $in: myChannelIds }, status: 'COMPLETED' } },
+        { $group: { _id: null, total: { $sum: '$netAmount' } } },
+      ]),
+      PayoutAttempt.aggregate([
+        { $match: { creator: creatorId, status: { $in: ['pending', 'processing', 'succeeded'] } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      Retiro.aggregate([
+        { $match: { creator: creatorId, status: { $in: ['pending', 'processing'] } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      Transaccion.aggregate([
+        { $match: { creator: creatorId, tipo: 'retiro', status: 'paid' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+    ]);
+
+    const totalEarned = completedEarnings[0]?.total || 0;
+    const alreadyTransferred = autoPaid[0]?.total || 0;
+    const reservedForRetiro = pendingRetiros[0]?.total || 0;
+    const priorManual = manualWithdrawals[0]?.total || 0;
+    const availableBalance = +(totalEarned - alreadyTransferred - reservedForRetiro - priorManual).toFixed(2);
+
+    if (availableBalance < amount) {
+      return next(httpError(400, `Saldo insuficiente. Disponible: ${availableBalance.toFixed(2)} EUR`));
+    }
+
+    // Verify Stripe account is active
     const stripeConnect = require('../services/stripeConnectService');
     const status = await stripeConnect.getAccountStatus(user.stripeConnectAccountId);
     if (!status.payoutsEnabled) {
@@ -122,7 +169,7 @@ const withdraw = async (req, res, next) => {
       { userId: String(user._id), type: 'manual_withdrawal' }
     );
 
-    // Record transaction
+    // Record transaction — this row reduces availableBalance on subsequent calls.
     await Transaccion.create({
       advertiser: userId, // self-transfer
       creator: userId,

@@ -176,7 +176,27 @@ async function processIncomingMessage(message, _metadata) {
 // TELEGRAM WEBHOOK — Recepción de updates de canales
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// Telegram sets X-Telegram-Bot-Api-Secret-Token to the value we passed in
+// setWebhook(...secret_token=…). Without this check anyone can POST fake
+// view counts and inflate CampaignMetrics → reviews/payouts based on lies.
 router.post('/telegram', express.json(), async (req, res) => {
+  const expected = process.env.TELEGRAM_WEBHOOK_SECRET;
+  const isProd = process.env.NODE_ENV === 'production';
+
+  if (isProd && !expected) {
+    console.error('Telegram webhook recibido sin TELEGRAM_WEBHOOK_SECRET en prod — rechazado');
+    // Respond 200 so Telegram doesn't retry; the alert is in the log.
+    return res.status(200).json({ ok: true });
+  }
+
+  if (expected) {
+    const provided = req.headers['x-telegram-bot-api-secret-token'];
+    if (!provided || provided !== expected) {
+      console.warn('Telegram webhook — secret_token mismatch, ignorando');
+      return res.status(200).json({ ok: true });
+    }
+  }
+
   res.json({ ok: true });
 
   try {

@@ -361,7 +361,7 @@ const solicitarRetiro = async (req, res, next) => {
     const myChannelIds = (await Canal.find({ propietario: userId }).select('_id').lean())
       .map((c) => c._id);
 
-    const [completedEarnings, autoPaid, pendingRetiros] = await Promise.all([
+    const [completedEarnings, autoPaid, pendingRetiros, manualWithdrawals] = await Promise.all([
       Campaign.aggregate([
         { $match: { channel: { $in: myChannelIds }, status: 'COMPLETED' } },
         { $group: { _id: null, total: { $sum: '$netAmount' } } },
@@ -376,12 +376,20 @@ const solicitarRetiro = async (req, res, next) => {
         { $match: { creator: creatorId, status: { $in: ['pending', 'processing'] } } },
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
+      // Manual instant Stripe Connect withdrawals (POST /api/payouts/withdraw)
+      // are stored as Transaccion {tipo:'retiro', status:'paid'} — subtract
+      // them here so a creator can't double-withdraw via the bank/paypal flow.
+      Transaccion.aggregate([
+        { $match: { creator: creatorId, tipo: 'retiro', status: 'paid' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
     ]);
 
     const totalEarned = completedEarnings[0]?.total || 0;
     const alreadyTransferred = autoPaid[0]?.total || 0;
     const reservedForRetiro = pendingRetiros[0]?.total || 0;
-    const availableBalance = +(totalEarned - alreadyTransferred - reservedForRetiro).toFixed(2);
+    const priorManual = manualWithdrawals[0]?.total || 0;
+    const availableBalance = +(totalEarned - alreadyTransferred - reservedForRetiro - priorManual).toFixed(2);
 
     if (availableBalance < amount) {
       return next(httpError(400, `Saldo insuficiente. Disponible: €${availableBalance.toFixed(2)}`));
