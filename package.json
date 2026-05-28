@@ -16,6 +16,8 @@
     "build": "npm run blog:build && npm run frontend:build && npm run prerender",
     "build:full": "npm run build && npm start",
     "migrate:roles": "node scripts/migrate-roles.js",
+    "errors:tail": "node scripts/tail-errors.js",
+    "errors:watch": "node scripts/tail-errors.js --watch",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint .",

@@ -47,6 +47,12 @@ router.get('/overview', async (req, res) => {
     const day30 = new Date(now - 30 * 86400000);
     const day7 = new Date(now - 7 * 86400000);
 
+    // Errors are surfaced as a top-level KPI so the dashboard works as the
+    // soft-launch observability headline (no Sentry yet — see /errors).
+    const { ErrorLog } = require('../services/errorLogger');
+    const hour1 = new Date(now - 3600000);
+    const hour24 = new Date(now - 24 * 3600000);
+
     const [
       totalUsers, newUsers30d, newUsers7d,
       totalChannels, activeChannels,
@@ -56,6 +62,7 @@ router.get('/overview', async (req, res) => {
       revenueAgg,
       recentUsers,
       recentCampaigns,
+      errors1h, errors24h,
     ] = await Promise.all([
       Usuario.countDocuments(),
       Usuario.countDocuments({ createdAt: { $gte: day30 } }),
@@ -74,6 +81,8 @@ router.get('/overview', async (req, res) => {
       ]).catch(() => []),
       Usuario.find().sort({ createdAt: -1 }).limit(5).select('nombre email rol createdAt').lean(),
       Campaign.find().sort({ createdAt: -1 }).limit(5).populate('channel', 'nombreCanal plataforma').select('status price createdAt channel').lean(),
+      ErrorLog.countDocuments({ createdAt: { $gte: hour1 } }).catch(() => 0),
+      ErrorLog.countDocuments({ createdAt: { $gte: hour24 } }).catch(() => 0),
     ]);
 
     const totalRevenue = revenueAgg[0]?.total || 0;
@@ -88,6 +97,7 @@ router.get('/overview', async (req, res) => {
           totalDisputes, openDisputes,
           pendingCandidates,
           totalRevenue,
+          errors1h, errors24h,
         },
         recentUsers,
         recentCampaigns,
@@ -307,6 +317,103 @@ router.get('/finances', async (req, res) => {
         campaignsByStatus,
       },
     });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ─── Errors ──────────────────────────────────────────────────────────────────
+// Read endpoint over the ErrorLog collection populated by services/errorLogger.js.
+// 5xx responses (handed to the express error middleware) are persisted with stack
+// + req metadata, TTL 30 days. This is the soft-launch observability stack —
+// when traffic grows or we need alerts/sourcemaps, swap for Sentry.
+router.get('/errors', async (req, res) => {
+  try {
+    await ensureDb();
+    const { ErrorLog } = require('../services/errorLogger');
+    const {
+      page = 1,
+      limit = 50,
+      level,           // 'error' | 'warn' | 'fatal'
+      path: pathQ,     // substring match on req.path
+      userId,
+      since,           // ISO date or hours-ago number (e.g. "24" → last 24h)
+      sort = '-createdAt',
+    } = req.query;
+
+    const filter = {};
+    if (level) filter.level = level;
+    if (userId) filter.userId = userId;
+    if (pathQ) filter.path = { $regex: String(pathQ).slice(0, 200), $options: 'i' };
+    if (since) {
+      const asNumber = Number(since);
+      const sinceDate = Number.isFinite(asNumber)
+        ? new Date(Date.now() - asNumber * 3600000)
+        : new Date(since);
+      if (!isNaN(sinceDate.getTime())) filter.createdAt = { $gte: sinceDate };
+    }
+
+    const lim = Math.min(Number(limit) || 50, 200);
+    const [items, total, summary] = await Promise.all([
+      ErrorLog.find(filter)
+        .sort(sort)
+        .skip((Number(page) - 1) * lim)
+        .limit(lim)
+        .lean(),
+      ErrorLog.countDocuments(filter),
+      // Activity summary across the last 24h regardless of filter, so the
+      // dashboard widget can show a stable "X errors in last 24h" headline.
+      ErrorLog.aggregate([
+        { $match: { createdAt: { $gte: new Date(Date.now() - 24 * 3600000) } } },
+        { $facet: {
+          last1h: [
+            { $match: { createdAt: { $gte: new Date(Date.now() - 3600000) } } },
+            { $count: 'count' },
+          ],
+          last24h: [{ $count: 'count' }],
+          byPath: [
+            { $group: { _id: '$path', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 10 },
+          ],
+          byStatus: [
+            { $group: { _id: '$statusCode', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+          ],
+        }},
+      ]).catch(() => [{}]),
+    ]);
+
+    const s = summary[0] || {};
+    return res.json({
+      success: true,
+      data: items,
+      pagination: {
+        page: Number(page),
+        limit: lim,
+        total,
+        totalPages: Math.ceil(total / lim),
+      },
+      summary: {
+        last1h: s.last1h?.[0]?.count || 0,
+        last24h: s.last24h?.[0]?.count || 0,
+        topPaths: (s.byPath || []).map(b => ({ path: b._id, count: b.count })),
+        byStatus: (s.byStatus || []).map(b => ({ statusCode: b._id, count: b.count })),
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Single error detail — full stack + context for debugging.
+router.get('/errors/:id', async (req, res) => {
+  try {
+    await ensureDb();
+    const { ErrorLog } = require('../services/errorLogger');
+    const item = await ErrorLog.findById(req.params.id).lean();
+    if (!item) return res.status(404).json({ success: false, message: 'Error log no encontrado' });
+    return res.json({ success: true, data: item });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
