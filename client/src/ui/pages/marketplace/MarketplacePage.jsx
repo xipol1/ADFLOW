@@ -255,7 +255,67 @@ export default function MarketplacePage() {
             </div>
           </div>
 
-          {/* Search bar removed — global search in NavBar handles this now */}
+          {/* Inline search — Marketplace owns its own search. Submits on Enter
+              or via the Buscar button; cleared via the URL chip below. */}
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleSearch() }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'var(--surface)', border: '1px solid var(--border-med)',
+              borderRadius: 12, padding: '8px 10px 8px 14px',
+              transition: 'border-color .15s, box-shadow .15s',
+            }}
+            onFocusCapture={(e) => { e.currentTarget.style.borderColor = A; e.currentTarget.style.boxShadow = `0 0 0 3px ${AG(0.10)}` }}
+            onBlurCapture={(e) => { e.currentTarget.style.borderColor = 'var(--border-med)'; e.currentTarget.style.boxShadow = 'none' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round"
+              style={{ color: 'var(--muted)', flexShrink: 0 }}
+            >
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+            </svg>
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Busca un canal, nicho o creador..."
+              aria-label="Buscar canales"
+              style={{
+                flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                color: 'var(--text)', fontSize: 14, fontFamily: F, padding: '4px 0',
+                minWidth: 0,
+              }}
+            />
+            {searchInput && (
+              <button
+                type="button"
+                onClick={() => { setSearchInput(''); const next = new URLSearchParams(searchParams); next.delete('q'); setSearchParams(next) }}
+                aria-label="Limpiar búsqueda"
+                style={{
+                  background: 'transparent', border: 'none', cursor: 'pointer',
+                  color: 'var(--muted)', padding: 4, display: 'flex', alignItems: 'center',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                  strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6 6 18M6 6l12 12"/>
+                </svg>
+              </button>
+            )}
+            <button
+              type="submit"
+              style={{
+                background: A, color: '#fff', border: 'none',
+                borderRadius: 8, padding: '7px 16px', fontSize: 13, fontWeight: 600,
+                cursor: 'pointer', flexShrink: 0,
+                transition: 'background .15s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = AD }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = A }}
+            >
+              Buscar
+            </button>
+          </form>
         </div>
       </div>
 
