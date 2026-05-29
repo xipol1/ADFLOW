@@ -24,7 +24,8 @@ const F = FONT_BODY
 
 export default function HerramientasPage() {
   return (
-    <main
+    // <div>, not <main>: AppLayout already provides the page's <main> landmark.
+    <div
       data-testid="herramientas-page"
       style={{
         fontFamily: F,
@@ -111,6 +112,6 @@ export default function HerramientasPage() {
       <LazyMount placeholder={<div style={{ minHeight: 720 }} />}>
         <ToolsDataSection background="transparent" />
       </LazyMount>
-    </main>
+    </div>
   )
 }

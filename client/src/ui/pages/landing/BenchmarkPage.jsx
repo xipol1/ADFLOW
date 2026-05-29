@@ -169,7 +169,8 @@ export default function BenchmarkPage() {
   }, [])
 
   return (
-    <main
+    // <div>, not <main>: AppLayout already provides the page's <main> landmark.
+    <div
       data-testid="benchmark-page"
       style={{
         fontFamily: F,
@@ -743,6 +744,6 @@ export default function BenchmarkPage() {
           </motion.div>
         </div>
       </Section>
-    </main>
+    </div>
   )
 }

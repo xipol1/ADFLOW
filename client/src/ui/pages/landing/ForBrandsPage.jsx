@@ -397,7 +397,9 @@ export default function ForBrandsPage() {
       }
 
   return (
-    <main
+    // <div>, not <main>: AppLayout already renders the page's <main> landmark.
+    // A nested second <main> fails axe "landmark-no-duplicate-main".
+    <div
       data-testid="for-brands-page"
       style={{
         fontFamily: F,
@@ -1811,6 +1813,6 @@ export default function ForBrandsPage() {
       </MotionSection>
 
       <CrossLinks exclude="/para-anunciantes" />
-    </main>
+    </div>
   )
 }

@@ -162,9 +162,12 @@
       })();
     </script>
     <div id="root"></div>
-    <!-- SEO: noscript fallback for crawlers that don't execute JS -->
+    <!-- SEO: noscript fallback for crawlers that don't execute JS.
+         <div>, not <main>: the prerendered home shell injected into #root
+         already carries a <main> landmark, so a second <main> here would be a
+         duplicate landmark when JS is disabled. -->
     <noscript>
-      <main style="max-width:720px;margin:0 auto;padding:80px 24px;font-family:system-ui,sans-serif">
+      <div style="max-width:720px;margin:0 auto;padding:80px 24px;font-family:system-ui,sans-serif">
         <h1>Channelad — Publicidad en comunidades de WhatsApp, Telegram y Discord</h1>
         <p>Channelad es el marketplace de publicidad en comunidades reales. Conecta anunciantes con canales verificados de WhatsApp, Telegram y Discord. Pagos protegidos con escrow y metricas en tiempo real.</p>
         <h2>Para marcas y anunciantes</h2>
@@ -174,7 +177,7 @@
         <h2>Plataformas soportadas</h2>
         <ul><li>WhatsApp</li><li>Telegram</li><li>Discord</li><li>Instagram</li><li>Facebook</li><li>Newsletter</li></ul>
         <p><a href="/blog">Leer el blog</a> · <a href="/para-anunciantes">Para anunciantes</a> · <a href="/para-canales">Para canales</a></p>
-      </main>
+      </div>
     </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>

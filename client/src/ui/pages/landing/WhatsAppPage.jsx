@@ -202,7 +202,8 @@ export default function WhatsAppPage() {
   const ActiveDemo = HOW_STEPS[activeStep].Demo
 
   return (
-    <main
+    // <div>, not <main>: AppLayout already provides the page's <main> landmark.
+    <div
       data-testid="whatsapp-landing"
       style={{
         fontFamily: F,
@@ -1087,6 +1088,6 @@ export default function WhatsAppPage() {
       <ChannelOnePromoBlock context="whatsapp" />
 
       <CrossLinks exclude="/whatsapp" />
-    </main>
+    </div>
   )
 }

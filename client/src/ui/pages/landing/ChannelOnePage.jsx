@@ -154,7 +154,8 @@ export default function ChannelOnePage() {
   }), [])
 
   return (
-    <main
+    // <div>, not <main>: AppLayout already provides the page's <main> landmark.
+    <div
       data-testid="channel-one-page"
       style={{
         fontFamily: F, color: 'var(--text)',
@@ -663,7 +664,7 @@ export default function ChannelOnePage() {
       {confirmedFlag && refParam && (
         <PostConfirmShareModal refToken={refParam} />
       )}
-    </main>
+    </div>
   )
 }
 

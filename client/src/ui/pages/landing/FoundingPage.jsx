@@ -213,7 +213,8 @@ export default function FoundingPage() {
   }
 
   return (
-    <main
+    // <div>, not <main>: AppLayout already provides the page's <main> landmark.
+    <div
       data-testid="founding-page"
       style={{
         fontFamily: F,
@@ -883,6 +884,6 @@ export default function FoundingPage() {
       <ChannelOnePromoBlock context="founding" />
 
       <CrossLinks exclude="/founding" />
-    </main>
+    </div>
   )
 }

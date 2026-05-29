@@ -291,7 +291,8 @@ export default function ForChannelsPage() {
   }
 
   return (
-    <main
+    // <div>, not <main>: AppLayout already provides the page's <main> landmark.
+    <div
       data-testid="for-channels-page"
       style={{
         fontFamily: F,
@@ -1157,6 +1158,6 @@ export default function ForChannelsPage() {
       <ChannelOnePromoBlock context="creator" />
 
       <CrossLinks exclude="/para-canales" />
-    </main>
+    </div>
   )
 }

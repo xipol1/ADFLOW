@@ -74,9 +74,11 @@ export default function SettlementCard() {
           >
             Campaña activa
           </p>
-          <h4 style={{ fontSize: 16, fontWeight: 700, color: '#0F1115', margin: 0, letterSpacing: '-0.015em' }}>
+          {/* Card title label, not a document heading — a real <h4> here jumps
+              the heading order (h1 → h4) and fails axe heading-order. */}
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#0F1115', margin: 0, letterSpacing: '-0.015em' }}>
             Q4_Test · 4 canales
-          </h4>
+          </div>
         </div>
         <span
           style={{

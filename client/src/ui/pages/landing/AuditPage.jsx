@@ -123,7 +123,8 @@ export default function AuditPage() {
   }
 
   return (
-    <main
+    // <div>, not <main>: AppLayout already provides the page's <main> landmark.
+    <div
       data-testid="audit-page"
       style={{
         fontFamily: F,
@@ -487,6 +488,6 @@ export default function AuditPage() {
       </Section>
 
       <CrossLinks exclude="/audit" />
-    </main>
+    </div>
   )
 }
