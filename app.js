@@ -110,6 +110,17 @@ const { requestMetrics, getMetrics } = require('./middleware/requestMetrics');
 app.use(requestMetrics);
 logger.info('ChannelAd API starting', { env: ENV });
 
+// Validate envs on every cold start. Non-strict: log warnings but never call
+// process.exit() — in a Vercel serverless function the platform restarts the
+// instance on exit, which would hide the real diagnostic. The warnings show
+// up in Vercel logs and on the /api/health endpoint output below.
+try {
+  const { validateEnv } = require('./config/validateEnv');
+  validateEnv({ strict: false, logger });
+} catch (e) {
+  logger.warn('validateEnv failed to load', { error: e.message });
+}
+
 // Stripe webhook MUST be mounted before express.json() — it needs the raw body
 // for stripe.webhooks.constructEvent() HMAC signature verification.
 {
@@ -556,6 +567,30 @@ const enabledRoutes = [
   ['/api/founders',    './routes/founders'],
   ['/api/calculator',  './routes/calculator'],
 ];
+
+// ─── Vercel guard for Baileys ────────────────────────────────────────────────
+// BaileysSessionManager opens a long-lived WebSocket to WhatsApp Web and keeps
+// QR/creds in process memory — neither works on Vercel serverless. Intercept
+// the route on Vercel hosts and return a structured 503 instead of letting the
+// request hit the route, time out, or worse: spawn a dead socket the function
+// cold-starts. See docs/BAILEYS_SIDECAR_PLAN.md.
+const RUNS_ON_VERCEL =
+  process.env.VERCEL === '1' || process.env.RUNTIME_PLATFORM === 'vercel';
+if (RUNS_ON_VERCEL) {
+  app.use('/api/baileys', (req, res) => {
+    res.status(503).json({
+      success: false,
+      code: 'baileys_unavailable_on_vercel',
+      message:
+        'La vinculación de WhatsApp no está disponible en este entorno. Reintenta más tarde.',
+      sidecarUrl: process.env.BAILEYS_SIDECAR_URL || null,
+    });
+  });
+  // Remove the entry from the mount list so safeMount doesn't double-register.
+  for (let i = enabledRoutes.length - 1; i >= 0; i--) {
+    if (enabledRoutes[i][1] === './routes/baileys') enabledRoutes.splice(i, 1);
+  }
+}
 
 enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));
 
