@@ -8,7 +8,7 @@ const STEPS_ADVERTISER = [
     id: 0,
     label: 'Anunciante paga',
     icon: CreditCard,
-    color: '#3b82f6',
+    color: '#1d4ed8',
     detail: '500€ via Stripe',
     desc:
       'Confirmas tu campaña y pagas vía Stripe Connect con cualquier tarjeta o transferencia. Tus fondos no llegan al canal todavía: quedan retenidos en escrow neutral.',
@@ -17,7 +17,7 @@ const STEPS_ADVERTISER = [
     id: 1,
     label: 'Escrow protege',
     icon: Shield,
-    color: '#7C3AED',
+    color: '#6d28d9',
     detail: '500€ bloqueados',
     desc:
       'Stripe Connect mantiene los 500 € bloqueados durante toda la campaña. Ni el canal ni tú accedéis al dinero hasta que la entrega quede verificada.',
@@ -26,7 +26,7 @@ const STEPS_ADVERTISER = [
     id: 2,
     label: 'El canal publica',
     icon: Send,
-    color: '#f59e0b',
+    color: '#b45309',
     detail: 'Post en canal',
     desc:
       'El canal publica tu mensaje en su comunidad con el formato que aprobasteis. Channelad detecta automáticamente la publicación con tracking links únicos.',
@@ -35,7 +35,7 @@ const STEPS_ADVERTISER = [
     id: 3,
     label: 'Tracking verifica',
     icon: MousePointerClick,
-    color: '#06b6d4',
+    color: '#0e7490',
     detail: '127 clicks únicos',
     desc:
       'Cada click se valida contra fingerprint, IP y patrón temporal para descartar bots. El contador solo suma clicks únicos verificables y auditables.',
@@ -44,7 +44,7 @@ const STEPS_ADVERTISER = [
     id: 4,
     label: 'Liberación auto',
     icon: CheckCircle2,
-    color: '#22c55e',
+    color: '#15803d',
     detail: 'Verificado en 18h',
     desc:
       'Si el canal cumple los mínimos acordados, el escrow se libera automáticamente. Si no se publica en 48h, recibes el reembolso íntegro sin trámites.',
@@ -53,7 +53,7 @@ const STEPS_ADVERTISER = [
     id: 5,
     label: 'El canal cobra',
     icon: Wallet,
-    color: '#10b981',
+    color: '#0f766e',
     detail: '500€ a su cuenta',
     desc:
       'Stripe Connect transfiere los 500 € directamente a la cuenta del canal. Recibes confirmación y reporte exportable con todas las métricas verificadas.',
@@ -65,7 +65,7 @@ const STEPS_CREATOR = [
     id: 0,
     label: 'El anunciante paga',
     icon: CreditCard,
-    color: '#3b82f6',
+    color: '#1d4ed8',
     detail: '500€ via Stripe',
     desc:
       'El anunciante confirma la campaña y deposita el importe en Stripe Connect. El dinero todavía no es tuyo: queda retenido en escrow neutral hasta que publiques.',
@@ -74,7 +74,7 @@ const STEPS_CREATOR = [
     id: 1,
     label: 'Escrow protege',
     icon: Shield,
-    color: '#7C3AED',
+    color: '#6d28d9',
     detail: '500€ bloqueados',
     desc:
       'Stripe Connect mantiene los 500 € bloqueados. El anunciante no puede recuperarlos a su antojo: si publicas según lo acordado, son tuyos.',
@@ -83,7 +83,7 @@ const STEPS_CREATOR = [
     id: 2,
     label: 'Tu canal publica',
     icon: Send,
-    color: '#f59e0b',
+    color: '#b45309',
     detail: 'Post en tu canal',
     desc:
       'Publicas el mensaje del anunciante con el formato acordado. Channelad detecta automáticamente la publicación con tracking links únicos — sin capturas ni pruebas manuales.',
@@ -92,7 +92,7 @@ const STEPS_CREATOR = [
     id: 3,
     label: 'Tracking verifica',
     icon: MousePointerClick,
-    color: '#06b6d4',
+    color: '#0e7490',
     detail: '127 clicks únicos',
     desc:
       'Cada click se valida contra fingerprint, IP y patrón temporal. El contador es público para ti y para el anunciante: ambos veis las mismas cifras.',
@@ -101,7 +101,7 @@ const STEPS_CREATOR = [
     id: 4,
     label: 'Liberación auto',
     icon: CheckCircle2,
-    color: '#22c55e',
+    color: '#15803d',
     detail: 'Verificado en 18h',
     desc:
       'Cumplido el acuerdo, el escrow se libera automáticamente a tu favor. Sin chats incómodos, sin recordatorios, sin esperas de 60-90 días.',
@@ -110,7 +110,7 @@ const STEPS_CREATOR = [
     id: 5,
     label: 'Tú cobras',
     icon: Wallet,
-    color: '#10b981',
+    color: '#0f766e',
     detail: '500€ a tu cuenta',
     desc:
       'Stripe Connect transfiere los 500 € directamente a tu cuenta. Recibes confirmación y reporte exportable con todas las métricas verificadas.',
@@ -151,7 +151,7 @@ export default function EscrowFlowAnimation({
         <div style={{ textAlign: 'center', marginBottom: 'clamp(36px, 6vw, 64px)' }}>
           <p style={{
             fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
-            letterSpacing: '0.12em', color: '#22c55e', marginBottom: 16,
+            letterSpacing: '0.12em', color: '#15803d', marginBottom: 16,
           }}>{eyebrow}</p>
           <h2 style={{
             fontFamily: FONT_DISPLAY, fontWeight: 700,

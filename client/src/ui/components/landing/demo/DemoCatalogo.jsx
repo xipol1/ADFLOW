@@ -92,7 +92,7 @@ function ChannelCard({ channel }) {
             fontWeight: 700,
             letterSpacing: '0.04em',
             color: '#fff',
-            background: platform.color,
+            background: platform.ink || platform.color,
           }}
         >
           {platform.label}

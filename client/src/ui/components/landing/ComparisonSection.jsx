@@ -39,7 +39,7 @@ const VARIANTS = {
     eyebrow: 'Channelad vs alternativas',
     title: 'Lo que pagas por monetizar tu comunidad.',
     subtitle: 'Comparación honesta frente a las networks tradicionales — comisión real, plazos de cobro y libertad operativa.',
-    accent: '#22c55e',
+    accent: '#15803d',
     accentSoft: 'rgba(34,197,94,0.15)',
     accentRgb: '34,197,94',
     leftCard: { eyebrow: 'Lo de siempre', title: 'Networks tradicionales', letter: '×' },
@@ -66,7 +66,7 @@ function Cell({ data }) {
     <div style={{
       display: 'flex', alignItems: 'center', gap: 10,
       fontSize: 14,
-      color: data.good ? '#10b981' : '#ef4444',
+      color: data.good ? '#0f766e' : '#b91c1c',
       fontWeight: 600,
     }}>
       {data.good
@@ -146,12 +146,12 @@ export default function ComparisonSection({
             }}>
               <div style={{
                 width: 44, height: 44, borderRadius: 12,
-                background: 'rgba(239,68,68,0.08)', color: '#ef4444',
+                background: 'rgba(239,68,68,0.08)', color: '#b91c1c',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 20, fontWeight: 700, fontFamily: FONT_DISPLAY,
               }}>{cfg.leftCard.letter}</div>
               <div>
-                <div style={{ fontSize: 11, color: '#ef4444', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.6 }}>
+                <div style={{ fontSize: 11, color: '#b91c1c', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.6 }}>
                   {cfg.leftCard.eyebrow}
                 </div>
                 <h3 style={{ fontFamily: FONT_DISPLAY, fontSize: 22, fontWeight: 700, margin: '2px 0 0', letterSpacing: '-0.02em' }}>

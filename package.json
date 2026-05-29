@@ -13,6 +13,7 @@
     "dev:full": "concurrently \"npm run dev\" \"npm run frontend:dev\"",
     "blog:build": "node scripts/build-blog.js",
     "prerender": "node scripts/prerender-routes.js",
+    "snapshot:home": "npm run frontend:build && node scripts/snapshot-home.js",
     "build": "npm run blog:build && npm run frontend:build && npm run prerender",
     "build:full": "npm run build && npm start",
     "migrate:roles": "node scripts/migrate-roles.js",

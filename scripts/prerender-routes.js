@@ -116,6 +116,24 @@ function prerender(html, route, meta) {
   return out;
 }
 
+// Home ("/") static hero: inject the prerendered shell (captured locally by
+// scripts/snapshot-home.js) into a SEPARATE dist/home.html so the hero paints
+// before JS. vercel.json rewrites "/" → "/home.html". index.html stays
+// shell-free, so every other SPA route (catch-all → /index.html) keeps an
+// empty #root and never flashes the home hero. No-op if the shell is absent.
+function buildHome(html) {
+  const SHELL = path.join(__dirname, 'home-shell.html');
+  if (!fs.existsSync(SHELL)) {
+    console.log('  ⏭️  scripts/home-shell.html missing — home.html served without prerendered hero');
+    fs.writeFileSync(path.join(DIST, 'home.html'), html, 'utf-8');
+    return;
+  }
+  const shell = fs.readFileSync(SHELL, 'utf-8');
+  const out = html.replace('<div id="root"></div>', `<div id="root">${shell}</div>`);
+  fs.writeFileSync(path.join(DIST, 'home.html'), out, 'utf-8');
+  console.log(`  ✅ home.html (hero shell injected, ${(shell.length / 1024).toFixed(1)} KB)`);
+}
+
 function build() {
   if (!fs.existsSync(INDEX)) {
     console.log('  ⏭️  dist/index.html missing — skipping prerender');
@@ -130,7 +148,8 @@ function build() {
     console.log(`  ✅ ${path.basename(file)} (${meta.title.length}c title)`);
     count++;
   }
-  console.log(`\n✨ Prerendered ${count} route(s) → dist/\n`);
+  buildHome(html);
+  console.log(`\n✨ Prerendered ${count} route(s) + home.html → dist/\n`);
 }
 
 console.log('\n🪞 Channelad route prerender\n');

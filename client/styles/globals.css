@@ -5,6 +5,10 @@
 /* ─── Design tokens — LIGHT (default) ────────────────────── */
 :root {
   --accent:      #7C3AED;
+  /* Text/icon color that sits ON a solid --accent fill. Flips per theme so
+     buttons clear WCAG AA: white on the dark-purple light-theme accent,
+     near-black on the light-lavender dark-theme accent. */
+  --on-accent:   #ffffff;
   --accent-dark: #6D28D9;
   --accent-light:#8B5CF6;
   --accent-glow: rgba(124,58,237,0.10);
@@ -22,7 +26,7 @@
   --text:       #1B1F23;
   --text-secondary: #57606A;
   --muted:      #57606A;
-  --muted2:     #8B949E;
+  --muted2:     #5E666F;
 
   --gold:       #D4960A;
   --gold-dim:   rgba(212,150,10,0.08);
@@ -54,6 +58,7 @@
 /* ─── Design tokens — DARK (ChannelAd Data Intelligence) ── */
 [data-theme="dark"] {
   --accent:      #A78BFA;
+  --on-accent:   #080C10;
   --accent-dark: #8B5CF6;
   --accent-light:#C4B5FD;
   --accent-glow: rgba(139,92,246,0.12);
@@ -458,6 +463,7 @@
 /* Overlines and icon containers using var(--accent) */
 [data-accent="green"] {
   --accent: #25d366;
+  --on-accent: #04210f;
   --accent-glow: rgba(37,211,102,0.12);
   --accent-surface: rgba(37,211,102,0.04);
 }

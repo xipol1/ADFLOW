@@ -142,6 +142,11 @@ export function ResultsIcon({ color = '#f59e0b', active }) {
           key={i}
           x={b.x} width={6} rx={1.5}
           fill={color}
+          // Defined first-frame geometry: without an `initial`, framer-motion
+          // renders the rect once with height="undefined" before applying the
+          // animation, which SVG rejects ("Expected length, undefined") and
+          // logs as a console error (fails Lighthouse Best Practices).
+          initial={{ y: 42, height: 0 }}
           animate={active
             ? { y: [42, 42 - b.h, 42 - b.h], height: [0, b.h, b.h] }
             : { y: 42 - b.h, height: b.h }

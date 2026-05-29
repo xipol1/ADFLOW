@@ -17,18 +17,24 @@ export const CATALOG_CHANNELS = [
 // Map platform key → { color, label } using the project's PLATFORM_BRAND
 // so the demo stays in sync with the marketplace if brand colors change.
 // Newsletter overrides the default (#8b5cf6 collides with our primary purple).
+// `ink` is the WCAG-AA-safe deep brand shade used for the platform tag chip
+// (white text on a saturated brand color failed contrast on the 8px tag).
 export const PLATFORM_DEMO = {
-  telegram:   { color: PLATFORM_BRAND.telegram.color,  label: 'TELEGRAM' },
-  whatsapp:   { color: PLATFORM_BRAND.whatsapp.color,  label: 'WHATSAPP' },
-  discord:    { color: PLATFORM_BRAND.discord.color,   label: 'DISCORD' },
-  newsletter: { color: '#f59e0b',                       label: 'NEWSLETTER' },
+  telegram:   { color: PLATFORM_BRAND.telegram.color,  ink: PLATFORM_BRAND.telegram.ink,  label: 'TELEGRAM' },
+  whatsapp:   { color: PLATFORM_BRAND.whatsapp.color,  ink: PLATFORM_BRAND.whatsapp.ink,  label: 'WHATSAPP' },
+  discord:    { color: PLATFORM_BRAND.discord.color,   ink: PLATFORM_BRAND.discord.ink,   label: 'DISCORD' },
+  newsletter: { color: '#b45309',                      ink: '#b45309',                    label: 'NEWSLETTER' },
 }
 
+// Tier text colors are darkened versions of each accent so the label clears
+// WCAG AA (>=4.5:1) on its own light tint background. The previous greens/
+// ambers (#16a34a / #b45309) measured ~2.9-3.0:1 and failed Lighthouse's
+// color-contrast audit on the 10px tier badge.
 export const TIER_STYLES = {
-  S: { bg: 'rgba(124,58,237,0.14)', text: '#7C3AED' },
-  A: { bg: 'rgba(34,197,94,0.14)',  text: '#16a34a' },
-  B: { bg: 'rgba(245,158,11,0.16)', text: '#b45309' },
-  C: { bg: 'rgba(239,68,68,0.14)',  text: '#b91c1c' },
+  S: { bg: 'rgba(124,58,237,0.14)', text: '#6D28D9' },
+  A: { bg: 'rgba(34,197,94,0.16)',  text: '#166534' },
+  B: { bg: 'rgba(245,158,11,0.18)', text: '#92400E' },
+  C: { bg: 'rgba(239,68,68,0.14)',  text: '#991B1B' },
 }
 
 export const SCORE_DETAIL_CHANNEL = {

@@ -2,11 +2,14 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { Lock, TrendingUp, Zap, ShieldCheck, Eye, BadgeCheck } from 'lucide-react'
 
+// Colors are the WCAG-AA-safe deep brand shades: the avatar circles carry a
+// white channel id, so a vibrant brand fill (telegram #229ED9, whatsapp
+// #25D366, orange) failed contrast. Deeper shades keep the hue and clear AA.
 const SETTLEMENT_CHANNELS = [
-  { id: '042', platform: 'telegram',   color: '#229ED9' },
-  { id: '018', platform: 'whatsapp',   color: '#25D366' },
-  { id: '057', platform: 'newsletter', color: '#F97316' },
-  { id: '009', platform: 'telegram',   color: '#229ED9' },
+  { id: '042', platform: 'telegram',   color: '#1565a0' },
+  { id: '018', platform: 'whatsapp',   color: '#15803d' },
+  { id: '057', platform: 'newsletter', color: '#c2410c' },
+  { id: '009', platform: 'telegram',   color: '#1565a0' },
 ]
 
 // 12 hourly impressions points — gentle ascending curve with a soft midpeak.

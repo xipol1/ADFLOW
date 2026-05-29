@@ -326,7 +326,7 @@ function UserMenu({ user, dashboardPath, onLogout, isDark, toggleTheme }) {
       >
         <span style={{
           width: 26, height: 26, borderRadius: '50%',
-          background: 'var(--accent)', color: '#080C10',
+          background: 'var(--accent)', color: 'var(--on-accent)',
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 11, fontWeight: 700,
         }}>{initials}</span>
@@ -613,7 +613,7 @@ function MobileDrawer({ open, onClose, topNav, isAuthenticated, dashboardPath, o
                 marginTop: 6,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 minHeight: 48, padding: '12px 14px', borderRadius: 12,
-                background: 'var(--accent)', color: '#080C10',
+                background: 'var(--accent)', color: 'var(--on-accent)',
                 fontSize: 15, fontWeight: 600, textDecoration: 'none',
               }}>Registrarse</Link>
           </>
@@ -799,7 +799,7 @@ export default function NavBar() {
                 >Iniciar sesión</Link>
                 <Link to="/auth/register"
                   style={{
-                    fontSize: 13, fontWeight: 600, color: '#080C10',
+                    fontSize: 13, fontWeight: 600, color: 'var(--on-accent)',
                     background: 'var(--accent)', textDecoration: 'none',
                     padding: '8px 16px', borderRadius: 10, transition: 'transform .15s, box-shadow .15s',
                   }}

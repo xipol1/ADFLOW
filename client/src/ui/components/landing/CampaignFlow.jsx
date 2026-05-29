@@ -16,7 +16,7 @@ const STEPS = [
     AnimIcon: DiscoverIcon,
     title: 'Descubre',
     desc: 'Explora el marketplace. Filtra por plataforma, nicho, audiencia y precio. Todas las métricas son verificables con tracking links.',
-    color: '#3b82f6',
+    color: '#1d4ed8',
     details: ['+2.500 canales con métricas propias', 'WhatsApp, Telegram, Discord', 'Filtros por nicho y audiencia'],
     time: '2 min',
   },
@@ -43,7 +43,7 @@ const STEPS = [
     AnimIcon: ResultsIcon,
     title: 'Resultados reales',
     desc: 'Métricas verificadas: clicks únicos, CPC, alcance y engagement. Fondos del escrow liberados automáticamente.',
-    color: '#f59e0b',
+    color: '#b45309',
     details: ['Clicks únicos verificados', 'CPC y ROAS en real-time', 'Escrow liberado automáticamente'],
     time: 'Instantáneo',
   },
@@ -292,9 +292,9 @@ export default function CampaignFlow({
           gap: '24px', flexWrap: 'wrap', marginTop: 'clamp(36px, 5vw, 56px)',
         }}>
           {[
-            { icon: Shield, text: 'Escrow en cada transacción', color: '#22c55e' },
-            { icon: Zap, text: 'Verificación automática', color: '#f59e0b' },
-            { icon: Eye, text: 'Métricas 100% auditables', color: '#3b82f6' },
+            { icon: Shield, text: 'Escrow en cada transacción', color: '#15803d' },
+            { icon: Zap, text: 'Verificación automática', color: '#b45309' },
+            { icon: Eye, text: 'Métricas 100% auditables', color: '#1d4ed8' },
           ].map((badge, i) => (
             <div key={i} style={{
               display: 'flex', alignItems: 'center', gap: '8px',

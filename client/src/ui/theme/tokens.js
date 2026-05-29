@@ -37,15 +37,21 @@ export const ERR  = '#ef4444'
 export const BLUE = '#3b82f6'
 
 // ── Platform brand colors ────────────────────────────────────────────────────
+// `color`  — vibrant brand hue (icons, accents, decorative fills).
+// `bg`     — light tint for chip backgrounds.
+// `ink`    — deepened brand shade that clears WCAG AA as a label/text color on
+//            light bg AND as a background under white text. Use `ink` (not
+//            `color`) wherever the brand appears as small text or a solid badge
+//            with white text — white-on-#25d366/#2aabee failed contrast.
 export const PLATFORM_BRAND = {
-  whatsapp:   { color: '#25d366', bg: 'rgba(37,211,102,0.12)',   label: 'WhatsApp'   },
-  telegram:   { color: '#2aabee', bg: 'rgba(42,171,238,0.12)',   label: 'Telegram'   },
-  discord:    { color: '#5865f2', bg: 'rgba(88,101,242,0.12)',   label: 'Discord'    },
-  youtube:    { color: '#ef4444', bg: 'rgba(239,68,68,0.12)',    label: 'YouTube'    },
-  instagram:  { color: '#e1306c', bg: 'rgba(225,48,108,0.12)',   label: 'Instagram'  },
-  tiktok:     { color: '#010101', bg: 'rgba(100,100,100,0.12)',  label: 'TikTok'     },
-  newsletter: { color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)',   label: 'Newsletter' },
-  facebook:   { color: '#1877f2', bg: 'rgba(24,119,242,0.12)',   label: 'Facebook'   },
+  whatsapp:   { color: '#25d366', bg: 'rgba(37,211,102,0.12)',   ink: '#15803d', label: 'WhatsApp'   },
+  telegram:   { color: '#2aabee', bg: 'rgba(42,171,238,0.12)',   ink: '#1565a0', label: 'Telegram'   },
+  discord:    { color: '#5865f2', bg: 'rgba(88,101,242,0.12)',   ink: '#3730a3', label: 'Discord'    },
+  youtube:    { color: '#ef4444', bg: 'rgba(239,68,68,0.12)',    ink: '#b91c1c', label: 'YouTube'    },
+  instagram:  { color: '#e1306c', bg: 'rgba(225,48,108,0.12)',   ink: '#a01050', label: 'Instagram'  },
+  tiktok:     { color: '#010101', bg: 'rgba(100,100,100,0.12)',  ink: '#010101', label: 'TikTok'     },
+  newsletter: { color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)',   ink: '#6d28d9', label: 'Newsletter' },
+  facebook:   { color: '#1877f2', bg: 'rgba(24,119,242,0.12)',   ink: '#155cb0', label: 'Facebook'   },
   linkedin:   { color: '#0a66c2', bg: 'rgba(10,102,194,0.12)',   label: 'LinkedIn'   },
 }
 

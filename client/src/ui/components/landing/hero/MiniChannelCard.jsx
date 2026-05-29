@@ -103,7 +103,7 @@ export default function MiniChannelCard({ channel, driftAmount = 6, driftDuratio
             fontWeight: 700,
             letterSpacing: '0.05em',
             color: '#fff',
-            background: platform.color,
+            background: platform.ink || platform.color,
             boxShadow: `0 4px 12px -4px ${platform.color}80`,
           }}
         >
@@ -127,7 +127,7 @@ export default function MiniChannelCard({ channel, driftAmount = 6, driftDuratio
       <div style={{ fontSize: 12.5, fontWeight: 600, color: '#0F1115', marginBottom: 2, letterSpacing: '-0.01em' }}>
         Canal #{channel.id}
       </div>
-      <div style={{ fontSize: 11, color: 'rgba(15, 17, 21, 0.55)', marginBottom: 10, fontWeight: 500 }}>
+      <div style={{ fontSize: 11, color: 'rgba(15, 17, 21, 0.66)', marginBottom: 10, fontWeight: 500 }}>
         {channel.niche} · {channel.region} · {channel.subs}
       </div>
       <div
@@ -139,7 +139,7 @@ export default function MiniChannelCard({ channel, driftAmount = 6, driftDuratio
           borderTop: '1px solid rgba(15, 17, 21, 0.06)',
         }}
       >
-        <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(15, 17, 21, 0.45)', fontWeight: 600 }}>
+        <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(15, 17, 21, 0.64)', fontWeight: 600 }}>
           CPM
         </span>
         <span style={{ fontSize: 11.5, fontWeight: 700, color: '#0F1115', letterSpacing: '-0.01em' }}>{channel.cpm}</span>

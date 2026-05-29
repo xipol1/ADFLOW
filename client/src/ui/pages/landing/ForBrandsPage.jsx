@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, lazy, Suspense } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -10,19 +10,25 @@ import MotionSection, {
   staggerItem,
   scaleIn,
 } from '../../components/landing/MotionSection'
-import BrowserChrome from '../../components/landing/demo/BrowserChrome'
-import DemoCatalogo from '../../components/landing/demo/DemoCatalogo'
-import DemoEscrowPayment from '../../components/landing/demo/DemoEscrowPayment'
-import DemoLivePublication from '../../components/landing/demo/DemoLivePublication'
-import DemoFinalResults from '../../components/landing/demo/DemoFinalResults'
 import RotatingWord from '../../components/landing/RotatingWord'
 import HeroBgPattern from '../../components/landing/hero/HeroBgPattern'
 import MiniChannelCard from '../../components/landing/hero/MiniChannelCard'
 import SettlementCard from '../../components/landing/hero/SettlementCard'
-import CampaignFlow from '../../components/landing/CampaignFlow'
-import ComparisonSection from '../../components/landing/ComparisonSection'
-import EscrowFlowAnimation from '../../components/landing/EscrowFlowAnimation'
-import ChannelCalculator from '../../components/calculator/ChannelCalculator'
+
+// Below-the-fold sections — lazy-loaded so they leave the entry chunk. These
+// drag in the heaviest leaf components (the calculator wizard, escrow/flow
+// animations, the 4 product-screen demos), none of which is visible on first
+// paint. A Suspense boundary with a min-height fallback wraps each render site
+// to avoid layout shift while the chunk streams in.
+const BrowserChrome = lazy(() => import('../../components/landing/demo/BrowserChrome'))
+const DemoCatalogo = lazy(() => import('../../components/landing/demo/DemoCatalogo'))
+const DemoEscrowPayment = lazy(() => import('../../components/landing/demo/DemoEscrowPayment'))
+const DemoLivePublication = lazy(() => import('../../components/landing/demo/DemoLivePublication'))
+const DemoFinalResults = lazy(() => import('../../components/landing/demo/DemoFinalResults'))
+const CampaignFlow = lazy(() => import('../../components/landing/CampaignFlow'))
+const ComparisonSection = lazy(() => import('../../components/landing/ComparisonSection'))
+const EscrowFlowAnimation = lazy(() => import('../../components/landing/EscrowFlowAnimation'))
+const ChannelCalculator = lazy(() => import('../../components/calculator/ChannelCalculator'))
 import {
   PURPLE as A,
   purpleAlpha as AG,
@@ -61,7 +67,7 @@ const TRUST_PLATFORMS = [
   { key: 'whatsapp',   label: PLATFORM_BRAND.whatsapp.label,   color: PLATFORM_BRAND.whatsapp.color },
   { key: 'discord',    label: PLATFORM_BRAND.discord.label,    color: PLATFORM_BRAND.discord.color },
   { key: 'instagram',  label: 'Instagram Broadcasts',          color: PLATFORM_BRAND.instagram.color },
-  { key: 'newsletter', label: PLATFORM_BRAND.newsletter.label, color: '#f59e0b' },
+  { key: 'newsletter', label: PLATFORM_BRAND.newsletter.label, color: '#b45309' },
 ]
 
 /* ─── Sección 3 — Pain cards (estilo "Simple por diseño") ────────────── */
@@ -73,7 +79,7 @@ const PAIN_CARDS = [
   {
     num: '01',
     icon: SearchX,
-    color: '#ef4444',
+    color: '#b91c1c',
     title: 'Buscar canales es a ciegas',
     chip: 'Sin buscador público',
     desc:
@@ -87,7 +93,7 @@ const PAIN_CARDS = [
   {
     num: '02',
     icon: BarChart3,
-    color: '#f59e0b',
+    color: '#b45309',
     title: 'No sabes cuánto pagar',
     chip: 'Sin benchmarks de CPM',
     desc:
@@ -101,7 +107,7 @@ const PAIN_CARDS = [
   {
     num: '03',
     icon: AlertTriangle,
-    color: '#dc2626',
+    color: '#b91c1c',
     title: 'DMs, transferencias, cero garantía',
     chip: 'Sin escrow ni custodia',
     desc:
@@ -455,11 +461,15 @@ export default function ForBrandsPage() {
           >
             {/* ─── LEFT COLUMN ─────────────────────────────────── */}
             <div>
-              {/* (a) Trust pills */}
+              {/* (a) Trust pills.
+                  initial={false}: the hero is prerendered as a static snapshot
+                  into #root (scripts/snapshot-home.js → build injects into
+                  home.html). Keeping entrance animations here would make React
+                  re-animate from opacity:0 on mount, flashing over the painted
+                  snapshot. Static = snapshot matches the mounted render exactly. */}
               <motion.div
-                initial={{ opacity: 0, y: 12 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 }}
                 style={{
                   display: 'flex',
                   flexWrap: 'wrap',
@@ -473,11 +483,13 @@ export default function ForBrandsPage() {
                 <TrustPill icon={Lock} label="Pago en escrow" />
               </motion.div>
 
-              {/* (b) H1 with rotating word */}
+              {/* (b) H1 with rotating word.
+                  LCP-critical: rendered visible (no opacity/blur fade-in) so the
+                  paint isn't deferred until an animation completes. Only a small
+                  translate plays in. */}
               <motion.h1
-                initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                initial={false}
+                animate={{ y: 0 }}
                 style={{
                   fontFamily: D,
                   fontSize: 'clamp(40px, 5.2vw, 64px)',
@@ -493,11 +505,11 @@ export default function ForBrandsPage() {
                 <RotatingWord words={HERO_ROTATING_WORDS} />.
               </motion.h1>
 
-              {/* (c) Sub */}
+              {/* (c) Sub — measured LCP element. Kept fully opaque from the
+                  first frame so LCP isn't gated on an opacity transition. */}
               <motion.p
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
+                initial={false}
+                animate={{ y: 0 }}
                 style={{
                   fontSize: 17,
                   color: 'var(--muted)',
@@ -515,9 +527,8 @@ export default function ForBrandsPage() {
               <motion.form
                 id="hero-cta"
                 onSubmit={handleHeroEmailSubmit}
-                initial={{ opacity: 0, y: 16 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -599,7 +610,7 @@ export default function ForBrandsPage() {
                     exit={{ opacity: 0 }}
                     style={{
                       fontSize: 13,
-                      color: '#16a34a',
+                      color: '#15803d',
                       fontWeight: 500,
                       margin: 0,
                       marginBottom: 14,
@@ -612,9 +623,8 @@ export default function ForBrandsPage() {
 
               {/* (e) 3-stat trust ribbon */}
               <motion.div
-                initial={{ opacity: 0 }}
+                initial={false}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.55 }}
                 style={{
                   display: 'flex',
                   gap: 32,
@@ -666,9 +676,8 @@ export default function ForBrandsPage() {
                   SettlementCard. Visually anchors the hero. */}
               <motion.div
                 className="hero-float-1"
-                initial={{ opacity: 0, y: 24, rotate: -10, filter: 'blur(8px)' }}
+                initial={false}
                 animate={{ opacity: 1, y: 0, rotate: -4, filter: 'blur(0px)' }}
-                transition={{ duration: 0.7, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
                 style={{
                   position: 'absolute',
                   top: 0,
@@ -682,9 +691,8 @@ export default function ForBrandsPage() {
               {/* Card 2 — translucent, top-right corner, clear of card 1 */}
               <motion.div
                 className="hero-float-2"
-                initial={{ opacity: 0, y: 24, rotate: 8, filter: 'blur(8px)' }}
+                initial={false}
                 animate={{ opacity: 1, y: 0, rotate: 5, filter: 'blur(0px)' }}
-                transition={{ duration: 0.7, delay: 0.65, ease: [0.22, 1, 0.36, 1] }}
                 style={{
                   position: 'absolute',
                   top: 60,
@@ -698,9 +706,8 @@ export default function ForBrandsPage() {
               {/* Card 3 — NEW, lower-left of SettlementCard, well below cards 1+2 */}
               <motion.div
                 className="hero-float-3"
-                initial={{ opacity: 0, y: 24, rotate: -7, filter: 'blur(8px)' }}
+                initial={false}
                 animate={{ opacity: 1, y: 0, rotate: -3, filter: 'blur(0px)' }}
-                transition={{ duration: 0.7, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
                 style={{
                   position: 'absolute',
                   top: 460,
@@ -713,9 +720,8 @@ export default function ForBrandsPage() {
 
               {/* Settlement card foreground + trust ribbon below */}
               <motion.div
-                initial={{ opacity: 0, y: 36, scale: 0.94, filter: 'blur(10px)' }}
+                initial={false}
                 animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-                transition={{ duration: 0.8, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
                 style={{
                   position: 'absolute',
                   bottom: 0,
@@ -1020,32 +1026,34 @@ export default function ForBrandsPage() {
              Each step card binds a real product screen; hovering a card
              unfolds the matching screen below the grid.
           ══════════════════════════════════════════════════════════════════ */}
-      <CampaignFlow
-        background="transparent"
-        sectionId="how-it-works"
-        screens={[
-          (
-            <BrowserChrome url="channelad.io/explorar" key="screen-1">
-              <DemoCatalogo />
-            </BrowserChrome>
-          ),
-          (
-            <BrowserChrome url="channelad.io/checkout/q4-test" key="screen-2">
-              <DemoEscrowPayment />
-            </BrowserChrome>
-          ),
-          (
-            <BrowserChrome url="channelad.io/campanas/q4-test/en-vivo" key="screen-3">
-              <DemoLivePublication />
-            </BrowserChrome>
-          ),
-          (
-            <BrowserChrome url="channelad.io/campanas/q4-test/resultados" key="screen-4">
-              <DemoFinalResults />
-            </BrowserChrome>
-          ),
-        ]}
-      />
+      <Suspense fallback={<div style={{ minHeight: 720 }} aria-hidden="true" />}>
+        <CampaignFlow
+          background="transparent"
+          sectionId="how-it-works"
+          screens={[
+            (
+              <BrowserChrome url="channelad.io/explorar" key="screen-1">
+                <DemoCatalogo />
+              </BrowserChrome>
+            ),
+            (
+              <BrowserChrome url="channelad.io/checkout/q4-test" key="screen-2">
+                <DemoEscrowPayment />
+              </BrowserChrome>
+            ),
+            (
+              <BrowserChrome url="channelad.io/campanas/q4-test/en-vivo" key="screen-3">
+                <DemoLivePublication />
+              </BrowserChrome>
+            ),
+            (
+              <BrowserChrome url="channelad.io/campanas/q4-test/resultados" key="screen-4">
+                <DemoFinalResults />
+              </BrowserChrome>
+            ),
+          ]}
+        />
+      </Suspense>
 
       {/* ══════════════════════════════════════════════════════════════════
           5 · INSIGHTS PREVIEW — theme-adaptive (light + dark)
@@ -1240,7 +1248,9 @@ export default function ForBrandsPage() {
           6 · COMPARISON — reuses ComparisonSection from main landing
              ("Paid Ads vs. Channelad" two-card layout with VS badge).
           ══════════════════════════════════════════════════════════════════ */}
-      <ComparisonSection background="transparent" sectionId="comparativa" />
+      <Suspense fallback={<div style={{ minHeight: 560 }} aria-hidden="true" />}>
+        <ComparisonSection background="transparent" sectionId="comparativa" />
+      </Suspense>
 
       {/* ══════════════════════════════════════════════════════════════════
           7 · ESCROW FLOW — "Tu dinero, en cada paso"
@@ -1248,19 +1258,23 @@ export default function ForBrandsPage() {
              cards (one per step, two-sentence detail). Active step in the
              timeline highlights the matching card and vice versa.
           ══════════════════════════════════════════════════════════════════ */}
-      <EscrowFlowAnimation background="transparent" sectionId="escrow-flow" />
+      <Suspense fallback={<div style={{ minHeight: 560 }} aria-hidden="true" />}>
+        <EscrowFlowAnimation background="transparent" sectionId="escrow-flow" />
+      </Suspense>
 
       {/* ══════════════════════════════════════════════════════════════════
           8 · CALCULADORA DE CAMPAÑA — el mismo ChannelCalculator unificado
              pero con role="advertiser": inputs presupuesto + duración,
              outputs alcance + comparativa con Meta/Google.
           ══════════════════════════════════════════════════════════════════ */}
-      <ChannelCalculator
-        variant="landing"
-        sectionId="calculadora"
-        background="transparent"
-        initialRole="advertiser"
-      />
+      <Suspense fallback={<div style={{ minHeight: 640 }} aria-hidden="true" />}>
+        <ChannelCalculator
+          variant="landing"
+          sectionId="calculadora"
+          background="transparent"
+          initialRole="advertiser"
+        />
+      </Suspense>
 
       {/* ══════════════════════════════════════════════════════════════════
           9 · PRICING — premium 2-col card with savings example + CTA
@@ -1430,7 +1444,7 @@ export default function ForBrandsPage() {
                       style={{
                         fontSize: 10,
                         fontWeight: 700,
-                        color: '#16a34a',
+                        color: '#15803d',
                         textTransform: 'uppercase',
                         letterSpacing: '0.12em',
                         margin: 0,
