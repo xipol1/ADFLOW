@@ -37,8 +37,17 @@ export default function usePushNotifications() {
       });
     }
     setSubscription(sub);
-    // Send to backend
-    try { await apiService.request('/notifications/push-subscribe', { method: 'POST', data: { subscription: sub.toJSON() } }); } catch (err) { console.error('usePushNotifications.subscribe failed:', err) }
+    // Send to backend. apiService.request spreads options into fetch, which
+    // means a `data` key is silently dropped — the call has to use the fetch
+    // contract: body as a JSON string.
+    try {
+      await apiService.request('/notifications/push-subscribe', {
+        method: 'POST',
+        body: JSON.stringify({ subscription: sub.toJSON() }),
+      });
+    } catch (err) {
+      console.error('usePushNotifications.subscribe failed:', err);
+    }
     return sub;
   }, [isSupported]);
 

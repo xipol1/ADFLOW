@@ -24,18 +24,22 @@ export default function FiscalDataBanner() {
   const location = useLocation()
 
   if (!user) return null
-  if (user.role === 'admin') return null
+  // Backend serializes role as `rol`. AuthContext falls back to `role` to be
+  // robust to schema drift, mirror the same pattern here so admins don't see
+  // the banner and creator skip logic actually fires.
+  const rol = user.rol || user.role || ''
+  if (rol === 'admin') return null
   if (user.emailVerificado === false) return null
   if (user.datosFacturacion?.completado === true) return null
 
   // Para creators, este recordatorio ya está incluido como paso 8 del
   // onboarding checklist en el dashboard — no duplicar.
-  if (user.role === 'creator') return null
+  if (rol === 'creator') return null
 
   // Si ya están en settings, no mostrar el banner para no estorbar.
   if (/\/(advertiser|creator)\/settings/.test(location.pathname)) return null
 
-  const isCreator = user.role === 'creator'
+  const isCreator = rol === 'creator'
   const targetPath = isCreator
     ? '/creator/settings?tab=cobros'
     : '/advertiser/settings?tab=facturacion'
