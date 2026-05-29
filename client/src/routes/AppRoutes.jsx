@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from '../ui/routing/ProtectedRoute'
 import AppLayout from '../ui/layouts/AppLayout'
 import ProGate from '../ui/components/ProGate'
+import FeatureGate from '../ui/components/FeatureGate'
 import { useAuth } from '../auth/AuthContext'
 
 // ── Eagerly loaded (used on first paint or critical path) ──────────
@@ -310,8 +311,8 @@ export default function AppRoutes() {
           <Route index         element={<CreatorOverviewPage />} />
           <Route path="channels" element={<CreatorChannelsPage />} />
           <Route path="channels/new" element={<RegisterChannelPage />} />
-          <Route path="channels/link-whatsapp" element={<LinkWhatsAppPage />} />
-          <Route path="channels/:canalId/verify-wa-admin" element={<VerifyWhatsAppAdminPage />} />
+          <Route path="channels/link-whatsapp" element={<FeatureGate feature="whatsapp"><LinkWhatsAppPage /></FeatureGate>} />
+          <Route path="channels/:canalId/verify-wa-admin" element={<FeatureGate feature="whatsapp"><VerifyWhatsAppAdminPage /></FeatureGate>} />
           <Route path="whatsapp-audit" element={<WhatsAppAuditLogPage />} />
           <Route path="requests" element={<FullAccessOnly feature="Solicitudes"><CreatorRequestsPage /></FullAccessOnly>} />
           <Route path="earnings" element={<FullAccessOnly feature="Ganancias"><CreatorEarningsPage /></FullAccessOnly>} />

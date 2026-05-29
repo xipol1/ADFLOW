@@ -57,6 +57,7 @@ try { _routes['./routes/authMaintenanceCron'] = require('./routes/authMaintenanc
 try { _routes['./routes/channelOne']          = require('./routes/channelOne');          } catch (e) { _routes['./routes/channelOne']          = e; }
 try { _routes['./routes/founders']            = require('./routes/founders');            } catch (e) { _routes['./routes/founders']            = e; }
 try { _routes['./routes/calculator']          = require('./routes/calculator');          } catch (e) { _routes['./routes/calculator']          = e; }
+try { _routes['./routes/features']            = require('./routes/features');            } catch (e) { _routes['./routes/features']            = e; }
 
 // Pre-load for Vercel nft tracer (require only, don't execute swagger-jsdoc at top level)
 let _swaggerPathsJson;
@@ -566,6 +567,7 @@ const enabledRoutes = [
   ['/api/channel-one', './routes/channelOne'],
   ['/api/founders',    './routes/founders'],
   ['/api/calculator',  './routes/calculator'],
+  ['/api/features',    './routes/features'],
 ];
 
 // ─── Vercel guard for Baileys ────────────────────────────────────────────────
