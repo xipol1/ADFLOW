@@ -309,23 +309,59 @@ class BaileysSessionManager {
       throw new Error('newsletterMetadata not supported in this Baileys version');
     }
 
-    const meta = await sock.newsletterMetadata('invite', inviteCode);
+    // Accept a raw code or a full invite URL
+    //   https://whatsapp.com/channel/<code>  →  <code>
+    const code = String(inviteCode || '').trim().split('?')[0].split('/').filter(Boolean).pop();
+    if (!code) throw new Error('Código de invitación inválido');
+
+    const meta = await sock.newsletterMetadata('invite', code);
+    if (!meta) throw new Error('No se encontró ningún canal con ese enlace');
+
+    // Determine the viewer's role for this newsletter. This is the auth that
+    // gates linking: only the OWNER/ADMIN of a channel can attach it to a
+    // Channelad canal. Prefer an explicit viewer role, else match owner JID
+    // against the connected user's number.
+    const userNum = String(sock.user?.id || '').split('@')[0].split(':')[0];
+    let role = meta.viewer_metadata?.role || meta.role || null;
+    if (!role && meta.owner) {
+      const ownerNum = String(meta.owner).split('@')[0].split(':')[0];
+      role = (ownerNum && ownerNum === userNum) ? 'OWNER' : 'SUBSCRIBER';
+    }
+    role = role || 'SUBSCRIBER';
+
+    const newsletter = {
+      jid: meta.id,
+      name: meta.name || meta.thread_metadata?.name || '(sin nombre)',
+      description: meta.description || meta.thread_metadata?.description || '',
+      subscribers: meta.subscribers || meta.subscribers_count || 0,
+      verification: meta.verification || 'UNVERIFIED',
+      inviteCode: meta.invite || code,
+      picture: meta.picture?.url || '',
+      role,
+    };
 
     const session = await BaileysSession.findById(sessionId);
+
+    // If the user administers it, upsert into session.newsletters so the
+    // picker shows it and link-canal will accept it. Dedupe by jid.
+    const administered = role === 'OWNER' || role === 'ADMIN';
+    if (administered) {
+      const existing = (session.newsletters || []).filter((n) => n.jid !== newsletter.jid);
+      session.newsletters = [...existing, newsletter];
+      await session.save();
+    }
+
     await WhatsAppAuditLog.record({
       usuarioId: session.usuarioId,
       sessionId,
       action: 'newsletter.metadata_fetched',
-      summary: `Leído canal "${meta.name}" (${meta.subscribers_count || 0} seguidores)`,
-      data: {
-        jid: meta.id,
-        name: meta.name,
-        subscribers: meta.subscribers_count || 0,
-        verification: meta.verification,
-      },
+      summary: `Leído canal "${newsletter.name}" (${newsletter.subscribers} seguidores, rol ${role})`,
+      data: { jid: newsletter.jid, name: newsletter.name, subscribers: newsletter.subscribers, role, administered },
     });
 
-    return meta;
+    console.log(`[baileys] getNewsletterMetadataByInvite session=${sessionId}: name="${newsletter.name}" role=${role} subs=${newsletter.subscribers} administered=${administered}`);
+
+    return { newsletter, administered };
   }
 
   /**

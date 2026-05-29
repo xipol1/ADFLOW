@@ -236,18 +236,45 @@ async function linkNewsletterToCanal(req, res) {
       { $set: { 'newsletters.$.linkedToCanalId': canalId } }
     );
 
-    // Update the canal with the verified data from WhatsApp
+    // Update the canal with the verified data from WhatsApp.
+    //
+    // A successful QR pair where the user appears as OWNER/ADMIN of the
+    // newsletter is the strongest ownership proof we have for WhatsApp:
+    // - flip `verificado` and `claimed` (this IS the claim event)
+    // - upgrade `verificacion.tipoAcceso` to `admin_directo` (mirrors the
+    //   semantic used by other platforms in the same enum)
+    // - bump `confianzaScore` to 95 — equivalent to Telegram MTProto claim
+    // - OWNER → 'oro', ADMIN → 'plata' (platino is reserved for manual review)
+    const now = new Date();
+    const isOwner = newsletter.role === 'OWNER';
+
     canal.set({
       'botConfig.whatsapp.channelJid': newsletterJid,
       'botConfig.whatsapp.channelName': newsletter.name,
       'botConfig.whatsapp.verifiedByMeta': newsletter.verification === 'VERIFIED',
       'botConfig.whatsapp.baileysSessionId': sessionId,
-      'botConfig.whatsapp.verificadoEn': new Date(),
+      'botConfig.whatsapp.verificadoEn': now,
+      'botConfig.whatsapp.seguidoresVerificados': newsletter.subscribers || 0,
       'estadisticas.seguidores': newsletter.subscribers || 0,
-      'estadisticas.ultimaActualizacion': new Date(),
-      nivelVerificacion: newsletter.role === 'OWNER' ? 'oro' : 'plata',
+      'estadisticas.ultimaActualizacion': now,
+      nivelVerificacion: isOwner ? 'oro' : 'plata',
       estado: 'activo',
+      verificado: true,
+      'verificacion.tipoAcceso': 'admin_directo',
+      'verificacion.confianzaScore': 95,
     });
+
+    // The claim is only set the first time — preserve the original claimer
+    // and timestamp if this canal had already been claimed (e.g. via the
+    // Telegram description flow before being relinked).
+    if (!canal.claimed) {
+      canal.claimed = true;
+      canal.claimedBy = userId;
+      canal.claimedAt = now;
+      // Clear any pending claim token now that ownership is proven
+      canal.claimToken = null;
+    }
+
     await canal.save();
 
     await WhatsAppAuditLog.record({
@@ -266,6 +293,51 @@ async function linkNewsletterToCanal(req, res) {
     });
 
     res.json({ success: true, canal: { id: canal._id, nombre: canal.nombreCanal } });
+  } catch (err) {
+    res.status(err.status || 500).json({ success: false, message: err.message });
+  }
+}
+
+/**
+ * POST /api/baileys/sessions/:sessionId/newsletter-by-invite
+ * Body: { invite }  (raw code or full https://whatsapp.com/channel/<code> URL)
+ *
+ * Fallback for when the synced chat list doesn't surface the user's channel
+ * (WhatsApp doesn't always deliver @newsletter chats with syncFullHistory off).
+ * Resolves the channel by its public invite link via newsletterMetadata, and
+ * if the connected user is its OWNER/ADMIN, adds it to the session so it can
+ * be linked like an auto-detected one.
+ */
+async function addNewsletterByInvite(req, res) {
+  try {
+    const userId = req.usuario?.id || req.usuario?._id;
+    const { sessionId } = req.params;
+    const { invite } = req.body || {};
+
+    if (!invite) {
+      return res.status(400).json({ success: false, message: 'Falta el enlace del canal' });
+    }
+
+    const session = await assertOwnership(sessionId, userId);
+    if (session.status !== 'connected') {
+      return res.status(409).json({
+        success: false,
+        message: `Sesión en estado ${session.status}. Debe estar conectada.`,
+      });
+    }
+
+    const manager = getManager();
+    const { newsletter, administered } = await manager.getNewsletterMetadataByInvite(sessionId, invite);
+
+    if (!administered) {
+      return res.status(403).json({
+        success: false,
+        message: `Encontramos "${newsletter.name}" pero no figuras como administrador/propietario. Solo puedes vincular canales que administras.`,
+        data: { newsletter },
+      });
+    }
+
+    return res.json({ success: true, newsletter });
   } catch (err) {
     res.status(err.status || 500).json({ success: false, message: err.message });
   }
@@ -331,6 +403,7 @@ module.exports = {
   refreshNewsletters,
   refreshGroups,
   linkNewsletterToCanal,
+  addNewsletterByInvite,
   revokeSession,
   listAuditLog,
 };

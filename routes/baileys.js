@@ -70,6 +70,18 @@ router.post(
 );
 
 router.post(
+  '/sessions/:sessionId/newsletter-by-invite',
+  autenticar,
+  limitadorGeneral,
+  [
+    param('sessionId').isMongoId(),
+    body('invite').isString().notEmpty().isLength({ max: 300 }),
+  ],
+  validarCampos,
+  c.addNewsletterByInvite
+);
+
+router.post(
   '/sessions/:sessionId/link-canal',
   autenticar,
   [

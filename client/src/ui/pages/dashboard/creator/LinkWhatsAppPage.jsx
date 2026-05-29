@@ -114,6 +114,12 @@ export default function LinkWhatsAppPage() {
   const [linkedItems, setLinkedItems] = useState([]) // [{ jid, name, canalId, canalName }]
   const [linking, setLinking] = useState(false)
   const [error, setError] = useState('')
+  // Invite-link fallback: WhatsApp doesn't always sync the user's @newsletter
+  // chats, so auto-detect can return 0 even when the user owns a channel.
+  // They paste the channel's public invite link and we resolve it directly.
+  const [inviteUrl, setInviteUrl] = useState('')
+  const [inviteAdding, setInviteAdding] = useState(false)
+  const [inviteMsg, setInviteMsg] = useState('')
   const pollRef = useRef(null)
   const { confirm, dialog: confirmDialog } = useConfirm()
 
@@ -181,6 +187,38 @@ export default function LinkWhatsAppPage() {
       setError(err.message || 'Error al iniciar la vinculación')
     } finally {
       setLinking(false)
+    }
+  }
+
+  // Resolve a channel by its public invite link and, if the user administers
+  // it, inject it into sessionState.newsletters so it shows in the picker.
+  const handleAddByInvite = async () => {
+    const v = (inviteUrl || '').trim()
+    if (!v) { setInviteMsg('Pega el enlace de tu canal'); return }
+    setInviteAdding(true)
+    setInviteMsg('')
+    setError('')
+    try {
+      const res = await apiService.request(`/baileys/sessions/${sessionId}/newsletter-by-invite`, {
+        method: 'POST',
+        body: JSON.stringify({ invite: v }),
+      })
+      if (res?.success && res.newsletter) {
+        // Merge into the picker list (dedupe by jid)
+        setSessionState(prev => {
+          const current = prev?.newsletters || []
+          const without = current.filter(n => n.jid !== res.newsletter.jid)
+          return { ...(prev || {}), newsletters: [...without, res.newsletter] }
+        })
+        setInviteUrl('')
+        setInviteMsg(`✓ "${res.newsletter.name}" añadido (${res.newsletter.subscribers || 0} seguidores)`)
+      } else {
+        setInviteMsg(res?.message || 'No se pudo añadir el canal')
+      }
+    } catch (err) {
+      setInviteMsg(err.message || 'Error al resolver el enlace')
+    } finally {
+      setInviteAdding(false)
     }
   }
 
@@ -358,6 +396,11 @@ export default function LinkWhatsAppPage() {
           onLink={handleLinkNewsletter}
           onFinish={handleFinishLinking}
           onRevoke={handleRevoke}
+          inviteUrl={inviteUrl}
+          setInviteUrl={setInviteUrl}
+          inviteAdding={inviteAdding}
+          inviteMsg={inviteMsg}
+          onAddByInvite={handleAddByInvite}
         />
       )}
 
@@ -796,7 +839,57 @@ function QRStep({ sessionState, onRevoke }) {
 
 // ─── Step 2: Newsletter Picker ───────────────────────────────────────────────
 
-function NewsletterPickerStep({ sessionState, myCanales, selectedCanalId, setSelectedCanalId, linking, linkedItems, onLink, onFinish, onRevoke }) {
+// Reusable invite-link input. WhatsApp doesn't always sync the user's
+// @newsletter chats, so auto-detect can miss a channel the user owns. This
+// lets them paste the public invite link to resolve it directly.
+function InviteLinkBox({ inviteUrl, setInviteUrl, inviteAdding, inviteMsg, onAddByInvite }) {
+  const ok = inviteMsg.startsWith('✓')
+  return (
+    <div style={{
+      background: 'var(--bg2)', border: '1px solid var(--border)',
+      borderRadius: '12px', padding: '16px 18px',
+    }}>
+      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', marginBottom: '4px' }}>
+        ¿No aparece tu Canal? Añádelo por su enlace
+      </div>
+      <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '10px', lineHeight: 1.5 }}>
+        En WhatsApp abre tu Canal → ⋮ → <strong>Compartir enlace del canal</strong> y pégalo aquí.
+      </div>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <input
+          type="text"
+          value={inviteUrl}
+          onChange={(e) => setInviteUrl(e.target.value)}
+          placeholder="https://whatsapp.com/channel/..."
+          style={{
+            flex: 1, minWidth: '220px', padding: '10px 12px', fontSize: '13px',
+            background: 'var(--bg)', color: 'var(--text)',
+            border: '1px solid var(--border)', borderRadius: '10px', outline: 'none',
+          }}
+        />
+        <button
+          onClick={onAddByInvite}
+          disabled={inviteAdding || !inviteUrl.trim()}
+          style={{
+            padding: '10px 18px', fontSize: '13px', fontWeight: 600,
+            background: inviteUrl.trim() && !inviteAdding ? '#25d366' : 'var(--muted2)',
+            color: '#fff', border: 'none', borderRadius: '10px',
+            cursor: inviteUrl.trim() && !inviteAdding ? 'pointer' : 'not-allowed',
+          }}
+        >
+          {inviteAdding ? 'Buscando...' : 'Añadir canal'}
+        </button>
+      </div>
+      {inviteMsg && (
+        <div style={{ marginTop: '8px', fontSize: '12px', color: ok ? GREEN : '#dc2626' }}>
+          {inviteMsg}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function NewsletterPickerStep({ sessionState, myCanales, selectedCanalId, setSelectedCanalId, linking, linkedItems, onLink, onFinish, onRevoke, inviteUrl, setInviteUrl, inviteAdding, inviteMsg, onAddByInvite }) {
   const newsletters = sessionState?.newsletters || []
   const groups = sessionState?.groups || []
   const aptoGroups = groups.filter((g) => g.apto)
@@ -838,9 +931,21 @@ function NewsletterPickerStep({ sessionState, myCanales, selectedCanalId, setSel
             No tienes Canales (newsletters) que administres
           </h2>
           <p style={{ fontSize: '14px', color: 'var(--muted)', maxWidth: '460px', margin: '0 auto', lineHeight: 1.6 }}>
-            Channelad monetiza <strong>Canales de WhatsApp</strong> (newsletters broadcast), no grupos.
-            Pero hemos auditado tus grupos para mostrarte cuáles podrían convertirse en Canales monetizables.
+            No detectamos automáticamente ningún Canal (newsletter) que administres.
+            Si tienes uno, añádelo por su enlace público abajo. Channelad monetiza
+            <strong> Canales de WhatsApp</strong> (newsletters broadcast), no grupos.
           </p>
+        </div>
+
+        {/* Invite-link fallback — primary path when auto-detect finds nothing */}
+        <div style={{ marginBottom: '24px' }}>
+          <InviteLinkBox
+            inviteUrl={inviteUrl}
+            setInviteUrl={setInviteUrl}
+            inviteAdding={inviteAdding}
+            inviteMsg={inviteMsg}
+            onAddByInvite={onAddByInvite}
+          />
         </div>
 
         <GroupAuditReport groups={groups} aptoGroups={aptoGroups} noAptoGroups={noAptoGroups} />
