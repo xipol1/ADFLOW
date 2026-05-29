@@ -359,7 +359,7 @@ class BaileysSessionManager {
       data: { jid: newsletter.jid, name: newsletter.name, subscribers: newsletter.subscribers, role, administered },
     });
 
-    console.log(`[baileys] getNewsletterMetadataByInvite session=${sessionId}: name="${newsletter.name}" role=${role} subs=${newsletter.subscribers} administered=${administered}`);
+    console.log(`[baileys] getNewsletterMetadataByInvite session=${sessionId}: name="${newsletter.name}" role=${role} administered=${administered} subs=${newsletter.subscribers} | owner=${meta.owner || '?'} userJid=${sock.user?.id || '?'} viewerRole=${meta.viewer_metadata?.role || '?'}`);
 
     return { newsletter, administered };
   }
