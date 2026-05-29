@@ -28,10 +28,13 @@ kill_timeout = "15s"                  # server.js shutdown allows 10s grace
 [http_service]
   internal_port = 8080
   force_https = true
-  # Baileys WebSocket sessions die on auto-stop — they need a persistent VM.
-  # min_machines_running=1 keeps one instance always warm; auto_stop_machines
-  # is left on "stop" for any extra scaled-out replicas only.
-  auto_stop_machines = "stop"
+  # Baileys holds long-lived WhatsApp WebSocket sessions in memory — a stopped
+  # machine drops every paired user and forces a cold start (~8s) on the next
+  # request, which the browser fetch in LinkWhatsAppPage times out on. So the
+  # machine must NEVER auto-stop. "off" guarantees always-on (min_machines is
+  # only a floor under "stop"/"suspend", and with a single machine Fly can
+  # still stop it — "off" is the only hard guarantee).
+  auto_stop_machines = "off"
   auto_start_machines = true
   min_machines_running = 1
   processes = ["app"]
