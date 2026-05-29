@@ -107,6 +107,11 @@ export default function LinkWhatsAppPage() {
   const [myCanales, setMyCanales] = useState([])
   const [selectedCanalId, setSelectedCanalId] = useState(null)
   const [selectedNewsletterJid, setSelectedNewsletterJid] = useState(null)
+  // Multi-link tracking: every successful POST /link-canal appends to this
+  // list. The newsletter picker stays on step 2 so the user can link more
+  // newsletters in the same Baileys session (one QR scan = N links). A
+  // "Finalizar" button at the bottom transitions to step 3 with the recap.
+  const [linkedItems, setLinkedItems] = useState([]) // [{ jid, name, canalId, canalName }]
   const [linking, setLinking] = useState(false)
   const [error, setError] = useState('')
   const pollRef = useRef(null)
@@ -192,8 +197,22 @@ export default function LinkWhatsAppPage() {
         body: JSON.stringify({ newsletterJid, canalId: selectedCanalId }),
       })
       if (res?.success) {
-        setSelectedNewsletterJid(newsletterJid)
-        setStep(3)
+        // Record the binding and reset the picker so the user can link
+        // more newsletters from the same WhatsApp session. The wizard
+        // stays on step 2 until they hit "Finalizar".
+        const nl = (sessionState?.newsletters || []).find(n => n.jid === newsletterJid)
+        const canal = myCanales.find(c => (c._id || c.id) === selectedCanalId)
+        setLinkedItems(prev => [
+          ...prev,
+          {
+            jid: newsletterJid,
+            name: nl?.name || 'Newsletter',
+            canalId: selectedCanalId,
+            canalName: canal?.nombreCanal || canal?.nombre || 'Canal',
+          },
+        ])
+        setSelectedCanalId(null)
+        setSelectedNewsletterJid(null)
       } else {
         setError(res?.message || 'Error al vincular el canal')
       }
@@ -202,6 +221,17 @@ export default function LinkWhatsAppPage() {
     } finally {
       setLinking(false)
     }
+  }
+
+  // Transitions to the done step. Called from the "Finalizar" button at
+  // the bottom of the newsletter picker once the user has linked all the
+  // newsletters they want from this WhatsApp session.
+  const handleFinishLinking = () => {
+    if (linkedItems.length === 0) {
+      setError('Vincula al menos una newsletter antes de continuar')
+      return
+    }
+    setStep(3)
   }
 
   const handleRevoke = async () => {
@@ -324,12 +354,20 @@ export default function LinkWhatsAppPage() {
           selectedCanalId={selectedCanalId}
           setSelectedCanalId={setSelectedCanalId}
           linking={linking}
+          linkedItems={linkedItems}
           onLink={handleLinkNewsletter}
+          onFinish={handleFinishLinking}
           onRevoke={handleRevoke}
         />
       )}
 
-      {step === 3 && <DoneStep sessionState={sessionState} onFinish={() => navigate('/creator/channels')} />}
+      {step === 3 && (
+        <DoneStep
+          sessionState={sessionState}
+          linkedItems={linkedItems}
+          onFinish={() => navigate('/creator/channels')}
+        />
+      )}
     </div>
   )
 }
@@ -758,11 +796,18 @@ function QRStep({ sessionState, onRevoke }) {
 
 // ─── Step 2: Newsletter Picker ───────────────────────────────────────────────
 
-function NewsletterPickerStep({ sessionState, myCanales, selectedCanalId, setSelectedCanalId, linking, onLink, onRevoke }) {
+function NewsletterPickerStep({ sessionState, myCanales, selectedCanalId, setSelectedCanalId, linking, linkedItems, onLink, onFinish, onRevoke }) {
   const newsletters = sessionState?.newsletters || []
   const groups = sessionState?.groups || []
   const aptoGroups = groups.filter((g) => g.apto)
   const noAptoGroups = groups.filter((g) => !g.apto)
+
+  // jids and canalIds already used in this session — newsletters are
+  // marked as "Vinculado" and used Channelad canales are filtered out of
+  // the dropdown so the user can't accidentally double-bind one.
+  const linkedJids = new Set((linkedItems || []).map(i => i.jid))
+  const usedCanalIds = new Set((linkedItems || []).map(i => String(i.canalId)))
+  const remainingNewsletters = newsletters.filter(n => !linkedJids.has(n.jid))
 
   if (newsletters.length === 0) {
     return (
@@ -837,8 +882,13 @@ function NewsletterPickerStep({ sessionState, myCanales, selectedCanalId, setSel
         </h2>
       </div>
       <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '24px' }}>
-        Hemos detectado {newsletters.length} canal{newsletters.length === 1 ? '' : 'es'} que administras. Elige cuál
-        quieres vincular a Channelad.
+        {newsletters.length === 0
+          ? 'No detectamos newsletters en tu WhatsApp.'
+          : <>
+              Detectamos <strong>{newsletters.length}</strong> newsletter{newsletters.length === 1 ? '' : 's'} que administras.
+              {linkedItems && linkedItems.length > 0 && <> Ya vinculaste <strong>{linkedItems.length}</strong>.</>}
+              {remainingNewsletters.length > 0 && <> Puedes vincular las que quieras antes de continuar.</>}
+            </>}
       </p>
 
       {/* Canal picker (ChannelAd side) */}
@@ -871,6 +921,7 @@ function NewsletterPickerStep({ sessionState, myCanales, selectedCanalId, setSel
           <option value="">Selecciona un canal...</option>
           {myCanales
             .filter((c) => !c.plataforma || c.plataforma === 'whatsapp' || !c.plataforma)
+            .filter((c) => !usedCanalIds.has(String(c._id || c.id)))
             .map((c) => (
               <option key={c._id || c.id} value={c._id || c.id}>
                 {c.nombreCanal || c.nombre || 'Sin nombre'}
@@ -936,25 +987,87 @@ function NewsletterPickerStep({ sessionState, myCanales, selectedCanalId, setSel
                 {n.subscribers?.toLocaleString() || 0} seguidores · {n.role}
               </p>
             </div>
-            <button
-              onClick={() => onLink(n.jid)}
-              disabled={linking || !selectedCanalId}
-              style={{
-                padding: '10px 18px',
+            {linkedJids.has(n.jid) ? (
+              <div style={{
+                padding: '10px 16px',
                 fontSize: '13px',
                 fontWeight: 600,
-                background: selectedCanalId && !linking ? PURPLE : 'var(--muted2)',
-                color: '#fff',
-                border: 'none',
+                color: GREEN,
+                background: greenAlpha(0.12),
+                border: `1px solid ${greenAlpha(0.32)}`,
                 borderRadius: '10px',
-                cursor: selectedCanalId && !linking ? 'pointer' : 'not-allowed',
-              }}
-            >
-              {linking ? 'Vinculando...' : 'Vincular'}
-            </button>
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}>
+                <CheckCircle2 size={14} /> Vinculado
+              </div>
+            ) : (
+              <button
+                onClick={() => onLink(n.jid)}
+                disabled={linking || !selectedCanalId}
+                style={{
+                  padding: '10px 18px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  background: selectedCanalId && !linking ? PURPLE : 'var(--muted2)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  cursor: selectedCanalId && !linking ? 'pointer' : 'not-allowed',
+                }}
+              >
+                {linking ? 'Vinculando...' : 'Vincular'}
+              </button>
+            )}
           </div>
         ))}
       </div>
+
+      {/* Multi-link finalize CTA. Only meaningful once the user linked at
+          least one newsletter; otherwise "Cancelar" below is the exit. */}
+      {linkedItems && linkedItems.length > 0 && (
+        <div style={{
+          marginTop: '24px',
+          padding: '18px 20px',
+          background: greenAlpha(0.06),
+          border: `1px dashed ${greenAlpha(0.32)}`,
+          borderRadius: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+          flexWrap: 'wrap',
+        }}>
+          <div style={{ flex: 1, minWidth: '220px' }}>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', margin: 0 }}>
+              {linkedItems.length} newsletter{linkedItems.length === 1 ? '' : 's'} vinculada{linkedItems.length === 1 ? '' : 's'}
+              {remainingNewsletters.length > 0 && `, ${remainingNewsletters.length} pendiente${remainingNewsletters.length === 1 ? '' : 's'}`}.
+            </p>
+            <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '4px 0 0' }}>
+              Puedes vincular más newsletters arriba o finalizar y cerrar la sesión de WhatsApp.
+            </p>
+          </div>
+          <button
+            onClick={onFinish}
+            style={{
+              padding: '10px 18px',
+              fontSize: '13px',
+              fontWeight: 600,
+              background: GREEN,
+              color: '#fff',
+              border: 'none',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            Finalizar
+            <ArrowRight size={14} />
+          </button>
+        </div>
+      )}
 
       {groups.length > 0 && (
         <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px dashed var(--border)' }}>
@@ -1154,7 +1267,10 @@ function GroupAuditRow({ group }) {
 
 // ─── Step 3: Done ────────────────────────────────────────────────────────────
 
-function DoneStep({ sessionState, onFinish }) {
+function DoneStep({ sessionState, linkedItems, onFinish }) {
+  const count = (linkedItems || []).length
+  const plural = count !== 1
+
   return (
     <div
       style={{
@@ -1180,16 +1296,45 @@ function DoneStep({ sessionState, onFinish }) {
         <CheckCircle2 size={36} style={{ color: GREEN }} />
       </div>
       <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '24px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>
-        Canal vinculado correctamente
+        {count > 0
+          ? <>{count} newsletter{plural ? 's' : ''} vinculada{plural ? 's' : ''} correctamente</>
+          : 'Canal vinculado correctamente'}
       </h2>
-      <p style={{ fontSize: '14px', color: 'var(--muted)', maxWidth: '440px', margin: '0 auto 24px', lineHeight: 1.7 }}>
-        A partir de ahora leeremos los seguidores, views y reacciones de este canal en tiempo real. Puedes consultar
-        cada operación en el{' '}
+      <p style={{ fontSize: '14px', color: 'var(--muted)', maxWidth: '460px', margin: '0 auto 24px', lineHeight: 1.7 }}>
+        A partir de ahora leeremos los seguidores, views y reacciones {plural ? 'de estos canales' : 'de este canal'} en tiempo real.
+        Puedes consultar cada operación en el{' '}
         <Link to="/creator/whatsapp-audit" style={{ color: PURPLE, fontWeight: 600 }}>
           registro de accesos
         </Link>
         .
       </p>
+
+      {count > 0 && (
+        <div style={{
+          maxWidth: '460px',
+          margin: '0 auto 24px',
+          background: 'var(--bg2)',
+          border: '1px solid var(--border)',
+          borderRadius: '12px',
+          padding: '14px 16px',
+          textAlign: 'left',
+        }}>
+          <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--muted2)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>
+            Vínculos creados en esta sesión
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {linkedItems.map(item => (
+              <div key={item.jid} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
+                <CheckCircle2 size={14} style={{ color: GREEN, flexShrink: 0 }} />
+                <span style={{ color: 'var(--text)', fontWeight: 600 }}>{item.name}</span>
+                <span style={{ color: 'var(--muted2)' }}>→</span>
+                <span style={{ color: 'var(--muted)' }}>{item.canalName}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <button
         onClick={onFinish}
         style={{
