@@ -117,21 +117,30 @@ function prerender(html, route, meta) {
 }
 
 // Home ("/") static hero: inject the prerendered shell (captured locally by
-// scripts/snapshot-home.js) into a SEPARATE dist/home.html so the hero paints
-// before JS. vercel.json rewrites "/" → "/home.html". index.html stays
-// shell-free, so every other SPA route (catch-all → /index.html) keeps an
-// empty #root and never flashes the home hero. No-op if the shell is absent.
-function buildHome(html) {
+// scripts/snapshot-home.js) INTO dist/index.html so the hero paints before JS.
+//
+// Why index.html and not a separate file + rewrite: Vercel resolves the
+// filesystem BEFORE `rewrites`, so a request for "/" is auto-served from
+// dist/index.html and a `"/" -> "/home.html"` rewrite never fires. The only
+// way to control what "/" returns is to put the markup in index.html itself.
+//
+// To keep the home hero from leaking onto OTHER SPA routes, the shell-free
+// shell is written to dist/app.html and vercel.json points the catch-all
+// (`/(.*)`) at /app.html instead of /index.html. So:
+//   /                      -> index.html (hero shell)        [filesystem]
+//   /pricing, /para-*, …   -> *.html (shell-free + meta)     [rewrite]
+//   /dashboard, /auth, …   -> app.html (shell-free)          [catch-all rewrite]
+// No-op (index.html left shell-free) if the snapshot is absent.
+function injectHomeShell(baseHtml) {
   const SHELL = path.join(__dirname, 'home-shell.html');
   if (!fs.existsSync(SHELL)) {
-    console.log('  ⏭️  scripts/home-shell.html missing — home.html served without prerendered hero');
-    fs.writeFileSync(path.join(DIST, 'home.html'), html, 'utf-8');
+    console.log('  ⏭️  scripts/home-shell.html missing — index.html served without prerendered hero');
     return;
   }
   const shell = fs.readFileSync(SHELL, 'utf-8');
-  const out = html.replace('<div id="root"></div>', `<div id="root">${shell}</div>`);
-  fs.writeFileSync(path.join(DIST, 'home.html'), out, 'utf-8');
-  console.log(`  ✅ home.html (hero shell injected, ${(shell.length / 1024).toFixed(1)} KB)`);
+  const out = baseHtml.replace('<div id="root"></div>', `<div id="root">${shell}</div>`);
+  fs.writeFileSync(INDEX, out, 'utf-8');
+  console.log(`  ✅ index.html (home hero shell injected, ${(shell.length / 1024).toFixed(1)} KB)`);
 }
 
 function build() {
@@ -139,17 +148,27 @@ function build() {
     console.log('  ⏭️  dist/index.html missing — skipping prerender');
     return;
   }
-  const html = fs.readFileSync(INDEX, 'utf-8');
+  // Capture the shell-free build output first; every other artifact derives
+  // from it before the shell is injected into index.html.
+  const baseHtml = fs.readFileSync(INDEX, 'utf-8');
+
+  // Shell-free SPA fallback for the catch-all rewrite (all non-prerendered,
+  // non-home routes). Keeps an empty #root so app/marketing routes never flash
+  // the home hero.
+  fs.writeFileSync(path.join(DIST, 'app.html'), baseHtml, 'utf-8');
+  console.log('  ✅ app.html (shell-free SPA fallback)');
+
   let count = 0;
   for (const [route, meta] of Object.entries(ROUTES)) {
-    const out = prerender(html, route, meta);
+    const out = prerender(baseHtml, route, meta);
     const file = path.join(DIST, route.replace(/^\//, '') + '.html');
     fs.writeFileSync(file, out, 'utf-8');
     console.log(`  ✅ ${path.basename(file)} (${meta.title.length}c title)`);
     count++;
   }
-  buildHome(html);
-  console.log(`\n✨ Prerendered ${count} route(s) + home.html → dist/\n`);
+
+  injectHomeShell(baseHtml);
+  console.log(`\n✨ Prerendered ${count} route(s) + app.html + home hero → dist/\n`);
 }
 
 console.log('\n🪞 Channelad route prerender\n');

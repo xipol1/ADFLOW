@@ -10,8 +10,10 @@
  * This script renders the home in a real browser, captures the above-the-fold
  * markup (scarcity banner + navbar + hero section, with the heavy below-fold
  * sections pruned), and writes it to scripts/home-shell.html. The build step
- * (scripts/prerender-routes.js) injects that markup into dist/home.html so the
- * hero is present in the HTML and paints before any JS runs. React then mounts
+ * (scripts/prerender-routes.js) injects that markup into dist/index.html so the
+ * hero is present in the HTML and paints before any JS runs (Vercel auto-serves
+ * index.html for "/" — a rewrite to a separate file would never fire because
+ * the filesystem is resolved before rewrites). React then mounts
  * over it with createRoot().render(), which replaces the shell in a single
  * commit — no flash, because the hero's entrance animations are static
  * (initial={false}), so the mounted render matches the snapshot.
