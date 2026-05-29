@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Link2,
   Shield, Zap, Eye, Users, DollarSign, ArrowRight, Lock, Unlock,
-  ExternalLink, Copy, X, Loader, Settings,
+  ExternalLink, Copy, X, Loader, Settings, QrCode, Smartphone,
 } from 'lucide-react'
 import apiService from '../../../../services/api'
 import { PURPLE, purpleAlpha, FONT_BODY, FONT_DISPLAY, OK as _OK, WARN, ERR, BLUE, GREEN } from '../../../theme/tokens'
@@ -579,6 +579,64 @@ export default function RegisterChannelPage() {
               <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.4 }}>{platDef.securityNote}</div>
             </div>
           </div>
+
+          {/* WhatsApp QR shortcut — for users without Meta Business API access
+              (the form below would otherwise be a dead end). The QR scan flow
+              on /creator/channels/link-whatsapp uses Baileys to read directly
+              from WhatsApp Web, which works for any newsletter the user
+              administers without needing a Meta-verified business number. */}
+          {platform === 'whatsapp' && (
+            <div style={{
+              background: `linear-gradient(135deg, ${WA}14, ${WA}06)`,
+              border: `1px solid ${WA}45`,
+              borderRadius: '14px',
+              padding: '18px 20px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '14px',
+            }}>
+              <div style={{
+                width: '40px', height: '40px', borderRadius: '10px',
+                background: `${WA}18`, display: 'flex', alignItems: 'center',
+                justifyContent: 'center', flexShrink: 0,
+              }}>
+                <QrCode size={20} color={WA} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontFamily: D, fontSize: '14px', fontWeight: 700,
+                  color: 'var(--text)', marginBottom: '4px',
+                  display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap',
+                }}>
+                  ¿No tienes Meta Business API? Escanea un QR
+                  <span style={{
+                    fontSize: '10px', fontWeight: 700, color: '#fff',
+                    background: WA, padding: '2px 6px', borderRadius: '6px',
+                    letterSpacing: '0.04em',
+                  }}>RECOMENDADO</span>
+                </div>
+                <div style={{ fontSize: '12.5px', color: 'var(--muted)', lineHeight: 1.55, marginBottom: '12px' }}>
+                  Vincula tus newsletters de WhatsApp escaneando un QR — como Web WhatsApp.
+                  Funciona sin necesidad de un Access Token de Meta y soporta vincular
+                  varias newsletters en una sola sesión.
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/creator/channels/link-whatsapp')}
+                  style={{
+                    padding: '10px 18px', fontSize: '13px', fontWeight: 600,
+                    background: WA, color: '#fff', border: 'none',
+                    borderRadius: '10px', cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', gap: '6px',
+                    fontFamily: F,
+                  }}
+                >
+                  <Smartphone size={14} /> Vincular escaneando QR
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* How to get credentials - step by step */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden' }}>
