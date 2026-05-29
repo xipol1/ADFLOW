@@ -3,6 +3,7 @@
 > Marketplace de publicidad en comunidades cerradas: WhatsApp, Telegram, Discord, Instagram, Facebook, LinkedIn y newsletters.
 > Producción: <https://channelad.io>
 
+[![CI](https://github.com/xipol1/ADFLOW/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/xipol1/ADFLOW/actions/workflows/ci.yml)
 [![Audit](https://img.shields.io/badge/audit-AUDIT.md-orange)](AUDIT.md)
 [![Docs](https://img.shields.io/badge/docs-/docs-blue)](docs/)
 

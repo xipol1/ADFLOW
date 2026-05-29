@@ -1,0 +1,39 @@
+# Auto-PR para actualizar dependencias. Las PRs caen contra `main` y pasan
+# por el mismo workflow de CI (lint+test+build), así que un bump que rompe
+# tests no se mergea silenciosamente.
+version: 2
+updates:
+  # npm — agrupa minor+patch en una sola PR semanal para no spamear.
+  # Las mayors van en PR separada por paquete para revisión manual.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Madrid"
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+    # Ignora upgrades major automáticos de paquetes con breaking changes
+    # frecuentes — revisión manual de momento.
+    ignore:
+      - dependency-name: "mongoose"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "express"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "stripe"
+        update-types: ["version-update:semver-major"]
+    labels:
+      - "dependencies"
+      - "automated"
+
+  # GitHub Actions — bumpea action versions usadas en workflows.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+      - "ci"
