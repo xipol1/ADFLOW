@@ -28,9 +28,12 @@ kill_timeout = "15s"                  # server.js shutdown allows 10s grace
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = "stop"         # free-tier friendly; flip to "off" for prod
+  # Baileys WebSocket sessions die on auto-stop — they need a persistent VM.
+  # min_machines_running=1 keeps one instance always warm; auto_stop_machines
+  # is left on "stop" for any extra scaled-out replicas only.
+  auto_stop_machines = "stop"
   auto_start_machines = true
-  min_machines_running = 0            # set 1 once Baileys worker is on
+  min_machines_running = 1
   processes = ["app"]
 
   [http_service.concurrency]
@@ -52,17 +55,16 @@ kill_timeout = "15s"                  # server.js shutdown allows 10s grace
   cpu_kind = "shared"
   cpus = 1
 
-# ── Persistent volume (uncomment when enabling Baileys worker) ───────────────
-# Baileys writes the WhatsApp pairing state to disk. Without a volume the
-# session is lost every redeploy. 1 GB is plenty (sessions are < 50 MB each).
-#
-# [mounts]
-#   source = "channelad_wa_sessions"
-#   destination = "/app/data/whatsapp-session"
-#   processes = ["app"]
-#
-# Then set the env var so server.js:138 starts the worker:
-#   fly secrets set WHATSAPP_SESSION_PATH=/app/data/whatsapp-session
+# ── Persistent volume for Baileys WhatsApp pairing state ────────────────────
+# Without the volume sessions are lost on every redeploy. 1 GB is plenty
+# (sessions are < 50 MB each).
+[mounts]
+  source = "channelad_wa_sessions"
+  destination = "/app/data/whatsapp-session"
+  processes = ["app"]
+
+# WHATSAPP_SESSION_PATH se setea via flyctl secrets para que server.js:138
+# arranque el worker contra el path del volumen montado arriba.
 
 # ── Crons (use fly machines run for now; see MIGRATION_FLY.md) ───────────────
 # Fly does not have a native cron primitive yet. Options documented in

@@ -10,8 +10,8 @@
  * block on flag fetch.
  */
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Sparkles, ArrowLeft, Bell } from 'lucide-react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Sparkles, ArrowLeft, Bell, FlaskConical } from 'lucide-react'
 import useFeatures from '../../hooks/useFeatures'
 import { FONT_BODY, FONT_DISPLAY, PURPLE, purpleAlpha } from '../theme/tokens'
 
@@ -45,15 +45,63 @@ const FEATURE_COPY = {
 
 export default function FeatureGate({ feature, children, fallback }) {
   const { features, loading } = useFeatures()
+  const [searchParams] = useSearchParams()
+
+  // ?demo=1 query string forces the gated component to render even when
+  // the feature flag is off. Used for sales demos, QA previews and design
+  // reviews so we can showcase a flow whose backend integration isn't
+  // production-ready yet. A floating banner makes the demo state visible
+  // so nobody confuses it with the real, wired-up flow.
+  const demoOverride = searchParams.get('demo') === '1'
 
   // While loading, render children optimistically — flag fetch shouldn't
   // gate UX. If the feature ends up off, the downstream 503 will surface.
   if (loading) return children
 
   if (features[feature]) return children
-  if (fallback) return fallback
 
+  if (demoOverride) {
+    return (
+      <>
+        <DemoModeBanner feature={feature} />
+        {children}
+      </>
+    )
+  }
+
+  if (fallback) return fallback
   return <ComingSoon feature={feature} />
+}
+
+// Floating banner shown at the top of the page when a feature was gated
+// off but `?demo=1` is active. Position: fixed top so it survives scroll
+// in long flows like the WhatsApp wizard.
+function DemoModeBanner({ feature }) {
+  return (
+    <div style={{
+      position: 'sticky',
+      top: 0,
+      zIndex: 999,
+      padding: '10px 16px',
+      background: 'linear-gradient(90deg, rgba(245,158,11,0.18), rgba(245,158,11,0.06))',
+      borderBottom: '1px solid rgba(245,158,11,0.32)',
+      fontFamily: FONT_BODY,
+      fontSize: '13px',
+      color: '#92400E',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '10px',
+      flexWrap: 'wrap',
+    }}>
+      <FlaskConical size={14} />
+      <span>
+        <strong>Modo demo activo</strong> — esta funcionalidad ({String(feature)}) está en preview.
+        Los datos son ficticios y las acciones no afectan a producción.
+        Quita <code style={{ background: 'rgba(0,0,0,0.06)', padding: '1px 5px', borderRadius: '4px' }}>?demo=1</code> de la URL para volver al estado real.
+      </span>
+    </div>
+  )
 }
 
 export function ComingSoon({ feature }) {
