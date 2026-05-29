@@ -144,6 +144,7 @@ const ROLE_CONFIG = {
         { path: '/founders',     icon: Trophy,        label: 'Founders'              },
         { path: '/payouts',      icon: CreditCard,    label: 'Pagos'                 },
         { path: '/subscriptions',icon: Award,         label: 'Suscripciones'         },
+        { path: '/errors',       icon: Activity,      label: 'Errores'               },
       ]},
     ],
     bottomNav: [

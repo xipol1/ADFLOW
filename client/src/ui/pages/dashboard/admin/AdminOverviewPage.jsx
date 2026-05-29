@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Users, Radio, Megaphone, ShieldAlert, DollarSign, TrendingUp,
-  Clock, CheckCircle, AlertTriangle, Loader2, UserPlus, Eye,
+  Clock, CheckCircle, AlertTriangle, Loader2, UserPlus, Eye, Activity,
 } from 'lucide-react'
 import apiService from '../../../../services/api'
 
@@ -75,6 +75,16 @@ export default function AdminOverviewPage() {
         <KpiCard icon={DollarSign} label="Revenue total" value={`€${(k.totalRevenue || 0).toLocaleString('es')}`} color="#F59E0B" />
         <KpiCard icon={AlertTriangle} label="Candidatos pendientes" value={k.pendingCandidates || 0} color="#F97316" />
         <KpiCard icon={UserPlus} label="Nuevos 30d" value={k.newUsers30d || 0} color="#3B82F6" />
+        {/* Health: errores 5xx capturados por services/errorLogger. Click → detalle en /admin/errors. */}
+        <div onClick={() => navigate('/admin/errors')} style={{ cursor: 'pointer' }}>
+          <KpiCard
+            icon={Activity}
+            label="Errores 1h"
+            value={k.errors1h || 0}
+            sub={`${k.errors24h || 0} en 24h`}
+            color={k.errors1h > 0 ? ADMIN_RED : '#10B981'}
+          />
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>

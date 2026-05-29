@@ -119,6 +119,7 @@ const AdminCampaignsPage = lazyWithRetry(() => import('../ui/pages/dashboard/adm
 const AdminDisputesPage = lazyWithRetry(() => import('../ui/pages/dashboard/admin/AdminDisputesPage'))
 const AdminFinancesPage = lazyWithRetry(() => import('../ui/pages/dashboard/admin/AdminFinancesPage'))
 const AdminScoringPage = lazyWithRetry(() => import('../ui/pages/dashboard/admin/AdminScoringPage'))
+const AdminErrorsPage = lazyWithRetry(() => import('../ui/pages/dashboard/admin/AdminErrorsPage'))
 const AdminFoundersPage = lazyWithRetry(() => import('../ui/pages/dashboard/admin/AdminFoundersPage'))
 const AdminPayoutsPage = lazyWithRetry(() => import('../ui/pages/dashboard/admin/AdminPayoutsPage'))
 const AdminSubscriptionsPage = lazyWithRetry(() => import('../ui/pages/dashboard/admin/AdminSubscriptionsPage'))
@@ -353,6 +354,7 @@ export default function AppRoutes() {
           <Route path="disputes"   element={<AdminDisputesPage />} />
           <Route path="finances"   element={<AdminFinancesPage />} />
           <Route path="scoring"    element={<AdminScoringPage />} />
+          <Route path="errors"     element={<AdminErrorsPage />} />
           <Route path="founders"   element={<AdminFoundersPage />} />
           <Route path="payouts"    element={<AdminPayoutsPage />} />
           <Route path="subscriptions" element={<AdminSubscriptionsPage />} />

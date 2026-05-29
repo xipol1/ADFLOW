@@ -16,6 +16,23 @@ const readEnv = () => {
   return normalizeBase(fromVite || fromDefine);
 };
 
+// Baileys (WhatsApp QR) sidecar — see docs/BAILEYS_SIDECAR_PLAN.md.
+// On Vercel the main /api/baileys/* route returns a structured 503 because
+// the BaileysSessionManager needs a persistent Node process. Setting
+// VITE_BAILEYS_API_URL routes /baileys/* calls to a separate host (Fly,
+// Railway, VPS) running the same backend. If unset, calls fall back to the
+// main API URL — appropriate when the whole backend runs on a persistent
+// host already (e.g. local dev, all-Fly deploys).
+const readBaileysEnv = () => {
+  const fromVite = typeof import.meta !== 'undefined' && import.meta.env
+    ? import.meta.env.VITE_BAILEYS_API_URL
+    : '';
+  const fromDefine = typeof process !== 'undefined' && process.env
+    ? process.env.NEXT_PUBLIC_BAILEYS_API_URL
+    : '';
+  return normalizeBase(fromVite || fromDefine);
+};
+
 export const CONFIGURED_API_URL = readEnv();
 export const CONFIGURED_API_BASE_URL = CONFIGURED_API_URL
   ? (CONFIGURED_API_URL.endsWith('/api') ? CONFIGURED_API_URL : `${CONFIGURED_API_URL}/api`)
@@ -23,6 +40,30 @@ export const CONFIGURED_API_BASE_URL = CONFIGURED_API_URL
 export const CONFIGURED_API_ORIGIN = CONFIGURED_API_URL
   ? CONFIGURED_API_URL.replace(/\/api$/, '')
   : '';
+
+export const CONFIGURED_BAILEYS_URL = readBaileysEnv();
+export const CONFIGURED_BAILEYS_BASE_URL = CONFIGURED_BAILEYS_URL
+  ? (CONFIGURED_BAILEYS_URL.endsWith('/api') ? CONFIGURED_BAILEYS_URL : `${CONFIGURED_BAILEYS_URL}/api`)
+  : '';
+
+/**
+ * Pure helper — pick the right base URL for an endpoint given both candidates.
+ *
+ * Kept as an exported pure function so it can be unit-tested in Node without
+ * importing the rest of the api.js module (which depends on Vite's
+ * import.meta.env). The closure-binding wrapper below is what the request()
+ * method actually calls.
+ */
+export function pickBaseUrl(endpoint, mainBase, baileysBase) {
+  if (baileysBase && typeof endpoint === 'string' && endpoint.startsWith('/baileys')) {
+    return baileysBase;
+  }
+  return mainBase;
+}
+
+export function resolveBaseUrlForEndpoint(endpoint, mainBase) {
+  return pickBaseUrl(endpoint, mainBase, CONFIGURED_BAILEYS_BASE_URL);
+}
 
 class ApiService {
   constructor() {
@@ -55,10 +96,17 @@ class ApiService {
   }
 
   /**
-   * Realizar petición HTTP
+   * Realizar petición HTTP.
+   *
+   * Per-call base selection: /baileys/* endpoints route to the dedicated
+   * sidecar (CONFIGURED_BAILEYS_BASE_URL) when VITE_BAILEYS_API_URL is set,
+   * because the WhatsApp QR pairing flow needs a persistent Node process
+   * and won't work on Vercel serverless. Everything else stays on the main
+   * API. See docs/BAILEYS_SIDECAR_PLAN.md.
    */
   async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
+    const base = resolveBaseUrlForEndpoint(endpoint, this.baseURL);
+    const url = `${base}${endpoint}`;
     const config = {
       headers: this.getHeaders(options.auth !== false),
       ...options,
@@ -351,6 +399,13 @@ class ApiService {
   }
   async getAdminScoring() {
     return this.request('/admin/dashboard/scoring');
+  }
+  async getAdminErrors(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/admin/dashboard/errors${qs ? `?${qs}` : ''}`);
+  }
+  async getAdminError(id) {
+    return this.request(`/admin/dashboard/errors/${id}`);
   }
   async getAdminFounders() {
     return this.request('/founders/admin');
