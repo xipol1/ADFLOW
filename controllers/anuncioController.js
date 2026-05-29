@@ -39,6 +39,14 @@ const obtenerAnuncio = async (req, res) => {
   const ok = await ensureDb(); if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
   const anuncio = await Anuncio.findById(req.params.id).lean();
   if (!anuncio) return res.status(404).json({ success: false, message: 'Anuncio no encontrado' });
+  // Read IDOR guard: full doc (titulo/presupuesto/canal) is competitive intel.
+  // Only the advertiser who owns it, the creator targeted, or admin may read.
+  const uid = String(userIdOf(req) || '');
+  const isOwner = anuncio.anunciante && String(anuncio.anunciante) === uid;
+  const isTargetCreator = anuncio.creador && String(anuncio.creador) === uid;
+  if (!isOwner && !isTargetCreator && roleOf(req) !== 'admin') {
+    return res.status(403).json({ success: false, message: 'No autorizado' });
+  }
   return res.json({ success: true, data: anuncio });
 };
 

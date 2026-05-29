@@ -156,6 +156,35 @@ const recordConversion = async (req, res) => {
 // Returns a 1x1 transparent gif so it can be used as an <img> pixel.
 const PIXEL_GIF = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
 
+// Anti-abuse cap: an attacker with a stolen `cid` could fire the pixel with
+// arbitrarily large `v` to inflate the advertiser's ROI dashboard and the
+// commission attribution. Configurable per-deploy; defaults to €10k which
+// covers realistic high-ticket SaaS / B2B conversions but blocks obvious
+// inflation. Conversions above the cap are clamped, not rejected, because
+// a real high-value purchase will simply settle at the cap and surface in
+// admin review.
+const PIXEL_MAX_VALUE = Number(process.env.CONVERSION_MAX_VALUE_EUR || 10000);
+const PIXEL_SECRET = process.env.CONVERSION_PIXEL_SECRET || '';
+
+// Verify HMAC of (cid + type + v + eid) using the shared secret. Returns
+// true when no secret is configured (legacy/easy onboarding) so existing
+// integrations keep working; advertisers who want their conversions to
+// count for commission can opt into signed pixels by setting the env.
+const verifyPixelSignature = (q) => {
+  if (!PIXEL_SECRET) return { ok: true, verified: false };
+  const sig = q.sig || '';
+  if (!sig) return { ok: false, verified: false };
+  const crypto = require('crypto');
+  const payload = `${q.cid || ''}|${q.type || ''}|${q.v ?? q.value ?? ''}|${q.eid || ''}`;
+  const expected = crypto.createHmac('sha256', PIXEL_SECRET).update(payload).digest('hex');
+  try {
+    const a = Buffer.from(String(sig).slice(0, 128));
+    const b = Buffer.from(expected.slice(0, 128));
+    if (a.length !== b.length) return { ok: false, verified: false };
+    return { ok: crypto.timingSafeEqual(a, b), verified: true };
+  } catch { return { ok: false, verified: false }; }
+};
+
 const recordConversionPixel = async (req, res) => {
   try {
     if (!database.estaConectado()) await database.conectar();
@@ -167,10 +196,24 @@ const recordConversionPixel = async (req, res) => {
       return res.end(PIXEL_GIF);
     }
 
+    // If HMAC is enforced on this deploy and the call is unsigned/bad, we
+    // still serve a gif (no broken image on the advertiser's page) but
+    // never record the conversion.
+    const sigCheck = verifyPixelSignature(req.query);
+    if (!sigCheck.ok) {
+      res.setHeader('X-Conversion-Rejected', 'invalid-signature');
+      res.setHeader('Content-Type', 'image/gif');
+      return res.end(PIXEL_GIF);
+    }
+
     const resolved = await resolveClickId(String(clickId));
     if (resolved) {
       const type = VALID_TYPES.includes(req.query.type) ? req.query.type : 'custom';
-      const value = Number(req.query.v ?? req.query.value);
+      const rawValue = Number(req.query.v ?? req.query.value);
+      // Clamp anti-abuse: drop negatives, NaN→0, cap at PIXEL_MAX_VALUE.
+      const value = Number.isFinite(rawValue) && rawValue >= 0
+        ? Math.min(rawValue, PIXEL_MAX_VALUE)
+        : 0;
       const externalId = req.query.eid ? String(req.query.eid) : null;
       // Idempotency
       let canCreate = true;
@@ -192,10 +235,14 @@ const recordConversionPixel = async (req, res) => {
           campaign: resolved.campaignId,
           advertiser: resolved.advertiserId,
           type,
-          value: Number.isFinite(value) && value >= 0 ? value : 0,
+          value,
           currency: (req.query.currency || 'EUR').toString().toUpperCase().slice(0, 3),
           externalId,
           source: 'pixel',
+          // Whether HMAC verified the call. Downstream commission attribution
+          // can choose to only honour { signatureVerified: true } when the
+          // platform is in strict mode.
+          signatureVerified: sigCheck.verified,
           ip: clientIp(req),
           userAgent: req.headers['user-agent'] || '',
           referer: req.headers['referer'] || '',

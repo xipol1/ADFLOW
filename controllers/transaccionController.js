@@ -91,10 +91,19 @@ const crearTransaccion = async (req, res, next) => {
 };
 
 // ─── POST /api/transacciones/:id/pay (simulated payment) ────────────────────
+// DANGER: this endpoint flips a transaction to 'paid' WITHOUT going through
+// Stripe — it's a dev-only helper for testing the post-payment flow without
+// a card. Gating: hard-fail in production unless ALLOW_SIMULATED_PAYMENTS=true
+// is explicitly set (acknowledging the risk). Without the env, any advertiser
+// could mark their own campaign as paid for free.
 const procesarPago = async (req, res, next) => {
   try {
     const ok = await ensureDb();
     if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
+
+    if (process.env.NODE_ENV === 'production' && process.env.ALLOW_SIMULATED_PAYMENTS !== 'true') {
+      return next(httpError(404, 'Recurso no encontrado'));
+    }
 
     const userId = req.usuario?.id;
     if (!userId) return next(httpError(401, 'No autorizado'));
@@ -193,7 +202,12 @@ const crearPaymentIntent = async (req, res, next) => {
 
     const stripe = getStripe();
     if (!stripe) {
-      // Simulate payment when Stripe not configured
+      // Simulated payment when Stripe not configured — same gating as
+      // /api/transacciones/:id/pay: in production this would let any
+      // advertiser whose Stripe key got removed flip their own tx to paid.
+      if (process.env.NODE_ENV === 'production' && process.env.ALLOW_SIMULATED_PAYMENTS !== 'true') {
+        return next(httpError(503, 'Pagos no configurados'));
+      }
       tx.status = 'paid';
       tx.paidAt = new Date();
       await tx.save();

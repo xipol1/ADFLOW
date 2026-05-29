@@ -566,9 +566,19 @@ router.post('/bot-token', authController.createBotToken);
 /**
  * @route   GET /api/auth/validate-bot-token?token=XXX
  * @desc    Validate a bot token (called by frontend on register page load)
- * @access  Public
+ * @access  Public — rate-limited to prevent token enumeration / DoS.
+ *
+ * 256-bit tokens are not realistically brute-forceable, but a public
+ * endpoint that returns email + channel metadata is still worth rate-
+ * limiting against scripted probing. 60/min per IP is well above any
+ * legitimate UX (the page calls it once on load).
  */
-router.get('/validate-bot-token', authController.validateBotToken);
+const botTokenValidateLimiter = limitarIntentos({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Demasiadas validaciones, intenta en un momento' },
+});
+router.get('/validate-bot-token', botTokenValidateLimiter, authController.validateBotToken);
 
 // Middleware de manejo de errores específico para rutas de auth
 router.use((error, req, res, _next) => {

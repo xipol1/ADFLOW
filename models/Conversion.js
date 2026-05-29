@@ -53,6 +53,10 @@ const ConversionSchema = new mongoose.Schema(
 
     // ── Source + integrity ──────────────────────────────────────────────
     source: { type: String, enum: ['server', 'pixel', 'manual', 'webhook'], default: 'server' },
+    // Whether the pixel call carried a valid HMAC signature.
+    // false = legacy/unsigned pixel (still counted for analytics but
+    // commission attribution can opt into requiring true).
+    signatureVerified: { type: Boolean, default: false },
     ip:        { type: String, default: '' },
     userAgent: { type: String, default: '' },
     referer:   { type: String, default: '' },

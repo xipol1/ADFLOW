@@ -58,15 +58,26 @@ router.post(
   oauthController.refreshToken
 );
 
-// ── Cron endpoint for automatic token refresh (Vercel Cron or manual trigger) ──
-router.get('/meta/cron-refresh', async (req, res) => {
-  // Verify cron secret (Vercel sets this automatically for cron routes)
+// Shared guard for cron endpoints. The earlier pattern
+//   if (cronSecret && authHeader !== Bearer cronSecret) → 401
+// was unsafe: if CRON_SECRET was unset (env wiped, typo, preview deploy),
+// the endpoints became fully public. We now refuse to run when the secret
+// isn't configured — the rest of the cron routes (scoring, intel) follow
+// the same pattern.
+const requireCronSecret = (req, res, next) => {
   const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    return res.status(503).json({ success: false, message: 'CRON_SECRET no configurado' });
+  }
   const authHeader = req.headers.authorization;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
+  next();
+};
 
+// ── Cron endpoint for automatic token refresh (Vercel Cron or manual trigger) ──
+router.get('/meta/cron-refresh', requireCronSecret, async (req, res) => {
   try {
     const results = await refreshExpiringTokens();
     return res.json({ success: true, data: results });
@@ -82,13 +93,7 @@ router.get('/meta/cron-refresh', async (req, res) => {
 // revoked grant via platform UI, WhatsApp System User token died). Should be
 // scheduled hourly or every few hours; the service paginates internally via
 // batchSize to stay under serverless time limits.
-router.get('/channels/cron-health', async (req, res) => {
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = req.headers.authorization;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return res.status(401).json({ success: false, message: 'Unauthorized' });
-  }
-
+router.get('/channels/cron-health', requireCronSecret, async (req, res) => {
   try {
     const batchSize = Number(req.query.batchSize) || undefined;
     const results = await runHealthCheckBatch({ batchSize });
