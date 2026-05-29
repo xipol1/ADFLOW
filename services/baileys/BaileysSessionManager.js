@@ -317,6 +317,21 @@ class BaileysSessionManager {
     const meta = await sock.newsletterMetadata('invite', code);
     if (!meta) throw new Error('No se encontró ningún canal con ese enlace');
 
+    // TEMP DIAGNOSTIC: dump the raw shape so we map fields precisely instead
+    // of guessing. Fetching by invite returns public metadata only (often
+    // with name as an object and no viewer role), so we also re-query by jid
+    // below to try to obtain the viewer's role.
+    try {
+      console.log(`[baileys][diag] invite meta raw session=${sessionId}: ${JSON.stringify(meta).slice(0, 1000)}`);
+      const jidForRole = meta.id || meta.jid;
+      if (jidForRole && typeof sock.newsletterMetadata === 'function') {
+        const byJid = await sock.newsletterMetadata('jid', jidForRole).catch((e) => ({ _err: e.message }));
+        console.log(`[baileys][diag] byJid meta session=${sessionId}: ${JSON.stringify(byJid).slice(0, 1000)}`);
+      }
+    } catch (e) {
+      console.log('[baileys][diag] dump failed:', e.message);
+    }
+
     // Determine the viewer's role for this newsletter. This is the auth that
     // gates linking: only the OWNER/ADMIN of a channel can attach it to a
     // Channelad canal. Prefer an explicit viewer role, else match owner JID
