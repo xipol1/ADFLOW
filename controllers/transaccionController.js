@@ -406,7 +406,11 @@ const solicitarRetiro = async (req, res, next) => {
     const [completedEarnings, autoPaid, pendingRetiros, manualWithdrawals] = await Promise.all([
       Campaign.aggregate([
         { $match: { channel: { $in: myChannelIds }, status: 'COMPLETED' } },
-        { $group: { _id: null, total: { $sum: '$netAmount' } } },
+        // Proportional payout: count the creator's share of money actually
+        // captured, not of the full price. Promo-credit-funded value is a
+        // discount, never withdrawable cash. Legacy campaigns (no creatorPayable
+        // recorded) fall back to netAmount — correct for real-money campaigns.
+        { $group: { _id: null, total: { $sum: { $ifNull: ['$creatorPayable', '$netAmount'] } } } },
       ]),
       // Earnings already transferred (or in flight) via Stripe Connect must not
       // be withdrawable again here, or the creator would be paid twice.
