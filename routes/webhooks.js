@@ -181,17 +181,29 @@ async function processIncomingMessage(message, _metadata) {
 // view counts and inflate CampaignMetrics → reviews/payouts based on lies.
 router.post('/telegram', express.json(), async (req, res) => {
   const expected = process.env.TELEGRAM_WEBHOOK_SECRET;
-  const isProd = process.env.NODE_ENV === 'production';
+  // Don't key fail-closed behaviour on NODE_ENV alone: a managed deploy with a
+  // misset NODE_ENV would otherwise process unauthenticated updates (metric
+  // spoofing). Treat any managed host (Vercel/Fly) as deployed so the secret
+  // is mandatory there even if NODE_ENV !== 'production'.
+  const isDeployed = process.env.NODE_ENV === 'production'
+    || !!process.env.VERCEL || !!process.env.FLY_APP_NAME || !!process.env.FLY_MACHINE_ID;
 
-  if (isProd && !expected) {
-    console.error('Telegram webhook recibido sin TELEGRAM_WEBHOOK_SECRET en prod — rechazado');
-    // Respond 200 so Telegram doesn't retry; the alert is in the log.
-    return res.status(200).json({ ok: true });
-  }
-
-  if (expected) {
+  if (!expected) {
+    if (isDeployed) {
+      console.error('Telegram webhook recibido sin TELEGRAM_WEBHOOK_SECRET en host gestionado — rechazado');
+      // Respond 200 so Telegram doesn't retry-storm; the alert is in the log.
+      return res.status(200).json({ ok: true });
+    }
+    // Local dev with no secret configured: allow but warn.
+    console.warn('Telegram webhook sin secret configurado (dev) — procesando sin validar');
+  } else {
     const provided = req.headers['x-telegram-bot-api-secret-token'];
-    if (!provided || provided !== expected) {
+    // Constant-time compare to avoid leaking the secret via response timing.
+    const providedBuf = Buffer.from(String(provided || ''));
+    const expectedBuf = Buffer.from(expected);
+    const match = providedBuf.length === expectedBuf.length
+      && crypto.timingSafeEqual(providedBuf, expectedBuf);
+    if (!match) {
       console.warn('Telegram webhook — secret_token mismatch, ignorando');
       return res.status(200).json({ ok: true });
     }

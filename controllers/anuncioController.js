@@ -146,6 +146,11 @@ const buscarAnuncios = async (req, res) => {
   const query = {};
   if (estado) query.estado = estado;
   if (canal) query.canal = canal;
+  // SECURITY (IDOR): scope to the caller's own ads. Without this, any
+  // authenticated user could enumerate every advertiser's ad docs
+  // (titulo/presupuesto/canal) by varying ?estado/?canal. Admins may query
+  // across all advertisers. Mirrors the ownership model in loadOwnedAnuncio.
+  if (roleOf(req) !== 'admin') query.anunciante = userIdOf(req);
   const items = await Anuncio.find(query).sort({ createdAt: -1 }).limit(50).lean();
   return res.json({ success: true, data: items });
 };
