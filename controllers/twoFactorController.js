@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 const Usuario = require('../models/Usuario');
 const { ensureDb } = require('../lib/ensureDb');
 const { encrypt, decrypt } = require('../lib/encryption');
+const authAudit = require('../lib/authAudit');
 
 const httpError = (status, message) => {
   const err = new Error(message);
@@ -130,6 +131,11 @@ const validate2FA = async (req, res, next) => {
 
     const user = await Usuario.findOne({ email: email.toLowerCase().trim() });
     if (!user || !user.twoFactorEnabled) {
+      authAudit.record('2fa.failed', req, {
+        userId: user?._id,
+        email,
+        metadata: { reason: user ? '2fa_not_enabled' : 'user_not_found' },
+      });
       return next(httpError(400, 'Codigo invalido'));
     }
 
@@ -162,6 +168,11 @@ const validate2FA = async (req, res, next) => {
       }
     }
 
+    authAudit.record('2fa.failed', req, {
+      userId: user._id,
+      email,
+      metadata: { reason: 'bad_code' },
+    });
     return next(httpError(400, 'Codigo invalido'));
   } catch (error) {
     next(error);

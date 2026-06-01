@@ -255,6 +255,19 @@ const limitarRestablecimiento = limitarIntentos({
   }
 });
 
+// SECURITY (A-2): limiter for the password-reset SUBMISSION (token + new
+// password). Separate instance from the request limiter above so legit
+// password retries don't share its budget; caps brute-forcing of the reset
+// token as defense-in-depth over the 32+ char random token.
+const limitarRestablecerPassword = limitarIntentos({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: {
+    success: false,
+    message: 'Demasiados intentos de restablecimiento. Intenta de nuevo en 15 minutos.'
+  }
+});
+
 // Rutas públicas
 
 /**
@@ -392,6 +405,7 @@ router.post('/forgot-password',
  * @access  Público
  */
 router.post('/restablecer-password/:token',
+  limitarRestablecerPassword,
   validacionesNuevaPassword,
   validarCampos,
   authController.restablecerPassword
@@ -526,11 +540,19 @@ router.post('/reenviar-verificacion',
 );
 
 // ── 2FA / TOTP routes ──
+// SECURITY (A-2): /2fa/validate is PUBLIC (email + code, no auth), so without a
+// limiter a 6-digit TOTP is brute-forceable. 10 attempts / 15 min per IP makes
+// guessing the ~1M code space infeasible while leaving headroom for typos.
+const limitar2FA = limitarIntentos({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { success: false, message: 'Demasiados intentos de verificación. Intenta de nuevo en 15 minutos.' }
+});
 try {
   const twoFA = require('../controllers/twoFactorController');
   router.post('/2fa/setup', autenticar, twoFA.setup2FA);
   router.post('/2fa/verify', autenticar, body('code').isLength({ min: 6, max: 8 }).withMessage('Codigo invalido'), validarCampos, twoFA.verify2FA);
-  router.post('/2fa/validate', body('email').isEmail(), body('code').isLength({ min: 6, max: 8 }), validarCampos, twoFA.validate2FA);
+  router.post('/2fa/validate', limitar2FA, body('email').isEmail(), body('code').isLength({ min: 6, max: 8 }), validarCampos, twoFA.validate2FA);
   router.post('/2fa/disable', autenticar, body('password').notEmpty(), validarCampos, twoFA.disable2FA);
 } catch (e) {
   console.warn('2FA routes not loaded:', e.message);
@@ -561,7 +583,16 @@ router.post('/google',
  * @desc    Register a bot verification token (called by Telegram bot with API key)
  * @access  Bot only (X-Bot-Key header)
  */
-router.post('/bot-token', authController.createBotToken);
+// SECURITY (A-2): the legit Telegram bot authenticates with X-Bot-Key and may
+// burst from a single IP, so skip the limiter when the valid key is present.
+// Callers WITHOUT the key (key brute-force / DoS probing) are capped.
+const limitarBotToken = limitarIntentos({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { success: false, message: 'Demasiadas solicitudes' },
+  skip: (req) => Boolean(process.env.BOT_API_KEY) && req.headers['x-bot-key'] === process.env.BOT_API_KEY,
+});
+router.post('/bot-token', limitarBotToken, authController.createBotToken);
 
 /**
  * @route   GET /api/auth/validate-bot-token?token=XXX

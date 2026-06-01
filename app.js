@@ -78,15 +78,32 @@ const _CORS_ALLOWLIST = new Set(
     .map(s => s.trim())
     .filter(Boolean)
 );
+// Vercel preview deployments live on *.vercel.app. Trusting the bare suffix
+// would let ANY Vercel-hosted site call the API from a browser, so we restrict
+// it to this project's own preview hostnames. The project slug is the leading
+// DNS label, e.g. "channelad" in channelad-git-main-team.vercel.app. It is taken
+// from CORS_VERCEL_PROJECT, else derived from FRONTEND_URL's host. If neither is
+// known we fall back to the (lenient) suffix match so deploys don't break.
+const _VERCEL_PROJECT = (() => {
+  const explicit = String(process.env.CORS_VERCEL_PROJECT || '').trim().toLowerCase();
+  if (explicit) return explicit;
+  try { return new URL(FRONTEND_URL).hostname.split('.')[0].toLowerCase(); }
+  catch { return ''; }
+})();
+const _isVercelPreviewHost = (host) => {
+  if (!host.endsWith('.vercel.app')) return false;
+  if (!_VERCEL_PROJECT) return true;                       // slug unknown → lenient
+  const label = host.slice(0, -'.vercel.app'.length);
+  return label === _VERCEL_PROJECT || label.startsWith(`${_VERCEL_PROJECT}-`);
+};
 const _isAllowedOrigin = (origin) => {
   if (!origin) return true;                         // server-to-server / curl
   if (ENV !== 'production') return true;            // dev: anything goes
   if (_CORS_ALLOWLIST.has(origin)) return true;
-  // Vercel preview/production hostnames. We only trust the .vercel.app suffix
-  // here — anything else must be in the explicit allowlist.
+  // Vercel preview/production hostnames — only this project's own previews.
   try {
     const host = new URL(origin).hostname;
-    if (host.endsWith('.vercel.app')) return true;
+    if (_isVercelPreviewHost(host)) return true;
   } catch { /* malformed origin → reject */ }
   return false;
 };
@@ -181,7 +198,28 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// User-uploaded files are served from /uploads. They are untrusted content, so
+// we harden the response to prevent stored-XSS / drive-by execution:
+//  - X-Content-Type-Options: nosniff stops the browser from re-interpreting a
+//    file as HTML/JS regardless of the stored extension.
+//  - Anything that is not an image/video/pdf is forced to download
+//    (Content-Disposition: attachment) instead of rendering inline, so an
+//    uploaded .html/.svg/.js can never run in our origin.
+//  - A restrictive CSP + sandbox neutralises inline scripts on the off chance
+//    the file is still rendered.
+const INLINE_SAFE_RE = /\.(?:png|jpe?g|gif|webp|avif|bmp|ico|mp4|webm|ogg|mov|m4v|pdf)$/i;
+const uploadStaticHeaders = (res, filePath) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Content-Security-Policy', "default-src 'none'; img-src 'self'; media-src 'self'; sandbox");
+  if (!INLINE_SAFE_RE.test(filePath)) {
+    res.setHeader('Content-Disposition', 'attachment');
+  }
+};
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders: uploadStaticHeaders,
+  dotfiles: 'ignore',
+  index: false,
+}));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.get('/health', async (req, res) => {
@@ -482,6 +520,16 @@ const trackingRedirectHandler = async (req, res) => {
       res.cookie('_chad_cid', clickId, cookieOpts);
       res.cookie('_chad_uid', uid, cookieOpts);
     } catch { /* ignore — redirect is more important than the cookie */ }
+
+    // SECURITY (A-1): never 302 to anything but http(s). A stored targetUrl
+    // with a javascript:/data:/file: scheme would otherwise turn this endpoint
+    // into a reflected open-redirect / phishing vector. Bad scheme → bounce home.
+    try {
+      const proto = new URL(targetUrl).protocol;
+      if (proto !== 'http:' && proto !== 'https:') return res.redirect(302, '/');
+    } catch {
+      return res.redirect(302, '/');
+    }
 
     return res.redirect(302, targetUrl);
   } catch (_) {

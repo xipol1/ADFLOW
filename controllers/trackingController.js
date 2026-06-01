@@ -2,9 +2,34 @@ const TrackingLink = require('../models/TrackingLink');
 const Campaign = require('../models/Campaign');
 const Canal = require('../models/Canal');
 const { ensureDb } = require('../lib/ensureDb');
+const { checkUrl } = require('../lib/urlBlocklist');
 
 const httpError = (status, message) => {
   const err = new Error(message); err.status = status; return err;
+};
+
+// SECURITY (A-1): tracking links are stored verbatim and later 302-redirected
+// to (see app.js trackingRedirectHandler), so an unvalidated targetUrl is an
+// open-redirect / phishing / SSRF-adjacent vector. Require a syntactically
+// valid http(s) URL and run it through the campaign destination blocklist.
+// Returns { ok, url } or { ok:false, message }.
+const validateTargetUrl = (raw) => {
+  const value = String(raw || '').trim();
+  if (!value) return { ok: false, message: 'targetUrl es requerido' };
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    return { ok: false, message: 'targetUrl no es una URL válida' };
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return { ok: false, message: 'targetUrl debe usar http o https' };
+  }
+  const verdict = checkUrl(value);
+  if (!verdict.allowed) {
+    return { ok: false, message: `Destino no permitido (${verdict.category || 'bloqueado'})` };
+  }
+  return { ok: true, url: parsed.toString() };
 };
 
 const BASE_URL = process.env.FRONTEND_URL
@@ -23,7 +48,8 @@ const createLink = async (req, res, next) => {
     if (!userId) return next(httpError(401, 'No autorizado'));
 
     const { targetUrl, type = 'custom', campaignId, channelId } = req.body;
-    if (!targetUrl) return next(httpError(400, 'targetUrl es requerido'));
+    const check = validateTargetUrl(targetUrl);
+    if (!check.ok) return next(httpError(400, check.message));
 
     // Generate unique code
     let code, attempts = 0;
@@ -34,7 +60,7 @@ const createLink = async (req, res, next) => {
 
     const link = await TrackingLink.create({
       code,
-      targetUrl,
+      targetUrl: check.url,
       createdBy: userId,
       type,
       campaign: campaignId || null,
@@ -238,7 +264,8 @@ const convertUrlForCampaign = async (req, res, next) => {
     if (!userId) return next(httpError(401, 'No autorizado'));
 
     const { targetUrl, campaignId } = req.body;
-    if (!targetUrl) return next(httpError(400, 'targetUrl es requerido'));
+    const check = validateTargetUrl(targetUrl);
+    if (!check.ok) return next(httpError(400, check.message));
 
     // Validate campaign exists and belongs to user
     if (campaignId) {
@@ -254,7 +281,7 @@ const convertUrlForCampaign = async (req, res, next) => {
 
     const link = await TrackingLink.create({
       code,
-      targetUrl,
+      targetUrl: check.url,
       createdBy: userId,
       type: 'campaign',
       campaign: campaignId || null,

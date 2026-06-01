@@ -340,6 +340,24 @@ const payCampaign = async (req, res, next) => {
     // Auto-apply campaign credits (welcome bonus from referrals).
     // Uses atomic $inc to prevent double-spend on concurrent payments.
     const advertiser = await Usuario.findById(userId);
+
+    // SECURITY (C-1): payCampaign flips a campaign to PAID + escrow WITHOUT
+    // collecting a real card charge. A payment fully covered by promotional
+    // credits (charge === 0) is legitimate, but charging a positive amount
+    // here would be free money for the advertiser. In production any remaining
+    // balance MUST go through the real Stripe PaymentIntent flow
+    // (/api/transacciones/create-payment-intent); only allow the simulated
+    // path when ALLOW_SIMULATED_PAYMENTS is explicitly enabled (test envs).
+    const prospectiveCredits = advertiser?.campaignCreditsBalance > 0
+      ? Math.min(advertiser.campaignCreditsBalance, campaign.price)
+      : 0;
+    const prospectiveCharge = +((campaign.price || 0) - prospectiveCredits).toFixed(2);
+    if (prospectiveCharge > 0 &&
+        process.env.NODE_ENV === 'production' &&
+        process.env.ALLOW_SIMULATED_PAYMENTS !== 'true') {
+      return next(httpError(402, 'Pago requerido: completa el pago con tarjeta para activar esta campaña'));
+    }
+
     let creditsUsed = 0;
     if (advertiser?.campaignCreditsBalance > 0) {
       creditsUsed = Math.min(advertiser.campaignCreditsBalance, campaign.price);
@@ -548,13 +566,24 @@ const completeCampaign = async (req, res, next) => {
       tx.paidAt = tx.paidAt || new Date();
       await tx.save();
     }
-    if (campaign.stripePaymentIntentId || tx?.stripePaymentIntentId) {
+    // SECURITY (C-2): track whether real money was actually captured before we
+    // move real money OUT to the creator below. Mirror the cron's robust
+    // pattern: retrieve first so an already-captured PI counts as captured
+    // instead of throwing on a second capture.
+    let paymentCaptured = false;
+    const piId = campaign.stripePaymentIntentId || tx?.stripePaymentIntentId;
+    if (piId && process.env.STRIPE_SECRET_KEY) {
       try {
         const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
-        const piId = campaign.stripePaymentIntentId || tx?.stripePaymentIntentId
-        await stripe.paymentIntents.capture(piId, {
-          idempotencyKey: `capture:${piId}`,
-        })
+        const pi = await stripe.paymentIntents.retrieve(piId)
+        if (pi.status === 'requires_capture') {
+          const captured = await stripe.paymentIntents.capture(piId, {
+            idempotencyKey: `capture:${piId}`,
+          })
+          paymentCaptured = captured.status === 'succeeded'
+        } else if (pi.status === 'succeeded') {
+          paymentCaptured = true
+        }
       } catch (stripeErr) {
         console.error('Stripe capture error:', stripeErr.message)
       }
@@ -567,7 +596,16 @@ const completeCampaign = async (req, res, next) => {
     // /api/admin/payouts. The actual Stripe call still runs in
     // setImmediate so the HTTP response isn't blocked on it.
     const channelOwner = await Canal.findOne({ _id: campaign.channel }).select('propietario').lean();
-    if (channelOwner?.propietario) {
+
+    // SECURITY (C-2): only auto-transfer to the creator when real money was
+    // actually captured. A campaign can reach COMPLETED via the credits-only
+    // or simulated path with no Stripe charge; firing a Stripe Connect transfer
+    // there would pay the creator from platform funds for income that never
+    // arrived. Allow simulated payouts only in non-prod test environments.
+    const simulatedPayoutsAllowed =
+      process.env.NODE_ENV !== 'production' &&
+      process.env.ALLOW_SIMULATED_PAYMENTS === 'true';
+    if ((paymentCaptured || simulatedPayoutsAllowed) && channelOwner?.propietario) {
       const creator = await Usuario.findById(channelOwner.propietario).select('stripeConnectAccountId').lean();
       if (creator?.stripeConnectAccountId) {
         const PayoutAttempt = require('../models/PayoutAttempt');

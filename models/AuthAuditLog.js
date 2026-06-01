@@ -13,6 +13,8 @@ const AuthAuditLogSchema = new mongoose.Schema(
         'register.failed',
         'login.success',
         'login.failed',
+        'account.locked',
+        '2fa.failed',
         'email.verified',
         'password.reset.requested',
         'password.reset.completed',

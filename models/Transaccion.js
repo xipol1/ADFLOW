@@ -14,7 +14,7 @@ const TransaccionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'escrow', 'paid', 'refunded', 'failed'],
+      enum: ['pending', 'processing', 'escrow', 'paid', 'refunded', 'failed'],
       default: 'pending',
       index: true
     },
@@ -26,6 +26,20 @@ const TransaccionSchema = new mongoose.Schema(
     referralUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', default: null },
   },
   { timestamps: true }
+);
+
+// SECURITY (A-4): enforce at the DB level what the recharge webhook upsert
+// assumes — at most one transaction per (Stripe id, tipo). The upsert alone is
+// only safe for SEQUENTIAL webhook replays; two genuinely concurrent deliveries
+// of the same event could both miss-and-insert and double-credit a wallet. With
+// this index the second insert fails and Stripe's retry re-finds the row
+// (self-healing, no double credit). Partial on $type:'string' so the many rows
+// that keep the null default don't collide on null. NOTE: if pre-existing
+// duplicate rows exist (created before the A-4 fix), the build fails — logged by
+// the connection 'error' handler, non-fatal — until those rows are deduped.
+TransaccionSchema.index(
+  { stripePaymentIntentId: 1, tipo: 1 },
+  { unique: true, partialFilterExpression: { stripePaymentIntentId: { $type: 'string' } } }
 );
 
 module.exports = mongoose.models.Transaccion || mongoose.model('Transaccion', TransaccionSchema);

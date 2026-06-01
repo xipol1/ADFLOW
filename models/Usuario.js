@@ -89,6 +89,14 @@ const UsuarioSchema = new mongoose.Schema(
     // Stripe Connect (creator payouts)
     stripeConnectAccountId: { type: String, default: null },
 
+    // Per-user withdrawal lease lock (SECURITY C-3). Serializes the two payout
+    // paths — POST /api/payouts/withdraw (instant Stripe transfer) and
+    // POST /api/transacciones/retiro (manual bank/paypal queue) — so two
+    // concurrent requests can't both pass the same balance check and
+    // over-withdraw. Stores the lease expiry; a stale lease auto-expires so a
+    // crashed request can't lock the creator out (see lib/withdrawalLock.js).
+    withdrawalLockUntil: { type: Date, default: null },
+
     // 2FA / TOTP
     twoFactorEnabled: { type: Boolean, default: false },
     twoFactorSecret: { type: String, default: null }, // encrypted TOTP secret
