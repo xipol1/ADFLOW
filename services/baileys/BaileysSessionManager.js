@@ -33,6 +33,7 @@ const { useMongoAuthState, loadBaileys } = require('./authStore');
 const BaileysSession = require('../../models/BaileysSession');
 const WhatsAppAuditLog = require('../../models/WhatsAppAuditLog');
 const Canal = require('../../models/Canal');
+const { asDisplayName } = require('./displayName');
 
 // Pending QR sessions older than this with no successful scan are swept by
 // cleanupStalePendingSessions() — see the wired-up cron in app.js.
@@ -148,7 +149,7 @@ class BaileysSessionManager {
 
         newsletters.push({
           jid: meta.id || jid,
-          name: meta.name || meta.thread_metadata?.name || '(sin nombre)',
+          name: asDisplayName(meta.name, meta.thread_metadata?.name),
           description: meta.description || meta.thread_metadata?.description || '',
           subscribers: meta.subscribers || 0,
           verification: meta.verification || 'UNVERIFIED',
@@ -346,7 +347,7 @@ class BaileysSessionManager {
 
     const newsletter = {
       jid: meta.id,
-      name: meta.name || meta.thread_metadata?.name || '(sin nombre)',
+      name: asDisplayName(meta.name, meta.thread_metadata?.name),
       description: meta.description || meta.thread_metadata?.description || '',
       subscribers: meta.subscribers || meta.subscribers_count || 0,
       verification: meta.verification || 'UNVERIFIED',
