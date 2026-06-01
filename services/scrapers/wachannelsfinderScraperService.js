@@ -54,11 +54,37 @@ function parseFollowers(text) {
 }
 
 /**
- * Extract WhatsApp channel slug from a wachannelsfinder URL.
+ * Strip leaked tag markup and collapse whitespace.
+ *
+ * The site's lazy-load plugin wraps avatars in <noscript><img></noscript>,
+ * which cheerio (htmlparser2) exposes as RAW TEXT. Reading such an anchor's
+ * .text() therefore returns a literal "<img ...>" string — this was the
+ * historical bug that poisoned every scraped `name`. cleanText() removes any
+ * <...> run so a leaked tag can never reach the stored name.
+ */
+function cleanText(s) {
+  if (!s) return '';
+  return String(s).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Humanise a slug into a fallback display name:
+ * "led-tv-spares-sb" -> "Led Tv Spares Sb".
+ */
+function nameFromSlug(slug) {
+  return String(slug || '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
+}
+
+/**
+ * Extract the WhatsApp channel/group slug from a wachannelsfinder URL.
+ * The directory uses both /channels/{slug}/ and /group/{slug}/ paths.
  */
 function extractChannelSlug(href) {
   if (!href) return null;
-  const m = href.match(/\/channels\/([^/]+)\/?$/);
+  const m = href.match(/\/(?:channels?|groups?)\/([^/]+)\/?$/i);
   return m ? m[1].toLowerCase() : null;
 }
 
@@ -78,41 +104,73 @@ async function scrapePage(url) {
     });
 
     const $ = cheerio.load(html);
-    const channels = [];
+    const bySlug = new Map();
 
-    // Primary: anchor cards linking to /channels/{slug}/
-    $('a[href*="/channels/"]').each((_, el) => {
-      const $a = $(el);
+    // Anchor on the canonical name heading (h2/h3.channel-name) whose <a> links
+    // to /channels/{slug}/ or /group/{slug}/. We deliberately DON'T iterate the
+    // avatar anchor: it wraps a lazy-load <noscript><img></noscript> that cheerio
+    // exposes as raw text, so its .text() is literal "<img ...>" markup. If the
+    // site ever drops the heading class we fall back to raw channel/group anchors
+    // (cleanText still strips any leaked markup).
+    const headings = $('h2.channel-name, h3.channel-name');
+    const useFallback = headings.length === 0;
+    const iter = useFallback
+      ? $('a[href*="/channels/"], a[href*="/group/"]')
+      : headings;
+
+    iter.each((_, el) => {
+      const $el = $(el);
+      const $a = useFallback ? $el : $el.find('a[href]').first();
       const href = $a.attr('href') || '';
       const slug = extractChannelSlug(href);
       if (!slug) return;
+      // Skip taxonomy/navigation links
+      if (/\/(?:channels?|groups?)\/?$/i.test(href) || /\/(?:category|country|language|page|tag)\//i.test(href)) return;
 
-      // Skip navigation/category links
-      if (/^\/channels\/?$/.test(href) || /category|country|language|page/.test(href)) return;
+      // Card details block (holds the subscriber count) and its wrapper (holds the avatar).
+      const details = $a.closest('.p-3, article, li, div');
+      const card = details.parent();
 
-      const title =
-        $a.find('h2, h3, h4').first().text().trim() ||
-        $a.text().trim();
-      if (!title || title.length < 2) return;
+      // Name: heading text is clean; sanitise to drop any leaked markup, then
+      // fall back to the avatar alt (minus the " Whatsapp Group link" suffix),
+      // then to a humanised slug. Never store empty or markup.
+      let name = cleanText($a.text());
+      if (!name || name.length < 2 || /^https?:/i.test(name) || /\.(?:avif|png|jpe?g|webp|svg)/i.test(name)) {
+        name = cleanText(card.find('img[alt]').first().attr('alt') || '');
+      }
+      name = name.replace(/\s+whats?app\s+(?:group|channel)\s+link$/i, '').trim();
+      if (!name || name.length < 2) name = nameFromSlug(slug);
 
-      // Look for follower/member count in surrounding text
-      const container = $a.closest('article, div, li');
-      const containerText = container.text().replace(/\s+/g, ' ');
-      const followersMatch = containerText.match(/([\d,.]+[KkMm]?)\s*(?:followers?|members?|seguidores?)/i);
-      const followers = followersMatch ? parseFollowers(followersMatch[1]) : 0;
+      // Followers: the count renders as a bare number inside <span class="text-muted">
+      // after an SVG icon (no "followers" label), so the old keyword regex never
+      // matched. Read that span directly; fall back to a labelled regex.
+      let followers = 0;
+      const subsSpan = details.find('span.text-muted').first();
+      if (subsSpan.length) followers = parseFollowers(cleanText(subsSpan.text()));
+      if (!followers) {
+        const m = cleanText(details.text()).match(/([\d,.]+\s*[KkMm]?)\s*(?:followers?|members?|subscribers?|seguidores?)/i);
+        if (m) followers = parseFollowers(m[1]);
+      }
 
-      // Description from container or meta
-      const description =
-        container.find('p, .excerpt, .description, .entry-summary').first().text().trim() || '';
+      const description = cleanText(
+        details.find('p, .excerpt, .description, .entry-summary').first().text(),
+      ).slice(0, 400);
 
-      channels.push({
-        slug,
-        name: title.slice(0, 120),
-        followers,
-        description: description.slice(0, 400),
-        sourceUrl: href.startsWith('http') ? href : `${BASE_URL}${href}`,
-      });
+      if (!bySlug.has(slug)) {
+        bySlug.set(slug, {
+          slug,
+          name: name.slice(0, 120),
+          followers,
+          description,
+          sourceUrl: href.startsWith('http') ? href : `${BASE_URL}${href}`,
+        });
+      } else if (followers > 0) {
+        const existing = bySlug.get(slug);
+        if (!existing.followers) existing.followers = followers;
+      }
     });
+
+    const channels = Array.from(bySlug.values());
 
     // Check for next page
     const nextPage = $('a.next, a[rel="next"], .nav-next a, .pagination a:contains("Next")').attr('href');

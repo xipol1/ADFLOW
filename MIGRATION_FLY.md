@@ -268,9 +268,42 @@ flyctl machines run -a channelad-api-test `
 Pair with an external scheduler (Upstash QStash, EasyCron) hitting Fly's URL.
 Recommended only if you outgrow A+B.
 
-**Recommendation for the test deploy: Option A** — wire all 9 jobs into
-`lib/campaignCron.js` and remove the `crons` block from `vercel.json` once the
-Fly instance is the source of truth.
+**Implemented: Option A (in-process scheduler).** All 9 jobs are wired into
+`lib/jobScheduler.js`, started from `server.js` right after the campaign cron.
+It is dormant by default and only schedules when `ENABLE_BACKGROUND_JOBS=true`.
+
+Cutover steps:
+
+```powershell
+# 1. Turn the scheduler on for THIS Fly machine only (single-runner guarantee).
+flyctl secrets set ENABLE_BACKGROUND_JOBS=true
+
+# 2. (heavy jobs need headroom: GramJS + 500+ channels) bump RAM once.
+flyctl scale memory 1024
+
+# 3. Deploy, then watch a night of runs land in JobLog:
+flyctl deploy --remote-only
+node scripts/check-last-jobs.js          # job outcomes
+node scripts/check-scraping-state.js     # candidate freshness + ultimaActualizacion
+```
+
+Each run is gated by a JobLog-backed lock (skip if already completed inside the
+job's window, or if a previous run is still `running`), so the scheduler is
+crash-safe across Fly redeploys and tolerant of downtime/tick drift. At most
+`MAX_CONCURRENT=2` jobs dispatch at once so a cold boot past every scheduled
+time doesn't start all 9 simultaneously.
+
+> ⚠️ **Until you remove the `crons` block from `vercel.json`, the same job can
+> be fired by BOTH Vercel Cron and the Fly scheduler.** The lock makes light
+> jobs idempotent, but the Vercel HTTP route does not consult the lock, so a
+> flood-sensitive job (telegram-intel via MTProto especially) could run twice
+> and risk a Telegram flood-ban. Once step 3 confirms the Fly runs complete,
+> delete the `crons` array from `vercel.json` and redeploy the frontend so Fly
+> is the sole scheduler.
+
+For manual ops you can still hit the `/api/jobs/*` and `/api/admin/*` endpoints
+(they stay as CRON_SECRET-protected manual triggers), or, on the Fly box,
+`node -e "require('./lib/jobScheduler').runJobNow('telegram-intel')"`.
 
 ---
 

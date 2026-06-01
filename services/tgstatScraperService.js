@@ -92,7 +92,13 @@ async function batchDiscoverChannels(options = {}) {
   }
 
   // ── Source 3: Telemetr.io scraping ─────────────────────────────────────
-  if (!options.skipTelemetr) {
+  // Telemetr is behind a Cloudflare "Just a moment..." JS challenge (verified
+  // 2026-06) that a plain axios GET cannot pass — every request 403s. It is
+  // therefore OFF by default; set TELEMETR_ENABLED=true only once a headless
+  // solver / proxy is wired into telemetrScraperService. The other two sources
+  // (MTProto keyword search + social graph) keep discovery running meanwhile.
+  const telemetrEnabled = process.env.TELEMETR_ENABLED === 'true';
+  if (!options.skipTelemetr && telemetrEnabled) {
     try {
       const { scrapeAllCategories } = require('./telemetrScraperService');
       const telResult = await scrapeAllCategories();

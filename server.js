@@ -134,6 +134,17 @@ async function startServer() {
       console.warn('Campaign cron not available:', cronErr.message);
     }
 
+    // Start in-process background job scheduler. No-op unless
+    // ENABLE_BACKGROUND_JOBS=true (set on exactly one always-on Fly machine).
+    // Replaces the Vercel Cron triggers for the heavy scraper/metric jobs that
+    // can't finish inside Vercel's 60s serverless timeout. See lib/jobScheduler.js.
+    try {
+      const { startJobScheduler } = require('./lib/jobScheduler');
+      startJobScheduler();
+    } catch (schedErr) {
+      console.warn('Job scheduler not available:', schedErr.message);
+    }
+
     // Start WhatsApp admin worker (VPS/local only — not on Vercel)
     if (process.env.WHATSAPP_SESSION_PATH) {
       try {
@@ -153,6 +164,10 @@ async function startServer() {
     const shutdown = async (signal) => {
       console.log(`${signal} received — shutting down gracefully`);
       server.close(async () => {
+        try {
+          const { stopJobScheduler } = require('./lib/jobScheduler');
+          stopJobScheduler();
+        } catch (_) {}
         try {
           await mongoose.disconnect();
           console.log('MongoDB disconnected');

@@ -35,7 +35,8 @@ async function fetchIgruposUpdates(platform) {
     const { scrapeTagPage } = require('./scrapers/igruposScraperService');
     const tags = platform === 'whatsapp'
       ? ['marketing', 'negocios', 'emprendimiento', 'finanzas', 'criptomonedas', 'ecommerce', 'tecnologia']
-      : ['gaming', 'marketing', 'programacion', 'criptomonedas', 'comunidad'];
+      // Discord slugs verified against igrupos (gaming/marketing/comunidad 404 there).
+      : ['criptomonedas', 'trading', 'programacion', 'tecnologia', 'negocios', 'roblox', 'minecraft', 'fortnite', 'anime', 'memes'];
 
     for (const tag of tags) {
       const items = await scrapeTagPage(platform, tag);

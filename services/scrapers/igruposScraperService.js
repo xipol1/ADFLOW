@@ -43,12 +43,19 @@ const SCRAPE_TARGETS = [
   { platform: 'telegram', category: 'finanzas' },
   { platform: 'telegram', category: 'criptomonedas' },
   { platform: 'telegram', category: 'trading' },
-  // Discord
-  { platform: 'discord', category: 'gaming' },
-  { platform: 'discord', category: 'marketing' },
-  { platform: 'discord', category: 'programacion' },
+  // Discord — slugs verified against igrupos /tag/discord/* (2026-06).
+  // The previous list (gaming/marketing/comunidad) 404s for discord; these
+  // return real listings.
   { platform: 'discord', category: 'criptomonedas' },
-  { platform: 'discord', category: 'comunidad' },
+  { platform: 'discord', category: 'trading' },
+  { platform: 'discord', category: 'programacion' },
+  { platform: 'discord', category: 'tecnologia' },
+  { platform: 'discord', category: 'negocios' },
+  { platform: 'discord', category: 'roblox' },
+  { platform: 'discord', category: 'minecraft' },
+  { platform: 'discord', category: 'fortnite' },
+  { platform: 'discord', category: 'anime' },
+  { platform: 'discord', category: 'memes' },
 ];
 
 function sleep(ms) {
