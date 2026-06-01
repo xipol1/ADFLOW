@@ -170,16 +170,24 @@ or `docker compose logs app | grep scheduler`.
 
 ## 6. Point the frontend at the new worker
 
-On **Vercel → Project → Settings → Environment Variables**, set the Baileys URL
-to the tunnel hostname, then redeploy the frontend:
+The frontend routes **only** `/baileys/*` calls to the sidecar, read at **build
+time** from `VITE_BAILEYS_API_URL` (the client appends `/api` itself — so pass
+the host **without** `/api`). `BAILEYS_SIDECAR_URL` is the backend's
+informational copy (returned in the Vercel 503 body); set it to the same value.
 
-```
-VITE_BAILEYS_API_URL = https://api-worker.channelad.io
-BAILEYS_SIDECAR_URL  = https://api-worker.channelad.io
+Both already exist on Vercel today pointing at Fly — you're just updating them.
+One command (Vercel CLI is already logged in + the project is linked):
+
+```powershell
+.\scripts\set-vercel-baileys-url.ps1 -Url https://api-worker.channelad.io
 ```
 
-(Use whichever of these your build actually reads — grep the client for
-`BAILEYS` / `SIDECAR`.) Re-test WhatsApp linking from the dashboard.
+It updates both Production env vars. **`VITE_*` is baked at build time, so you
+must redeploy** for it to take effect: Vercel dashboard → Deployments → latest →
+**Redeploy**, or push any commit to `main`.
+
+Then re-test WhatsApp linking from the dashboard — in the Network tab the
+`/baileys/*` requests should hit `https://api-worker.channelad.io/api`.
 
 ---
 
