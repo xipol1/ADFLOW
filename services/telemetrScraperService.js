@@ -111,6 +111,14 @@ async function scrapePage(url) {
         retries++;
         continue;
       }
+      // 403 here is the Cloudflare "Just a moment..." JS challenge — a plain
+      // axios GET can't solve it. Retrying won't help; needs a headless solver.
+      // Telemetr is gated off by default (TELEMETR_ENABLED), so this normally
+      // never runs, but keep the message specific for whoever re-enables it.
+      if (err.response?.status === 403) {
+        console.warn(`[Telemetr] 403 (Cloudflare challenge) for ${url} — source needs a headless solver; skipping.`);
+        return [];
+      }
       console.error(`[Telemetr] Failed to scrape ${url}:`, err.message);
       return [];
     }
