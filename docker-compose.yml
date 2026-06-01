@@ -1,0 +1,59 @@
+# docker-compose.yml — Channelad always-on worker on a FREE VM
+# (Oracle Cloud Always Free AMD micro / GCP e2-micro / Raspberry Pi).
+#
+# Runs the exact same `node server.js` the Fly deploy did, i.e. the always-on
+# parts that can't live on Vercel's 60s serverless functions:
+#   - Baileys WhatsApp sidecar (long-lived WebSocket sessions)
+#   - campaignCron (campaign automation, every 10 min)
+#   - the in-process job scheduler (lib/jobScheduler.js, ENABLE_BACKGROUND_JOBS)
+#
+# A free Cloudflare Tunnel publishes it over HTTPS so the Vercel frontend can
+# reach Baileys WITHOUT opening firewall ports or managing TLS certs — which
+# also sidesteps Oracle's notoriously fiddly security lists and works behind
+# NAT (handy if you later move this to a Raspberry Pi).
+#
+# Secrets live in a local `.env` (copy from .env.example) — never commit it.
+# See docs/DEPLOY_ORACLE_FREE.md for the full walkthrough.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env # MONGODB_URI, JWT_*, ENCRYPTION_KEY, STRIPE_*, TELEGRAM_*, etc.
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "8080"
+      RUNTIME_PLATFORM: oracle
+      # This single always-on box is THE background-job runner. Keep this "true"
+      # here and ONLY here (never on Vercel / a second machine) so the heavy
+      # jobs run exactly once. See lib/jobScheduler.js.
+      ENABLE_BACKGROUND_JOBS: "true"
+    volumes:
+      # Persist Baileys/WhatsApp pairing state across restarts & redeploys.
+      - wa-session:/app/data/whatsapp-session
+    expose:
+      - "8080" # internal only — the tunnel reaches this; no host port published
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:8080/health',r=>process.exit(r.statusCode<400?0:1)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+
+  # Free HTTPS ingress. Create a tunnel in the Cloudflare Zero Trust dashboard,
+  # add a public hostname (e.g. api-worker.channelad.io) → service http://app:8080,
+  # then put the tunnel token in .env as CLOUDFLARE_TUNNEL_TOKEN.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - app
+
+volumes:
+  wa-session:
