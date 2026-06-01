@@ -23,6 +23,10 @@ kill_timeout = "15s"                  # server.js shutdown allows 10s grace
   PORT = "8080"
   # Hint to the app that we are NOT on Vercel (some code paths key off this).
   RUNTIME_PLATFORM = "fly"
+  # This single always-on machine is the background-job worker: run the
+  # in-process scheduler (lib/jobScheduler.js) here. Keep it OFF anywhere else
+  # (Vercel, any extra machine) so the heavy jobs only ever run once.
+  ENABLE_BACKGROUND_JOBS = "true"
 
 # ── HTTP service ─────────────────────────────────────────────────────────────
 [http_service]
@@ -54,7 +58,9 @@ kill_timeout = "15s"                  # server.js shutdown allows 10s grace
 # ── VM sizing ────────────────────────────────────────────────────────────────
 [[vm]]
   size = "shared-cpu-1x"
-  memory = "512mb"
+  # 1 GB (not 512) for headroom: the in-process job scheduler runs GramJS
+  # (telegram-intel, 527 channels) alongside the Baileys worker + Socket.io.
+  memory = "1024mb"
   cpu_kind = "shared"
   cpus = 1
 
