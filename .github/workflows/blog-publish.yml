@@ -1,16 +1,24 @@
 name: Blog scheduled publish
 
-# Disparador diario que materializa posts con `date` == hoy.
+# Disparador diario que publica posts cuya `date` == hoy.
 #
 # Cómo funciona: el build (`npm run blog:build`) ya filtra por `date <= today`,
-# así que un post programado para una fecha futura solo se emite HTML el primer
-# deploy posterior a esa fecha. Vercel no se redeploya solo — necesita un push.
-# Este workflow:
+# así que un post programado para una fecha futura solo emite HTML en el primer
+# deploy posterior a esa fecha. Vercel no se redeploya solo — necesita un
+# trigger. Este workflow:
 #   1. Cada día a las 06:00 UTC (08:00 ES verano, 07:00 ES invierno).
 #   2. Mira si hay algún .md en content/blog/ con `date: "<hoy>"`.
-#   3. Si sí, hace un commit vacío y empuja a main → Vercel rebuilda y
-#      publica el post automáticamente.
+#   3. Si sí, dispara un **Vercel Deploy Hook** → Vercel rebuilda producción y
+#      publica el post. (Antes empujaba un commit vacío a `main`; eso chocaba con
+#      la branch protection de `main`, así que ahora usa el deploy hook nativo de
+#      Vercel — no toca git en absoluto.)
 #   4. Si no hay nada que publicar, no hace nada (zero noise).
+#
+# SETUP (una vez): Vercel → Project → Settings → Git → Deploy Hooks → crear un
+# hook para la rama de producción (`main`), copiar la URL y guardarla como el
+# secret `VERCEL_DEPLOY_HOOK_URL` del repo (Settings → Secrets → Actions). Sin
+# ese secret el workflow no falla: avisa y termina (los posts igualmente se
+# publican en el siguiente deploy de `main` por cualquier merge).
 #
 # Manual: Actions → "Blog scheduled publish" → "Run workflow" para forzar.
 
@@ -21,8 +29,9 @@ on:
     - cron: '0 6 * * *'
   workflow_dispatch:
 
+# Read-only: el workflow ya no empuja a git, solo lee el repo y llama al hook.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   publish:
@@ -30,8 +39,6 @@ jobs:
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Detect posts due today
         id: detect
@@ -51,14 +58,16 @@ jobs:
             echo "::notice title=Publishing $COUNT post(s)::$SLUGS"
           fi
 
-      - name: Push empty commit to trigger Vercel build
+      - name: Trigger Vercel production rebuild
         if: steps.detect.outputs.count != '0'
         env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
           TODAY: ${{ steps.detect.outputs.today }}
           SLUGS: ${{ steps.detect.outputs.slugs }}
         run: |
-          git config user.name "channelad-blog-bot"
-          git config user.email "blog-bot@channelad.io"
-          MSG=$(printf 'chore(blog): scheduled publish for %s\n\nMaterializes scheduled post(s): %s\n\nTriggered by .github/workflows/blog-publish.yml. The blog builder filters by date <= today and emits HTML for any post whose date has just arrived.' "$TODAY" "$SLUGS")
-          git commit --allow-empty -m "$MSG"
-          git push origin HEAD:main
+          if [ -z "$HOOK" ]; then
+            echo "::warning title=Deploy hook not configured::Set the VERCEL_DEPLOY_HOOK_URL secret (Vercel → Settings → Git → Deploy Hooks) so scheduled posts publish on time. Post(s) due: $SLUGS — they will publish on the next deploy of main regardless."
+            exit 0
+          fi
+          echo "Triggering Vercel rebuild for $TODAY ($SLUGS)…"
+          curl -fsS -X POST "$HOOK" -o /dev/null -w "Vercel deploy hook OK (HTTP %{http_code})\n"
