@@ -153,6 +153,18 @@ const CanalSchema = new mongoose.Schema(
         seguidoresVerificados: { type: Number, default: 0 },
         verificadoEn: Date,
         ultimaLectura: Date,
+        // ── Baileys-linked verification (QR pairing flow) ───────────────────
+        // Populated by baileysController.linkNewsletterToCanal after a
+        // successful QR pair + newsletter role check. channelJid is the
+        // internal WhatsApp identifier ("120363...@newsletter") which is
+        // distinct from channelId (the public-facing invite slug).
+        channelJid: { type: String, default: '' },
+        verifiedByMeta: { type: Boolean, default: false },
+        baileysSessionId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'BaileysSession',
+          default: null,
+        },
       },
     },
     nivelVerificacion: {

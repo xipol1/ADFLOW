@@ -1,5 +1,7 @@
 import React, { useRef } from 'react'
-import { motion } from 'framer-motion'
+// `m` keeps this hero card on the LazyMotion runtime (provider in App.jsx).
+// Aliased to `motion` so the JSX (motion.div) is unchanged.
+import { m as motion } from 'framer-motion'
 import { PLATFORM_DEMO, TIER_STYLES } from '../demo/demo-data'
 
 /**

@@ -1,5 +1,8 @@
 import React from 'react'
-import { motion } from 'framer-motion'
+// NOTE: framer-motion intentionally not imported — this card animates purely
+// via CSS @keyframes (settlementPulse/ChartReveal/DotPulse below). The prior
+// `import { motion }` was dead code that pulled the library onto the hero's
+// critical path.
 import { Lock, TrendingUp, Zap, ShieldCheck, Eye, BadgeCheck } from 'lucide-react'
 
 // Colors are the WCAG-AA-safe deep brand shades: the avatar circles carry a

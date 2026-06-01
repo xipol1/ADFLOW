@@ -1,7 +1,10 @@
 import React, { useState, lazy, Suspense } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { motion, AnimatePresence } from 'framer-motion'
+// `m` (not `motion`) keeps this critical-path page on the lightweight
+// LazyMotion runtime — see the LazyMotion provider in App.jsx. Aliased to
+// `motion` so the JSX below (motion.div, motion.h1, …) stays unchanged.
+import { m as motion, AnimatePresence } from 'framer-motion'
 import { Shield, Globe, Lock, SearchX, BarChart3, AlertTriangle, ShieldCheck, Eye, BadgeCheck, XCircle, Sparkles, MessageCircle, ArrowRight } from 'lucide-react'
 import SEO from '../../components/SEO'
 import CrossLinks from '../../components/landing/CrossLinks'

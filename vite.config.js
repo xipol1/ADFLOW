@@ -64,7 +64,15 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             vendor: ['react', 'react-dom'],
             router: ['react-router-dom'],
-            motion: ['framer-motion'],
+            // NOTE: framer-motion is intentionally NOT force-chunked here.
+            // A `motion: ['framer-motion']` entry collapses the whole library
+            // (including the heavy domMax feature set: drag/layout) into one
+            // chunk. Because the eager landing (ForBrandsPage) imports from
+            // framer-motion, that single chunk would load eagerly in full —
+            // defeating the LazyMotion split. Letting Rollup code-split it
+            // naturally keeps the critical path on `m` + domAnimation (~light)
+            // and pushes the full `motion` feature set into the lazy route
+            // chunks (calculator/demos/Hero3D) that actually use it.
             charts: ['recharts'],
           },
         },

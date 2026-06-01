@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>CTR Comparison — Channelad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #060C18;
+      --surface: #0D1526;
+      --border:  #1A2840;
+      --purple:  #7C3AED;
+      --pl:      #9D60F8;
+      --pa:      #C084FC;
+      --green:   #25D366;
+      --t1:      #F0F4FF;
+      --t2:      #8B9EBF;
+      --t3:      #3D5070;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 1080px;
+      height: 1080px;
+      overflow: hidden;
+      background: var(--bg);
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .card {
+      width: 1080px;
+      height: 1080px;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      padding: 80px 88px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Dot grid */
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(139,92,246,0.13) 1.5px, transparent 1.5px);
+      background-size: 42px 42px;
+      pointer-events: none;
+    }
+
+    .glow {
+      position: absolute;
+      top: -250px;
+      right: -150px;
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(124,58,237,0.16) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    /* ── Header ──────────────────────────── */
+    .header {
+      position: relative;
+      z-index: 2;
+      flex-shrink: 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--pl);
+      margin-bottom: 28px;
+    }
+
+    .tag-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    h1 {
+      font-family: 'Sora', sans-serif;
+      font-size: 58px;
+      font-weight: 800;
+      line-height: 1.04;
+      letter-spacing: -0.03em;
+      color: var(--t1);
+    }
+
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--pl) 0%, var(--pa) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Chart ───────────────────────────── */
+    .chart {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 120px;
+      padding: 40px 40px 0;
+    }
+
+    .col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 280px;
+    }
+
+    .bar-value {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin-bottom: 20px;
+    }
+
+    .bar-wrap {
+      width: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      height: 480px;
+    }
+
+    .bar {
+      width: 100%;
+      border-radius: 12px 12px 0 0;
+      position: relative;
+    }
+
+    /* Google bar — tiny, dim */
+    .bar.google {
+      height: 13px;
+      background: var(--t3);
+    }
+    .col.google .bar-value { color: var(--t2); font-size: 76px; }
+
+    /* Telegram bar — tall, range gradient */
+    .bar.tele {
+      height: 480px;
+      background: linear-gradient(180deg, var(--pa) 0%, var(--pl) 45%, var(--purple) 100%);
+      box-shadow: 0 0 60px rgba(124,58,237,0.35);
+    }
+    .col.tele .bar-value { color: var(--pl); font-size: 88px; }
+
+    /* dashed line marking lower bound on telegram bar */
+    .bar-marker {
+      position: absolute;
+      left: 0; right: 0;
+      top: 47%;
+      border-top: 2px dashed rgba(255,255,255,0.35);
+    }
+
+    .bar-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--t1);
+      margin-top: 28px;
+      text-align: center;
+    }
+
+    .bar-sub {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--t3);
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    /* multiplier callout between bars */
+    .mult {
+      position: absolute;
+      z-index: 3;
+      left: 50%;
+      top: 38%;
+      transform: transl(-50%, -50%);
+      transform: translateX(-50%);
+      text-align: center;
+    }
+    .mult-n {
+      font-family: 'Sora', sans-serif;
+      font-size: 46px;
+      font-weight: 800;
+      color: var(--t1);
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .mult-l {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--t2);
+      margin-top: 6px;
+    }
+
+    /* ── Footer ──────────────────────────── */
+    .footer {
+      position: relative;
+      z-index: 2;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 36px;
+      margin-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .brand {
+      font-family: 'Sora', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--t2);
+    }
+    .brand span { color: var(--pl); }
+
+    .source {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--t3);
+      letter-spacing: 0.04em;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="glow"></div>
+
+    <div class="header">
+      <div class="tag"><span class="tag-dot"></span> CTR medio por canal publicitario</div>
+      <h1>El mismo presupuesto.<br><em>Hasta 37× más rendimiento.</em></h1>
+    </div>
+
+    <div class="chart">
+      <div class="col google">
+        <div class="bar-value">0,4%</div>
+        <div class="bar-wrap"><div class="bar google"></div></div>
+        <div class="bar-label">Google Display</div>
+        <div class="bar-sub">benchmark de industria</div>
+      </div>
+
+      <div class="col tele">
+        <div class="bar-value">8-15%</div>
+        <div class="bar-wrap">
+          <div class="bar tele"><div class="bar-marker"></div></div>
+        </div>
+        <div class="bar-label">Canal de Telegram de nicho</div>
+        <div class="bar-sub">audiencia opted-in, sin algoritmo</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="brand">channel<span>ad</span></div>
+      <div class="source">Fuentes: benchmarks de industria 2026<br>Google Display · canales de nicho activos</div>
+    </div>
+  </div>
+</body>
+</html>

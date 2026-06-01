@@ -1,5 +1,7 @@
 import React, { useRef } from 'react'
-import { motion, useInView } from 'framer-motion'
+// `m` keeps this shared landing wrapper on the LazyMotion runtime (provider
+// in App.jsx). Aliased to `motion` so the JSX (motion.section) is unchanged.
+import { m as motion, useInView } from 'framer-motion'
 
 // Reusable framer-motion variants for landing sections.
 // Co-located with MotionSection because everything that uses these lives in
