@@ -30,6 +30,11 @@ function resolveNetAmount(campaign) {
   return +(campaign.price * (1 - rate)).toFixed(2);
 }
 
+// Proportional creator payout: the creator's withdrawable cash is their share
+// of the money actually captured, not of the full price (promo credits are a
+// discount, not cash). See lib/creatorPayout.js.
+const { computeCreatorPayable, resolveCreatorPayable } = require('../lib/creatorPayout');
+
 const notifySafe = async (data) => {
   try { await notificationService.enviarNotificacion(data); } catch (_) { /* non-blocking */ }
 };
@@ -398,6 +403,11 @@ const payCampaign = async (req, res, next) => {
     );
 
     campaign.status = 'PAID';
+    // Persist the real money captured (price minus credits) and the creator's
+    // proportional payout, so completion + both withdrawal paths pay only the
+    // captured share. A 100%-credit-funded campaign records 0 here → 0 payout.
+    campaign.capturedAmount = amountCharged;
+    campaign.creatorPayable = computeCreatorPayable(amountCharged, campaign.commissionRate);
     await campaign.save();
 
     // Fetch fresh balance after atomic deduction
@@ -609,7 +619,11 @@ const completeCampaign = async (req, res, next) => {
       const creator = await Usuario.findById(channelOwner.propietario).select('stripeConnectAccountId').lean();
       if (creator?.stripeConnectAccountId) {
         const PayoutAttempt = require('../models/PayoutAttempt');
-        const netAmount = resolveNetAmount(campaign);
+        // Pay only the creator's share of money actually captured (proportional
+        // payout). For real-money campaigns this equals resolveNetAmount; for
+        // credit-funded ones it is lower (or 0), so the auto-transfer and the
+        // withdrawal balance stay consistent.
+        const netAmount = resolveCreatorPayable(campaign);
         const idempotencyKey = `transfer:${campaign._id}`;
         // Upsert so completing the same campaign twice doesn't create
         // duplicate attempt rows; the unique index on `campaign` would

@@ -42,6 +42,14 @@ const CampaignSchema = new mongoose.Schema(
 
     price: { type: Number, required: true },
     netAmount: { type: Number, default: 0 },
+    // Real EUR captured at payment (price minus promo credits applied). Set by
+    // payCampaign. creatorPayable = capturedAmount * (1 - commissionRate) is the
+    // creator's withdrawable share — promo credits are a discount, never cash.
+    // Null on legacy campaigns → payout falls back to netAmount (see
+    // lib/creatorPayout.js). MUST stay declared or strict mode strips the value
+    // on save and the proportional payout silently degrades to full-price.
+    capturedAmount: { type: Number, default: null },
+    creatorPayable: { type: Number, default: null },
     commissionRate: { type: Number, default: require('../config/commissions').DEFAULT_COMMISSION_RATE },
     status: {
       type: String,
