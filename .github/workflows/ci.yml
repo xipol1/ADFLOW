@@ -34,7 +34,7 @@ jobs:
       # pays ~40 s of download + extract before tests can boot. The key
       # embeds the binary version so bumping MMS auto-invalidates.
       - name: Cache mongodb-memory-server binary
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/mongodb-binaries
           key: mms-mongodb-6.0.14-${{ runner.os }}
