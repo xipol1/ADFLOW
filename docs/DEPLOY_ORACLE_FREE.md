@@ -48,7 +48,13 @@ Cost: **$0/mo** (Always Free VM + free Cloudflare Tunnel + free GitHub).
      grab it, `VM.Standard.A1.Flex` with 1 OCPU / 6 GB is even better — but expect
      "out of capacity"; the micro is fine for Baileys.
    - **Networking**: keep the default VCN with a **public IPv4**.
-   - **SSH keys**: upload your public key (or let Oracle generate one and save it).
+   - **SSH keys**: upload your public key. No key yet? Generate one first:
+     `ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519` (press Enter twice) and upload
+     `~/.ssh/id_ed25519.pub`.
+   - **Show advanced options → Management → Initialization script**: paste the
+     contents of [`scripts/oracle-cloud-init.yaml`](../scripts/oracle-cloud-init.yaml).
+     It auto-installs Docker + 2 GB swap and clones the repo on first boot, so
+     you can **skip §2 entirely**.
 3. Create. Note the **public IP**.
 
 > You do **not** need to open any ingress ports — the Cloudflare Tunnel makes an
@@ -57,7 +63,12 @@ Cost: **$0/mo** (Always Free VM + free Cloudflare Tunnel + free GitHub).
 
 ---
 
-## 2. Prep the box (~10 min)
+## 2. Prep the box (~10 min) — SKIP if you used the cloud-init in §1
+
+> If you pasted `scripts/oracle-cloud-init.yaml` as the init script, Docker, swap
+> and the repo clone are already done. Just SSH in (`ssh ubuntu@<PUBLIC_IP>`),
+> run `cat ~/NEXT_STEPS.txt`, and jump to **§3**. The commands below are the
+> manual fallback if you didn't use the init script.
 
 SSH in: `ssh ubuntu@<PUBLIC_IP>` (user is `ubuntu` on the Canonical image).
 
