@@ -129,8 +129,9 @@ const login = async (req, res) => {
     if (!isMatch) {
       // Increment failed attempts and lock after 5
       const attempts = (user.failedLoginAttempts || 0) + 1;
+      const lockedNow = attempts >= 5;
       const update = { failedLoginAttempts: attempts };
-      if (attempts >= 5) {
+      if (lockedNow) {
         update.lockedUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 min lock
         update.failedLoginAttempts = 0;
       }
@@ -139,8 +140,17 @@ const login = async (req, res) => {
       authAudit.record('login.failed', req, {
         userId: user._id,
         email,
-        metadata: { reason: 'bad_password', attempts, lockedNow: attempts >= 5 },
+        metadata: { reason: 'bad_password', attempts, lockedNow },
       });
+      // Dedicated event so monitoring can alert on brute-force lockouts without
+      // parsing metadata out of generic login.failed rows.
+      if (lockedNow) {
+        authAudit.record('account.locked', req, {
+          userId: user._id,
+          email,
+          metadata: { reason: 'too_many_failed_logins', lockMinutes: 30 },
+        });
+      }
       return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
 

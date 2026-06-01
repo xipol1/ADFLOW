@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const config = require('../config/config');
 
 const normalizeRoles = (inputRoles) => {
@@ -121,13 +122,48 @@ const requiereDatosFacturacion = async (req, res, next) => {
   }
 };
 
-const verificarPropietario = () => {
-  return (req, res, next) => {
-    if (!req.usuario) {
-      return res.status(401).json({ success: false, message: 'No autorizado' });
-    }
+// Verify the authenticated user owns the target resource. This is a real
+// access-control check, NOT a stub: it loads the document by the route param
+// and compares its owner field against req.usuario. Admins bypass. It is
+// fail-closed — a missing doc, invalid id, owner mismatch, or any error returns
+// 4xx/500 and never calls next(). Previously this was a no-op that only checked
+// for authentication, which silently invited IDOR if mounted on a route.
+//
+// Usage: verificarPropietario(Canal, { param: 'id', ownerField: 'propietario' })
+const verificarPropietario = (Model, opts = {}) => {
+  const param = opts.param || 'id';
+  const ownerField = opts.ownerField || 'propietario';
+  return async (req, res, next) => {
+    try {
+      if (!req.usuario) {
+        return res.status(401).json({ success: false, message: 'No autorizado' });
+      }
+      if (!Model || typeof Model.findById !== 'function') {
+        // Misconfiguration: refuse rather than waving the request through.
+        return res.status(500).json({ success: false, message: 'Error interno' });
+      }
+      if (req.usuario.rol === 'admin') return next();
 
-    return next();
+      const id = req.params?.[param];
+      if (!id || !mongoose.isValidObjectId(id)) {
+        return res.status(400).json({ success: false, message: 'Identificador inválido' });
+      }
+      const doc = await Model.findById(id).select(ownerField).lean();
+      if (!doc) {
+        return res.status(404).json({ success: false, message: 'Recurso no encontrado' });
+      }
+      const ownerId = String(doc[ownerField]?._id || doc[ownerField] || '');
+      const userId = String(req.usuario._id || req.usuario.id || '');
+      if (!ownerId || ownerId !== userId) {
+        return res.status(403).json({ success: false, message: 'No tienes permiso sobre este recurso' });
+      }
+      return next();
+    } catch (e) {
+      try {
+        require('../lib/logger').error('verificarPropietario', { msg: e?.message });
+      } catch { /* logger unavailable */ }
+      return res.status(500).json({ success: false, message: 'Error interno' });
+    }
   };
 };
 

@@ -241,8 +241,9 @@ const getOrCreatePartnerUser = async (partner) => {
   if (user) return user;
 
   const bcrypt = require('bcryptjs');
+  const { security } = require('../config/config');
   const randomPass = crypto.randomBytes(32).toString('hex');
-  const hashedPass = await bcrypt.hash(randomPass, 10);
+  const hashedPass = await bcrypt.hash(randomPass, security?.bcryptRounds || 12);
 
   user = await Usuario.create({
     nombre: partner.name,

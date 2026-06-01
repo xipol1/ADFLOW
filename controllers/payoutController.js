@@ -97,6 +97,8 @@ const getDashboardLink = async (req, res, next) => {
 // available balance before calling Stripe, otherwise any authenticated user
 // with Connect onboarded would be able to drain the platform account.
 const withdraw = async (req, res, next) => {
+  const { acquireWithdrawalLock, releaseWithdrawalLock } = require('../lib/withdrawalLock');
+  let lockedUserId = null;
   try {
     const ok = await ensureDb();
     if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
@@ -111,12 +113,24 @@ const withdraw = async (req, res, next) => {
     if (!user) return next(httpError(404, 'Usuario no encontrado'));
     if (!user.stripeConnectAccountId) return next(httpError(400, 'Debes conectar tu cuenta de Stripe primero'));
 
+    // SECURITY (C-3): serialize withdrawals per user. Without this, two
+    // concurrent requests both read the same availableBalance, both pass the
+    // check, and both fire a Stripe transfer before either debit row is
+    // written — draining the platform account. The same lock guards the manual
+    // queue path (transaccionController.solicitarRetiro) so the two can't race.
+    if (!(await acquireWithdrawalLock(userId))) {
+      return next(httpError(409, 'Ya tienes un retiro en proceso. Espera unos segundos e inténtalo de nuevo.'));
+    }
+    lockedUserId = userId;
+
     // ─── Balance check (mirrors transaccionController.solicitarRetiro) ───
     // Sum creator's completed campaign earnings, then subtract anything
     // already transferred or reserved across the three payout paths:
     //   - PayoutAttempt: auto Stripe Connect transfers fired on campaign completion
     //   - Retiro (pending/processing): manual bank/paypal queue
-    //   - Transaccion tipo='retiro' paid: prior /api/payouts/withdraw calls (this endpoint)
+    //   - Transaccion tipo='retiro' paid|processing: /api/payouts/withdraw calls
+    //     (this endpoint). 'processing' = an in-flight/crashed-after-transfer
+    //     reservation, which must still reduce the available balance.
     const mongoose = require('mongoose');
     const creatorId = new mongoose.Types.ObjectId(userId);
     const Canal = require('../models/Canal');
@@ -140,7 +154,7 @@ const withdraw = async (req, res, next) => {
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
       Transaccion.aggregate([
-        { $match: { creator: creatorId, tipo: 'retiro', status: 'paid' } },
+        { $match: { creator: creatorId, tipo: 'retiro', status: { $in: ['paid', 'processing'] } } },
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
     ]);
@@ -162,28 +176,45 @@ const withdraw = async (req, res, next) => {
       return next(httpError(400, 'Tu cuenta de Stripe aun no puede recibir pagos. Completa el onboarding.'));
     }
 
-    // Create transfer
-    const transfer = await stripeConnect.transferToCreator(
-      amount,
-      user.stripeConnectAccountId,
-      { userId: String(user._id), type: 'manual_withdrawal' }
-    );
-
-    // Record transaction — this row reduces availableBalance on subsequent calls.
-    await Transaccion.create({
+    // SECURITY (C-3): persist the debit row BEFORE the network call and key the
+    // Stripe transfer on its id. This makes the transfer idempotent (a retry
+    // reuses the same key instead of paying twice) and crash-durable (a process
+    // that dies after the transfer still leaves a 'processing' row that reduces
+    // the balance, instead of silently allowing a re-withdrawal).
+    const debit = await Transaccion.create({
       advertiser: userId, // self-transfer
       creator: userId,
       amount,
       tipo: 'retiro',
-      status: 'paid',
-      paidAt: new Date(),
-      stripePaymentIntentId: transfer.id,
+      status: 'processing',
       description: `Retiro manual: ${amount} EUR`,
     });
+
+    let transfer;
+    try {
+      transfer = await stripeConnect.transferToCreator(
+        amount,
+        user.stripeConnectAccountId,
+        { userId: String(user._id), type: 'manual_withdrawal' },
+        { idempotencyKey: `withdraw:${debit._id}` }
+      );
+    } catch (transferErr) {
+      debit.status = 'failed';
+      debit.description = `Retiro manual fallido: ${transferErr?.message || transferErr}`;
+      await debit.save().catch(() => { /* best-effort */ });
+      throw transferErr;
+    }
+
+    debit.status = 'paid';
+    debit.paidAt = new Date();
+    debit.stripePaymentIntentId = transfer.id;
+    await debit.save();
 
     return res.json({ success: true, message: `Retiro de ${amount} EUR procesado`, data: { transferId: transfer.id } });
   } catch (error) {
     next(error);
+  } finally {
+    if (lockedUserId) await releaseWithdrawalLock(lockedUserId);
   }
 };
 

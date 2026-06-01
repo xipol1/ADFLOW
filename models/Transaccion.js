@@ -14,7 +14,7 @@ const TransaccionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'escrow', 'paid', 'refunded', 'failed'],
+      enum: ['pending', 'processing', 'escrow', 'paid', 'refunded', 'failed'],
       default: 'pending',
       index: true
     },

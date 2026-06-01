@@ -272,15 +272,24 @@ const webhookPago = async (req, res) => {
       const { transaccionId, userId, type, amount } = pi?.metadata || {};
 
       if (type === 'recharge') {
-        // Wallet top-up — record as a credit transaction
-        await Transaccion.create({
-          advertiser: userId,
-          amount: Number(amount),
-          status: 'paid',
-          paidAt: new Date(),
-          stripePaymentIntentId: pi.id,
-          tipo: 'recarga',
-        });
+        // Wallet top-up — record as a credit transaction.
+        // SECURITY (A-4): Stripe retries/replays the same event (same PI id) on
+        // any non-2xx or network hiccup. Upsert keyed on the PaymentIntent id
+        // so a duplicate delivery can't double-credit the wallet.
+        await Transaccion.findOneAndUpdate(
+          { stripePaymentIntentId: pi.id, tipo: 'recarga' },
+          {
+            $setOnInsert: {
+              advertiser: userId,
+              amount: Number(amount),
+              status: 'paid',
+              paidAt: new Date(),
+              stripePaymentIntentId: pi.id,
+              tipo: 'recarga',
+            },
+          },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
       } else if (transaccionId) {
         await Transaccion.findByIdAndUpdate(transaccionId, { status: 'paid', paidAt: new Date() });
         const tx = await Transaccion.findById(transaccionId);
@@ -295,14 +304,23 @@ const webhookPago = async (req, res) => {
       const { userId, type, amount } = session?.metadata || {};
 
       if (type === 'recharge' && userId && amount) {
-        await Transaccion.create({
-          advertiser: userId,
-          amount: Number(amount),
-          status: 'paid',
-          paidAt: new Date(),
-          stripePaymentIntentId: session.payment_intent,
-          tipo: 'recarga',
-        });
+        // SECURITY (A-4): idempotent on the underlying PaymentIntent id so a
+        // replayed checkout.session.completed (or a co-firing
+        // payment_intent.succeeded for the same charge) can't double-credit.
+        await Transaccion.findOneAndUpdate(
+          { stripePaymentIntentId: session.payment_intent, tipo: 'recarga' },
+          {
+            $setOnInsert: {
+              advertiser: userId,
+              amount: Number(amount),
+              status: 'paid',
+              paidAt: new Date(),
+              stripePaymentIntentId: session.payment_intent,
+              tipo: 'recarga',
+            },
+          },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
       }
     }
 
@@ -346,6 +364,8 @@ const obtenerEstadisticasFinancieras = async (req, res, next) => {
 // ─── POST /api/transacciones/retiro ─────────────────────────────────────────
 // Creator requests a payout/withdrawal
 const solicitarRetiro = async (req, res, next) => {
+  const { acquireWithdrawalLock, releaseWithdrawalLock } = require('../lib/withdrawalLock');
+  let lockedUserId = null;
   try {
     const ok = await ensureDb();
     if (!ok) return res.status(503).json({ success: false, message: 'Servicio no disponible' });
@@ -362,6 +382,14 @@ const solicitarRetiro = async (req, res, next) => {
     if (!['bank', 'paypal'].includes(method)) {
       return next(httpError(400, 'Método de pago inválido. Usa bank o paypal'));
     }
+
+    // SECURITY (C-3): serialize against the instant-withdraw path
+    // (payoutController.withdraw) and against concurrent retiro requests, so
+    // two calls can't both pass the same balance check and over-withdraw.
+    if (!(await acquireWithdrawalLock(userId))) {
+      return next(httpError(409, 'Ya tienes un retiro en proceso. Espera unos segundos e inténtalo de nuevo.'));
+    }
+    lockedUserId = userId;
 
     // Compute creator's available balance. Campaigns have no `creator` field —
     // ownership is derived through the channel (Canal.propietario), so first
@@ -391,10 +419,12 @@ const solicitarRetiro = async (req, res, next) => {
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
       // Manual instant Stripe Connect withdrawals (POST /api/payouts/withdraw)
-      // are stored as Transaccion {tipo:'retiro', status:'paid'} — subtract
-      // them here so a creator can't double-withdraw via the bank/paypal flow.
+      // are stored as Transaccion {tipo:'retiro', status:'paid'|'processing'} —
+      // subtract them here so a creator can't double-withdraw via the
+      // bank/paypal flow. 'processing' = an in-flight/crashed-after-transfer
+      // reservation that must still reduce the balance.
       Transaccion.aggregate([
-        { $match: { creator: creatorId, tipo: 'retiro', status: 'paid' } },
+        { $match: { creator: creatorId, tipo: 'retiro', status: { $in: ['paid', 'processing'] } } },
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
     ]);
@@ -425,6 +455,8 @@ const solicitarRetiro = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  } finally {
+    if (lockedUserId) await releaseWithdrawalLock(lockedUserId);
   }
 };
 
