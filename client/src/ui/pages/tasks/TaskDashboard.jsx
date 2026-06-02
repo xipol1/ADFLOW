@@ -272,7 +272,7 @@ const SPRINTS = [
           { id: 't46', title: 'Planes de suscripcion', status: 'pending', priority: 'high',
             icon: CreditCard, description: 'Free/Pro/Enterprise con limites diferenciados: canales, campanas/mes, analytics, soporte. Stripe Subscriptions para gestion de planes.', files: ['controllers/transaccionController.js', 'models/Usuario.js'] },
           { id: 't47', title: 'Comision variable por volumen', status: 'pending', priority: 'medium',
-            icon: TrendingUp, description: 'Reducir comision del 10% al 7% o 5% para advertisers con alto volumen mensual. Tiers basados en spend acumulado.', files: ['config/config.js'] },
+            icon: TrendingUp, description: 'Reducir comision del 20% al 18% o 15% para advertisers con alto volumen mensual. Tiers basados en spend acumulado.', files: ['config/commissions.js'] },
           { id: 't48', title: 'Programa de referidos', status: 'pending', priority: 'medium',
             icon: Users, description: 'Link de referido unico por usuario. Bonus de $X o reduccion de comision por cada usuario referido que complete su primera transaccion.', files: ['models/Usuario.js'] },
           { id: 't49', title: 'Marketplace de templates', status: 'pending', priority: 'low',

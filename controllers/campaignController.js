@@ -27,7 +27,10 @@ function resolveNetAmount(campaign) {
   const rate = Number.isFinite(campaign.commissionRate)
     ? campaign.commissionRate
     : DEFAULT_COMMISSION_RATE;
-  return +(campaign.price * (1 - rate)).toFixed(2);
+  // v2 (advertiser-paid): creator gets the full base = price/(1+rate).
+  // v1 (legacy): commission deducted = price*(1-rate).
+  const share = campaign.pricingVersion >= 2 ? 1 / (1 + rate) : (1 - rate);
+  return +(campaign.price * share).toFixed(2);
 }
 
 // Proportional creator payout: the creator's withdrawable cash is their share
@@ -176,8 +179,9 @@ const createCampaign = async (req, res, next) => {
       return next(httpError(400, 'Este canal no tiene un precio configurado. Contacta al creador.'));
     }
 
-    // Aplicar el multiplier del formato (×1.6 album, ×3.0 broadcast IG, etc.)
-    const price = applyFormatPricing(basePrice, {
+    // Aplicar el multiplier del formato (×1.6 album, ×3.0 broadcast IG, etc.).
+    // Esto es el precio que LISTA el creador (lo que cobra íntegro).
+    const baseCreatorPrice = applyFormatPricing(basePrice, {
       platform: canal.plataforma,
       formatId,
       urgent: Boolean(req.body?.urgent),
@@ -186,6 +190,25 @@ const createCampaign = async (req, res, next) => {
     const deadline = publishDateStr ? new Date(publishDateStr + 'T12:00:00') : (req.body?.deadline ? new Date(req.body.deadline) : null);
     const trackingLinkFormat = ['short', 'domain', 'custom'].includes(req.body?.trackingLinkFormat) ? req.body.trackingLinkFormat : 'domain';
     const trackingLinkSlug = (req.body?.trackingLinkSlug || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').slice(0, 40);
+
+    // Effective commission rate: advertiser plan override (Pro → 0.15) + global
+    // resolver (volume/type), capped at 18% when the channel owner is a founder
+    // (18% vitalicio). Snapshotted onto the campaign so a later plan/tier change
+    // can't retroactively alter historical billing. NEVER hardcode a rate here
+    // (see config/commissions.js).
+    const { effectiveCommissionRate } = require('../lib/plans');
+    const advertiser = await Usuario.findById(userId).select('rol subscription').lean();
+    const ownerIsFounder = canal.propietario
+      ? Boolean(await Usuario.exists({ _id: canal.propietario, founderTier: true }))
+      : false;
+    const commissionRate = effectiveCommissionRate(advertiser, {
+      isFounderChannel: ownerIsFounder,
+    });
+
+    // Advertiser-paid commission (pricing v2): the advertiser is charged the
+    // creator's listed price PLUS the platform fee; the creator receives their
+    // full price. The pre-save hook derives netAmount = price/(1+rate) = base.
+    const price = +(baseCreatorPrice * (1 + commissionRate)).toFixed(2);
 
     const campaign = await Campaign.create({
       advertiser: userId,
@@ -197,6 +220,8 @@ const createCampaign = async (req, res, next) => {
       buttons,
       embed,
       price,
+      commissionRate,
+      pricingVersion: 2,
       deadline,
       trackingLinkFormat,
       trackingLinkSlug,
@@ -219,7 +244,7 @@ const createCampaign = async (req, res, next) => {
         usuarioId: channelDoc.propietario,
         tipo: 'campana.nueva',
         titulo: 'Nueva solicitud de campaña',
-        mensaje: `Un anunciante quiere publicar en tu canal por €${price}`,
+        mensaje: `Un anunciante quiere publicar en tu canal · recibes €${campaign.netAmount}`,
         datos: { campaignId: campaign._id },
         canales: ['database', 'realtime', 'email'],
         prioridad: 'normal'
@@ -407,7 +432,7 @@ const payCampaign = async (req, res, next) => {
     // proportional payout, so completion + both withdrawal paths pay only the
     // captured share. A 100%-credit-funded campaign records 0 here → 0 payout.
     campaign.capturedAmount = amountCharged;
-    campaign.creatorPayable = computeCreatorPayable(amountCharged, campaign.commissionRate);
+    campaign.creatorPayable = computeCreatorPayable(amountCharged, campaign.commissionRate, campaign.pricingVersion);
     await campaign.save();
 
     // Fetch fresh balance after atomic deduction
@@ -1219,16 +1244,34 @@ const launchAutoCampaign = async (req, res, next) => {
       return next(httpError(400, 'No se encontraron canales disponibles para tu configuración'));
     }
 
-    // Distribute budget across channels, respecting per-channel price
+    // Founding-cohort owners get an 18% cap, so the effective rate — and the
+    // gross the advertiser pays — is per-channel. Resolve founder status once
+    // for all candidate channels.
+    const founderCandidateIds = [...new Set(
+      targetChannels.map(ch => ch.propietario).filter(Boolean).map(String)
+    )];
+    const founderOwners = new Set(
+      (await Usuario.find({ _id: { $in: founderCandidateIds }, founderTier: true })
+        .select('_id').lean()).map(u => u._id.toString())
+    );
+
+    // Distribute the budget across channels. The budget is what the ADVERTISER
+    // pays, so each channel consumes its gross price = base * (1 + channelRate)
+    // (advertiser-paid commission, pricing v2).
     let remaining = budget;
     const selected = [];
 
     for (const ch of targetChannels) {
-      const price = ch.CPMDinamico || ch.precio || 0;
-      if (price <= 0) continue;
-      if (price > remaining) continue;
-      selected.push({ channel: ch, price });
-      remaining -= price;
+      const base = ch.CPMDinamico || ch.precio || 0;
+      if (base <= 0) continue;
+      const channelRate = effectiveCommissionRate(advertiser, {
+        campaignType: 'autoCampaign',
+        isFounderChannel: founderOwners.has(String(ch.propietario)),
+      });
+      const grossPrice = +(base * (1 + channelRate)).toFixed(2);
+      if (grossPrice > remaining) continue;
+      selected.push({ channel: ch, price: grossPrice, commissionRate: channelRate });
+      remaining -= grossPrice;
       if (remaining <= 0) break;
     }
 
@@ -1252,22 +1295,22 @@ const launchAutoCampaign = async (req, res, next) => {
       return next(httpError(400, 'Ya tienes campañas activas en todos los canales seleccionados'));
     }
 
-    // Create campaigns in batch
+    // Create campaigns in batch. price is the advertiser gross; the creator's
+    // full base is netAmount, derived by the pre-save hook (pricing v2).
     const campaigns = [];
-    for (const { channel, price } of dedupedSelected) {
-      const netAmount = +(price * (1 - commissionRate)).toFixed(2);
-
+    for (const { channel, price, commissionRate: channelRate } of dedupedSelected) {
       const campaign = await Campaign.create({
         advertiser: userId,
         channel: channel._id,
         content: content.trim(),
         targetUrl: targetUrl.trim(),
         price,
-        commissionRate,
-        netAmount,
+        commissionRate: channelRate,
+        pricingVersion: 2,
         status: 'DRAFT',
         createdAt: new Date(),
       });
+      const netAmount = campaign.netAmount; // creator's full base (price/(1+rate))
 
       await Transaccion.create({
         campaign: campaign._id,
@@ -1297,7 +1340,7 @@ const launchAutoCampaign = async (req, res, next) => {
           usuarioId: channel.propietario,
           tipo: 'campana.nueva',
           titulo: 'Nueva solicitud de campaña',
-          mensaje: `Un anunciante quiere publicar en tu canal por €${price}`,
+          mensaje: `Un anunciante quiere publicar en tu canal · recibes €${netAmount}`,
           datos: { campaignId: campaign._id },
           canales: ['database', 'realtime', 'email'],
           prioridad: 'normal',

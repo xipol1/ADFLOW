@@ -51,6 +51,15 @@ const CampaignSchema = new mongoose.Schema(
     capturedAmount: { type: Number, default: null },
     creatorPayable: { type: Number, default: null },
     commissionRate: { type: Number, default: require('../config/commissions').DEFAULT_COMMISSION_RATE },
+    // Pricing model:
+    //   1 (legacy)  → commission DEDUCTED from price. `price` is the creator's
+    //                 base; the creator received price*(1-rate).
+    //   2 (current) → commission paid BY THE ADVERTISER (on top). `price` is the
+    //                 advertiser gross (base*(1+rate)); the creator receives their
+    //                 full listed price = price/(1+rate).
+    // Snapshotted per campaign so historical payouts never shift when the model
+    // changes. New campaigns are created with version 2.
+    pricingVersion: { type: Number, default: 1 },
     status: {
       type: String,
       enum: ['DRAFT', 'PAID', 'PUBLISHED', 'COMPLETED', 'CANCELLED', 'EXPIRED', 'DISPUTED'],
@@ -95,7 +104,12 @@ const CampaignSchema = new mongoose.Schema(
 CampaignSchema.pre('save', function (next) {
   if (this.isNew || this.isModified('price') || this.isModified('commissionRate')) {
     const rate = Number.isFinite(this.commissionRate) ? this.commissionRate : 0.20;
-    this.netAmount = +(this.price * (1 - rate)).toFixed(2);
+    // v2 (advertiser-paid): price is the gross the advertiser pays; the creator
+    // receives their full listed price = price / (1 + rate).
+    // v1 (legacy): commission was deducted → netAmount = price * (1 - rate).
+    this.netAmount = this.pricingVersion >= 2
+      ? +(this.price / (1 + rate)).toFixed(2)
+      : +(this.price * (1 - rate)).toFixed(2);
   }
   next();
 });

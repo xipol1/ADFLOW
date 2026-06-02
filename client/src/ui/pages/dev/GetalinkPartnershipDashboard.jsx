@@ -935,7 +935,7 @@ export default function GetalinkPartnershipDashboard() {
                 <ul style={{ margin: 0, paddingLeft: 16, fontSize: 13, lineHeight: 1.8 }}>
                   <li>Target: {fmt(calc.getalinkActive)} anunciantes activos en Getalink</li>
                   <li>Objetivo registro: {fmt(calc.registrations)} ({pct(calc.registrations, calc.getalinkActive)}% del total activo)</li>
-                  <li>Incentivo: 1a campana con 0% comision</li>
+                  <li>Incentivo: 1a campana con comision reducida (10%)</li>
                   <li>Acceso anticipado a marketplace de canales</li>
                 </ul>
               </div>

@@ -11,6 +11,7 @@ import {
 import {
   getFormat as getPostFormat, getPlatformFormats,
 } from '../../../../config/postFormats'
+import { PUBLIC_COMMISSION_RATE, PUBLIC_COMMISSION_MULTIPLIER, PUBLIC_COMMISSION_LABEL } from '../../../theme/stats'
 
 function scoreColor(v) {
   if (v >= 90) return 'var(--gold)'
@@ -268,7 +269,11 @@ export default function NewCampaignPage() {
     }).catch(() => {}).finally(() => setCalLoading(false))
   }, [channel, step, calYear, calMonth])
 
-  const calPrice = selectedDate?.price ?? calData?.basePrice ?? channel?.CPMDinamico ?? channel?.precio ?? 0
+  // The channel price is the creator's listed amount (what they receive, 100%).
+  // The advertiser pays that PLUS the platform commission on top.
+  const creatorPrice = selectedDate?.price ?? calData?.basePrice ?? channel?.CPMDinamico ?? channel?.precio ?? 0
+  const platformFee = Math.round(creatorPrice * PUBLIC_COMMISSION_RATE * 100) / 100
+  const advertiserPays = Math.round(creatorPrice * PUBLIC_COMMISSION_MULTIPLIER * 100) / 100
 
   const handleSubmit = async () => {
     setError('')
@@ -399,7 +404,7 @@ export default function NewCampaignPage() {
                     <span className="text-sm font-medium" style={{ color: scoreColor(ch.CAS), fontFamily: 'var(--font-mono)' }}>{ch.CAS}</span>
                   )}
                   {(ch.CPMDinamico || ch.precio) > 0 && (
-                    <span className="text-sm font-medium" style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>€{(ch.CPMDinamico || ch.precio).toFixed(0)}</span>
+                    <span className="text-sm font-medium" style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>€{Math.round((ch.CPMDinamico || ch.precio) * PUBLIC_COMMISSION_MULTIPLIER)}</span>
                   )}
                 </div>
                 )
@@ -719,7 +724,7 @@ export default function NewCampaignPage() {
                         >
                           <span style={{ fontSize: 13, fontWeight: isSelected ? 700 : 500, color: textColor }}>{day.d}</span>
                           {isAvailable && day.price > 0 && (
-                            <span style={{ fontSize: 10, fontWeight: 700, color: priceColor, fontFamily: 'var(--font-mono)' }}>€{day.price}</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: priceColor, fontFamily: 'var(--font-mono)' }}>€{Math.round(day.price * PUBLIC_COMMISSION_MULTIPLIER)}</span>
                           )}
                           {isBlocked && (
                             <span style={{ fontSize: 9, color: 'var(--red, #f85149)' }}>
@@ -777,11 +782,27 @@ export default function NewCampaignPage() {
                 )}
               </div>
               <span className="text-xl font-bold" style={{ color: selectedDate ? 'var(--text)' : 'var(--muted2)', fontFamily: 'var(--font-mono)' }}>
-                {selectedDate ? `€${calPrice}` : '€—'}
+                {selectedDate ? `€${advertiserPays}` : '€—'}
               </span>
             </div>
+            {selectedDate && (
+              <div className="mt-2 pt-2" style={{ borderTop: '1px dashed var(--border)' }}>
+                <div className="flex items-center justify-between text-[12px]" style={{ color: 'var(--text-secondary)' }}>
+                  <span>Precio del creador</span>
+                  <span style={{ fontFamily: 'var(--font-mono)' }}>€{creatorPrice}</span>
+                </div>
+                <div className="flex items-center justify-between text-[12px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                  <span>Comisión Channelad ({PUBLIC_COMMISSION_LABEL})</span>
+                  <span style={{ fontFamily: 'var(--font-mono)' }}>€{platformFee}</span>
+                </div>
+                <div className="flex items-center justify-between text-[12px] mt-0.5 font-semibold" style={{ color: 'var(--text)' }}>
+                  <span>Total que pagas</span>
+                  <span style={{ fontFamily: 'var(--font-mono)' }}>€{advertiserPays}</span>
+                </div>
+              </div>
+            )}
             <div className="text-[11px] mt-1.5" style={{ color: 'var(--muted2)' }}>
-              {selectedDate ? 'Pago protegido por escrow · Se libera al completar la campana' : 'El precio varia segun el dia seleccionado'}
+              {selectedDate ? 'El creador recibe el 100% de su precio · Pago protegido por escrow' : 'El precio varia segun el dia seleccionado'}
             </div>
           </div>
 

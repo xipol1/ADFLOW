@@ -14,7 +14,12 @@ const COMMISSION_TIERS = {
   partnerAPI:     0.18,  // Getalink and future API partners
   volumeMid:      0.18,  // advertiser with >€5K/month GMV
   volumeHigh:     0.15,  // advertiser with >€20K/month GMV
+  founder:        0.18,  // founding cohort — 18% vitalicio (channel-owner cap)
 };
+
+// Lowest rate the resolver can ever output (the volume/Pro best-case tier).
+// Nobody is charged less than this. Any new discount must respect it.
+const MIN_COMMISSION_RATE = COMMISSION_TIERS.volumeHigh;
 
 /**
  * Resolve the commission rate for a campaign based on its context.
@@ -25,14 +30,29 @@ const COMMISSION_TIERS = {
  *   4. Channel without admin access (penalty)
  *   5. standard fallback
  *
+ * Channel-side cap (applied after the advertiser-context base rate, lowest wins):
+ *  - ctx.isFounderChannel → founding cohort, 18% vitalicio.
+ * This is a creator-side benefit: it only ever LOWERS the platform fee, never
+ * raises it, and never undoes a better advertiser-side rate.
+ *
  * @param {Object} ctx
  * @param {boolean} [ctx.isPartnerAPI]     - Campaign created via partner API (Getalink, etc.)
  * @param {number}  [ctx.monthlyGMV]       - Advertiser monthly GMV in € (volume discount)
  * @param {string}  [ctx.campaignType]     - 'standard' | 'autoCampaign' | 'collaborative'
  * @param {boolean} [ctx.hasAdminAccess]   - Whether the channel has admin access (default true)
+ * @param {boolean} [ctx.isFounderChannel] - Channel owner is in the founding cohort (18% cap)
  * @returns {number} commission rate in [0, 1]
  */
 function resolveCommissionRate(ctx = {}) {
+  let rate = resolveBaseRate(ctx);
+
+  if (ctx.isFounderChannel === true) {
+    rate = Math.min(rate, COMMISSION_TIERS.founder);
+  }
+  return rate;
+}
+
+function resolveBaseRate(ctx) {
   if (ctx.isPartnerAPI) return COMMISSION_TIERS.partnerAPI;
 
   const gmv = Number(ctx.monthlyGMV) || 0;
@@ -87,6 +107,7 @@ function getReferralTier(user = {}) {
 
 module.exports = {
   COMMISSION_TIERS,
+  MIN_COMMISSION_RATE,
   DEFAULT_COMMISSION_RATE,
   resolveCommissionRate,
   REFERRAL_RATE,

@@ -64,3 +64,29 @@ describe('resolveCreatorPayable — what a creator can withdraw', () => {
     expect(resolveCreatorPayable(undefined)).toBe(0);
   });
 });
+
+describe('pricing v2 — advertiser-paid commission (creator gets 100% of base)', () => {
+  test('computeCreatorPayable: captured is gross, creator share = captured/(1+rate)', () => {
+    // advertiser paid €120 (base €100 + 20% on top) → creator gets €100
+    expect(computeCreatorPayable(120, 0.20, 2)).toBe(100);
+    // €60 captured (half paid) → €50 to creator
+    expect(computeCreatorPayable(60, 0.20, 2)).toBe(50);
+  });
+
+  test('v1 remains the default when pricingVersion is omitted (commission deducted)', () => {
+    expect(computeCreatorPayable(100, 0.20)).toBe(80);
+    expect(computeCreatorPayable(100, 0.20, 1)).toBe(80);
+  });
+
+  test('resolveCreatorPayable derives v2 share from capturedAmount', () => {
+    expect(resolveCreatorPayable({ capturedAmount: 120, commissionRate: 0.20, pricingVersion: 2 })).toBe(100);
+  });
+
+  test('resolveCreatorPayable v2 fallback from price (no captured/net) = price/(1+rate)', () => {
+    expect(resolveCreatorPayable({ price: 120, commissionRate: 0.20, pricingVersion: 2 })).toBe(100);
+  });
+
+  test('v2 founder channel (18%): €118 gross → €100 to creator', () => {
+    expect(computeCreatorPayable(118, 0.18, 2)).toBe(100);
+  });
+});

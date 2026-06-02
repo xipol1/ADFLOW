@@ -145,9 +145,10 @@ const triggerRule = async (req, res, next) => {
       return next(httpError(400, 'No hay canales configurados en esta regla'));
     }
 
+    // Founding-cohort channel owners get an 18% cap, so the effective rate is
+    // resolved per channel inside the loop (see config/commissions.js).
     const { effectiveCommissionRate } = require('../lib/plans');
     const advertiser = await Usuario.findById(userId).select('rol subscription').lean();
-    const commissionRate = effectiveCommissionRate(advertiser, { campaignType: 'autoCampaign' });
 
     let remainingBudget = rule.totalBudget - rule.totalSpent;
     let dailySpent = 0;
@@ -170,10 +171,8 @@ const triggerRule = async (req, res, next) => {
       // Skip own channels
       if (canal.propietario?.toString() === String(userId)) continue;
 
-      const price = canal.CPMDinamico || canal.precioBase || canal.precio || rule.maxPricePerPost;
-      if (price > rule.maxPricePerPost) continue;
-      if (price > remainingBudget) continue;
-      if (dailySpent + price > rule.dailyBudget) continue;
+      const base = canal.CPMDinamico || canal.precioBase || canal.precio || rule.maxPricePerPost;
+      if (base <= 0) continue;
 
       // Don't create duplicate active campaigns for same channel
       const existing = await Campaign.findOne({
@@ -183,7 +182,19 @@ const triggerRule = async (req, res, next) => {
       });
       if (existing) continue;
 
-      const netAmount = +(price * (1 - commissionRate)).toFixed(2);
+      const ownerIsFounder = canal.propietario
+        ? Boolean(await Usuario.exists({ _id: canal.propietario, founderTier: true }))
+        : false;
+      const channelRate = effectiveCommissionRate(advertiser, {
+        campaignType: 'autoCampaign',
+        isFounderChannel: ownerIsFounder,
+      });
+      // Advertiser-paid commission (v2): price is the gross the advertiser pays.
+      // Budget and per-post cap are in advertiser money, so gate on the gross.
+      const price = +(base * (1 + channelRate)).toFixed(2);
+      if (price > rule.maxPricePerPost) continue;
+      if (price > remainingBudget) continue;
+      if (dailySpent + price > rule.dailyBudget) continue;
 
       const updated = await AutoBuyRule.findOneAndUpdate(
         { _id: rule._id, totalSpent: { $lte: rule.totalBudget - price } },
@@ -198,8 +209,8 @@ const triggerRule = async (req, res, next) => {
         content: rule.content,
         targetUrl: rule.targetUrl,
         price,
-        commissionRate,
-        netAmount,
+        commissionRate: channelRate,
+        pricingVersion: 2,
         status: 'DRAFT',
         createdAt: new Date()
       });
