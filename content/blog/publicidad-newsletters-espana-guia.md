@@ -29,7 +29,6 @@ Esta guía es lo que me hubiera gustado leer antes de empezar. Sin humo, con cif
 - [Errores que arruinan una campaña en newsletter](#errores-que-arruinan-una-campana-en-newsletter)
 - [Preguntas frecuentes](#preguntas-frecuentes)
 
-![Persona leyendo una newsletter en el móvil con café](https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=720&q=80&auto=format)
 *El email sigue siendo el único canal donde el usuario decide activamente abrir tu mensaje. Por eso convierte tanto.*
 
 ## Qué es la publicidad en newsletters
@@ -92,7 +91,6 @@ Esta es la parte que más cuesta encontrar online y la razón por la que cualqui
 
 Lo recomendable es construir un portfolio de tres a cinco newsletters relevantes para tu vertical y rotar campañas. Una sola newsletter te da un punto de dato; cinco te dan un sistema medible.
 
-![Pantalla con varios clientes de email abiertos](https://images.unsplash.com/photo-1526554850534-7c78330d5f90?w=720&q=80&auto=format)
 *Diversificar entre varias newsletters reduce el riesgo y permite identificar qué audiencias convierten mejor para tu producto.*
 
 ## Tabla de CPMs por vertical

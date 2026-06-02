@@ -22,7 +22,6 @@ El modelo es de comisión sobre el deal — fuentes públicas del mercado estima
 
 Donde TTCM aprieta es en la previsibilidad de resultados: sigues dependiendo del FYP. Y donde más se nota la fricción para marcas pequeñas y para mercados hispanohablantes es en el ticket de entrada y en la falta de inventario nicho fuera de las grandes capitales.
 
-![TikTok Creator Marketplace alternativas 2026 para creator marketing](https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=720&q=80&auto=format)
 *Cinco alternativas a TTCM, cada una con un trabajo distinto — Photo: Unsplash*
 
 ## Las 5 alternativas a TikTok Creator Marketplace en 2026

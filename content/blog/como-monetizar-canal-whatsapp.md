@@ -31,7 +31,6 @@ Este artículo está escrito desde la experiencia directa. No soy un consultor d
 - [Aspectos legales y fiscales en España](#aspectos-legales-y-fiscales-en-espana)
 - [Cómo empezar hoy: plan de acción paso a paso](#como-empezar-hoy-plan-de-accion-paso-a-paso)
 
-![Smartphone mostrando la interfaz de WhatsApp con canales y notificaciones activas](https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=720&q=80&auto=format)
 *WhatsApp Canales ha cambiado las reglas del juego para creadores en 2026 — Foto: Unsplash*
 
 ## Diferencias entre grupo, comunidad y canal de WhatsApp
@@ -142,7 +141,6 @@ Yo tengo previsto lanzar un pack de plantillas de productividad para Notion en Q
 
 Si tu audiencia valora genuinamente tu contenido, las donaciones voluntarias complementan tus ingresos. Plataformas como Ko-fi o Patreon funcionan bien cuando las vinculas desde tu canal. No es una fuente principal, pero suma.
 
-![Persona analizando graficos de rendimiento en un portatil con smartphone al lado](https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=720&q=80&auto=format)
 *Medir las metricas de tu canal es esencial para fijar precios y negociar con anunciantes — Foto: Unsplash*
 
 ## Cuánto se puede ganar con un canal de WhatsApp

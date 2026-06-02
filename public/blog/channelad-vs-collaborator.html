@@ -17,7 +17,7 @@
   <meta property="og:url" content="https://channelad.io/blog/channelad-vs-collaborator">
   <meta property="og:site_name" content="Channelad">
   <meta property="og:locale" content="es_ES">
-  <meta property="og:image" content="https://channelad.io/og-default.png">
+  <meta property="og:image" content="https://channelad.io/blog/img/channelad-vs-collaborator.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="article:published_time" content="2026-05-25">
@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Channelad vs Collaborator: comparativa marketplaces 2026">
   <meta name="twitter:description" content="Comparativa honesta Channelad vs Collaborator en 2026: cobertura ES, comisiones, escrow, métricas verificadas y cuándo elegir cada marketplace para tu campaña.">
-  <meta name="twitter:image" content="https://channelad.io/og-default.png">
+  <meta name="twitter:image" content="https://channelad.io/blog/img/channelad-vs-collaborator.png">
 
   <!-- Schema.org -->
   <script type="application/ld+json">
@@ -40,7 +40,7 @@
     "author": { "@type": "Person", "name": "Rafa Ferrer", "jobTitle": "CEO", "worksFor": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io" } },
     "publisher": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io", "logo": { "@type": "ImageObject", "url": "https://channelad.io/logo.svg" } },
     "mainEntityOfPage": "https://channelad.io/blog/channelad-vs-collaborator",
-    "image": "https://channelad.io/og-default.png",
+    "image": "https://channelad.io/blog/img/channelad-vs-collaborator.png",
     "inLanguage": "es",
     "articleSection": "Comparativas",
     "wordCount": 1987,
@@ -158,6 +158,11 @@
     .copied-toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1D1D1F; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 1001; }
     .copied-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* ─── Article Hero (branded cover, generated per-post) ─── */
+    .article-hero { max-width: 720px; margin: 24px auto 0; padding: 0 24px; }
+    .article-hero img { width: 100%; height: auto; border-radius: 16px; display: block; box-shadow: 0 6px 28px rgba(0,0,0,0.08); }
+    figure.article-hero { margin-left: auto; margin-right: auto; }
+
     /* ─── Article Content ─── */
     .article-content { max-width: 720px; margin: 0 auto; padding: 32px 24px 0; }
     /* Drop cap — NYT aligned */
@@ -194,6 +199,17 @@
     .article-content tbody td { padding: 13px 20px; color: #1D1D1F; line-height: 1.5; border-bottom: 1px solid #f0f0f5; }
     .article-content tbody td:first-child { font-weight: 500; }
     .article-content tbody tr:last-child td { border-bottom: none; }
+
+    /* ─── Auto-generated Table of Contents (injected after the intro) ─── */
+    .article-content nav.post-toc { margin: 36px 0; padding: 22px 26px; background: #fff; border: 1px solid rgba(0,0,0,0.07); border-left: 3px solid #7C3AED; border-radius: 12px; }
+    .article-content nav.post-toc .post-toc-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px; color: #7C3AED; margin-bottom: 14px; }
+    .article-content nav.post-toc ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; }
+    .article-content nav.post-toc ol li { line-height: 1.45; font-size: 14.5px; color: #1D1D1F; }
+    .article-content nav.post-toc ol li::before { content: none; }
+    .article-content nav.post-toc a { color: #1D1D1F; text-decoration: none; }
+    .article-content nav.post-toc a:hover { color: #7C3AED; text-decoration: underline; }
+    /* Smooth-scroll target offset so sticky nav doesn't cover the heading */
+    .article-content h2[id], .article-content h3[id] { scroll-margin-top: 80px; }
 
     /* ─── Author Box (NYT-style) ─── */
     .author-box { max-width: 720px; margin: 48px auto 0; padding: 32px 24px; border-top: 1px solid rgba(0,0,0,0.06); display: flex; gap: 20px; align-items: flex-start; }
@@ -298,15 +314,29 @@
   </div>
   <div class="copied-toast" id="copiedToast">Enlace copiado</div>
 
+  <figure class="article-hero"><img src="/blog/img/channelad-vs-collaborator.svg" alt="Channelad vs Collaborator: comparativa marketplaces 2026" width="1200" height="630"></figure>
+
   <article class="article-content">
     <p>Llevo dos años comprando publicidad en canales para marcas españolas y latinoamericanas, y Collaborator es uno de los primeros nombres que aparece cuando alguien busca &quot;marketplace publicidad Telegram&quot;. Tiene sentido: es una plataforma sólida, con muchos años en el mercado, y ha conseguido posicionarse bien en SEO. La primera vez que la abrí en 2024, me pareció enorme. Catálogo gigante, filtros decentes, interfaz traducida al español.</p>
+    <nav class="post-toc" aria-label="Contenido">
+      <div class="post-toc-title">Contenido</div>
+      <ol>
+        <li><a href="#qué-es-collaborator">¿Qué es Collaborator?</a></li>
+        <li><a href="#collaborator-vs-channelad-tabla-comparativa">Collaborator vs Channelad: tabla comparativa</a></li>
+        <li><a href="#cuándo-elegir-collaborator">Cuándo elegir Collaborator</a></li>
+        <li><a href="#cuándo-elegir-channelad">Cuándo elegir Channelad</a></li>
+        <li><a href="#comisiones-y-precios-reales">Comisiones y precios reales</a></li>
+        <li><a href="#veredicto-uno-otro-o-ambos">Veredicto: ¿uno, otro o ambos?</a></li>
+        <li><a href="#preguntas-frecuentes">Preguntas frecuentes</a></li>
+      </ol>
+    </nav>
 <p>Lo que descubrí después de probarla en serio es que Collaborator fue construido para otra cosa. Su core histórico es el guest posting en webs (backlinks SEO), y Telegram entró como segunda línea de producto. Eso se nota cuando intentas montar una campaña 100% para audiencia hispanohablante, porque el catálogo de canales en español es bastante limitado, las métricas son declaradas por el propio dueño del canal, y el flujo de pago no está pensado como escrow puro.</p>
 <p>Escribí este post para anunciantes ES y LATAM que están investigando Collaborator y quieren entender, sin maquillaje, dónde gana cada plataforma, dónde pierde, y cuál encaja mejor con un presupuesto real.</p>
-<h2>¿Qué es Collaborator?</h2>
+<h2 id="qué-es-collaborator">¿Qué es Collaborator?</h2>
 <p>Collaborator (collaborator.pro, con espejo en collaborator.es) es un marketplace internacional de publicidad nacido en Ucrania en 2014, parte del grupo Crowdy. Su producto original era la compraventa de publi-redactoriales en webs y blogs para link building SEO, y durante años fue uno de los marketplaces de referencia en el mundo SEO de habla rusa y ucraniana. Más adelante añadieron canales de Telegram, vídeos de YouTube y publicaciones de Instagram como formatos secundarios.</p>
 <p>El modelo es el clásico de marketplace: el dueño del soporte (web, canal, cuenta) publica su tarifa, el anunciante reserva, la plataforma cobra una comisión y libera el pago tras la publicación. Collaborator no publica oficialmente su porcentaje de comisión; las estimaciones públicas que circulan por foros SEO hablan de un rango aproximado del 10–15%, pero no está confirmado en su página de precios.</p>
 <p>Su catálogo global es grande (&gt;42.000 sitios web y &gt;3.000 canales de Telegram según la home a fecha de hoy), pero su distribución geográfica está muy sesgada hacia Rusia, Ucrania y mercados anglosajones. Para anunciantes españoles o latinos, el dato relevante es otro: en la auditoría que hicimos en abril 2026 el catálogo de canales en español listados rondaba los 63 canales. Es funcional, pero queda corto si quieres construir una campaña multicanal sólo con audiencia hispanohablante.</p>
-<h2>Collaborator vs Channelad: tabla comparativa</h2>
+<h2 id="collaborator-vs-channelad-tabla-comparativa">Collaborator vs Channelad: tabla comparativa</h2>
 <table>
 <thead>
 <tr>
@@ -366,19 +396,19 @@
 <td>Partner API con tarifa reducida pensada para agencias y resellers</td>
 </tr>
 </tbody></table>
-<h2>Cuándo elegir Collaborator</h2>
+<h2 id="cuándo-elegir-collaborator">Cuándo elegir Collaborator</h2>
 <p>Collaborator no es una mala plataforma. Es la mejor opción en escenarios muy concretos, y ser honesto con eso es lo que hace creíble el resto del post.</p>
 <p><strong>Si tu prioridad principal es link building SEO.</strong> Aquí Collaborator gana sin discusión. Su core son las publi-redactoriales en webs con métricas SEO integradas (DR, UR, Ahrefs Rank) y un catálogo de más de 42.000 sitios verificados. Si lo que buscas son backlinks dofollow para una campaña SEO, ningún marketplace orientado a canales cerrados va a competir con eso.</p>
 <p><strong>Si tu campaña es global con foco RU/UA/EN.</strong> Si tu marca opera en mercados de habla rusa, ucraniana o el bloque anglosajón general, el catálogo de Collaborator tiene mucha más profundidad que cualquier marketplace nuevo. Tendrás miles de canales y webs entre los que elegir, con filtros maduros y un sistema de booking ya rodado durante una década.</p>
 <p><strong>Si necesitas mix multi-formato web + Telegram en una sola plataforma.</strong> Pocas plataformas combinan publi-redactorial en blog y posts patrocinados en Telegram bajo el mismo dashboard. Si tu plan editorial mezcla los dos, Collaborator te ahorra abrir cuentas en dos marketplaces distintos.</p>
 <p><strong>Si ya operas con su API para flujos SEO.</strong> Las agencias SEO que ya tienen integrada la API de Collaborator para gestionar backlinks a escala probablemente prefieran sumar Telegram al mismo flujo en lugar de añadir un proveedor más.</p>
-<h2>Cuándo elegir Channelad</h2>
+<h2 id="cuándo-elegir-channelad">Cuándo elegir Channelad</h2>
 <p>Channelad nació para otro problema: anunciarse en canales cerrados de habla hispana con garantías de verdad. Estos son los escenarios donde la diferencia es clara.</p>
 <p><strong>Si tu audiencia es ES o LATAM.</strong> El catálogo de canales en español de Channelad está construido desde el primer día para ese mercado, no es una colección lateral. Si vas a invertir presupuesto en alcanzar audiencia hispanohablante, partir de un inventario nativo cambia mucho la conversación frente a tirar de 63 canales sueltos.</p>
 <p><strong>Si necesitas métricas verificadas, no declaradas.</strong> El modelo de acceso admin de Channelad es un cambio de fondo: el canal owner da permisos de administrador a la plataforma, y Channelad lee directamente views, reacciones y forwards desde la API de Telegram (y equivalentes en WhatsApp, Discord, Instagram). Eso elimina dos problemas a la vez: el dueño que infla números y el dueño que borra el post antes de tiempo. Si te has quemado alguna vez comprando vistas que no existían, vas a notar la diferencia desde la primera campaña.</p>
 <p><strong>Si necesitas escrow real, no custody.</strong> Channelad retiene los fondos hasta que la publicación se confirma según las condiciones pactadas. Si no se publica o se borra antes, recuperas el dinero. Es el mismo principio que <a href="/blog/escrow-publicidad-digital">explicamos en detalle en la guía de escrow en publicidad digital</a>, pero aplicado a canales cerrados.</p>
 <p><strong>Si tu plan es multicanal (TG + WA + DC + IG).</strong> Aquí no hay punto medio: Channelad cubre las cuatro plataformas de canales cerrados desde el mismo dashboard, con la misma facturación y las mismas métricas. Collaborator cubre Telegram (y de forma marginal Instagram/YouTube), pero no WhatsApp Channels ni Discord. Si tu campaña real está pensada para vivir en varias comunidades a la vez, montarla en dos o tres marketplaces distintos se convierte en un coste operativo serio.</p>
-<h2>Comisiones y precios reales</h2>
+<h2 id="comisiones-y-precios-reales">Comisiones y precios reales</h2>
 <p>Aquí entra el dato más sensible y donde más se ven inventos en internet. Lo digo claro: Collaborator <strong>no publica oficialmente su porcentaje de comisión</strong> en su página pública de pricing. Las cifras que circulan por foros y posts de afiliados hablan de un rango estimado del 10–15%, pero ninguna fuente oficial de la plataforma confirma ese número, así que tómalo como referencia y no como dato verificado.</p>
 <p>Channelad sí publica su estructura de comisiones de forma transparente:</p>
 <ul>
@@ -388,20 +418,20 @@
 </ul>
 <p>Los CPM base que Channelad publica como referencia por plataforma son: WhatsApp €20, Newsletter €28, Instagram €22, Telegram €14, Discord €9, Blog €8. No son tarifas cerradas (el precio final lo fija cada canal), pero sirven para calcular un presupuesto realista antes de meter el primer euro.</p>
 <p>Si necesitas estimar lo que te costaría una campaña concreta antes de comparar marketplaces, la <a href="/blog/calculadora-precios-publicidad">calculadora de precios de publicidad</a> te da un orden de magnitud por plataforma, país y nicho en menos de un minuto.</p>
-<h2>Veredicto: ¿uno, otro o ambos?</h2>
+<h2 id="veredicto-uno-otro-o-ambos">Veredicto: ¿uno, otro o ambos?</h2>
 <p>La respuesta honesta para la mayoría de anunciantes no es &quot;uno u otro&quot;, es &quot;depende de la pieza del puzzle&quot;.</p>
 <p>Si tu mix de medios incluye <strong>link building SEO</strong> o <strong>publi-redactorial en webs internacionales</strong>, Collaborator tiene sentido. Es maduro, está rodado, y su catálogo de sitios web es difícil de igualar. Para esa parte del trabajo, mantén Collaborator en la caja de herramientas.</p>
 <p>Si tu mix incluye <strong>canales cerrados con audiencia ES o LATAM</strong>, <strong>multicanal real</strong> (Telegram + WhatsApp + Discord + Instagram), o <strong>métricas auditadas con escrow contractual</strong>, Channelad encaja mucho mejor. No porque Collaborator sea malo, sino porque está optimizado para otro problema.</p>
 <p>Un caso real que vimos hace poco: una agencia de Madrid que gestiona campañas de captación para clientes fintech mantenía Collaborator para guest posts SEO en webs financieras de México y Colombia, y movió toda la parte de canales de Telegram y WhatsApp a Channelad. El cambio fue limpio porque cada plataforma quedó haciendo aquello para lo que está mejor diseñada, en lugar de forzar a una sola a cubrirlo todo a medias.</p>
 <p>Si tu objetivo principal son comunidades de habla hispana en canales cerrados y quieres ver inventario real, <a href="/para-anunciantes">explora el catálogo desde /para-anunciantes</a> y compara directamente con lo que ya tengas reservado en otros marketplaces.</p>
-<h2>Preguntas frecuentes</h2>
-<h3>¿Cuál es la diferencia entre Channelad y Collaborator?</h3>
+<h2 id="preguntas-frecuentes">Preguntas frecuentes</h2>
+<h3 id="cuál-es-la-diferencia-entre-channelad-y-collaborator">¿Cuál es la diferencia entre Channelad y Collaborator?</h3>
 <p>La diferencia principal es el foco. Collaborator es un marketplace internacional cuyo core histórico son los backlinks SEO en webs, con Telegram añadido como segundo formato y un catálogo en español relativamente pequeño. Channelad es un marketplace especializado en canales cerrados (Telegram, WhatsApp, Discord, Instagram) con foco en mercado ES y LATAM, acceso admin real para verificar métricas, escrow contractual de los pagos y métricas propietarias tipo CAS. Si tu campaña vive en canales cerrados de habla hispana, Channelad está construido específicamente para eso; si tu campaña es link building SEO global, Collaborator sigue siendo la referencia.</p>
-<h3>¿Es Collaborator seguro para comprar publicidad?</h3>
+<h3 id="es-collaborator-seguro-para-comprar-publicidad">¿Es Collaborator seguro para comprar publicidad?</h3>
 <p>Sí, Collaborator es una plataforma legítima con más de una década en el mercado y un volumen importante de transacciones procesadas. Los pagos pasan por la cuenta de custody de la plataforma, así que no estás transfiriendo directamente al dueño del canal, lo cual reduce el riesgo de fraude básico. Lo que conviene saber es que no publica un sistema de escrow contractual con condiciones de reembolso explícitas como sí hacen otros marketplaces especializados, y que las métricas de canales son en su mayoría declaradas por el dueño. Para link building en webs es muy fiable; para canales con métricas auditadas, conviene comparar con plataformas que ofrezcan acceso admin.</p>
-<h3>¿Hay una alternativa española a Collaborator?</h3>
+<h3 id="hay-una-alternativa-española-a-collaborator">¿Hay una alternativa española a Collaborator?</h3>
 <p>Sí. Channelad es la alternativa pensada específicamente para el mercado español y latinoamericano, con interfaz, soporte y catálogo nativos en español desde el día uno. La diferencia no es sólo de idioma de interfaz (Collaborator también está traducido al español), sino de profundidad de inventario en canales hispanohablantes y de modelo operativo: acceso admin a los canales para verificar métricas, escrow contractual de los pagos y comisión publicada de forma transparente (20% estándar). Para campañas multicanal que mezclen Telegram, WhatsApp, Discord e Instagram dirigidas a audiencia ES/LATAM, es la opción que tiene el catálogo y las garantías mejor encajadas.</p>
-<h3>¿Cuánto cuesta anunciarse en Collaborator?</h3>
+<h3 id="cuánto-cuesta-anunciarse-en-collaborator">¿Cuánto cuesta anunciarse en Collaborator?</h3>
 <p>Collaborator no publica oficialmente su porcentaje de comisión en su página pública, así que el coste real depende del precio que fije cada dueño de canal o web más la comisión variable que la plataforma cargue por encima. Las estimaciones públicas que circulan en foros SEO hablan de un rango aproximado del 10–15%, pero no es un dato confirmado por la propia plataforma. Para placements concretos, los precios de canales de Telegram listados pueden ir desde unos pocos dólares en canales muy pequeños hasta varios cientos en canales grandes de nichos competitivos. Antes de reservar conviene pedir desglose claro del importe final.</p>
 <hr>
 <p><strong>Sigue leyendo:</strong></p>
@@ -450,6 +480,12 @@
     <section class="related-section">
     <h2 class="related-header">Tambien te puede interesar</h2>
     <div class="related-grid">
+      <a href="/blog/channelad-vs-combot" class="related-card">
+        <span class="rc-cat">Comparativas</span>
+        <h3>Channelad vs Combot: marketplace vs analytics Telegram</h3>
+        <span class="rc-meta">13 min · 2026-05-29</span>
+      </a>
+
       <a href="/blog/whatsapp-business-vs-canal-whatsapp" class="related-card">
         <span class="rc-cat">Comparativas</span>
         <h3>WhatsApp Business vs Canal de WhatsApp: cuál usar 2026</h3>
@@ -460,12 +496,6 @@
         <span class="rc-cat">Comparativas</span>
         <h3>Best WhatsApp Advertising Platforms in 2026 (Tested & Compared)</h3>
         <span class="rc-meta">13 min · 2026-05-22</span>
-      </a>
-
-      <a href="/blog/channelad-vs-influencer-marketplaces" class="related-card">
-        <span class="rc-cat">Comparativas</span>
-        <h3>Channelad vs Influencer Marketplaces: Which Delivers Better ROI? (2026)</h3>
-        <span class="rc-meta">12 min · 2026-05-22</span>
       </a>
     </div>
   </section>

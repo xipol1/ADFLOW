@@ -70,6 +70,8 @@ Para entender cómo encaja esta fórmula dentro de una estrategia de monetizaci�
 
 He ordenado la tabla de mayor a menor CPM medio para que veas de un vistazo qué nichos pagan mejor en el mercado español:
 
+![Gráfica de barras con el CPM medio por nicho en Telegram en 2026: cripto 9 €, finanzas 7,5 €, inmobiliaria 6,5 €, tecnología y B2B 6 €, marketing 5 €, educación 4,5 € y fitness 4 €](/blog/img/diagrams/cpm-por-nicho-telegram.svg)
+
 | Nicho | CPM mínimo | CPM máximo | CPM medio |
 |---|---|---|---|
 | Cripto / Trading | 6 EUR | 12 EUR | 9 EUR |

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520" role="img" aria-label="Gráfica de CPM medio por nicho en Telegram en 2026, en euros por cada mil visualizaciones">
+  <defs>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#229ED9"/>
+    </linearGradient>
+  </defs>
+  <rect width="760" height="520" rx="16" fill="#ffffff"/>
+  <rect x="0.5" y="0.5" width="759" height="519" rx="16" fill="none" stroke="rgba(0,0,0,0.08)"/>
+
+  <text x="32" y="50" font-family="Georgia, serif" font-size="28" fill="#1D1D1F">CPM medio por nicho en Telegram (2026)</text>
+  <text x="32" y="78" font-family="DejaVu Sans, Verdana, sans-serif" font-size="14" fill="#86868B">Euros por cada 1.000 visualizaciones · mercado español e hispanohablante</text>
+  <line x1="32" y1="98" x2="728" y2="98" stroke="rgba(0,0,0,0.06)"/>
+
+  <!-- rows: scale 44 px per EUR, bars start at x=232 -->
+  <g font-family="DejaVu Sans, Verdana, sans-serif">
+    <!-- Cripto 9 -->
+    <text x="216" y="135" text-anchor="end" font-size="14" font-weight="700" fill="#1D1D1F">Cripto / Trading</text>
+    <rect x="232" y="121" width="396" height="24" rx="6" fill="url(#bar)"/>
+    <text x="640" y="139" font-size="14" font-weight="700" fill="#1D1D1F">9 €</text>
+    <!-- Finanzas 7.5 -->
+    <text x="216" y="178" text-anchor="end" font-size="14" font-weight="700" fill="#1D1D1F">Finanzas / Inversión</text>
+    <rect x="232" y="164" width="330" height="24" rx="6" fill="url(#bar)"/>
+    <text x="574" y="182" font-size="14" font-weight="700" fill="#1D1D1F">7,5 €</text>
+    <!-- Inmobiliaria 6.5 -->
+    <text x="216" y="221" text-anchor="end" font-size="14" font-weight="700" fill="#1D1D1F">Inmobiliaria</text>
+    <rect x="232" y="207" width="286" height="24" rx="6" fill="url(#bar)"/>
+    <text x="530" y="225" font-size="14" font-weight="700" fill="#1D1D1F">6,5 €</text>
+    <!-- Tecnología 6 -->
+    <text x="216" y="264" text-anchor="end" font-size="14" font-weight="700" fill="#1D1D1F">Tecnología / SaaS</text>
+    <rect x="232" y="250" width="264" height="24" rx="6" fill="url(#bar)"/>
+    <text x="508" y="268" font-size="14" font-weight="700" fill="#1D1D1F">6 €</text>
+    <!-- B2B 6 -->
+    <text x="216" y="307" text-anchor="end" font-size="14" font-weight="700" fill="#1D1D1F">B2B / Empresas</text>
+    <rect x="232" y="293" width="264" height="24" rx="6" fill="url(#bar)"/>
+    <text x="508" y="311" font-size="14" font-weight="700" fill="#1D1D1F">6 €</text>
+    <!-- Marketing 5 -->
+    <text x="216" y="350" text-anchor="end" font-size="14" font-weight="700" fill="#1D1D1F">Marketing / Negocios</text>
+    <rect x="232" y="336" width="220" height="24" rx="6" fill="url(#bar)"/>
+    <text x="464" y="354" font-size="14" font-weight="700" fill="#1D1D1F">5 €</text>
+    <!-- Educación 4.5 -->
+    <text x="216" y="393" text-anchor="end" font-size="14" font-weight="700" fill="#1D1D1F">Educación online</text>
+    <rect x="232" y="379" width="198" height="24" rx="6" fill="url(#bar)"/>
+    <text x="442" y="397" font-size="14" font-weight="700" fill="#1D1D1F">4,5 €</text>
+    <!-- Fitness 4 -->
+    <text x="216" y="436" text-anchor="end" font-size="14" font-weight="700" fill="#1D1D1F">Fitness / Salud</text>
+    <rect x="232" y="422" width="176" height="24" rx="6" fill="url(#bar)"/>
+    <text x="420" y="440" font-size="14" font-weight="700" fill="#1D1D1F">4 €</text>
+  </g>
+
+  <line x1="32" y1="470" x2="728" y2="470" stroke="rgba(0,0,0,0.06)"/>
+  <text x="32" y="497" font-family="DejaVu Sans, Verdana, sans-serif" font-size="12.5" fill="#86868B">Fórmula: Precio = (Suscriptores activos × CPM del nicho) ÷ 1.000</text>
+  <text x="728" y="497" text-anchor="end" font-family="DejaVu Sans, Verdana, sans-serif" font-size="12.5" font-weight="700" fill="#7C3AED">channelad.io</text>
+</svg>

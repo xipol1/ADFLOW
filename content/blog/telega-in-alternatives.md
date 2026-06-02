@@ -29,7 +29,6 @@ So here's my honest breakdown of the best Telegram advertising platforms in 2026
 - [Common Mistakes I See Advertisers Make on Telegram](#common-mistakes-i-see-advertisers-make-on-telegram)
 - [Is Telegram Advertising Worth It in 2026? My Take](#is-telegram-advertising-worth-it-in-2026-my-take)
 
-![Marketing analytics dashboard showing campaign performance metrics](https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=720&q=80&auto=format)
 *Tracking every dollar across Telegram ad platforms -- Photo: Unsplash*
 
 ---
@@ -70,7 +69,6 @@ The other limitation that became a dealbreaker for me was the complete lack of S
 
 Honestly, Telega.in was fine when there weren't better options. Now there are. And the lack of escrow-protected Telegram ads alone is enough to make me look elsewhere.
 
-![Comparison of different digital advertising platforms on screen](https://images.unsplash.com/photo-1556438064-2d7646166914?w=720&q=80&auto=format)
 *Comparing platforms side by side saved me hundreds of dollars -- Photo: Unsplash*
 
 ---
@@ -109,7 +107,6 @@ The math doesn't work when you're scaling. Finding a channel, vetting its subscr
 
 Direct outreach works when you already know and trust the admin, when you're doing a one-off collaboration, or when the channel isn't listed on any marketplace. For everything else, a platform with [escrow and verified metrics](/blog/escrow-publicidad-digital) is the smarter move.
 
-![Analytics dashboard showing Telegram campaign performance data](https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=720&q=80&auto=format)
 *Real-time metrics are essential for optimizing Telegram ad spend -- Photo: Unsplash*
 
 ---

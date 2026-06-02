@@ -142,4 +142,6 @@ Los canales estan verificados con metricas reales automaticas, no capturas edita
 
 Si estas empezando con la publicidad en canales de WhatsApp, registrate como anunciante en Channelad, explora el marketplace, y empieza con un presupuesto de prueba de 100-200 EUR en 2-3 canales de tu nicho. Mide resultados, optimiza, y escala lo que funcione.
 
+Para profundizar, te recomiendo la [guia completa de publicidad en WhatsApp](/blog/publicidad-en-whatsapp-guia-completa) y, si quieres entender la otra cara de la mesa, [como monetizar un canal de WhatsApp](/blog/como-monetizar-canal-whatsapp) desde la perspectiva del creador con quien vas a negociar.
+
 El momento de entrar es ahora. Los CPMs van a subir cuando el mercado madure, y las marcas que ya tengan relaciones establecidas con los mejores canales van a tener una ventaja competitiva dificil de replicar.

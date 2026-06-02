@@ -28,7 +28,6 @@ En este artículo te voy a dar datos reales, comparativas honestas y mi opinión
 - [Cómo combinar redes sociales y comunidades en tu estrategia](#como-combinar-redes-sociales-y-comunidades-en-tu-estrategia)
 - [Por qué el presupuesto de marketing se moverá a comunidades en 2027](#por-que-el-presupuesto-de-marketing-se-movera-a-comunidades-en-2027)
 
-![Marketing digital comparando diferentes canales publicitarios](https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=720&q=80&auto=format)
 *El panorama publicitario está cambiando más rápido de lo que la mayoría de marketers asume.*
 
 ## Qué entendemos por publicidad en comunidades digitales
@@ -77,7 +76,6 @@ Ahora, un matiz importante. Estos números son para nichos concretos. Si vendes 
 
 Otro dato que me voló la cabeza: el coste por adquisición. En mis campañas de comunidades, el CPA medio ha sido de 4,20€. En Instagram Ads, para los mismos productos, el CPA medio fue de 18,50€. Casi 4,5 veces más caro. Y no estoy hablando de campañas mal optimizadas en Instagram. Estoy hablando de campañas con audiencias lookalike, creatividades testeadas y presupuestos razonables.
 
-![Dashboard comparativo de rendimiento publicitario](https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=720&q=80&auto=format)
 *Los dashboards cuentan la historia: las métricas de comunidades superan a las redes en casi todos los KPIs.*
 
 ## Mi experimento: misma campaña en Meta Ads vs comunidades
@@ -125,7 +123,6 @@ En cuanto a reparto de presupuesto, actualmente destino un 40% a redes sociales 
 
 Una cosa más: no subestimes el efecto compuesto de estar presente en comunidades. Cuando te ven una vez es un anuncio. Cuando te ven tres veces en comunidades donde confían, eres una marca que conocen. Ese posicionamiento no se compra con CPM. Se construye con presencia consistente en los espacios correctos.
 
-![Tendencias de marketing digital y publicidad en comunidades](https://images.unsplash.com/photo-1542751371-adc38448a05e?w=720&q=80&auto=format)
 *El futuro del marketing digital pasa por los espacios donde la atención es real.*
 
 ## Por qué el presupuesto de marketing se moverá a comunidades en 2027

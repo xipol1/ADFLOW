@@ -31,8 +31,6 @@ La primera vez que compre publicidad en un servidor de Discord fue para una tien
 
 Lo que viene a continuacion es todo lo que he aprendido despues de mas de 30 campanas en servidores de Discord. Precios reales, formatos que funcionan, errores que he cometido y por que creo que en 2027 todo el mundo estara hablando de esto. Vamos al grano.
 
-![Servidor de Discord con comunidad activa de gaming y tecnologia](https://images.unsplash.com/photo-1542751371-adc38448a05e?w=720&q=80&auto=format)
-
 *Las comunidades de Discord van mucho mas alla del gaming -- Foto: Unsplash*
 
 ## Qué es la publicidad en Discord y por qué nadie habla de ella en España
@@ -85,8 +83,6 @@ Te lo digo por experiencia: en mis ultimas 10 campanas en Discord, el CPC medio 
 
 Un detalle importante: los precios varian mucho segun el nicho. Un servidor de cripto cobra mas que uno de recetas de cocina, obviamente. Y la temporalidad importa. En noviembre-diciembre, los precios suben porque hay mas anunciantes intentando llegar a las mismas audiencias. Si puedes planificar con antelacion, los meses de enero a marzo suelen ser los mas baratos.
 
-![Dashboard de metricas y analisis de campanas de marketing digital](https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=720&q=80&auto=format)
-
 *Medir el CPM y CPC real es clave para optimizar tu inversion -- Foto: Unsplash*
 
 ## Cómo encontrar servidores verificados para tu marca (sin perder dinero)
@@ -138,8 +134,6 @@ Me preguntan esto constantemente, asi que aqui va mi opinion honesta basada en c
 
 Mi recomendacion: no elijas uno solo. Combina. Empieza con Discord para validar tu mensaje con un presupuesto bajo, escala en Telegram para volumen y usa Instagram solo si necesitas brand awareness a gran escala. En [Channelad](/para-anunciantes) puedes gestionar campanas en los tres canales desde la misma plataforma, lo cual ahorra bastante tiempo.
 
-![Comunidades digitales y Discord como canal de marketing emergente](https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=720&q=80&auto=format)
-
 *Discord crece a dos digitos mensuales en comunidades de nicho -- Foto: Unsplash*
 
 ## Por qué la promoción en servidores de Discord será el canal estrella en 2027
@@ -163,3 +157,9 @@ Te lo digo por experiencia: las marcas que se muevan ahora van a cosechar los be
 En [Channelad](/marketplace) encuentras servidores verificados de Discord, Telegram y WhatsApp listos para publicar tu mensaje. Sin negociaciones manuales, con metricas reales y desde 15EUR. [Si administras un servidor](/para-canales), tambien puedes monetizar tu comunidad y empezar a generar ingresos con tu audiencia.
 
 [Explorar servidores disponibles](/para-anunciantes)
+
+**Sigue leyendo:**
+
+- [Publicidad en Discord para marcas: como funciona en 2026](/blog/publicidad-discord-marcas)
+- [Como monetizar un servidor de Discord](/blog/como-monetizar-servidor-discord) (la perspectiva del admin con quien negocias)
+- [Telegram vs WhatsApp vs Discord: comparativa de publicidad](/blog/telegram-vs-whatsapp-vs-discord-publicidad)

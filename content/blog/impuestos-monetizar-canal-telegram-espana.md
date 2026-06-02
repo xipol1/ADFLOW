@@ -217,4 +217,6 @@ No. Cuando trabajas via marketplace, emites una sola factura al marketplace por 
 
 Monetizar un canal o servidor en Espana sin friccion fiscal es perfectamente posible si haces los deberes desde el principio: alta en Hacienda con el epigrafe correcto, facturas siempre, registro de gastos deducibles, declaraciones trimestrales puntuales y atencion especial al cripto. Cuesta una hora al mes y ahorra problemas mucho mas caros.
 
+Una vez tengas la parte fiscal bajo control, el siguiente paso es maximizar lo que ingresas: revisa [cuanto cobrar por publicidad en Telegram](/blog/cuanto-cobrar-publicidad-telegram) y la guia de [como monetizar tu canal de Telegram en Espana](/blog/monetizar-canal-telegram-espana) para no dejar dinero sobre la mesa.
+
 Si quieres simplificar al maximo la parte operativa y fiscal cobrando todo desde un solo canal con facturas agregadas, [publica tu canal en Channelad](/). Una factura mensual al marketplace en lugar de docenas a anunciantes diversos, pago en euros via escrow y compatibilidad con tu asesoria fiscal habitual.

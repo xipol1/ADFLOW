@@ -31,7 +31,6 @@ Vamos al grano.
 - [WhatsApp vs Telegram vs Discord: dónde convierte más tu anuncio](#whatsapp-vs-telegram-vs-discord-donde-convierte-mas-tu-anuncio)
 - [Por qué la publicidad en comunidades de WhatsApp explotará en 2027](#por-que-la-publicidad-en-comunidades-de-whatsapp-explotara-en-2027)
 
-![Smartphone con WhatsApp y comunidades activas](https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=720&q=80&auto=format)
 *WhatsApp tiene más de 36 millones de usuarios activos diarios solo en España. Tu audiencia ya está ahí.*
 
 ## Qué es la publicidad en grupos y canales de WhatsApp
@@ -99,7 +98,6 @@ Hay varias formas de encontrar grupos para comprar publicidad en canales de What
 
 Mi consejo: empieza siempre por un marketplace con sistema de verificación y escrow. No te la juegues pagando a un desconocido por Bizum. He visto a anunciantes perder 300€ porque el admin cogió el dinero y nunca publicó nada. Con un sistema de escrow, eso no puede pasar. Si el admin no cumple, te devuelven el dinero. Punto.
 
-![Equipo de marketing analizando resultados de campañas](https://images.unsplash.com/photo-1556438064-2d7646166914?w=720&q=80&auto=format)
 *Analizar las métricas después de cada campaña es lo que separa a los anunciantes que repiten de los que abandonan.*
 
 ## Mi experiencia real con campañas de publicidad en WhatsApp
@@ -130,7 +128,6 @@ Después de gestionar más de 30 campañas de marketing en grupos de WhatsApp, h
 
 **Error 5: Repetir el mismo grupo sin descanso.** Si tu anuncio ha funcionado bien, la tentación es repetir en el mismo grupo la semana siguiente. No lo hagas. Dale al menos 3-4 semanas de descanso. La audiencia se satura rápido y tu segundo mensaje tendrá la mitad de impacto si lo pones demasiado pronto.
 
-![Gráfica de crecimiento del marketing en comunidades](https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=720&q=80&auto=format)
 *El marketing en comunidades privadas crece un 40% interanual mientras las redes sociales tradicionales estancan su alcance orgánico.*
 
 ## WhatsApp vs Telegram vs Discord: dónde convierte más tu anuncio

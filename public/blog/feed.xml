@@ -5,7 +5,7 @@
     <link>https://channelad.io/blog</link>
     <description>Guias, estrategias y comparativas sobre publicidad en comunidades de WhatsApp, Telegram y Discord. Por Rafa Ferrer, CEO de Channelad.</description>
     <language>es</language>
-    <lastBuildDate>Thu, 28 May 2026 09:50:26 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 02 Jun 2026 10:03:40 GMT</lastBuildDate>
     <managingEditor>rafa@channelad.io (Rafa Ferrer)</managingEditor>
     <webMaster>rafa@channelad.io (Rafa Ferrer)</webMaster>
     <atom:link href="https://channelad.io/blog/feed.xml" rel="self" type="application/rss+xml"/>
@@ -14,6 +14,24 @@
       <title>Channelad Blog</title>
       <link>https://channelad.io/blog</link>
     </image>
+    <item>
+      <title><![CDATA[Media kit canal WhatsApp 2026: 8 elementos + plantilla]]></title>
+      <link>https://channelad.io/blog/media-kit-canal-whatsapp</link>
+      <guid isPermaLink="true">https://channelad.io/blog/media-kit-canal-whatsapp</guid>
+      <pubDate>Mon, 01 Jun 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Crea el media kit que convierte tu canal de WhatsApp en negocio: los 8 elementos clave, open rate del 75-90% y plantilla lista para enviar.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Guias</category>
+    </item>
+    <item>
+      <title><![CDATA[Channelad vs Combot: marketplace vs analytics Telegram]]></title>
+      <link>https://channelad.io/blog/channelad-vs-combot</link>
+      <guid isPermaLink="true">https://channelad.io/blog/channelad-vs-combot</guid>
+      <pubDate>Fri, 29 May 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[Combot y Channelad cubren necesidades distintas del admin Telegram: uno modera y analiza, otro vende publicidad. Cuándo usar cada uno (o ambos).]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Comparativas</category>
+    </item>
     <item>
       <title><![CDATA[WhatsApp Business vs Canal de WhatsApp: cuál usar 2026]]></title>
       <link>https://channelad.io/blog/whatsapp-business-vs-canal-whatsapp</link>

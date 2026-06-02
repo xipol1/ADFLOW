@@ -17,7 +17,7 @@
   <meta property="og:url" content="https://channelad.io/blog/como-anunciarse-en-telegram">
   <meta property="og:site_name" content="Channelad">
   <meta property="og:locale" content="es_ES">
-  <meta property="og:image" content="https://channelad.io/og-default.png">
+  <meta property="og:image" content="https://channelad.io/blog/img/como-anunciarse-en-telegram.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="article:published_time" content="2026-05-11">
@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Cómo anunciarse en Telegram 2026: precios y formatos">
   <meta name="twitter:description" content="Guía para hacer publicidad en canales y grupos de Telegram en 2026. Formatos, CPM 2-12€ por nicho y cómo encontrar canales verificados.">
-  <meta name="twitter:image" content="https://channelad.io/og-default.png">
+  <meta name="twitter:image" content="https://channelad.io/blog/img/como-anunciarse-en-telegram.png">
 
   <!-- Schema.org -->
   <script type="application/ld+json">
@@ -40,7 +40,7 @@
     "author": { "@type": "Person", "name": "Rafa Ferrer", "jobTitle": "CEO", "worksFor": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io" } },
     "publisher": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io", "logo": { "@type": "ImageObject", "url": "https://channelad.io/logo.svg" } },
     "mainEntityOfPage": "https://channelad.io/blog/como-anunciarse-en-telegram",
-    "image": "https://channelad.io/og-default.png",
+    "image": "https://channelad.io/blog/img/como-anunciarse-en-telegram.png",
     "inLanguage": "es",
     "articleSection": "Guias",
     "wordCount": 1105,
@@ -212,6 +212,11 @@
     .copied-toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1D1D1F; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 1001; }
     .copied-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* ─── Article Hero (branded cover, generated per-post) ─── */
+    .article-hero { max-width: 720px; margin: 24px auto 0; padding: 0 24px; }
+    .article-hero img { width: 100%; height: auto; border-radius: 16px; display: block; box-shadow: 0 6px 28px rgba(0,0,0,0.08); }
+    figure.article-hero { margin-left: auto; margin-right: auto; }
+
     /* ─── Article Content ─── */
     .article-content { max-width: 720px; margin: 0 auto; padding: 32px 24px 0; }
     /* Drop cap — NYT aligned */
@@ -248,6 +253,17 @@
     .article-content tbody td { padding: 13px 20px; color: #1D1D1F; line-height: 1.5; border-bottom: 1px solid #f0f0f5; }
     .article-content tbody td:first-child { font-weight: 500; }
     .article-content tbody tr:last-child td { border-bottom: none; }
+
+    /* ─── Auto-generated Table of Contents (injected after the intro) ─── */
+    .article-content nav.post-toc { margin: 36px 0; padding: 22px 26px; background: #fff; border: 1px solid rgba(0,0,0,0.07); border-left: 3px solid #7C3AED; border-radius: 12px; }
+    .article-content nav.post-toc .post-toc-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px; color: #7C3AED; margin-bottom: 14px; }
+    .article-content nav.post-toc ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; }
+    .article-content nav.post-toc ol li { line-height: 1.45; font-size: 14.5px; color: #1D1D1F; }
+    .article-content nav.post-toc ol li::before { content: none; }
+    .article-content nav.post-toc a { color: #1D1D1F; text-decoration: none; }
+    .article-content nav.post-toc a:hover { color: #7C3AED; text-decoration: underline; }
+    /* Smooth-scroll target offset so sticky nav doesn't cover the heading */
+    .article-content h2[id], .article-content h3[id] { scroll-margin-top: 80px; }
 
     /* ─── Author Box (NYT-style) ─── */
     .author-box { max-width: 720px; margin: 48px auto 0; padding: 32px 24px; border-top: 1px solid rgba(0,0,0,0.06); display: flex; gap: 20px; align-items: flex-start; }
@@ -352,10 +368,24 @@
   </div>
   <div class="copied-toast" id="copiedToast">Enlace copiado</div>
 
+  <figure class="article-hero"><img src="/blog/img/como-anunciarse-en-telegram.svg" alt="Cómo anunciarse en Telegram 2026: precios y formatos" width="1200" height="630"></figure>
+
   <article class="article-content">
     <p>Telegram se ha convertido en uno de los canales publicitarios mas infravalorados del mercado hispanohablante. Con mas de 900 millones de usuarios activos a nivel global y una base creciente en Espana y Latinoamerica, la plataforma ofrece algo que Instagram y TikTok ya no pueden garantizar: atencion real.</p>
+    <nav class="post-toc" aria-label="Contenido">
+      <div class="post-toc-title">Contenido</div>
+      <ol>
+        <li><a href="#por-que-telegram-es-diferente-para-los-anunciantes">Por que Telegram es diferente para los anunciantes</a></li>
+        <li><a href="#formatos-de-publicidad-disponibles-en-telegram">Formatos de publicidad disponibles en Telegram</a></li>
+        <li><a href="#cuanto-cuesta-anunciarse-en-telegram-precios-reales">Cuanto cuesta anunciarse en Telegram: precios reales</a></li>
+        <li><a href="#como-encontrar-canales-para-anunciarte">Como encontrar canales para anunciarte</a></li>
+        <li><a href="#errores-que-debes-evitar">Errores que debes evitar</a></li>
+        <li><a href="#como-medir-los-resultados">Como medir los resultados</a></li>
+        <li><a href="#conclusion">Conclusion</a></li>
+      </ol>
+    </nav>
 <p>No hablamos de impresiones fantasma ni de scroll infinito donde tu anuncio desaparece en 0,3 segundos. Hablamos de comunidades donde la gente entra, lee los mensajes y participa activamente. Y eso, en publicidad, lo cambia todo.</p>
-<h2>Por que Telegram es diferente para los anunciantes</h2>
+<h2 id="por-que-telegram-es-diferente-para-los-anunciantes">Por que Telegram es diferente para los anunciantes</h2>
 <p>La diferencia fundamental entre Telegram y las redes sociales tradicionales es el modelo de consumo. En Instagram o TikTok, el contenido compite contra un algoritmo que decide que ve cada usuario. En Telegram, cuando un canal publica un mensaje, todos los suscriptores lo reciben. No hay filtro algoritmico. No hay pay-to-play para que tu contenido sea visible.</p>
 <p>Esto tiene implicaciones directas en los numeros:</p>
 <ul>
@@ -366,21 +396,21 @@
 <blockquote>
 <p>La publicidad en Telegram no compite con el algoritmo. Compite con la atencion real de personas que eligieron estar ahi.</p>
 </blockquote>
-<h2>Formatos de publicidad disponibles en Telegram</h2>
-<h3>1. Publicacion patrocinada en canal</h3>
+<h2 id="formatos-de-publicidad-disponibles-en-telegram">Formatos de publicidad disponibles en Telegram</h2>
+<h3 id="1-publicacion-patrocinada-en-canal">1. Publicacion patrocinada en canal</h3>
 <p>El formato mas comun y efectivo. El administrador del canal publica tu mensaje como si fuera contenido propio. Puede incluir texto, imagenes, videos, botones con enlaces y hasta encuestas.</p>
 <p><strong>Por que funciona</strong>: los suscriptores confian en el criterio del administrador. Si el recomienda tu producto, tiene un peso similar al de una recomendacion personal.</p>
 <p><strong>Precio medio</strong>: entre 15 y 200 euros por publicacion, dependiendo del tamano del canal y el nicho.</p>
-<h3>2. Mensaje fijado (pinned post)</h3>
+<h3 id="2-mensaje-fijado-pinned-post">2. Mensaje fijado (pinned post)</h3>
 <p>Tu publicacion se fija en la parte superior del canal durante un periodo acordado (normalmente 24-72 horas). Esto garantiza maxima visibilidad porque es lo primero que ve cualquier persona que entre al canal.</p>
 <p><strong>Precio medio</strong>: 1.5x a 3x el precio de una publicacion normal.</p>
-<h3>3. Mencion en contenido organico</h3>
+<h3 id="3-mencion-en-contenido-organico">3. Mencion en contenido organico</h3>
 <p>El administrador menciona tu marca o producto de forma natural dentro de su contenido habitual. Es el formato mas sutil y el que genera mayor confianza.</p>
 <p><strong>Precio medio</strong>: variable, normalmente negociado como parte de un paquete.</p>
-<h3>4. Telegram Ads (plataforma oficial)</h3>
+<h3 id="4-telegram-ads-plataforma-oficial">4. Telegram Ads (plataforma oficial)</h3>
 <p>Telegram tiene su propia plataforma de anuncios desde 2021. Los anuncios aparecen como mensajes cortos al final de los canales publicos con mas de 1.000 suscriptores.</p>
 <p><strong>Limitaciones</strong>: solo texto (maximo 160 caracteres), sin segmentacion avanzada, presupuesto minimo de 2 millones de euros en creditos publicitarios. No es accesible para pymes.</p>
-<h2>Cuanto cuesta anunciarse en Telegram: precios reales</h2>
+<h2 id="cuanto-cuesta-anunciarse-en-telegram-precios-reales">Cuanto cuesta anunciarse en Telegram: precios reales</h2>
 <p>Despues de analizar mas de 50 campanas en canales de habla hispana, estos son los rangos reales:</p>
 <table>
 <thead>
@@ -417,8 +447,8 @@
 </tr>
 </tbody></table>
 <p>Para poner esto en perspectiva: el CPM medio en Instagram Ads en Espana ronda los 6-12 euros, y en Google Ads puede superar los 15 euros para nichos competitivos. Telegram ofrece CPMs significativamente mas bajos con engagement considerablemente mas alto.</p>
-<h2>Como encontrar canales para anunciarte</h2>
-<h3>El problema de buscar solo en Telegram</h3>
+<h2 id="como-encontrar-canales-para-anunciarte">Como encontrar canales para anunciarte</h2>
+<h3 id="el-problema-de-buscar-solo-en-telegram">El problema de buscar solo en Telegram</h3>
 <p>Buscar canales directamente en Telegram es como buscar restaurantes sin Google Maps. Puedes encontrar algunos, pero no tienes forma de verificar su calidad, audiencia real ni historial.</p>
 <p>Los riesgos principales son:</p>
 <ul>
@@ -426,7 +456,7 @@
 <li><strong>Engagement manipulado</strong>: las vistas pueden comprarse por centimos. 10.000 vistas no significan nada si son bots.</li>
 <li><strong>Sin proteccion de pago</strong>: si pagas directamente al administrador y no publica tu anuncio, no tienes recurso.</li>
 </ul>
-<h3>La solucion: marketplaces verificados</h3>
+<h3 id="la-solucion-marketplaces-verificados">La solucion: marketplaces verificados</h3>
 <p>Plataformas como <a href="https://channelad.io">Channelad</a> resuelven estos problemas:</p>
 <ul>
 <li><strong>Verificacion de canales</strong>: metricas reales auditadas, no auto-reportadas.</li>
@@ -434,18 +464,18 @@
 <li><strong>Metricas en tiempo real</strong>: vistas, clics y engagement verificados.</li>
 <li><strong>Filtros avanzados</strong>: busca por nicho, idioma, ubicacion geografica y tamano.</li>
 </ul>
-<h2>Errores que debes evitar</h2>
-<h3>1. Comprar sin verificar el canal</h3>
+<h2 id="errores-que-debes-evitar">Errores que debes evitar</h2>
+<h3 id="1-comprar-sin-verificar-el-canal">1. Comprar sin verificar el canal</h3>
 <p>Nunca compres publicidad en un canal solo porque tiene muchos suscriptores. Pide capturas de estadisticas reales (Telegram tiene analytics nativos para canales) o usa un marketplace que verifique los datos.</p>
-<h3>2. Crear anuncios que parecen spam</h3>
+<h3 id="2-crear-anuncios-que-parecen-spam">2. Crear anuncios que parecen spam</h3>
 <p>Los miembros de Telegram son especialmente sensibles al spam. Si tu mensaje parece un anuncio generico de Facebook, genera rechazo inmediato. Adapta el tono al estilo del canal.</p>
-<h3>3. No incluir un CTA claro</h3>
+<h3 id="3-no-incluir-un-cta-claro">3. No incluir un CTA claro</h3>
 <p>Cada publicacion patrocinada necesita un objetivo medible. Un enlace con UTM tracking, un codigo de descuento exclusivo o un boton de accion. Sin CTA, no puedes medir resultados.</p>
-<h3>4. Ignorar el timing</h3>
+<h3 id="4-ignorar-el-timing">4. Ignorar el timing</h3>
 <p>Publica cuando la audiencia esta activa. Para canales en Espana, los mejores momentos suelen ser entre las 9-11h y las 19-21h. Para Latinoamerica, ajusta segun la zona horaria principal del canal.</p>
-<h3>5. No negociar paquetes</h3>
+<h3 id="5-no-negociar-paquetes">5. No negociar paquetes</h3>
 <p>Si vas a hacer varias publicaciones, negocia un paquete. La mayoria de administradores ofrecen descuentos del 15-30% por 3 o mas publicaciones.</p>
-<h2>Como medir los resultados</h2>
+<h2 id="como-medir-los-resultados">Como medir los resultados</h2>
 <p>La medicion en Telegram es mas directa que en redes sociales:</p>
 <ul>
 <li><strong>Vistas del post</strong>: Telegram muestra las vistas reales de cada mensaje.</li>
@@ -462,7 +492,7 @@ Ejemplo:
 - Conversiones: 18 ventas a 35 EUR = 630 EUR
 - ROAS: 1.260%
 </code></pre>
-<h2>Conclusion</h2>
+<h2 id="conclusion">Conclusion</h2>
 <p>Telegram es, en 2026, el canal publicitario con mejor relacion coste-rendimiento para marcas que quieren llegar a audiencias comprometidas. Los CPMs son bajos, el engagement es real, y la competencia publicitaria es todavia baja comparada con Instagram o Google.</p>
 <p>La clave esta en elegir los canales correctos, crear contenido que no parezca spam, y proteger tu inversion con pagos custodiados. Si haces las tres cosas bien, los resultados hablan solos.</p>
 <hr>

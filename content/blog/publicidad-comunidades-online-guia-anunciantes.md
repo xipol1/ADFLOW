@@ -163,9 +163,10 @@ El mercado de la publicidad en comunidades online esta todavia en una fase donde
 
 Si quieres profundizar en una plataforma concreta, tenemos guias detalladas:
 
-- Como anunciarse en Telegram: estrategia completa para anunciantes
-- Publicidad en canales de WhatsApp: guia para marcas
-- Cuanto cobrar por publicidad en Telegram (util para entender los precios del mercado desde la perspectiva del admin)
-- Como monetizar un canal de Telegram (para entender la mentalidad del admin con quien negocias)
+- [Como anunciarse en Telegram: estrategia completa para anunciantes](/blog/como-anunciarse-en-telegram)
+- [Publicidad en canales de WhatsApp: guia para marcas](/blog/publicidad-canales-whatsapp-marcas)
+- [Cuanto cobrar por publicidad en Telegram](/blog/cuanto-cobrar-publicidad-telegram) (util para entender los precios del mercado desde la perspectiva del admin)
+- [Como monetizar un canal de Telegram](/blog/como-monetizar-canal-telegram) (para entender la mentalidad del admin con quien negocias)
+- [Telegram vs WhatsApp vs Discord: comparativa de publicidad](/blog/telegram-vs-whatsapp-vs-discord-publicidad)
 
 La publicidad en comunidades no es el futuro. Ya es el presente. Y los anunciantes que lo entienden ahora van a tener una ventaja competitiva que sera muy dificil de replicar cuando el mercado se sature.

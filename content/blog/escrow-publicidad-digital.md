@@ -26,7 +26,6 @@ Desde ese día, solo trabajo con plataformas que ofrecen pago custodiado. Te lo 
 - [Qué hacer si algo sale mal en una campaña con pago custodiado](#que-hacer-si-algo-sale-mal-en-una-campana-con-pago-custodiado)
 - [¿El escrow encarece la publicidad? La verdad sobre las comisiones](#el-escrow-encarece-la-publicidad-la-verdad-sobre-las-comisiones)
 
-![Protección de pagos en transacciones digitales](https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=720&q=80&auto=format)
 *La protección del pago es la base de cualquier transacción digital seria — Foto: Unsplash*
 
 ## Qué es exactamente el escrow o pago custodiado en publicidad
@@ -42,6 +41,8 @@ Es así de simple. Y sin embargo, la mayoría de anunciantes que conozco siguen 
 ## Cómo funciona el pago custodiado en publicidad paso a paso
 
 Esto es clave: entender el flujo completo del escrow te va a dar la tranquilidad de saber en qué momento exacto se mueve tu dinero. Te lo explico con un ejemplo real, una campaña que yo mismo lancé en un canal de productividad con 12.000 suscriptores.
+
+![Diagrama del flujo de escrow en cuatro pasos: pago a custodia, fondos retenidos en cuenta de garantía, publicación del anuncio y liberación del pago al canal tras verificar la entrega](/blog/img/diagrams/flujo-escrow-publicidad.svg)
 
 **1. Seleccionas el canal y la oferta.** Entras en el marketplace, buscas canales en tu nicho, revisas sus métricas (suscriptores, vistas medias, engagement) y eliges una oferta. En mi caso, elegí un post fijado durante 24 horas por 85€.
 
@@ -79,7 +80,6 @@ Hay canales que te venden 50.000 suscriptores pero tienen un engagement real del
 
 Si pagas publicidad por Bizum o transferencia directa a un admin anónimo, no tienes factura. No puedes deducir ese gasto como empresa. A nivel fiscal, ese dinero simplemente desapareció. Las plataformas que operan con escrow emiten factura por cada transacción, lo cual es imprescindible si eres autónomo o empresa en España.
 
-![Dashboard de análisis comparativo de campañas](https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=720&q=80&auto=format)
 *Comparar campañas protegidas vs desprotegidas revela una diferencia brutal — Foto: Unsplash*
 
 ## Mi experiencia: campañas con escrow vs campañas sin protección
@@ -124,7 +124,6 @@ En plataformas como Channelad, el equipo de soporte revisa las pruebas de ambas 
 
 ¿Es perfecto? No. ¿Es infinitamente mejor que enviar dinero a un desconocido y rezar? Absolutamente.
 
-![Inversión digital protegida con sistema de custodia](https://images.unsplash.com/photo-1542751371-adc38448a05e?w=720&q=80&auto=format)
 *Proteger tu inversión publicitaria es tan importante como optimizar la campaña — Foto: Unsplash*
 
 ## ¿El escrow encarece la publicidad? La verdad sobre las comisiones
