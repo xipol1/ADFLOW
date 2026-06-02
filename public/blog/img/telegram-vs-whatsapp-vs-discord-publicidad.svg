@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#16161a"/>
+      <stop offset="60%" stop-color="#1D1D1F"/>
+      <stop offset="100%" stop-color="#241a3a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.28" r="0.6">
+      <stop offset="0%" stop-color="#229ED9" stop-opacity="0.42"/>
+      <stop offset="55%" stop-color="#229ED9" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#229ED9" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#229ED9"/>
+      <stop offset="100%" stop-color="#2bb6f0"/>
+    </linearGradient>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.4" fill="#ffffff" opacity="0.05"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#dots)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- decorative concentric rings (abstract "broadcast" motif, platform-tinted) -->
+  <g transform="translate(1052,132)" fill="none" stroke="#229ED9" stroke-opacity="0.18">
+    <circle r="54" stroke-width="2"/>
+    <circle r="110" stroke-width="2" stroke-opacity="0.12"/>
+    <circle r="172" stroke-width="2" stroke-opacity="0.07"/>
+  </g>
+  <circle cx="1052" cy="132" r="13" fill="#229ED9" opacity="0.85"/>
+
+  <!-- wordmark -->
+  <text x="90" y="92" font-family="DejaVu Sans, Verdana, sans-serif" font-size="30" font-weight="700" fill="#ffffff" letter-spacing="-0.5">Channel<tspan fill="#2bb6f0">ad</tspan></text>
+
+  <!-- category badge -->
+  <g transform="translate(90,150)">
+    <rect x="0" y="-26" width="164" height="36" rx="8" fill="#7C3AED" opacity="0.16"/>
+    <text x="16" y="-2" font-family="DejaVu Sans, Verdana, sans-serif" font-size="16" font-weight="700" fill="#7C3AED" letter-spacing="1.2">COMPARATIVAS</text>
+  </g>
+  <g transform="translate(268,150)">
+         <rect x="0" y="-26" width="132" height="36" rx="18" fill="#229ED9" opacity="0.16"/>
+         <circle cx="22" cy="-8" r="5" fill="#229ED9"/>
+         <text x="38" y="-2" font-family="DejaVu Sans, Verdana, sans-serif" font-size="17" font-weight="700" fill="#2bb6f0" letter-spacing="0.4">TELEGRAM</text>
+       </g>
+
+  <!-- accent bar -->
+  <rect x="90" y="211.2" width="64" height="5" rx="2.5" fill="url(#accent)"/>
+
+  <!-- title -->
+  <text x="90" y="303.2" font-family="Georgia, 'Times New Roman', serif" font-size="64" font-weight="400" fill="#ffffff" letter-spacing="-1"><tspan x="90" dy="0">Telegram vs WhatsApp vs</tspan><tspan x="90" dy="72">Discord 2026: dónde</tspan><tspan x="90" dy="72">anunciarse</tspan></text>
+
+  <!-- footer -->
+  <text x="90" y="572" font-family="DejaVu Sans, Verdana, sans-serif" font-size="20" fill="#ffffff" opacity="0.42">channelad.io  ·  13 min</text>
+  <text x="1110" y="572" text-anchor="end" font-family="DejaVu Sans, Verdana, sans-serif" font-size="18" fill="#ffffff" opacity="0.30">Publicidad en comunidades</text>
+</svg>

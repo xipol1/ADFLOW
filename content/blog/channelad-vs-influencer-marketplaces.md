@@ -23,7 +23,6 @@ This comparison is for marketers who want reach in front of an engaged audience 
 
 If your goal is measurable clicks and acquisition, start with Channelad. If your goal is a creator's authentic endorsement and reusable content, use an influencer marketplace. Most mature brands run both — for different jobs.
 
-![Comparing influencer marketplace campaigns with closed-channel advertising](https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=720&q=80&auto=format)
 *Channelad vs influencer marketplaces: two ways to buy a trusted audience — Photo: Unsplash*
 
 ## Channelad vs Influencer Marketplaces at a Glance

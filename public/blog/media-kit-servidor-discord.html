@@ -17,7 +17,7 @@
   <meta property="og:url" content="https://channelad.io/blog/media-kit-servidor-discord">
   <meta property="og:site_name" content="Channelad">
   <meta property="og:locale" content="es_ES">
-  <meta property="og:image" content="https://channelad.io/og-default.png">
+  <meta property="og:image" content="https://channelad.io/blog/img/media-kit-servidor-discord.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="article:published_time" content="2026-05-18">
@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Media kit servidor Discord 2026: 8 elementos + plantilla">
   <meta name="twitter:description" content="Crea un media kit profesional para tu servidor de Discord 2026: los 8 elementos clave, métricas que sí piden las marcas y plantilla descargable.">
-  <meta name="twitter:image" content="https://channelad.io/og-default.png">
+  <meta name="twitter:image" content="https://channelad.io/blog/img/media-kit-servidor-discord.png">
 
   <!-- Schema.org -->
   <script type="application/ld+json">
@@ -40,7 +40,7 @@
     "author": { "@type": "Person", "name": "Rafa Ferrer", "jobTitle": "CEO", "worksFor": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io" } },
     "publisher": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io", "logo": { "@type": "ImageObject", "url": "https://channelad.io/logo.svg" } },
     "mainEntityOfPage": "https://channelad.io/blog/media-kit-servidor-discord",
-    "image": "https://channelad.io/og-default.png",
+    "image": "https://channelad.io/blog/img/media-kit-servidor-discord.png",
     "inLanguage": "es",
     "articleSection": "Guias",
     "wordCount": 1598,
@@ -166,6 +166,11 @@
     .copied-toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1D1D1F; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 1001; }
     .copied-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* ─── Article Hero (branded cover, generated per-post) ─── */
+    .article-hero { max-width: 720px; margin: 24px auto 0; padding: 0 24px; }
+    .article-hero img { width: 100%; height: auto; border-radius: 16px; display: block; box-shadow: 0 6px 28px rgba(0,0,0,0.08); }
+    figure.article-hero { margin-left: auto; margin-right: auto; }
+
     /* ─── Article Content ─── */
     .article-content { max-width: 720px; margin: 0 auto; padding: 32px 24px 0; }
     /* Drop cap — NYT aligned */
@@ -202,6 +207,17 @@
     .article-content tbody td { padding: 13px 20px; color: #1D1D1F; line-height: 1.5; border-bottom: 1px solid #f0f0f5; }
     .article-content tbody td:first-child { font-weight: 500; }
     .article-content tbody tr:last-child td { border-bottom: none; }
+
+    /* ─── Auto-generated Table of Contents (injected after the intro) ─── */
+    .article-content nav.post-toc { margin: 36px 0; padding: 22px 26px; background: #fff; border: 1px solid rgba(0,0,0,0.07); border-left: 3px solid #7C3AED; border-radius: 12px; }
+    .article-content nav.post-toc .post-toc-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px; color: #7C3AED; margin-bottom: 14px; }
+    .article-content nav.post-toc ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; }
+    .article-content nav.post-toc ol li { line-height: 1.45; font-size: 14.5px; color: #1D1D1F; }
+    .article-content nav.post-toc ol li::before { content: none; }
+    .article-content nav.post-toc a { color: #1D1D1F; text-decoration: none; }
+    .article-content nav.post-toc a:hover { color: #7C3AED; text-decoration: underline; }
+    /* Smooth-scroll target offset so sticky nav doesn't cover the heading */
+    .article-content h2[id], .article-content h3[id] { scroll-margin-top: 80px; }
 
     /* ─── Author Box (NYT-style) ─── */
     .author-box { max-width: 720px; margin: 48px auto 0; padding: 32px 24px; border-top: 1px solid rgba(0,0,0,0.06); display: flex; gap: 20px; align-items: flex-start; }
@@ -306,10 +322,25 @@
   </div>
   <div class="copied-toast" id="copiedToast">Enlace copiado</div>
 
+  <figure class="article-hero"><img src="/blog/img/media-kit-servidor-discord.svg" alt="Media kit servidor Discord 2026: 8 elementos + plantilla" width="1200" height="630"></figure>
+
   <article class="article-content">
     <p>Tener 5.000 miembros activos en Discord no te garantiza vender publicidad. Lo que la garantiza es ensenarle a una marca, en menos de 30 segundos, que tu servidor es exactamente el lugar donde estan sus clientes. Ese documento se llama media kit y es la herramienta que separa a los creadores que cierran patrocinios de los que se quedan esperando respuestas.</p>
+    <nav class="post-toc" aria-label="Contenido">
+      <div class="post-toc-title">Contenido</div>
+      <ol>
+        <li><a href="#por-que-un-media-kit-es-imprescindible-incluso-si-tu-servidor-es-pequeno">Por que un media kit es imprescindible (incluso si tu servidor es pequeno)</a></li>
+        <li><a href="#los-8-elementos-imprescindibles-de-un-media-kit-de-discord">Los 8 elementos imprescindibles de un media kit de Discord</a></li>
+        <li><a href="#como-conseguir-estadisticas-verificables-de-tu-servidor">Como conseguir estadisticas verificables de tu servidor</a></li>
+        <li><a href="#errores-tipicos-en-media-kits-de-discord">Errores tipicos en media kits de Discord</a></li>
+        <li><a href="#plantilla-gratuita-estructura-completa-lista-para-usar">Plantilla gratuita: estructura completa lista para usar</a></li>
+        <li><a href="#como-channelad-simplifica-el-proceso">Como Channelad simplifica el proceso</a></li>
+        <li><a href="#preguntas-frecuentes">Preguntas frecuentes</a></li>
+        <li><a href="#conclusion">Conclusion</a></li>
+      </ol>
+    </nav>
 <p>En 2026 la mayoria de servidores espanoles no tienen media kit o lo tienen mal hecho: capturas borrosas, metricas inventadas, sin demografia. Esta guia recoge los 8 elementos que toda marca espera ver, las metricas que de verdad influyen en su decision y una plantilla lista para adaptar.</p>
-<h2>Por que un media kit es imprescindible (incluso si tu servidor es pequeno)</h2>
+<h2 id="por-que-un-media-kit-es-imprescindible-incluso-si-tu-servidor-es-pequeno">Por que un media kit es imprescindible (incluso si tu servidor es pequeno)</h2>
 <p>Las marcas que pagan publicidad reciben docenas de propuestas al mes. Si la tuya llega como un parrafo de WhatsApp con &quot;tengo 8.000 miembros, cobro 80 EUR&quot;, asumen que no eres profesional y descartan sin ni siquiera abrirla. Si llega como un PDF de 4 paginas con tu nicho, demografia, metricas reales y formatos disponibles, eres profesional aunque tu servidor sea pequeno.</p>
 <p>Tres beneficios concretos:</p>
 <ul>
@@ -317,12 +348,12 @@
 <li><strong>Justifica precios mas altos</strong>: cuando el documento es bueno, el precio percibido sube.</li>
 <li><strong>Filtra anunciantes serios</strong>: las marcas que no piden media kit suelen ser las que no pagan.</li>
 </ul>
-<h2>Los 8 elementos imprescindibles de un media kit de Discord</h2>
-<h3>1. Portada con identidad clara</h3>
+<h2 id="los-8-elementos-imprescindibles-de-un-media-kit-de-discord">Los 8 elementos imprescindibles de un media kit de Discord</h2>
+<h3 id="1-portada-con-identidad-clara">1. Portada con identidad clara</h3>
 <p>Una pagina que comunique en 5 segundos: nombre del servidor, nicho, propuesta unica y tu foto/avatar. Sin texto largo, sin frases marketinianas. Lo que ven las marcas: &quot;Servidor X | Marketing digital para founders SaaS | 4.200 miembros activos&quot;.</p>
-<h3>2. Resumen ejecutivo (1 parrafo)</h3>
+<h3 id="2-resumen-ejecutivo-1-parrafo">2. Resumen ejecutivo (1 parrafo)</h3>
 <p>Una descripcion corta que responda: que es el servidor, para quien es, que valor aporta y por que las marcas deberian considerarlo. Maximo 80-100 palabras. La mayoria de creadores se extiende y pierde la atencion.</p>
-<h3>3. Metricas clave verificables</h3>
+<h3 id="3-metricas-clave-verificables">3. Metricas clave verificables</h3>
 <p>Las marcas no creen numeros sin pruebas. Lo que esperan:</p>
 <ul>
 <li><strong>Miembros totales</strong> (sin inflar).</li>
@@ -332,7 +363,7 @@
 <li><strong>Tiempo medio de sesion</strong> por usuario activo (Discord lo muestra en la pagina de Estadisticas de Servidor).</li>
 <li><strong>Tasa de crecimiento mensual</strong> (ultimos 3-6 meses).</li>
 </ul>
-<h3>4. Demografia de la audiencia</h3>
+<h3 id="4-demografia-de-la-audiencia">4. Demografia de la audiencia</h3>
 <p>La data demografica vende mucho mas que el numero total de miembros. Las marcas piden:</p>
 <ul>
 <li><strong>Distribucion geografica</strong>: pais y, si es posible, ciudades top.</li>
@@ -342,7 +373,7 @@
 <li><strong>Genero</strong>: si tiene relevancia para el nicho.</li>
 </ul>
 <p>Si nunca has encuestado a tu comunidad, hazlo. Una encuesta de 5 preguntas en #anuncios puede recoger 200-500 respuestas en una semana en un servidor activo.</p>
-<h3>5. Formatos publicitarios disponibles + precios</h3>
+<h3 id="5-formatos-publicitarios-disponibles--precios">5. Formatos publicitarios disponibles + precios</h3>
 <p>La parte que mas miran las marcas. Para cada formato, especifica:</p>
 <ul>
 <li>Descripcion clara del formato (post, rol, evento, bot)</li>
@@ -385,12 +416,12 @@
 <td>600 EUR</td>
 </tr>
 </tbody></table>
-<h3>6. Ejemplos de campanas anteriores</h3>
+<h3 id="6-ejemplos-de-campanas-anteriores">6. Ejemplos de campanas anteriores</h3>
 <p>Capturas de pantalla de 2-3 campanas anteriores con metricas: vistas del post, clicks generados, conversiones (si las tienes), feedback del anunciante. Una marca con cero historial cae mucho mas rapido en tu propuesta si ve que otra marca ya confio.</p>
 <p>Si no tienes campanas, ofrece una primera campana a precio reducido a una marca pequena del nicho a cambio del permiso para incluir el caso en el media kit. La inversion vale la pena.</p>
-<h3>7. Testimonios de anunciantes anteriores</h3>
+<h3 id="7-testimonios-de-anunciantes-anteriores">7. Testimonios de anunciantes anteriores</h3>
 <p>Una frase corta de cada cliente anterior con su nombre, marca y rol. Si tienes pocos, basta con 1-2. Un testimonio real vale mas que tres parrafos describiendo tu servidor.</p>
-<h3>8. Datos de contacto y siguiente paso</h3>
+<h3 id="8-datos-de-contacto-y-siguiente-paso">8. Datos de contacto y siguiente paso</h3>
 <p>Que la marca sepa exactamente que hacer despues de leer:</p>
 <ul>
 <li>Email directo o formulario</li>
@@ -398,26 +429,26 @@
 <li>Tiempo medio de respuesta (24h, 48h)</li>
 <li>Forma de pago preferida (escrow, transferencia, marketplace)</li>
 </ul>
-<h2>Como conseguir estadisticas verificables de tu servidor</h2>
+<h2 id="como-conseguir-estadisticas-verificables-de-tu-servidor">Como conseguir estadisticas verificables de tu servidor</h2>
 <p>Discord ofrece estadisticas nativas en la pagina de &quot;Server Insights&quot; (boost servers nivel 3 o superior, gratis si tienes ese requisito). Para servidores mas pequenos, hay tres opciones:</p>
-<h3>Opcion A: Statbot, Sabermetrics o Mee6 Premium</h3>
+<h3 id="opcion-a-statbot-sabermetrics-o-mee6-premium">Opcion A: Statbot, Sabermetrics o Mee6 Premium</h3>
 <p>Bots que registran actividad y devuelven dashboards detallados: miembros activos, mensajes diarios, top contributors, retencion. El plan basico es gratis. El plan profesional cuesta 5-15 EUR/mes y es lo recomendable para servidores que monetizan.</p>
-<h3>Opcion B: Server Insights nativo</h3>
+<h3 id="opcion-b-server-insights-nativo">Opcion B: Server Insights nativo</h3>
 <p>Si tu servidor tiene Community Server activado (que es gratuito), Discord muestra estadisticas basicas en la pagina del admin. Limitado pero util para empezar.</p>
-<h3>Opcion C: Recoger datos manualmente</h3>
+<h3 id="opcion-c-recoger-datos-manualmente">Opcion C: Recoger datos manualmente</h3>
 <p>Una hoja de calculo donde apuntas semanalmente: miembros totales, mensajes en los canales principales, joins, leaves. Tedioso pero suficiente para hacer un media kit profesional al principio.</p>
-<h2>Errores tipicos en media kits de Discord</h2>
-<h3>1. Inflar el numero de miembros</h3>
+<h2 id="errores-tipicos-en-media-kits-de-discord">Errores tipicos en media kits de Discord</h2>
+<h3 id="1-inflar-el-numero-de-miembros">1. Inflar el numero de miembros</h3>
 <p>Si tienes 8.000 totales pero solo 1.200 activos, no escribas &quot;8.000+ miembros&quot;. Escribe &quot;8.000 miembros con 1.200 activos en los ultimos 30 dias&quot;. La transparencia genera mas confianza y mejores precios.</p>
-<h3>2. No tener cifras de engagement</h3>
+<h3 id="2-no-tener-cifras-de-engagement">2. No tener cifras de engagement</h3>
 <p>Las marcas saben que los miembros totales no significan nada en Discord. Si no muestras DAU/MAU, mensajes diarios o eventos mensuales, asumen que es un servidor muerto.</p>
-<h3>3. Precios &quot;consultar&quot;</h3>
+<h3 id="3-precios-quotconsultarquot">3. Precios &quot;consultar&quot;</h3>
 <p>Mortal. La marca quiere comparar opciones y si el primer paso es agendar una llamada para conocer el precio, descarta y va al siguiente servidor con tarifas publicas.</p>
-<h3>4. Diseno amateur</h3>
+<h3 id="4-diseno-amateur">4. Diseno amateur</h3>
 <p>No necesitas ser disenador, pero un PDF maquetado en Word con tres colores aleatorios te resta credibilidad. Usa Canva, Figma o una plantilla profesional.</p>
-<h3>5. No actualizar las metricas</h3>
+<h3 id="5-no-actualizar-las-metricas">5. No actualizar las metricas</h3>
 <p>Un media kit con metricas de hace 6 meses muestra que no controlas tu servidor. Actualizalo cada trimestre como minimo, idealmente cada mes.</p>
-<h2>Plantilla gratuita: estructura completa lista para usar</h2>
+<h2 id="plantilla-gratuita-estructura-completa-lista-para-usar">Plantilla gratuita: estructura completa lista para usar</h2>
 <p>Estructura recomendada de 4 paginas (la que mejor convierte en mi experiencia):</p>
 <p><strong>Pagina 1: Portada y resumen</strong></p>
 <ul>
@@ -446,21 +477,21 @@
 <li>Email directo y link de booking</li>
 <li>Forma de pago aceptada</li>
 </ul>
-<h2>Como Channelad simplifica el proceso</h2>
+<h2 id="como-channelad-simplifica-el-proceso">Como Channelad simplifica el proceso</h2>
 <p>La parte mas tediosa del proceso es mantener el media kit actualizado y enviarlo manualmente a cada marca. Los servidores listados en <a href="/">Channelad</a> tienen su perfil con metricas auditadas que se actualizan automaticamente. Las marcas ven los datos verificados sin que tu tengas que hacer nada. Cuando ofertan, el <a href="/blog/escrow-publicidad-digital">escrow</a> protege el cobro y la campana queda registrada como caso publico del que luego puedes presumir.</p>
 <p>Si ya tienes 500+ miembros activos en tu servidor, <a href="/">crear tu perfil en Channelad</a> es la via mas rapida de profesionalizar tu monetizacion sin pasar semanas haciendo media kits manuales.</p>
-<h2>Preguntas frecuentes</h2>
-<h3>Necesito un media kit si solo tengo 500 miembros activos en mi Discord?</h3>
+<h2 id="preguntas-frecuentes">Preguntas frecuentes</h2>
+<h3 id="necesito-un-media-kit-si-solo-tengo-500-miembros-activos-en-mi-discord">Necesito un media kit si solo tengo 500 miembros activos en mi Discord?</h3>
 <p>Si. De hecho, con menos miembros el media kit es mas importante porque las marcas necesitan justificar internamente por que invertir en un servidor pequeno. Un media kit profesional con metricas de engagement altas convence mas que uno mediocre con muchos miembros.</p>
-<h3>Cuanto tiempo se tarda en crear un buen media kit?</h3>
+<h3 id="cuanto-tiempo-se-tarda-en-crear-un-buen-media-kit">Cuanto tiempo se tarda en crear un buen media kit?</h3>
 <p>Entre 4 y 8 horas si partes de cero. Una vez tienes la plantilla y las metricas recogidas, actualizarlo cada trimestre te lleva 30-45 minutos.</p>
-<h3>Que formato es mejor: PDF, web, Notion?</h3>
+<h3 id="que-formato-es-mejor-pdf-web-notion">Que formato es mejor: PDF, web, Notion?</h3>
 <p>PDF es lo mas profesional y lo que esperan las marcas serias. Notion sirve para mantenerlo actualizado facilmente y enviar un enlace. Una web personal es lo ideal si gestionas mas de 3 servidores o tienes vocacion creator a largo plazo.</p>
-<h3>Cuales son las metricas mas importantes para marcas que pagan publicidad en Discord?</h3>
+<h3 id="cuales-son-las-metricas-mas-importantes-para-marcas-que-pagan-publicidad-en-discord">Cuales son las metricas mas importantes para marcas que pagan publicidad en Discord?</h3>
 <p>En orden de importancia: 1) miembros activos en los ultimos 30 dias, 2) ratio DAU/MAU, 3) demografia (geografia y profesion), 4) ejemplos de campanas anteriores, 5) precio por formato. El numero de miembros totales esta muy abajo en la lista de prioridades.</p>
-<h3>Puedo usar el mismo media kit para Discord, Telegram y WhatsApp?</h3>
+<h3 id="puedo-usar-el-mismo-media-kit-para-discord-telegram-y-whatsapp">Puedo usar el mismo media kit para Discord, Telegram y WhatsApp?</h3>
 <p>No, cada plataforma tiene metricas distintas y formatos diferentes. Si gestionas multiples plataformas, crea media kits separados. Si quieres ver el equivalente de Telegram, mira la <a href="/blog/media-kit-canal-telegram">guia de media kit para canal de Telegram</a>.</p>
-<h2>Conclusion</h2>
+<h2 id="conclusion">Conclusion</h2>
 <p>Un media kit profesional es la diferencia entre vender publicidad a marcas serias y recibir propuestas low-cost. Ocho elementos imprescindibles, metricas verificables, demografia detallada, formatos con precios fijos y casos de exito. Con eso ya estas en el 5% superior de servidores espanoles que pueden cerrar deals serios.</p>
 <p>Si quieres saltar todo este proceso y que las marcas te encuentren con metricas auditadas automaticamente, <a href="/">publica tu servidor de Discord en Channelad</a>. El media kit lo genera la plataforma con datos verificados y el cobro va por escrow desde el primer deal.</p>
 

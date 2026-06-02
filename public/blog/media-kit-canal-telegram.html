@@ -17,7 +17,7 @@
   <meta property="og:url" content="https://channelad.io/blog/media-kit-canal-telegram">
   <meta property="og:site_name" content="Channelad">
   <meta property="og:locale" content="es_ES">
-  <meta property="og:image" content="https://channelad.io/og-default.png">
+  <meta property="og:image" content="https://channelad.io/blog/img/media-kit-canal-telegram.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="article:published_time" content="2026-04-11">
@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Media kit canal Telegram 2026: 7 elementos + plantilla">
   <meta name="twitter:description" content="Crea el media kit que convierte tu canal de Telegram en negocio. Los 7 elementos clave, estadísticas vía TGStat y plantilla descargable gratis.">
-  <meta name="twitter:image" content="https://channelad.io/og-default.png">
+  <meta name="twitter:image" content="https://channelad.io/blog/img/media-kit-canal-telegram.png">
 
   <!-- Schema.org -->
   <script type="application/ld+json">
@@ -40,7 +40,7 @@
     "author": { "@type": "Person", "name": "Rafa Ferrer", "jobTitle": "CEO", "worksFor": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io" } },
     "publisher": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io", "logo": { "@type": "ImageObject", "url": "https://channelad.io/logo.svg" } },
     "mainEntityOfPage": "https://channelad.io/blog/media-kit-canal-telegram",
-    "image": "https://channelad.io/og-default.png",
+    "image": "https://channelad.io/blog/img/media-kit-canal-telegram.png",
     "inLanguage": "es",
     "articleSection": "Guias",
     "wordCount": 317,
@@ -176,6 +176,11 @@
     .copied-toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1D1D1F; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 1001; }
     .copied-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* ─── Article Hero (branded cover, generated per-post) ─── */
+    .article-hero { max-width: 720px; margin: 24px auto 0; padding: 0 24px; }
+    .article-hero img { width: 100%; height: auto; border-radius: 16px; display: block; box-shadow: 0 6px 28px rgba(0,0,0,0.08); }
+    figure.article-hero { margin-left: auto; margin-right: auto; }
+
     /* ─── Article Content ─── */
     .article-content { max-width: 720px; margin: 0 auto; padding: 32px 24px 0; }
     /* Drop cap — NYT aligned */
@@ -212,6 +217,17 @@
     .article-content tbody td { padding: 13px 20px; color: #1D1D1F; line-height: 1.5; border-bottom: 1px solid #f0f0f5; }
     .article-content tbody td:first-child { font-weight: 500; }
     .article-content tbody tr:last-child td { border-bottom: none; }
+
+    /* ─── Auto-generated Table of Contents (injected after the intro) ─── */
+    .article-content nav.post-toc { margin: 36px 0; padding: 22px 26px; background: #fff; border: 1px solid rgba(0,0,0,0.07); border-left: 3px solid #7C3AED; border-radius: 12px; }
+    .article-content nav.post-toc .post-toc-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px; color: #7C3AED; margin-bottom: 14px; }
+    .article-content nav.post-toc ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; }
+    .article-content nav.post-toc ol li { line-height: 1.45; font-size: 14.5px; color: #1D1D1F; }
+    .article-content nav.post-toc ol li::before { content: none; }
+    .article-content nav.post-toc a { color: #1D1D1F; text-decoration: none; }
+    .article-content nav.post-toc a:hover { color: #7C3AED; text-decoration: underline; }
+    /* Smooth-scroll target offset so sticky nav doesn't cover the heading */
+    .article-content h2[id], .article-content h3[id] { scroll-margin-top: 80px; }
 
     /* ─── Author Box (NYT-style) ─── */
     .author-box { max-width: 720px; margin: 48px auto 0; padding: 32px 24px; border-top: 1px solid rgba(0,0,0,0.06); display: flex; gap: 20px; align-items: flex-start; }
@@ -316,14 +332,26 @@
   </div>
   <div class="copied-toast" id="copiedToast">Enlace copiado</div>
 
+  <figure class="article-hero"><img src="/blog/img/media-kit-canal-telegram.svg" alt="Media kit canal Telegram 2026: 7 elementos + plantilla" width="1200" height="630"></figure>
+
   <article class="article-content">
     <p>El media kit es el documento que convierte tu canal de Telegram en un negocio serio. Sin el, dejas el 80% de los anunciantes sobre la mesa.</p>
-<h2>Que es un media kit y por que lo necesitas</h2>
+    <nav class="post-toc" aria-label="Contenido">
+      <div class="post-toc-title">Contenido</div>
+      <ol>
+        <li><a href="#que-es-un-media-kit-y-por-que-lo-necesitas">Que es un media kit y por que lo necesitas</a></li>
+        <li><a href="#los-7-elementos-que-debe-tener-tu-media-kit">Los 7 elementos que debe tener tu media kit</a></li>
+        <li><a href="#como-obtener-las-estadisticas-correctas">Como obtener las estadisticas correctas</a></li>
+        <li><a href="#errores-comunes-en-los-media-kits">Errores comunes en los media kits</a></li>
+        <li><a href="#como-presentar-el-media-kit">Como presentar el media kit</a></li>
+      </ol>
+    </nav>
+<h2 id="que-es-un-media-kit-y-por-que-lo-necesitas">Que es un media kit y por que lo necesitas</h2>
 <p>Un media kit resume todo lo que un anunciante necesita saber sobre tu canal: audiencia, engagement, formatos y precios. Los anunciantes profesionales reciben decenas de propuestas — el media kit es lo que te diferencia.</p>
-<h2>Los 7 elementos que debe tener tu media kit</h2>
-<h3>1. Nombre y descripcion del canal</h3>
+<h2 id="los-7-elementos-que-debe-tener-tu-media-kit">Los 7 elementos que debe tener tu media kit</h2>
+<h3 id="1-nombre-y-descripcion-del-canal">1. Nombre y descripcion del canal</h3>
 <p>Una linea que explique de que va tu canal, para quien es y que lo hace unico.</p>
-<h3>2. Estadisticas clave</h3>
+<h3 id="2-estadisticas-clave">2. Estadisticas clave</h3>
 <ul>
 <li>Suscriptores totales (y la fecha)</li>
 <li>Vistas medias por post en 24h</li>
@@ -331,30 +359,30 @@
 <li>Crecimiento mensual en porcentaje</li>
 <li>Tasa de reenvios</li>
 </ul>
-<h3>3. Audiencia: demografia</h3>
+<h3 id="3-audiencia-demografia">3. Audiencia: demografia</h3>
 <p>Rango de edad estimado, pais principal, intereses, nivel socieconomico.</p>
-<h3>4. Formatos disponibles y precios</h3>
+<h3 id="4-formatos-disponibles-y-precios">4. Formatos disponibles y precios</h3>
 <p>Lista clara con precios fijos. No digas «precios a consultar». Usa la <a href="https://channelad.io/blog/cuanto-cobrar-publicidad-telegram">guia de precios</a> para calcular tus tarifas.</p>
-<h3>5. Ejemplos de publicaciones anteriores</h3>
+<h3 id="5-ejemplos-de-publicaciones-anteriores">5. Ejemplos de publicaciones anteriores</h3>
 <p>2-3 capturas de posts patrocinados con resultados.</p>
-<h3>6. Casos de exito o testimonios</h3>
+<h3 id="6-casos-de-exito-o-testimonios">6. Casos de exito o testimonios</h3>
 <p>Una cita positiva de un anunciante anterior vale mas que cualquier estadistica.</p>
-<h3>7. Datos de contacto y condiciones</h3>
+<h3 id="7-datos-de-contacto-y-condiciones">7. Datos de contacto y condiciones</h3>
 <p>Telegram de contacto, email, y link a tu perfil en el marketplace.</p>
-<h2>Como obtener las estadisticas correctas</h2>
+<h2 id="como-obtener-las-estadisticas-correctas">Como obtener las estadisticas correctas</h2>
 <ul>
 <li><strong>TGStat</strong>: estadisticas publicas de cualquier canal</li>
 <li><strong>Bot de estadisticas</strong>: reportes automaticos semanales</li>
 <li><strong>Google Sheets manual</strong>: datos historicos para mostrar tendencias</li>
 </ul>
-<h2>Errores comunes en los media kits</h2>
+<h2 id="errores-comunes-en-los-media-kits">Errores comunes en los media kits</h2>
 <ul>
 <li>Inflar numeros (los anunciantes verifican)</li>
 <li>No incluir precios (aleja al 70% de los anunciantes)</li>
 <li>Estadisticas desactualizadas (actualiza cada mes)</li>
 <li>Diseno amateur (usa Canva con templates gratuitos)</li>
 </ul>
-<h2>Como presentar el media kit</h2>
+<h2 id="como-presentar-el-media-kit">Como presentar el media kit</h2>
 <p>O mejor aun: registrate en <a href="https://channelad.io/para-canales">Channelad</a> y tus metricas se verifican automaticamente. Tu perfil funciona como un media kit vivo y actualizado.</p>
 <hr>
 <p><em>¿Listo para profesionalizar tu canal? <a href="https://channelad.io/para-canales">Registrate en Channelad</a> — tu media kit automatizado.</em></p>

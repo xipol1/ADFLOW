@@ -163,4 +163,6 @@ En tres casos: (1) producto que daña tu credibilidad, (2) presupuesto por debaj
 
 Negociar bien no es pelear por cada euro: es proteger el valor que aportas. Siete preguntas antes de dar precio, una propuesta específica, condiciones que siempre incluir, y saber cuándo decir no. Con esto doblas ingresos sin tener que doblar suscriptores.
 
+Antes de sentarte a negociar, ten claro tu precio de partida con la guía de [cuánto cobrar por publicidad en Telegram](/blog/cuanto-cobrar-publicidad-telegram) y prepara un [media kit para tu canal de Telegram](/blog/media-kit-canal-telegram): llegar con datos y tarifas escritas es la mitad de la negociación.
+
 Si prefieres no negociar y que los anunciantes te encuentren con tarifas prefijadas y escrow automático, empieza en [Channelad](/). Menos fricción, más tiempo para crear contenido.

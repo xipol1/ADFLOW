@@ -25,7 +25,6 @@ Here's how Channelad and Meta Ads actually compare on cost, performance and the 
 
 For most advertisers the question isn't "which one." It's "what share of budget should move." My answer after testing: start with 10-20%.
 
-![Comparing Meta Ads cost against closed-channel advertising performance](https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=720&q=80&auto=format)
 *Channelad vs Meta Ads: the comparison every advertiser is running in 2026 — Photo: Unsplash*
 
 ## Channelad vs Meta Ads at a Glance

@@ -17,7 +17,7 @@
   <meta property="og:url" content="https://channelad.io/blog/crear-servidor-discord-monetizar">
   <meta property="og:site_name" content="Channelad">
   <meta property="og:locale" content="es_ES">
-  <meta property="og:image" content="https://channelad.io/og-default.png">
+  <meta property="og:image" content="https://channelad.io/blog/img/crear-servidor-discord-monetizar.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="article:published_time" content="2026-05-15">
@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Crear un servidor de Discord y monetizarlo 2026 (guía)">
   <meta name="twitter:description" content="Cómo montar un Discord rentable en España 2026: nicho, estructura, primeros 1.000 miembros, fórmula de precios y los 5 errores que matan ingresos.">
-  <meta name="twitter:image" content="https://channelad.io/og-default.png">
+  <meta name="twitter:image" content="https://channelad.io/blog/img/crear-servidor-discord-monetizar.png">
 
   <!-- Schema.org -->
   <script type="application/ld+json">
@@ -40,7 +40,7 @@
     "author": { "@type": "Person", "name": "Rafa Ferrer", "jobTitle": "CEO", "worksFor": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io" } },
     "publisher": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io", "logo": { "@type": "ImageObject", "url": "https://channelad.io/logo.svg" } },
     "mainEntityOfPage": "https://channelad.io/blog/crear-servidor-discord-monetizar",
-    "image": "https://channelad.io/og-default.png",
+    "image": "https://channelad.io/blog/img/crear-servidor-discord-monetizar.png",
     "inLanguage": "es",
     "articleSection": "Guias",
     "wordCount": 1653,
@@ -224,6 +224,11 @@
     .copied-toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1D1D1F; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 1001; }
     .copied-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* ─── Article Hero (branded cover, generated per-post) ─── */
+    .article-hero { max-width: 720px; margin: 24px auto 0; padding: 0 24px; }
+    .article-hero img { width: 100%; height: auto; border-radius: 16px; display: block; box-shadow: 0 6px 28px rgba(0,0,0,0.08); }
+    figure.article-hero { margin-left: auto; margin-right: auto; }
+
     /* ─── Article Content ─── */
     .article-content { max-width: 720px; margin: 0 auto; padding: 32px 24px 0; }
     /* Drop cap — NYT aligned */
@@ -260,6 +265,17 @@
     .article-content tbody td { padding: 13px 20px; color: #1D1D1F; line-height: 1.5; border-bottom: 1px solid #f0f0f5; }
     .article-content tbody td:first-child { font-weight: 500; }
     .article-content tbody tr:last-child td { border-bottom: none; }
+
+    /* ─── Auto-generated Table of Contents (injected after the intro) ─── */
+    .article-content nav.post-toc { margin: 36px 0; padding: 22px 26px; background: #fff; border: 1px solid rgba(0,0,0,0.07); border-left: 3px solid #7C3AED; border-radius: 12px; }
+    .article-content nav.post-toc .post-toc-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px; color: #7C3AED; margin-bottom: 14px; }
+    .article-content nav.post-toc ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; }
+    .article-content nav.post-toc ol li { line-height: 1.45; font-size: 14.5px; color: #1D1D1F; }
+    .article-content nav.post-toc ol li::before { content: none; }
+    .article-content nav.post-toc a { color: #1D1D1F; text-decoration: none; }
+    .article-content nav.post-toc a:hover { color: #7C3AED; text-decoration: underline; }
+    /* Smooth-scroll target offset so sticky nav doesn't cover the heading */
+    .article-content h2[id], .article-content h3[id] { scroll-margin-top: 80px; }
 
     /* ─── Author Box (NYT-style) ─── */
     .author-box { max-width: 720px; margin: 48px auto 0; padding: 32px 24px; border-top: 1px solid rgba(0,0,0,0.06); display: flex; gap: 20px; align-items: flex-start; }
@@ -364,10 +380,27 @@
   </div>
   <div class="copied-toast" id="copiedToast">Enlace copiado</div>
 
+  <figure class="article-hero"><img src="/blog/img/crear-servidor-discord-monetizar.svg" alt="Crear un servidor de Discord y monetizarlo 2026 (guía)" width="1200" height="630"></figure>
+
   <article class="article-content">
     <p>Discord ya no es solo para gamers. En 2026 hay servidores espanoles de finanzas con 80.000 miembros, comunidades de marketing pagando 300 EUR por anuncio y proyectos cripto cerrando deals de 5.000 EUR por temporada. Pero la mayoria de gente que abre un servidor lo abandona a los 3 meses con 40 miembros y cero ingresos.</p>
+    <nav class="post-toc" aria-label="Contenido">
+      <div class="post-toc-title">Contenido</div>
+      <ol>
+        <li><a href="#por-que-discord-es-diferente-para-monetizar">Por que Discord es diferente para monetizar</a></li>
+        <li><a href="#paso-1-elegir-el-nicho-correcto">Paso 1: Elegir el nicho correcto</a></li>
+        <li><a href="#paso-2-estructura-del-servidor">Paso 2: Estructura del servidor</a></li>
+        <li><a href="#paso-3-los-primeros-100-miembros-cero-presupuesto">Paso 3: Los primeros 100 miembros (cero presupuesto)</a></li>
+        <li><a href="#paso-4-de-100-a-1000-donde-se-monetiza">Paso 4: De 100 a 1.000 (donde se monetiza)</a></li>
+        <li><a href="#paso-5-como-cobrar-publicidad-en-tu-servidor">Paso 5: Como cobrar publicidad en tu servidor</a></li>
+        <li><a href="#paso-6-conseguir-el-primer-anunciante">Paso 6: Conseguir el primer anunciante</a></li>
+        <li><a href="#los-5-errores-que-matan-la-monetizacion">Los 5 errores que matan la monetizacion</a></li>
+        <li><a href="#preguntas-frecuentes">Preguntas frecuentes</a></li>
+        <li><a href="#conclusion">Conclusion</a></li>
+      </ol>
+    </nav>
 <p>La diferencia no es suerte ni nicho. Es estructura. Esta guia recoge el proceso completo para crear un servidor de Discord desde cero y prepararlo para monetizar: como elegir nicho, como estructurarlo correctamente, como conseguir los primeros 1.000 miembros y como cobrar publicidad sin quemar la comunidad.</p>
-<h2>Por que Discord es diferente para monetizar</h2>
+<h2 id="por-que-discord-es-diferente-para-monetizar">Por que Discord es diferente para monetizar</h2>
 <p>Discord tiene una ventaja que ninguna otra plataforma de mensajeria iguala: <strong>engagement medio del 15-40%</strong> frente al 1-3% de Instagram o el 5-15% de Telegram. La razon es estructural: en un servidor de Discord la gente conversa, no consume pasivamente. Eso convierte a los miembros en compradores cualificados.</p>
 <p>Tres consecuencias para el creador:</p>
 <ul>
@@ -376,14 +409,14 @@
 <li><strong>El valor por miembro real</strong> supera los 3-8 EUR/ano en nichos premium, vs 1-3 EUR en Telegram.</li>
 </ul>
 <p>Si quieres entender por que las marcas pagan tanto, te recomiendo la <a href="/blog/publicidad-discord-marcas">guia de publicidad en Discord para marcas</a>.</p>
-<h2>Paso 1: Elegir el nicho correcto</h2>
+<h2 id="paso-1-elegir-el-nicho-correcto">Paso 1: Elegir el nicho correcto</h2>
 <p>El error mas comun: abrir un servidor &quot;de gaming general&quot; o &quot;de cosas interesantes&quot;. Imposible monetizar. El nicho debe cumplir tres condiciones:</p>
 <ol>
 <li><strong>Audiencia con dinero</strong>: profesionales, inversores, hobbyistas activos. No adolescentes.</li>
 <li><strong>Marcas anunciandose en el nicho</strong>: comprueba que hay sponsors activos en Twitch, YouTube o Telegram del mismo tema.</li>
 <li><strong>Tu conoces el tema</strong> lo suficiente para moderar 12 meses sin agotarte.</li>
 </ol>
-<h3>Nichos rentables en Discord 2026 (Espana)</h3>
+<h3 id="nichos-rentables-en-discord-2026-espana">Nichos rentables en Discord 2026 (Espana)</h3>
 <table>
 <thead>
 <tr>
@@ -431,9 +464,9 @@
 </tr>
 </tbody></table>
 <p>Los nichos B2B (marketing, SaaS, desarrollo) pagan menos por CPM pero las campanas son mucho mas grandes y recurrentes que las de gaming.</p>
-<h2>Paso 2: Estructura del servidor</h2>
+<h2 id="paso-2-estructura-del-servidor">Paso 2: Estructura del servidor</h2>
 <p>Un servidor que monetiza tiene exactamente esta estructura. Ni mas ni menos.</p>
-<h3>Categorias mínimas</h3>
+<h3 id="categorias-mínimas">Categorias mínimas</h3>
 <ul>
 <li><strong>Bienvenida</strong>: #reglas, #anuncios, #presentate, #faq</li>
 <li><strong>Contenido core</strong> (3-5 canales temáticos según nicho)</li>
@@ -441,7 +474,7 @@
 <li><strong>Voz</strong>: 2-3 canales de voz (eventos, study together, chat libre)</li>
 <li><strong>Premium / Patrocinados</strong>: oculta hasta tener primer sponsor</li>
 </ul>
-<h3>Reglas del primer dia</h3>
+<h3 id="reglas-del-primer-dia">Reglas del primer dia</h3>
 <p>Antes de invitar a una sola persona, configura:</p>
 <ul>
 <li><strong>Auto-rol al entrar</strong> (verificacion captcha contra bots)</li>
@@ -453,46 +486,46 @@
 <blockquote>
 <p>El error que mata el 80% de los servidores: abrir sin reglas claras y empezar a banear gente despues. Genera resentimiento y mata el crecimiento organico.</p>
 </blockquote>
-<h2>Paso 3: Los primeros 100 miembros (cero presupuesto)</h2>
+<h2 id="paso-3-los-primeros-100-miembros-cero-presupuesto">Paso 3: Los primeros 100 miembros (cero presupuesto)</h2>
 <p>Estos 100 son los mas dificiles. Sin ellos, nadie quiere entrar. Cinco tacticas que funcionan:</p>
-<h3>1. Convoca a tu red personal</h3>
+<h3 id="1-convoca-a-tu-red-personal">1. Convoca a tu red personal</h3>
 <p>20-30 personas de tu red profesional/personal que coincidan con el nicho. No mandes invitaciones genericas: explica que has creado un espacio especifico y que su perspectiva ayuda. La mayoria entra por respeto y se queda si el contenido vale.</p>
-<h3>2. Cross-posting en comunidades existentes</h3>
+<h3 id="2-cross-posting-en-comunidades-existentes">2. Cross-posting en comunidades existentes</h3>
 <p>Identifica 5-10 servidores grandes del mismo nicho (sin competir directamente) y pide al admin si puedes hacer un anuncio en su #autopromocion. La mitad acepta sin pedir nada a cambio si el contenido es de calidad.</p>
-<h3>3. Reddit en subreddits verticales</h3>
+<h3 id="3-reddit-en-subreddits-verticales">3. Reddit en subreddits verticales</h3>
 <p>Un post de calidad en r/[tu nicho] explicando que ofrece el servidor. No spammees. Aporta valor primero, menciona el server al final. r/discordservers tambien funciona pero la calidad de trafico es baja.</p>
-<h3>4. Twitter/X con threads</h3>
+<h3 id="4-twitterx-con-threads">4. Twitter/X con threads</h3>
 <p>Threads tecnicos en tu nicho cerrando con &quot;lo profundizo en mi servidor de Discord [enlace]&quot;. Funciona muy bien si tu cuenta tiene 1.000+ followers en el nicho.</p>
-<h3>5. Colaboraciones cruzadas</h3>
+<h3 id="5-colaboraciones-cruzadas">5. Colaboraciones cruzadas</h3>
 <p>Identifica creadores con cuentas similares a la tuya y propon eventos conjuntos: AMAs, debates, study sessions. El otro creador gana contenido, tu ganas exposicion.</p>
-<h2>Paso 4: De 100 a 1.000 (donde se monetiza)</h2>
+<h2 id="paso-4-de-100-a-1000-donde-se-monetiza">Paso 4: De 100 a 1.000 (donde se monetiza)</h2>
 <p>Con 100 miembros validas el concepto. Con 1.000 ya puedes monetizar. La diferencia entre uno y otro es <strong>publicar contenido de forma consistente</strong> durante 3-6 meses.</p>
-<h3>Calendario minimo de contenido</h3>
+<h3 id="calendario-minimo-de-contenido">Calendario minimo de contenido</h3>
 <ul>
 <li><strong>Diario</strong>: noticia, recurso o pregunta del dia (15 min de trabajo)</li>
 <li><strong>Semanal</strong>: thread profundo o resumen (2h de trabajo)</li>
 <li><strong>Mensual</strong>: evento de voz, AMA o sesion en directo (3-4h de trabajo)</li>
 </ul>
-<h3>Senales de que estas listo para monetizar</h3>
+<h3 id="senales-de-que-estas-listo-para-monetizar">Senales de que estas listo para monetizar</h3>
 <ul>
 <li>500+ miembros activos (no totales: activos = han hablado en los ultimos 30 dias)</li>
 <li>15%+ de DAU sobre miembros totales</li>
 <li>3 meses de publicacion consistente</li>
 <li>Comunidad que conversa sola sin moderacion intensiva</li>
 </ul>
-<h2>Paso 5: Como cobrar publicidad en tu servidor</h2>
+<h2 id="paso-5-como-cobrar-publicidad-en-tu-servidor">Paso 5: Como cobrar publicidad en tu servidor</h2>
 <p>Discord acepta cinco formatos principales de patrocinio:</p>
-<h3>1. Post en canal de #anuncios</h3>
+<h3 id="1-post-en-canal-de-anuncios">1. Post en canal de #anuncios</h3>
 <p>Mensaje fijado durante 24-72h. Es el formato mas vendible: precio entre 30 y 200 EUR segun tamano y nicho.</p>
-<h3>2. Rol patrocinador</h3>
+<h3 id="2-rol-patrocinador">2. Rol patrocinador</h3>
 <p>La marca aparece con un rol coloreado, acceso a un canal exclusivo y mencion en bienvenidas durante 1-3 meses. Precio: 200-800 EUR/mes.</p>
-<h3>3. Evento patrocinado</h3>
+<h3 id="3-evento-patrocinado">3. Evento patrocinado</h3>
 <p>Una sesion de voz con la marca presentando producto, AMA o talleres. Es el formato con mayor conversion para el anunciante: 150-500 EUR por evento.</p>
-<h3>4. Bot personalizado</h3>
+<h3 id="4-bot-personalizado">4. Bot personalizado</h3>
 <p>Una marca patrocina un bot que aporta valor real (calculadora, alertas, dashboards). Patrocinio mensual recurrente de 300-1.000 EUR.</p>
-<h3>5. Programa de afiliados nativo</h3>
+<h3 id="5-programa-de-afiliados-nativo">5. Programa de afiliados nativo</h3>
 <p>Comision por venta sin coste fijo para la marca. Bueno para empezar antes de tener trafico para vender patrocinios fijos.</p>
-<h3>Formula de precios</h3>
+<h3 id="formula-de-precios">Formula de precios</h3>
 <pre><code>Precio post = (Miembros activos x CPM del nicho) / 1.000
 
 Ejemplo: 5.000 miembros activos en nicho de marketing
@@ -501,39 +534,39 @@ Precio post fijado 48h = 25 EUR x 2 = 50 EUR
 Precio evento patrocinado = 25 EUR x 6 = 150 EUR
 </code></pre>
 <p>Para ver la formula aplicada en otros canales, mira la <a href="/blog/calculadora-precios-publicidad">calculadora interactiva de precios</a>.</p>
-<h2>Paso 6: Conseguir el primer anunciante</h2>
+<h2 id="paso-6-conseguir-el-primer-anunciante">Paso 6: Conseguir el primer anunciante</h2>
 <p>Cuatro vias en orden de dificultad:</p>
-<h3>Via 1: Outreach a marcas activas en tu nicho</h3>
+<h3 id="via-1-outreach-a-marcas-activas-en-tu-nicho">Via 1: Outreach a marcas activas en tu nicho</h3>
 <p>Identifica 20 marcas que ya se anuncian en Twitch, YouTube o Telegram del mismo tema. Mandales un media kit personalizado. Tasa de respuesta: 5-10%, conversion: 1-3%. Lento pero gratis.</p>
-<h3>Via 2: Programas de afiliados</h3>
+<h3 id="via-2-programas-de-afiliados">Via 2: Programas de afiliados</h3>
 <p>Apuntate a 5-10 programas de afiliados de marcas relevantes. Empiezas a generar ingresos hoy mismo sin necesidad de vender patrocinios fijos. Es el complemento perfecto al outreach.</p>
-<h3>Via 3: Marketplaces especializados</h3>
+<h3 id="via-3-marketplaces-especializados">Via 3: Marketplaces especializados</h3>
 <p>Plataformas como <a href="/">Channelad</a> listan servidores y conectan con anunciantes verificados. Pago via escrow, metricas auditadas y zero outreach manual. Es lo que recomiendo para creadores que no quieren pasar 10h/semana negociando.</p>
-<h3>Via 4: Newsletter de marcas patrocinadoras</h3>
+<h3 id="via-4-newsletter-de-marcas-patrocinadoras">Via 4: Newsletter de marcas patrocinadoras</h3>
 <p>Una vez tienes 3-5 clientes, crea un mailing trimestral con sponsorship opportunities. Los anunciantes recurrentes se autogestionan.</p>
-<h2>Los 5 errores que matan la monetizacion</h2>
-<h3>1. Saltar a vender publicidad antes de tiempo</h3>
+<h2 id="los-5-errores-que-matan-la-monetizacion">Los 5 errores que matan la monetizacion</h2>
+<h3 id="1-saltar-a-vender-publicidad-antes-de-tiempo">1. Saltar a vender publicidad antes de tiempo</h3>
 <p>Con 200 miembros mediocres, vender un patrocinio quema tu credibilidad y el anunciante no repite. Espera a tener metricas reales y comunidad activa.</p>
-<h3>2. Aceptar marcas que no encajan con la audiencia</h3>
+<h3 id="2-aceptar-marcas-que-no-encajan-con-la-audiencia">2. Aceptar marcas que no encajan con la audiencia</h3>
 <p>Una marca de cripto en un servidor de fotografia. Aunque pague el doble, destruye la confianza de los miembros y los pierdes para siempre.</p>
-<h3>3. Sobrecargar el servidor de anuncios</h3>
+<h3 id="3-sobrecargar-el-servidor-de-anuncios">3. Sobrecargar el servidor de anuncios</h3>
 <p>Una regla simple: maximo 1 patrocinio cada 7-10 posts organicos. Mas que eso y la comunidad se va.</p>
-<h3>4. No tener media kit profesional</h3>
+<h3 id="4-no-tener-media-kit-profesional">4. No tener media kit profesional</h3>
 <p>Las marcas serias piden un documento con metricas, demografia y formatos. Sin el, no te toman en serio. Mira la <a href="/blog/media-kit-servidor-discord">guia de media kit para servidores de Discord</a> para crearlo bien.</p>
-<h3>5. Cobrar por adelantado sin escrow</h3>
+<h3 id="5-cobrar-por-adelantado-sin-escrow">5. Cobrar por adelantado sin escrow</h3>
 <p>Si una marca no acepta pagar mediante escrow, probablemente no va a pagar. Usa siempre <a href="/blog/escrow-publicidad-digital">pago custodiado</a> o marketplaces que lo incluyan por defecto.</p>
-<h2>Preguntas frecuentes</h2>
-<h3>¿Cuántos miembros necesito para empezar a monetizar un servidor de Discord?</h3>
+<h2 id="preguntas-frecuentes">Preguntas frecuentes</h2>
+<h3 id="cuántos-miembros-necesito-para-empezar-a-monetizar-un-servidor-de-discord">¿Cuántos miembros necesito para empezar a monetizar un servidor de Discord?</h3>
 <p>Puedes empezar a vender publicidad desde 500 miembros activos. El punto optimo es a partir de 2.000 miembros, donde las marcas pagan tarifas competitivas. Activos significa que han hablado en los ultimos 30 dias, no miembros totales.</p>
-<h3>¿Cuánto se puede ganar al mes con un servidor de Discord en 2026?</h3>
+<h3 id="cuánto-se-puede-ganar-al-mes-con-un-servidor-de-discord-en-2026">¿Cuánto se puede ganar al mes con un servidor de Discord en 2026?</h3>
 <p>Servidores de 2.000-5.000 miembros activos generan 100-400 EUR/mes. Los de 5.000-15.000 miembros activos suelen estar entre 300 y 1.200 EUR/mes. En nichos premium (cripto, marketing, finanzas) un servidor de 20.000+ puede superar los 3.000 EUR/mes combinando patrocinios y afiliados.</p>
-<h3>¿Es legal monetizar un servidor de Discord en España?</h3>
+<h3 id="es-legal-monetizar-un-servidor-de-discord-en-españa">¿Es legal monetizar un servidor de Discord en España?</h3>
 <p>Si. Discord permite la monetizacion siempre que cumplas los terminos de servicio (sin contenido prohibido) y que declares los ingresos en Hacienda. Si monetizas de forma regular, necesitas alta en Hacienda (modelo 036/037).</p>
-<h3>¿Discord paga directamente a los creadores?</h3>
+<h3 id="discord-paga-directamente-a-los-creadores">¿Discord paga directamente a los creadores?</h3>
 <p>Discord tiene roles premium (&quot;Server Subscriptions&quot;) donde los miembros pagan al creador y Discord se queda un 10%. Pero la mayoria de ingresos aun viene de patrocinios directos a marcas, no de Discord como plataforma.</p>
-<h3>¿Cuánto tiempo se tarda en llegar a 1.000 miembros?</h3>
+<h3 id="cuánto-tiempo-se-tarda-en-llegar-a-1000-miembros">¿Cuánto tiempo se tarda en llegar a 1.000 miembros?</h3>
 <p>Con publicacion consistente y estrategia activa de crecimiento, entre 3 y 6 meses. Sin estrategia, puede tardar 12 meses o mas. Los servidores que llegan a 1.000 en menos de 3 meses suelen tener un creador con audiencia previa en YouTube, Twitch o Twitter.</p>
-<h2>Conclusion</h2>
+<h2 id="conclusion">Conclusion</h2>
 <p>Crear un servidor de Discord rentable en 2026 es mas accesible que crear un canal de YouTube y mas rentable por miembro que cualquier otra plataforma de mensajeria. La clave es eleccion correcta de nicho, estructura desde el primer dia, contenido consistente y paciencia en los primeros 6 meses.</p>
 <p>Si tu servidor ya tiene 500+ miembros activos y quieres conseguir tu primer anunciante sin pasar semanas haciendo outreach, <a href="/">publica tu servidor en Channelad</a>. Las marcas te encontraran ellas, con pago via escrow y tarifas que tu fijas. Gratis para creadores.</p>
 

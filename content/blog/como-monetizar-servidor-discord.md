@@ -18,6 +18,8 @@ Discord es la plataforma de comunidades con el engagement mas profundo. Los miem
 
 ## Las 5 formas de monetizar un servidor de Discord
 
+![Las cinco formas de monetizar un servidor de Discord con su rango de ingresos: posts patrocinados 30-600 euros al mes, roles premium 25-800 euros al mes, eventos patrocinados 100-300 euros por evento, afiliados y Discord-as-a-service 500-2.000 euros al mes](/blog/img/diagrams/monetizar-discord-metodos.svg)
+
 ### 1. Publicaciones patrocinadas de marcas
 
 Una marca te paga por publicar un mensaje en tu canal de anuncios. El formato ideal: embed de Discord con imagen, descripcion y enlace. Los miembros lo ven como contenido relevante si la marca encaja con la tematica.
@@ -69,6 +71,27 @@ Crear y gestionar servidores de Discord para marcas. Fees de 500 a 2.000 EUR/mes
 La clave fue profesionalizar la gestion y registrar el servidor en [Channelad](https://channelad.io/para-canales) para recibir propuestas con pago garantizado.
 
 Para la guia de publicidad en Discord desde la perspectiva del anunciante, lee la [guia de publicidad en Discord](https://channelad.io/blog/publicidad-en-discord-guia-completa).
+
+## Cómo empezar a monetizar tu servidor paso a paso
+
+Si todavía no ganas nada con tu servidor, este es el orden que yo seguiría hoy para llegar a tus primeros ingresos sin quemar a tu comunidad:
+
+1. **Define tu nicho y mídelo.** Antes de vender nada necesitas saber qué tienes. Activa las estadísticas del servidor y anota tres números: miembros totales, miembros activos al día y mensajes diarios. Son los datos que cualquier marca te va a pedir, igual que un anunciante pide capturas a un canal de Telegram.
+2. **Crea un canal de anuncios separado.** Reserva un único canal `#colaboraciones` o `#partners` para el contenido patrocinado. Mezclar anuncios con la conversación normal es la forma más rápida de perder confianza.
+3. **Monta un media kit sencillo.** Una página con tus métricas, tu temática, tus formatos disponibles y tus precios. No hace falta nada sofisticado: con tener tarifas escritas ya proyectas profesionalidad y evitas que te regateen.
+4. **Pon precio con una fórmula, no a ojo.** Para los posts patrocinados funciona la misma lógica de CPM que en Telegram. Si quieres la fórmula exacta y los rangos por nicho, te servirá la guía de [cuánto cobrar por publicidad en Discord](/blog/cuanto-cobrar-publicidad-discord).
+5. **Cobra siempre con pago protegido.** Cuando empieces a recibir propuestas de marcas que no conoces, no aceptes transferencias a ciegas. Trabaja con pago garantizado para no exponerte a impagos.
+
+Una vez tengas estos cinco pilares, la diferencia entre ganar 50 € y 500 € al mes está casi siempre en la constancia y en cómo cuidas el engagement, no en el tamaño bruto del servidor.
+
+## Errores comunes que frenan la monetización
+
+- **Saturar de anuncios.** Más de un post patrocinado por semana en un servidor pequeño dispara las bajas. La publicidad tiene que sentirse como una recomendación, no como spam.
+- **No filtrar a los anunciantes.** Aceptar cualquier marca daña tu reputación. Rechaza lo que no encaje con tu comunidad aunque pague bien.
+- **Regalar el acceso premium.** Si das gratis lo que podrías cobrar, nunca habrá razón para suscribirse. Reserva canales y ventajas reales para los roles de pago.
+- **Depender de una sola fuente.** Lo sano es combinar dos o tres vías (por ejemplo posts patrocinados + roles premium), como en el caso real de arriba.
+
+Discord no es la única plataforma donde aplica esta lógica. Si quieres ver cómo se compara con Telegram y WhatsApp para captar ingresos, lee la [comparativa de publicidad entre Telegram, WhatsApp y Discord](/blog/telegram-vs-whatsapp-vs-discord-publicidad), y si vendes a marcas, la guía de [publicidad en Discord para marcas](/blog/publicidad-discord-marcas).
 
 ---
 

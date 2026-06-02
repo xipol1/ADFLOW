@@ -17,7 +17,7 @@
   <meta property="og:url" content="https://channelad.io/blog/negociar-publicidad-telegram">
   <meta property="og:site_name" content="Channelad">
   <meta property="og:locale" content="es_ES">
-  <meta property="og:image" content="https://channelad.io/og-default.png">
+  <meta property="og:image" content="https://channelad.io/blog/img/negociar-publicidad-telegram.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="article:published_time" content="2026-04-18">
@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Negociar publicidad en Telegram 2026: scripts y precios">
   <meta name="twitter:description" content="Scripts reales para negociar publicidad en tu canal de Telegram. Cómo responder a 6 objeciones, condiciones que incluir y cuándo decir no.">
-  <meta name="twitter:image" content="https://channelad.io/og-default.png">
+  <meta name="twitter:image" content="https://channelad.io/blog/img/negociar-publicidad-telegram.png">
 
   <!-- Schema.org -->
   <script type="application/ld+json">
@@ -40,10 +40,10 @@
     "author": { "@type": "Person", "name": "Rafa Ferrer", "jobTitle": "CEO", "worksFor": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io" } },
     "publisher": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io", "logo": { "@type": "ImageObject", "url": "https://channelad.io/logo.svg" } },
     "mainEntityOfPage": "https://channelad.io/blog/negociar-publicidad-telegram",
-    "image": "https://channelad.io/og-default.png",
+    "image": "https://channelad.io/blog/img/negociar-publicidad-telegram.png",
     "inLanguage": "es",
     "articleSection": "Monetizacion",
-    "wordCount": 1835,
+    "wordCount": 1878,
     "keywords": "negociar publicidad telegram, como negociar canal telegram, scripts negociacion patrocinios, objeciones publicidad telegram, cerrar deals telegram canal"
   }
   </script>
@@ -218,6 +218,11 @@
     .copied-toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1D1D1F; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 1001; }
     .copied-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* ─── Article Hero (branded cover, generated per-post) ─── */
+    .article-hero { max-width: 720px; margin: 24px auto 0; padding: 0 24px; }
+    .article-hero img { width: 100%; height: auto; border-radius: 16px; display: block; box-shadow: 0 6px 28px rgba(0,0,0,0.08); }
+    figure.article-hero { margin-left: auto; margin-right: auto; }
+
     /* ─── Article Content ─── */
     .article-content { max-width: 720px; margin: 0 auto; padding: 32px 24px 0; }
     /* Drop cap — NYT aligned */
@@ -254,6 +259,17 @@
     .article-content tbody td { padding: 13px 20px; color: #1D1D1F; line-height: 1.5; border-bottom: 1px solid #f0f0f5; }
     .article-content tbody td:first-child { font-weight: 500; }
     .article-content tbody tr:last-child td { border-bottom: none; }
+
+    /* ─── Auto-generated Table of Contents (injected after the intro) ─── */
+    .article-content nav.post-toc { margin: 36px 0; padding: 22px 26px; background: #fff; border: 1px solid rgba(0,0,0,0.07); border-left: 3px solid #7C3AED; border-radius: 12px; }
+    .article-content nav.post-toc .post-toc-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px; color: #7C3AED; margin-bottom: 14px; }
+    .article-content nav.post-toc ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; }
+    .article-content nav.post-toc ol li { line-height: 1.45; font-size: 14.5px; color: #1D1D1F; }
+    .article-content nav.post-toc ol li::before { content: none; }
+    .article-content nav.post-toc a { color: #1D1D1F; text-decoration: none; }
+    .article-content nav.post-toc a:hover { color: #7C3AED; text-decoration: underline; }
+    /* Smooth-scroll target offset so sticky nav doesn't cover the heading */
+    .article-content h2[id], .article-content h3[id] { scroll-margin-top: 80px; }
 
     /* ─── Author Box (NYT-style) ─── */
     .author-box { max-width: 720px; margin: 48px auto 0; padding: 32px 24px; border-top: 1px solid rgba(0,0,0,0.06); display: flex; gap: 20px; align-items: flex-start; }
@@ -358,10 +374,12 @@
   </div>
   <div class="copied-toast" id="copiedToast">Enlace copiado</div>
 
+  <figure class="article-hero"><img src="/blog/img/negociar-publicidad-telegram.svg" alt="Negociar publicidad en Telegram 2026: scripts y precios" width="1200" height="630"></figure>
+
   <article class="article-content">
     <p>Negociar publicidad en Telegram es un arte que nadie te enseña. Ni los cursos de marketing, ni los bootcamps de creadores. Aprendes a base de cerrar deals flojos y darte cuenta tarde de que dejaste 30% sobre la mesa. He visto creadores con canales idénticos cobrar 2.000 EUR o 4.500 EUR al mes por el mismo trabajo. La única diferencia es cómo negocian.</p>
 <p>Esta guía recoge los patrones que funcionan: cómo abrir una negociación, cómo responder a los intentos de bajada de precio más comunes, qué condiciones siempre incluir (incluso si el anunciante no las pide) y cómo decir no sin quemar el contacto. Con los scripts tal cual usados en cientos de negociaciones reales.</p>
-<h2>Índice de contenidos</h2>
+<h2 id="índice-de-contenidos">Índice de contenidos</h2>
 <ul>
 <li><a href="#la-regla-que-cambia-todo-quien-da-el-primer-precio-pierde">La regla que cambia todo: quien da el primer precio, pierde</a></li>
 <li><a href="#las-7-preguntas-que-siempre-debes-hacer-antes-de-dar-precio">Las 7 preguntas que siempre debes hacer antes de dar precio</a></li>
@@ -371,7 +389,7 @@
 <li><a href="#cuando-decir-no-sin-quemar-el-contacto">Cuándo decir no sin quemar el contacto</a></li>
 <li><a href="#como-channelad-cambia-la-negociacion">Cómo Channelad cambia la negociación</a></li>
 </ul>
-<h2>La regla que cambia todo: quien da el primer precio, pierde</h2>
+<h2 id="la-regla-que-cambia-todo-quien-da-el-primer-precio-pierde">La regla que cambia todo: quien da el primer precio, pierde</h2>
 <p>Si un anunciante te escribe y te pregunta &quot;cuánto cuesta un post en tu canal&quot;, <strong>no respondas con el precio</strong>. Responde con una pregunta. ¿Por qué? Porque el primer número fija el rango. Si tu tarifa es 80 EUR pero el anunciante tenía presupuesto de 250 EUR, al dar tu precio primero le has regalado 170 EUR.</p>
 <blockquote>
 <p>Anunciante: &quot;Hola, me interesa publicidad en tu canal. ¿Cuánto cobras por un post?&quot;</p>
@@ -379,7 +397,7 @@
 <p>Creador (bien): &quot;¡Hola! Cuéntame primero sobre vuestra campaña: qué producto, qué objetivo, cuántos posts estáis valorando y para qué fechas. Con eso te mando una propuesta personalizada con formatos y precios.&quot;</p>
 </blockquote>
 <p>Al forzarle a hablar primero descubres tres cosas clave: <strong>presupuesto implícito</strong> (un anunciante que pregunta por 10 posts tiene un presupuesto muy distinto del que pregunta por 1), <strong>valor real para él</strong> (cuanto más específica sea la campaña, más valor tiene acceder a tu audiencia) y <strong>urgencia</strong> (un anunciante con fecha fija está dispuesto a pagar más).</p>
-<h2>Las 7 preguntas que siempre debes hacer antes de dar precio</h2>
+<h2 id="las-7-preguntas-que-siempre-debes-hacer-antes-de-dar-precio">Las 7 preguntas que siempre debes hacer antes de dar precio</h2>
 <ol>
 <li>¿Qué producto o servicio es el objeto de la campaña?</li>
 <li>¿Cuántos posts estáis valorando (1 suelto, campaña de 4, acuerdo mensual)?</li>
@@ -390,40 +408,40 @@
 <li>¿Qué tipo de resultados buscáis (visibilidad, clicks, ventas)?</li>
 </ol>
 <p>Con las respuestas a estas 7 preguntas sabes: <strong>cuánto vale tu canal para este anunciante en particular, cuánto puede pagar y cuánto debes cobrar</strong>. Y la propuesta que envías es específica para ellos, no una tarifa genérica.</p>
-<h2>La estructura de una propuesta que cierra deals</h2>
+<h2 id="la-estructura-de-una-propuesta-que-cierra-deals">La estructura de una propuesta que cierra deals</h2>
 <p>Una propuesta efectiva tiene 5 partes y no pasa de una pantalla:</p>
-<h3>1. Resumen del canal (2 líneas)</h3>
+<h3 id="1-resumen-del-canal-2-líneas">1. Resumen del canal (2 líneas)</h3>
 <blockquote>
 <p>&quot;Canal de finanzas personales para millennials españoles. 8.200 suscriptores activos. Tasa de apertura del 55% y engagement del 12%. Publicamos 2 posts diarios.&quot;</p>
 </blockquote>
-<h3>2. Propuesta específica para su campaña</h3>
+<h3 id="2-propuesta-específica-para-su-campaña">2. Propuesta específica para su campaña</h3>
 <p>No tarifas genéricas. Algo tipo: &quot;Para vuestra campaña de [producto] os recomiendo 3 posts escalonados durante 2 semanas: post inicial de presentación, seguimiento con encuesta, cierre con caso de uso. Total: 280 EUR (IVA no incluido).&quot;</p>
-<h3>3. Fechas y condiciones</h3>
+<h3 id="3-fechas-y-condiciones">3. Fechas y condiciones</h3>
 <blockquote>
 <p>&quot;Disponibilidad: semanas del 5 y 19 de mayo. Contenido: podéis enviar creativos o los escribo yo con guidelines vuestras (sin coste extra). Reserva con 50% por adelantado. Resto tras la última publicación.&quot;</p>
 </blockquote>
-<h3>4. Pruebas sociales</h3>
+<h3 id="4-pruebas-sociales">4. Pruebas sociales</h3>
 <blockquote>
 <p>&quot;Campañas recientes en el canal: [enlace a caso 1], [enlace a caso 2]. Tasas de conversión típicas: 4-7% de clicks sobre audiencia total.&quot;</p>
 </blockquote>
-<h3>5. Siguiente paso claro</h3>
+<h3 id="5-siguiente-paso-claro">5. Siguiente paso claro</h3>
 <blockquote>
 <p>&quot;Si os interesa, respondedme con las fechas que preferís y os mando el briefing y la factura proforma. Si necesitáis otro formato, os preparo una alternativa en menos de 24h.&quot;</p>
 </blockquote>
-<h2>Las 6 objeciones más comunes y cómo responder</h2>
-<h3>&quot;Tenemos un presupuesto ajustado&quot;</h3>
+<h2 id="las-6-objeciones-más-comunes-y-cómo-responder">Las 6 objeciones más comunes y cómo responder</h2>
+<h3 id="quottenemos-un-presupuesto-ajustadoquot">&quot;Tenemos un presupuesto ajustado&quot;</h3>
 <p><strong>Respuesta:</strong> &quot;Perfecto, cuéntame cuál es el techo y te propongo un formato que encaje.&quot; Esto hace dos cosas: el anunciante revela su presupuesto real, y tú controlas el formato (puedes ofrecer 1 post estándar en vez de 1 fijado, no baja la tarifa por post).</p>
-<h3>&quot;El canal X cobra la mitad&quot;</h3>
+<h3 id="quotel-canal-x-cobra-la-mitadquot">&quot;El canal X cobra la mitad&quot;</h3>
 <p><strong>Respuesta:</strong> &quot;Tiene sentido comparar, pero los datos tienen que ser equivalentes. Nuestro canal tiene X suscriptores activos (no totales), 55% tasa de apertura y 12% engagement. Si el canal X tiene métricas iguales o superiores, probablemente tenga sentido ir con ellos.&quot; Esto fuerza a comparar sobre datos reales, no impresiones. La mayoría de veces el otro canal es peor y el anunciante lo descubre.</p>
-<h3>&quot;A cambio os daremos visibilidad en nuestras redes&quot;</h3>
+<h3 id="quota-cambio-os-daremos-visibilidad-en-nuestras-redesquot">&quot;A cambio os daremos visibilidad en nuestras redes&quot;</h3>
 <p><strong>Respuesta:</strong> &quot;La visibilidad no paga el alquiler. Si vuestras redes tienen audiencia relevante para mí, estudio un intercambio parcial: 40% pago en euros, 60% en contra-promoción. Pero la parte en dinero no puedo quitarla.&quot; El barter total solo tiene sentido si la marca es mucho más grande que tu canal. En ese caso, igual te conviene.</p>
-<h3>&quot;Si funciona esta, haremos muchas más&quot;</h3>
+<h3 id="quotsi-funciona-esta-haremos-muchas-másquot">&quot;Si funciona esta, haremos muchas más&quot;</h3>
 <p><strong>Respuesta:</strong> &quot;Me encantaría. Para asegurarnos de empezar bien, esta primera campaña va con tarifa estándar. Si decidís continuar, a partir de la tercera aplico descuento por volumen del 15-20%.&quot; Nunca bajes la primera para una promesa. Si la campaña va bien, ellos volverán a precio completo.</p>
-<h3>&quot;Queremos pagar a 60/90 días tras la publicación&quot;</h3>
+<h3 id="quotqueremos-pagar-a-6090-días-tras-la-publicaciónquot">&quot;Queremos pagar a 60/90 días tras la publicación&quot;</h3>
 <p><strong>Respuesta:</strong> &quot;Nuestro proceso es 50% al reservar, 50% al publicar. Si preferís pagar a plazos, podemos usar un escrow protegido: vosotros depositáis, se libera a mi cuenta el mismo día de publicar. Así tampoco asumís riesgo de incumplimiento.&quot; Las marcas serias lo aceptan. Las que no, probablemente no te iban a pagar. El <a href="/blog/escrow-publicidad-digital">escrow</a> resuelve esto de un plumazo.</p>
-<h3>&quot;Necesitamos exclusividad en la categoría durante X meses&quot;</h3>
+<h3 id="quotnecesitamos-exclusividad-en-la-categoría-durante-x-mesesquot">&quot;Necesitamos exclusividad en la categoría durante X meses&quot;</h3>
 <p><strong>Respuesta:</strong> &quot;La exclusividad tiene coste. 1 mes de exclusividad en la categoría = 30% sobre el precio de la campaña. 3 meses = 60%. Así que si queréis exclusividad, os paso tarifa ajustada.&quot; Nunca regales la exclusividad gratis. Supone perder deals paralelos reales, así que hay que cobrarlo.</p>
-<h2>Condiciones que siempre debes incluir (aunque no las pidan)</h2>
+<h2 id="condiciones-que-siempre-debes-incluir-aunque-no-las-pidan">Condiciones que siempre debes incluir (aunque no las pidan)</h2>
 <ul>
 <li><strong>Pago 50% por adelantado:</strong> tú protegido, el anunciante muestra compromiso real. Si no paga el 50%, no va a pagar el 100%.</li>
 <li><strong>Aprobación de contenido por ambas partes:</strong> te reservas el derecho de rechazar si el contenido daña tu marca. Esto protege tu canal a largo plazo.</li>
@@ -431,21 +449,21 @@
 <li><strong>Métricas finales en 48h:</strong> te comprometes a enviar vistas, engagement y clicks tras la publicación. Transparencia total.</li>
 <li><strong>Cláusula de republicación:</strong> si el post falla por algo técnico de tu lado (lo borras, el canal se cae), republicas sin coste.</li>
 </ul>
-<h2>Cuándo decir no sin quemar el contacto</h2>
+<h2 id="cuándo-decir-no-sin-quemar-el-contacto">Cuándo decir no sin quemar el contacto</h2>
 <p>Hay deals que no merecen la pena aunque paguen. Decir no es una habilidad. Tres escenarios donde debes rechazar incluso si el dinero está encima de la mesa:</p>
-<h3>1. Producto que daña tu credibilidad</h3>
+<h3 id="1-producto-que-daña-tu-credibilidad">1. Producto que daña tu credibilidad</h3>
 <p>Si tu canal es de finanzas y te ofrecen publicitar un esquema piramidal, no. Aunque paguen el triple. Un mal patrocinio puede hundir 2 años de trabajo en una semana.</p>
 <blockquote>
 <p>&quot;Gracias por la propuesta. En este caso no podemos colaborar porque [motivo específico: no comparte valores del canal / no tengo conocimiento del producto para recomendarlo / genera conflicto con otros anunciantes]. Si tenéis otro producto en vuestro catálogo que encaje mejor, encantado.&quot;</p>
 </blockquote>
-<h3>2. Presupuesto que no cubre tu tarifa mínima</h3>
+<h3 id="2-presupuesto-que-no-cubre-tu-tarifa-mínima">2. Presupuesto que no cubre tu tarifa mínima</h3>
 <p>Si el anunciante pide un post por 20 EUR y tu tarifa es 80 EUR, no lo hagas ni por favor. Decir sí a una tarifa baja te encasilla: el mismo anunciante volverá con &quot;la misma tarifa&quot; y otros canales compararán con ese precio.</p>
 <blockquote>
 <p>&quot;Gracias por pensar en nosotros. Nuestra tarifa mínima por post es de 80 EUR por el volumen y calidad de nuestra audiencia. Si en el futuro tenéis más presupuesto, encantado de colaborar.&quot;</p>
 </blockquote>
-<h3>3. Condiciones abusivas</h3>
+<h3 id="3-condiciones-abusivas">3. Condiciones abusivas</h3>
 <p>Pago a 90 días sin escrow, exclusividad gratis de 6 meses, derecho a usar tu nombre en otras campañas sin tu autorización. Son señales claras de que la marca va a explotarte. Mejor no entrar.</p>
-<h2>Cómo Channelad cambia la negociación</h2>
+<h2 id="cómo-channelad-cambia-la-negociación">Cómo Channelad cambia la negociación</h2>
 <p>La mayor parte de esta guía asume que negocias por DM con cada anunciante. Es agotador y lleno de fricción. Si publicas tu canal en <a href="/">Channelad</a>, cambian tres cosas:</p>
 <ul>
 <li><strong>Precio prefijado:</strong> publicas tarifas en el marketplace. Los anunciantes que contactan ya saben lo que cuestas. No hay &quot;el canal X cobra la mitad&quot;.</li>
@@ -453,19 +471,20 @@
 <li><strong>Historial público:</strong> cada campaña completada queda como review verificada. A la tercera campaña exitosa, los anunciantes te contactan con tarifa completa sin negociar.</li>
 </ul>
 <p>Si quieres complementar esta guía con cifras concretas, lee <a href="/blog/cuanto-cobrar-publicidad-telegram">cuánto cobrar por publicidad en Telegram</a> y la guía pilar de <a href="/blog/monetizar-canal-telegram-espana">monetizar canal Telegram en España</a>. Si te falta el media kit profesional para entrar a negociar, empieza por la <a href="/blog/media-kit-canal-telegram">guía de media kit</a>.</p>
-<h2>Preguntas frecuentes</h2>
-<h3>¿Quién debe dar el primer precio en una negociación de publicidad?</h3>
+<h2 id="preguntas-frecuentes">Preguntas frecuentes</h2>
+<h3 id="quién-debe-dar-el-primer-precio-en-una-negociación-de-publicidad">¿Quién debe dar el primer precio en una negociación de publicidad?</h3>
 <p>El anunciante. Si tú das el primer precio, fijas el techo de la negociación. Pide primero que te cuenten producto, volumen, fechas y objetivos antes de enviar una propuesta personalizada. Así descubres su presupuesto real.</p>
-<h3>¿Cómo respondo a &quot;el canal X cobra la mitad&quot;?</h3>
+<h3 id="cómo-respondo-a-quotel-canal-x-cobra-la-mitadquot">¿Cómo respondo a &quot;el canal X cobra la mitad&quot;?</h3>
 <p>Pide comparar datos equivalentes: suscriptores activos (no totales), tasa de apertura y engagement. La mayoría de veces el otro canal tiene métricas peores y el anunciante lo descubre al contrastar. Si los datos justifican un precio menor, tienes dos opciones: bajar o no hacer la campaña. Nunca bajes sin motivo.</p>
-<h3>¿Cómo gestiono el pago si el anunciante quiere 60-90 días?</h3>
+<h3 id="cómo-gestiono-el-pago-si-el-anunciante-quiere-60-90-días">¿Cómo gestiono el pago si el anunciante quiere 60-90 días?</h3>
 <p>Propón escrow: el anunciante deposita en una plataforma custodia y se libera al publicar. Así no asume riesgo pero tú cobras el mismo día. Las marcas serias aceptan. Las que no, probablemente no te iban a pagar.</p>
-<h3>¿Cuánto cobro por exclusividad de categoría?</h3>
+<h3 id="cuánto-cobro-por-exclusividad-de-categoría">¿Cuánto cobro por exclusividad de categoría?</h3>
 <p>La exclusividad tiene coste: 1 mes de exclusividad en la categoría = +30% sobre el precio de la campaña. 3 meses = +60%. Nunca regales la exclusividad gratis, supone perder deals paralelos reales.</p>
-<h3>¿Cuándo debo rechazar una campaña aunque paguen?</h3>
+<h3 id="cuándo-debo-rechazar-una-campaña-aunque-paguen">¿Cuándo debo rechazar una campaña aunque paguen?</h3>
 <p>En tres casos: (1) producto que daña tu credibilidad, (2) presupuesto por debajo de tu tarifa mínima (decir sí te encasilla), (3) condiciones abusivas como exclusividad gratuita de 6 meses o pago a 90 días sin escrow.</p>
-<h2>Conclusión</h2>
+<h2 id="conclusión">Conclusión</h2>
 <p>Negociar bien no es pelear por cada euro: es proteger el valor que aportas. Siete preguntas antes de dar precio, una propuesta específica, condiciones que siempre incluir, y saber cuándo decir no. Con esto doblas ingresos sin tener que doblar suscriptores.</p>
+<p>Antes de sentarte a negociar, ten claro tu precio de partida con la guía de <a href="/blog/cuanto-cobrar-publicidad-telegram">cuánto cobrar por publicidad en Telegram</a> y prepara un <a href="/blog/media-kit-canal-telegram">media kit para tu canal de Telegram</a>: llegar con datos y tarifas escritas es la mitad de la negociación.</p>
 <p>Si prefieres no negociar y que los anunciantes te encuentren con tarifas prefijadas y escrow automático, empieza en <a href="/">Channelad</a>. Menos fricción, más tiempo para crear contenido.</p>
 
   </article>

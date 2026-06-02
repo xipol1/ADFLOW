@@ -17,7 +17,7 @@
   <meta property="og:url" content="https://channelad.io/blog/whatsapp-business-vs-canal-whatsapp">
   <meta property="og:site_name" content="Channelad">
   <meta property="og:locale" content="es_ES">
-  <meta property="og:image" content="https://channelad.io/og-default.png">
+  <meta property="og:image" content="https://channelad.io/blog/img/whatsapp-business-vs-canal-whatsapp.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="article:published_time" content="2026-05-27">
@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="WhatsApp Business vs Canal de WhatsApp: cuál usar 2026">
   <meta name="twitter:description" content="WhatsApp Business app, API y Canales: qué hace cada uno, cuánto cuesta y cuál usar según tu tipo de marca. Comparativa funcional 2026.">
-  <meta name="twitter:image" content="https://channelad.io/og-default.png">
+  <meta name="twitter:image" content="https://channelad.io/blog/img/whatsapp-business-vs-canal-whatsapp.png">
 
   <!-- Schema.org -->
   <script type="application/ld+json">
@@ -40,7 +40,7 @@
     "author": { "@type": "Person", "name": "Rafa Ferrer", "jobTitle": "CEO", "worksFor": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io" } },
     "publisher": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io", "logo": { "@type": "ImageObject", "url": "https://channelad.io/logo.svg" } },
     "mainEntityOfPage": "https://channelad.io/blog/whatsapp-business-vs-canal-whatsapp",
-    "image": "https://channelad.io/og-default.png",
+    "image": "https://channelad.io/blog/img/whatsapp-business-vs-canal-whatsapp.png",
     "inLanguage": "es",
     "articleSection": "Comparativas",
     "wordCount": 2046,
@@ -158,6 +158,11 @@
     .copied-toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1D1D1F; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 1001; }
     .copied-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* ─── Article Hero (branded cover, generated per-post) ─── */
+    .article-hero { max-width: 720px; margin: 24px auto 0; padding: 0 24px; }
+    .article-hero img { width: 100%; height: auto; border-radius: 16px; display: block; box-shadow: 0 6px 28px rgba(0,0,0,0.08); }
+    figure.article-hero { margin-left: auto; margin-right: auto; }
+
     /* ─── Article Content ─── */
     .article-content { max-width: 720px; margin: 0 auto; padding: 32px 24px 0; }
     /* Drop cap — NYT aligned */
@@ -194,6 +199,17 @@
     .article-content tbody td { padding: 13px 20px; color: #1D1D1F; line-height: 1.5; border-bottom: 1px solid #f0f0f5; }
     .article-content tbody td:first-child { font-weight: 500; }
     .article-content tbody tr:last-child td { border-bottom: none; }
+
+    /* ─── Auto-generated Table of Contents (injected after the intro) ─── */
+    .article-content nav.post-toc { margin: 36px 0; padding: 22px 26px; background: #fff; border: 1px solid rgba(0,0,0,0.07); border-left: 3px solid #7C3AED; border-radius: 12px; }
+    .article-content nav.post-toc .post-toc-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px; color: #7C3AED; margin-bottom: 14px; }
+    .article-content nav.post-toc ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; }
+    .article-content nav.post-toc ol li { line-height: 1.45; font-size: 14.5px; color: #1D1D1F; }
+    .article-content nav.post-toc ol li::before { content: none; }
+    .article-content nav.post-toc a { color: #1D1D1F; text-decoration: none; }
+    .article-content nav.post-toc a:hover { color: #7C3AED; text-decoration: underline; }
+    /* Smooth-scroll target offset so sticky nav doesn't cover the heading */
+    .article-content h2[id], .article-content h3[id] { scroll-margin-top: 80px; }
 
     /* ─── Author Box (NYT-style) ─── */
     .author-box { max-width: 720px; margin: 48px auto 0; padding: 32px 24px; border-top: 1px solid rgba(0,0,0,0.06); display: flex; gap: 20px; align-items: flex-start; }
@@ -298,17 +314,33 @@
   </div>
   <div class="copied-toast" id="copiedToast">Enlace copiado</div>
 
+  <figure class="article-hero"><img src="/blog/img/whatsapp-business-vs-canal-whatsapp.svg" alt="WhatsApp Business vs Canal de WhatsApp: cuál usar 2026" width="1200" height="630"></figure>
+
   <article class="article-content">
     <p>La primera vez que un cliente me preguntó &quot;¿abrimos WhatsApp Business o un Canal de WhatsApp?&quot;, asumí que era la misma pregunta con dos nombres. No lo es. Son dos productos completamente distintos de Meta, con funciones, audiencias y modelos de coste que tienen muy poco en común, y elegir el equivocado te puede costar un trimestre de marketing sin resultados.</p>
+    <nav class="post-toc" aria-label="Contenido">
+      <div class="post-toc-title">Contenido</div>
+      <ol>
+        <li><a href="#qué-es-cada-uno">¿Qué es cada uno?</a></li>
+        <li><a href="#whatsapp-business-vs-api-vs-canal-tabla-comparativa">WhatsApp Business vs API vs Canal: tabla comparativa</a></li>
+        <li><a href="#cuándo-elegir-whatsapp-business-app">Cuándo elegir WhatsApp Business (app)</a></li>
+        <li><a href="#cuándo-elegir-whatsapp-business-api">Cuándo elegir WhatsApp Business API</a></li>
+        <li><a href="#cuándo-elegir-canal-de-whatsapp">Cuándo elegir Canal de WhatsApp</a></li>
+        <li><a href="#comisiones-y-precios-reales">Comisiones y precios reales</a></li>
+        <li><a href="#veredicto-uno-otro-o-los-tres">Veredicto: ¿uno, otro o los tres?</a></li>
+        <li><a href="#preguntas-frecuentes">Preguntas frecuentes</a></li>
+        <li><a href="#conclusión">Conclusión</a></li>
+      </ol>
+    </nav>
 <p>Llevo dos años trabajando con marcas que activan WhatsApp como canal de adquisición y retención, y el patrón se repite: equipos pequeños abren la API porque suena &quot;profesional&quot; y acaban pagando 400 EUR/mes en conversaciones que no necesitan, o marcas con base de 50.000 clientes se quedan en la app de Business porque &quot;ya la usan&quot; y se topan con el limite de 256 contactos por difusión. Esta comparativa funcional resuelve esa elección para 2026.</p>
-<h2>¿Qué es cada uno?</h2>
-<h3>WhatsApp Business (app)</h3>
+<h2 id="qué-es-cada-uno">¿Qué es cada uno?</h2>
+<h3 id="whatsapp-business-app">WhatsApp Business (app)</h3>
 <p>La aplicación gratuita para móvil dirigida a autónomos y pymes. Misma experiencia que WhatsApp personal pero con una capa de funcionalidades de negocio: perfil de empresa con horario, dirección y catálogo de productos, etiquetas para clasificar chats, respuestas rápidas guardadas, mensajes de bienvenida y ausencia automatizados, y listas de difusión de hasta 256 contactos. Toda la conversación sigue siendo 1:1 dentro del flujo nativo de WhatsApp.</p>
-<h3>WhatsApp Business API (Cloud API de Meta)</h3>
+<h3 id="whatsapp-business-api-cloud-api-de-meta">WhatsApp Business API (Cloud API de Meta)</h3>
 <p>La interfaz programática para empresas medianas y grandes que necesitan integrar WhatsApp con su CRM, helpdesk o plataforma de e-commerce. No tiene interfaz propia: se opera vía Cloud API directa o a través de un BSP (Business Solution Provider) como Twilio, MessageBird o 360dialog. Permite marketing automation, plantillas pre-aprobadas, OTPs transaccionales y conversaciones a escala. Meta cobra por conversación iniciada (modelo conversational pricing).</p>
-<h3>Canales de WhatsApp</h3>
+<h3 id="canales-de-whatsapp">Canales de WhatsApp</h3>
 <p>La función de broadcast unidireccional que Meta lanzó globalmente en septiembre 2023 y consolidó durante 2024. Funciona como un newsletter dentro de WhatsApp: una marca o creador publica mensajes y los suscriptores los reciben en la pestaña &quot;Novedades&quot;. No hay respuestas (solo reacciones con emoji), no hay límite de suscriptores y los nuevos seguidores te encuentran por categoría y región en el directorio de discovery. Open rates reportados por la industria entre el 80% y el 95%, muy por encima de cualquier canal owned tradicional.</p>
-<h2>WhatsApp Business vs API vs Canal: tabla comparativa</h2>
+<h2 id="whatsapp-business-vs-api-vs-canal-tabla-comparativa">WhatsApp Business vs API vs Canal: tabla comparativa</h2>
 <table>
 <thead>
 <tr>
@@ -391,23 +423,23 @@
 <td>Sí, formato dominante en 2026</td>
 </tr>
 </tbody></table>
-<h2>Cuándo elegir WhatsApp Business (app)</h2>
+<h2 id="cuándo-elegir-whatsapp-business-app">Cuándo elegir WhatsApp Business (app)</h2>
 <p>Tres escenarios claros donde la app gratuita es la respuesta correcta:</p>
 <p><strong>1. Negocio local con conversación directa.</strong> Restaurantes que toman reservas, talleres mecánicos que coordinan recogidas, estudios de yoga que confirman clases. El volumen de conversaciones está por debajo de 200 al día y todo lo gestiona una o dos personas desde el móvil. Pagar API aquí es como contratar un ERP para llevar una papelería.</p>
 <p><strong>2. Catálogo de productos pequeño con venta consultiva.</strong> Tiendas con 20-100 SKUs donde el cliente quiere preguntar antes de comprar. El catálogo nativo de Business sirve perfectamente como showroom y los pedidos se cierran en chat. Joyería artesanal, productos personalizados, servicios.</p>
 <p><strong>3. Equipo de menos de 5 personas.</strong> La app de Business permite conectar hasta 5 dispositivos al mismo número. Si el equipo entero cabe ahí, no hay motivo para escalar a API.</p>
-<h2>Cuándo elegir WhatsApp Business API</h2>
+<h2 id="cuándo-elegir-whatsapp-business-api">Cuándo elegir WhatsApp Business API</h2>
 <p>Cuatro escenarios donde la API justifica su coste y complejidad:</p>
 <p><strong>1. Base de clientes superior a 5.000 contactos activos.</strong> El límite de 256 por difusión de la app se queda corto y no escala. La API permite enviar plantillas a segmentos arbitrarios desde el CRM.</p>
 <p><strong>2. Necesidad de transactional messaging.</strong> OTPs de login, confirmaciones de pedido, notificaciones de envío, recordatorios de cita. Cualquier flujo automático que se dispara desde un sistema (Shopify, HubSpot, tu backend) y necesita llegar por WhatsApp en menos de un minuto.</p>
 <p><strong>3. Marketing automation a base propia.</strong> Recuperación de carritos abandonados, re-engagement de clientes dormidos, campañas segmentadas por comportamiento. Aquí la API es imbatible: las plantillas se aprueban una vez y se reutilizan a escala.</p>
 <p><strong>4. Servicio de atención multi-agente.</strong> Equipos de 10+ personas atendiendo el mismo número con asignación, escalado y reportes. La API conectada a un helpdesk (Intercom, Zendesk, Front) es la única vía real.</p>
-<h2>Cuándo elegir Canal de WhatsApp</h2>
+<h2 id="cuándo-elegir-canal-de-whatsapp">Cuándo elegir Canal de WhatsApp</h2>
 <p>Tres escenarios donde abrir un canal es la jugada correcta, y donde además hay un mercado publicitario emergente que merece la pena entender (<a href="/blog/publicidad-en-whatsapp-guia-completa">guía completa aquí</a>):</p>
 <p><strong>1. Marca con audiencia que ya te conoce.</strong> Si tienes una lista de email de 20.000+, una comunidad en Instagram o una base de clientes que aprecian tu marca, el canal funciona como newsletter premium: 80%+ open rate frente al 25% del email. Lanzamientos, drops, contenido exclusivo, anuncios corporativos.</p>
 <p><strong>2. Creador o medio con vocación broadcast.</strong> Periodistas independientes, analistas, equipos de contenido. El canal sustituye al newsletter tradicional con mejor entrega y discovery orgánico vía directorio. Algunos canales españoles superan ya los 200.000 suscriptores activos y monetizan vía publicidad directa.</p>
 <p><strong>3. Construcción de audiencia para monetización futura.</strong> Si tu modelo a medio plazo incluye vender publicidad, suscripciones o productos digitales, abrir canal ahora es construir un activo que en 2027 valdrá mucho más. La oferta publicitaria en canales es todavía baja y los CPMs son agresivos a favor del propietario del canal. Si quieres entender el potencial económico, <a href="/blog/como-monetizar-canal-whatsapp">aquí está el cálculo de monetización</a>.</p>
-<h2>Comisiones y precios reales</h2>
+<h2 id="comisiones-y-precios-reales">Comisiones y precios reales</h2>
 <p><strong>WhatsApp Business app.</strong> Gratuita. Sin coste por mensaje, sin coste por contacto. Meta no monetiza la app directamente.</p>
 <p><strong>WhatsApp Business API.</strong> Modelo de conversational pricing. Meta cobra por &quot;conversación&quot; (ventana de 24h iniciada por la empresa o por el usuario), no por mensaje individual. El precio depende del país y de la categoría:</p>
 <ul>
@@ -417,7 +449,7 @@
 </ul>
 <p>A esto se suma el fee del BSP si no usas Cloud API directa: Twilio, MessageBird y 360dialog cobran entre 0,005 y 0,02 EUR adicionales por mensaje, más una cuota mensual de 50-500 EUR según volumen. Una marca con 50.000 conversaciones de marketing al mes paga entre 2.500 y 7.500 EUR mensuales todo incluido.</p>
 <p><strong>Canales de WhatsApp.</strong> Gratis para abrir y operar. La monetización aparece por dos vías: programa de creadores que Meta probó en 2025 con bonificaciones por engagement (todavía no abierto globalmente en España) y publicidad directa de marcas en canales de terceros. Los CPMs medios en canales españoles en 2026 oscilan entre 4 y 14 EUR según tamaño y nicho, con posts patrocinados desde 30 EUR en canales pequeños hasta 800 EUR en canales de 50.000+ suscriptores. Si quieres dimensionar coste de campaña en frio, la <a href="/blog/calculadora-precios-publicidad">calculadora de precios</a> lo estima por tamaño y categoría.</p>
-<h2>Veredicto: ¿uno, otro o los tres?</h2>
+<h2 id="veredicto-uno-otro-o-los-tres">Veredicto: ¿uno, otro o los tres?</h2>
 <p>La pregunta correcta no es &quot;cuál usar&quot; sino &quot;para qué función uso cada uno&quot;. Las marcas que mejor exprimen WhatsApp en 2026 combinan los tres productos en capas distintas del funnel:</p>
 <ul>
 <li><strong>Canal de WhatsApp</strong> en la parte alta: captación y nurturing de audiencia opt-in. Cero coste, máximo alcance, contenido editorial y promociones genéricas.</li>
@@ -426,16 +458,16 @@
 </ul>
 <p>Un caso real plausible: una marca de moda DTC abre canal en abril para anunciar drops y filtra los suscriptores más activos a un programa &quot;VIP&quot; que se gestiona desde la API con plantillas segmentadas y recuperación de carrito. La app de Business no participa porque el equipo de atención ya está en Intercom integrado con la Cloud API.</p>
 <p><strong>Channelad opera específicamente en Canales de WhatsApp.</strong> No vendemos infraestructura de API ni plugins para la app de Business; lo nuestro es la capa publicitaria en canales de creadores y marcas con audiencia. Si tu marca quiere anunciarse en canales españoles auditados con pago via escrow, ese es nuestro terreno. Si lo que necesitas es montar tu propia infraestructura de API, el camino son los BSPs que mencionamos arriba.</p>
-<h2>Preguntas frecuentes</h2>
-<h3>¿Cuál es la diferencia entre WhatsApp Business y un Canal de WhatsApp?</h3>
+<h2 id="preguntas-frecuentes">Preguntas frecuentes</h2>
+<h3 id="cuál-es-la-diferencia-entre-whatsapp-business-y-un-canal-de-whatsapp">¿Cuál es la diferencia entre WhatsApp Business y un Canal de WhatsApp?</h3>
 <p>WhatsApp Business es una app gratuita para que pymes mantengan conversaciones 1:1 con clientes, con funciones de catálogo, etiquetas y respuestas automatizadas; el limite es 256 contactos por difusión. Un Canal de WhatsApp es una función de broadcast unidireccional sin límite de suscriptores donde los seguidores reciben tus mensajes en la pestaña &quot;Novedades&quot; pero no pueden responder, solo reaccionar con emoji. La app es para atender clientes activos; el canal es para distribuir contenido a una audiencia masiva opt-in, más parecido a un newsletter premium con 80%+ de open rate.</p>
-<h3>¿Cuánto cuesta WhatsApp Business API en 2026?</h3>
+<h3 id="cuánto-cuesta-whatsapp-business-api-en-2026">¿Cuánto cuesta WhatsApp Business API en 2026?</h3>
 <p>Meta cobra por conversación, no por mensaje. Una conversación de marketing iniciada por la empresa cuesta entre 0,05 y 0,15 EUR en España; las de utilidad (confirmaciones, OTPs) entre 0,01 y 0,04 EUR; las de servicio iniciadas por el usuario son gratis las primeras 1.000 mensuales y luego ~0,02 EUR. A esto se suma el fee del BSP (Twilio, MessageBird, 360dialog) que añade entre 0,005 y 0,02 EUR por mensaje más cuota mensual. Una marca con 50.000 conversaciones de marketing al mes paga aproximadamente entre 2.500 y 7.500 EUR mensuales incluyendo todos los costes.</p>
-<h3>¿Puedo hacer publicidad en WhatsApp Business o solo en canales?</h3>
+<h3 id="puedo-hacer-publicidad-en-whatsapp-business-o-solo-en-canales">¿Puedo hacer publicidad en WhatsApp Business o solo en canales?</h3>
 <p>Publicidad de pago de terceros (que tu marca aparezca en propiedades ajenas) hoy se hace principalmente en Canales de WhatsApp, donde existe un mercado ya activo de patrocinios directos entre marcas y propietarios de canales. La API permite mensajes patrocinados a tu base propia mediante plantillas de marketing aprobadas por Meta, pero no es publicidad en propiedades de terceros: estás pagando a Meta por enviar a contactos que ya tienes. La app de Business no admite publicidad de pago: es estrictamente un canal de atención y catálogo para tus propios clientes.</p>
-<h3>¿Canal de WhatsApp vs grupo de WhatsApp para una empresa, qué uso?</h3>
+<h3 id="canal-de-whatsapp-vs-grupo-de-whatsapp-para-una-empresa-qué-uso">¿Canal de WhatsApp vs grupo de WhatsApp para una empresa, qué uso?</h3>
 <p>Depende de si quieres comunicación unidireccional o conversación entre miembros. Un grupo permite que todos los participantes hablen entre sí: útil para comunidades pequeñas, soporte VIP o equipos de trabajo, con limite de 1.024 miembros. Un canal solo permite publicar al admin: los suscriptores reciben mensajes pero no pueden responder ni verse entre sí, ideal para newsletter, lanzamientos y contenido a escala con suscriptores ilimitados. Para una marca con vocación de audiencia masiva, el canal es siempre la opción correcta; los grupos quedan para casos donde la conversación entre miembros aporta valor real.</p>
-<h2>Conclusión</h2>
+<h2 id="conclusión">Conclusión</h2>
 <p>WhatsApp en 2026 no es un único producto sino tres herramientas distintas de Meta con casos de uso casi sin solapamiento. La app de Business resuelve el día a día de pymes con catálogo y conversación 1:1. La API es el motor de marketing automation y transactional para empresas con base grande y CRM. Los Canales son el nuevo formato broadcast con el mejor open rate del mercado y un ecosistema publicitario emergente especialmente interesante para marcas con vocación de audiencia.</p>
 <p>Si estás evaluando entrar al mercado publicitario en Canales de WhatsApp como anunciante, <a href="/para-anunciantes">explora canales auditados en Channelad</a>. Encuentras canales españoles y LATAM por nicho, ves métricas reales y pagas vía escrow sólo cuando el post se publica.</p>
 
@@ -464,7 +496,10 @@
 
   <!-- Prev/Next Navigation -->
     <nav class="post-nav">
-    <div></div>
+    <a href="/blog/channelad-vs-combot" class="post-nav-item prev">
+      <span class="post-nav-label">← Anterior</span>
+      <span class="post-nav-title">Channelad vs Combot: marketplace vs analytics Telegram</span>
+    </a>
     <a href="/blog/channelad-vs-collaborator" class="post-nav-item next">
       <span class="post-nav-label">Siguiente →</span>
       <span class="post-nav-title">Channelad vs Collaborator: comparativa marketplaces 2026</span>
@@ -487,10 +522,10 @@
         <span class="rc-meta">14 min · 2026-04-14</span>
       </a>
 
-      <a href="/blog/como-anunciarse-en-whatsapp" class="related-card">
+      <a href="/blog/media-kit-canal-whatsapp" class="related-card">
         <span class="rc-cat">Guias</span>
-        <h3>Cómo anunciarse en WhatsApp 2026: canales y precios</h3>
-        <span class="rc-meta">15 min · 2026-05-13</span>
+        <h3>Media kit canal WhatsApp 2026: 8 elementos + plantilla</h3>
+        <span class="rc-meta">14 min · 2026-06-01</span>
       </a>
     </div>
   </section>

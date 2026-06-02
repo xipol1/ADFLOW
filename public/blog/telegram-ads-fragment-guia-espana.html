@@ -17,7 +17,7 @@
   <meta property="og:url" content="https://channelad.io/blog/telegram-ads-fragment-guia-espana">
   <meta property="og:site_name" content="Channelad">
   <meta property="og:locale" content="es_ES">
-  <meta property="og:image" content="https://channelad.io/og-default.png">
+  <meta property="og:image" content="https://channelad.io/blog/img/telegram-ads-fragment-guia-espana.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="article:published_time" content="2026-05-20">
@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Telegram Ads y Fragment 2026: guía desde España (TON)">
   <meta name="twitter:description" content="Cómo cobrar de Telegram Ads desde España 2026: requisitos, pagos en TON, conversión a euros, fiscalidad y por qué la publicidad directa paga 5-10x más.">
-  <meta name="twitter:image" content="https://channelad.io/og-default.png">
+  <meta name="twitter:image" content="https://channelad.io/blog/img/telegram-ads-fragment-guia-espana.png">
 
   <!-- Schema.org -->
   <script type="application/ld+json">
@@ -40,7 +40,7 @@
     "author": { "@type": "Person", "name": "Rafa Ferrer", "jobTitle": "CEO", "worksFor": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io" } },
     "publisher": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io", "logo": { "@type": "ImageObject", "url": "https://channelad.io/logo.svg" } },
     "mainEntityOfPage": "https://channelad.io/blog/telegram-ads-fragment-guia-espana",
-    "image": "https://channelad.io/og-default.png",
+    "image": "https://channelad.io/blog/img/telegram-ads-fragment-guia-espana.png",
     "inLanguage": "es",
     "articleSection": "Monetizacion",
     "wordCount": 1585,
@@ -166,6 +166,11 @@
     .copied-toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1D1D1F; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 1001; }
     .copied-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* ─── Article Hero (branded cover, generated per-post) ─── */
+    .article-hero { max-width: 720px; margin: 24px auto 0; padding: 0 24px; }
+    .article-hero img { width: 100%; height: auto; border-radius: 16px; display: block; box-shadow: 0 6px 28px rgba(0,0,0,0.08); }
+    figure.article-hero { margin-left: auto; margin-right: auto; }
+
     /* ─── Article Content ─── */
     .article-content { max-width: 720px; margin: 0 auto; padding: 32px 24px 0; }
     /* Drop cap — NYT aligned */
@@ -202,6 +207,17 @@
     .article-content tbody td { padding: 13px 20px; color: #1D1D1F; line-height: 1.5; border-bottom: 1px solid #f0f0f5; }
     .article-content tbody td:first-child { font-weight: 500; }
     .article-content tbody tr:last-child td { border-bottom: none; }
+
+    /* ─── Auto-generated Table of Contents (injected after the intro) ─── */
+    .article-content nav.post-toc { margin: 36px 0; padding: 22px 26px; background: #fff; border: 1px solid rgba(0,0,0,0.07); border-left: 3px solid #7C3AED; border-radius: 12px; }
+    .article-content nav.post-toc .post-toc-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px; color: #7C3AED; margin-bottom: 14px; }
+    .article-content nav.post-toc ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; }
+    .article-content nav.post-toc ol li { line-height: 1.45; font-size: 14.5px; color: #1D1D1F; }
+    .article-content nav.post-toc ol li::before { content: none; }
+    .article-content nav.post-toc a { color: #1D1D1F; text-decoration: none; }
+    .article-content nav.post-toc a:hover { color: #7C3AED; text-decoration: underline; }
+    /* Smooth-scroll target offset so sticky nav doesn't cover the heading */
+    .article-content h2[id], .article-content h3[id] { scroll-margin-top: 80px; }
 
     /* ─── Author Box (NYT-style) ─── */
     .author-box { max-width: 720px; margin: 48px auto 0; padding: 32px 24px; border-top: 1px solid rgba(0,0,0,0.06); display: flex; gap: 20px; align-items: flex-start; }
@@ -306,13 +322,30 @@
   </div>
   <div class="copied-toast" id="copiedToast">Enlace copiado</div>
 
+  <figure class="article-hero"><img src="/blog/img/telegram-ads-fragment-guia-espana.svg" alt="Telegram Ads y Fragment 2026: guía desde España (TON)" width="1200" height="630"></figure>
+
   <article class="article-content">
     <p>Desde 2024 Telegram comparte el 50% de los ingresos publicitarios con los canales que cumplen ciertos requisitos. El sistema se llama Ad Revenue Sharing y los pagos se hacen en TON (Toncoin), la criptomoneda nativa de la plataforma. Para creadores espanoles esto introduce dudas reales: cuanto se gana de verdad, como se cobra en euros, como se declara y si compensa frente a la publicidad directa con anunciantes.</p>
+    <nav class="post-toc" aria-label="Contenido">
+      <div class="post-toc-title">Contenido</div>
+      <ol>
+        <li><a href="#que-es-telegram-ads-y-como-funciona-ad-revenue-sharing">Que es Telegram Ads y como funciona Ad Revenue Sharing</a></li>
+        <li><a href="#cpms-reales-cuanto-paga-telegram-en-2026">CPMs reales: cuanto paga Telegram en 2026</a></li>
+        <li><a href="#cuando-merece-la-pena-telegram-ads-y-cuando-no">Cuando merece la pena Telegram Ads (y cuando no)</a></li>
+        <li><a href="#paso-a-paso-activar-telegram-ads-en-tu-canal">Paso a paso: activar Telegram Ads en tu canal</a></li>
+        <li><a href="#como-convertir-ton-a-euros-desde-espana">Como convertir TON a euros desde Espana</a></li>
+        <li><a href="#fiscalidad-como-declarar-telegram-ads-en-espana">Fiscalidad: como declarar Telegram Ads en Espana</a></li>
+        <li><a href="#caso-practico-ingresos-esperados-por-tamano-de-canal">Caso practico: ingresos esperados por tamano de canal</a></li>
+        <li><a href="#errores-tipicos-al-usar-telegram-ads">Errores tipicos al usar Telegram Ads</a></li>
+        <li><a href="#preguntas-frecuentes">Preguntas frecuentes</a></li>
+        <li><a href="#conclusion">Conclusion</a></li>
+      </ol>
+    </nav>
 <p>Esta guia recoge todo lo que necesitas saber para usar Telegram Ads via Fragment desde Espana en 2026: requisitos exactos, CPMs reales, paso a paso para activar el monedero, conversion de TON a euros, fiscalidad y cuando merece la pena frente a vender publicidad directa.</p>
-<h2>Que es Telegram Ads y como funciona Ad Revenue Sharing</h2>
+<h2 id="que-es-telegram-ads-y-como-funciona-ad-revenue-sharing">Que es Telegram Ads y como funciona Ad Revenue Sharing</h2>
 <p>Telegram Ads es la plataforma oficial de publicidad de Telegram. Los anunciantes compran espacios y los anuncios aparecen como mensajes patrocinados de hasta 160 caracteres al final de los canales publicos con mas de 1.000 suscriptores.</p>
 <p>Desde 2024 funciona el Ad Revenue Sharing: del precio que paga el anunciante, Telegram se queda el 50% y el otro 50% lo reparte a los canales donde se mostro el anuncio. Los pagos se hacen mensualmente en TON, la moneda blockchain de la red Telegram, y se gestionan a traves de <a href="https://fragment.com">Fragment</a>, el ecosistema oficial.</p>
-<h3>Requisitos para entrar en el programa</h3>
+<h3 id="requisitos-para-entrar-en-el-programa">Requisitos para entrar en el programa</h3>
 <ul>
 <li><strong>1.000+ suscriptores</strong> en el canal (no totales: deben ser activos segun la metrica interna de Telegram).</li>
 <li><strong>Canal publico</strong> (los privados no pueden mostrar Telegram Ads).</li>
@@ -320,7 +353,7 @@
 <li><strong>Monedero TON</strong> activado y verificado.</li>
 <li><strong>Antiguedad minima</strong> del canal de unos 3 meses.</li>
 </ul>
-<h2>CPMs reales: cuanto paga Telegram en 2026</h2>
+<h2 id="cpms-reales-cuanto-paga-telegram-en-2026">CPMs reales: cuanto paga Telegram en 2026</h2>
 <p>Las cifras oficiales que aparecen en Fragment para canales en espanol durante 2026:</p>
 <table>
 <thead>
@@ -372,52 +405,52 @@
 </tr>
 </tbody></table>
 <p>La conclusion es clara: la publicidad directa paga entre <strong>8x y 15x</strong> mas por las mismas impresiones que Telegram Ads. Pero hay matices.</p>
-<h2>Cuando merece la pena Telegram Ads (y cuando no)</h2>
-<h3>Casos donde Telegram Ads tiene sentido</h3>
+<h2 id="cuando-merece-la-pena-telegram-ads-y-cuando-no">Cuando merece la pena Telegram Ads (y cuando no)</h2>
+<h3 id="casos-donde-telegram-ads-tiene-sentido">Casos donde Telegram Ads tiene sentido</h3>
 <ul>
 <li><strong>Canales generalistas</strong> sin nicho claro donde es dificil cerrar deals con marcas concretas.</li>
 <li><strong>Canales recien iniciados</strong> (1.000-3.000 subs) sin negociacion previa con anunciantes.</li>
 <li><strong>Canales con poco tiempo del creador</strong> que prefieren ingresos pasivos a gestionar deals.</li>
 <li><strong>Ingreso complementario</strong> mientras se cierran patrocinios directos.</li>
 </ul>
-<h3>Casos donde es mejor evitarlo o limitarlo</h3>
+<h3 id="casos-donde-es-mejor-evitarlo-o-limitarlo">Casos donde es mejor evitarlo o limitarlo</h3>
 <ul>
 <li><strong>Canales de nicho premium</strong> (finanzas, cripto, B2B) donde la publicidad directa multiplica los ingresos.</li>
 <li><strong>Canales con menos de 5.000 subs</strong> porque el CPM bajo no compensa el coste de tener anuncios en el canal.</li>
 <li><strong>Canales con audiencia delicada</strong> (educacion infantil, salud) donde anuncios automaticos pueden ser inapropiados.</li>
 </ul>
 <p>Una regla simple: si puedes cerrar 2-3 patrocinios directos al mes, Telegram Ads aporta poco. Si tu canal aun no tiene marcas interesadas, vale la pena activarlo como base.</p>
-<h2>Paso a paso: activar Telegram Ads en tu canal</h2>
-<h3>1. Crear y verificar tu monedero TON</h3>
+<h2 id="paso-a-paso-activar-telegram-ads-en-tu-canal">Paso a paso: activar Telegram Ads en tu canal</h2>
+<h3 id="1-crear-y-verificar-tu-monedero-ton">1. Crear y verificar tu monedero TON</h3>
 <p>Descarga la app de <a href="https://tonkeeper.com">Tonkeeper</a> o usa el wallet oficial de Telegram (boton de @wallet en la app). El wallet de Telegram es lo mas comodo para empezar porque ya esta integrado en la app.</p>
-<h3>2. Conectar el monedero a Fragment</h3>
+<h3 id="2-conectar-el-monedero-a-fragment">2. Conectar el monedero a Fragment</h3>
 <p>Entra en <a href="https://fragment.com">fragment.com</a>, conecta tu cuenta de Telegram via QR y vincula el monedero. Fragment es el portal oficial donde gestionas usuarios, dominios anonymos numbers y Ad Revenue.</p>
-<h3>3. Activar Ad Revenue en tu canal</h3>
+<h3 id="3-activar-ad-revenue-en-tu-canal">3. Activar Ad Revenue en tu canal</h3>
 <p>Desde el admin de tu canal en Telegram, ve a &quot;Estadisticas&quot; -&gt; &quot;Monetizacion&quot; -&gt; &quot;Boost Ad Revenue Sharing&quot;. Si cumples los requisitos, aparece un boton para activar. Telegram empieza a mostrar anuncios automaticamente y a registrar tus impresiones.</p>
-<h3>4. Recibir los pagos mensuales</h3>
+<h3 id="4-recibir-los-pagos-mensuales">4. Recibir los pagos mensuales</h3>
 <p>Los pagos se acumulan durante el mes y se liquidan los primeros 5 dias del mes siguiente. Aparecen en tu monedero TON. Desde ahi puedes mantenerlos en TON, convertirlos a otras criptos o pasarlos a euros (siguiente seccion).</p>
-<h2>Como convertir TON a euros desde Espana</h2>
+<h2 id="como-convertir-ton-a-euros-desde-espana">Como convertir TON a euros desde Espana</h2>
 <p>Tres caminos principales:</p>
-<h3>Via 1: Exchange centralizado (la mas comun)</h3>
+<h3 id="via-1-exchange-centralizado-la-mas-comun">Via 1: Exchange centralizado (la mas comun)</h3>
 <p>Exchanges como <strong>OKX</strong>, <strong>Bybit</strong> o <strong>Bitget</strong> soportan TON con liquidez razonable. Transfieres TON desde tu wallet al exchange, vendes a EUR y haces SEPA a tu cuenta bancaria espanola. Comisiones tipicas:</p>
 <ul>
 <li>Comision exchange (compra/venta): 0,1-0,3%</li>
 <li>Comision retirada SEPA: 0-1 EUR fijo</li>
 <li>Tiempo total: 1-3 dias laborables</li>
 </ul>
-<h3>Via 2: P2P en Binance</h3>
+<h3 id="via-2-p2p-en-binance">Via 2: P2P en Binance</h3>
 <p>Binance retiro TON de su listing principal en 2023 pero el mercado P2P aun lo soporta. Vendes TON a un comprador particular en EUR y cobras en tu cuenta. Mejor tipo de cambio pero requiere atencion para detectar fraudes.</p>
-<h3>Via 3: Mantener en TON</h3>
+<h3 id="via-3-mantener-en-ton">Via 3: Mantener en TON</h3>
 <p>Si el ingreso es complementario, muchos creadores mantienen los TON en wallet como inversion especulativa. Implica riesgo de volatilidad pero ahorra comisiones de conversion.</p>
-<h2>Fiscalidad: como declarar Telegram Ads en Espana</h2>
+<h2 id="fiscalidad-como-declarar-telegram-ads-en-espana">Fiscalidad: como declarar Telegram Ads en Espana</h2>
 <p>Tres puntos importantes:</p>
-<h3>1. Los ingresos en TON son rendimientos tributables</h3>
+<h3 id="1-los-ingresos-en-ton-son-rendimientos-tributables">1. Los ingresos en TON son rendimientos tributables</h3>
 <p>Hacienda los considera <strong>rendimientos de actividades economicas</strong> (si es ingreso recurrente) o <strong>ganancias patrimoniales</strong> (si es ocasional). Debes declarar el valor en euros del TON el dia que llega a tu wallet, no el dia que conviertes a euros.</p>
-<h3>2. La conversion TON -&gt; EUR genera otro hecho imponible</h3>
+<h3 id="2-la-conversion-ton--gt-eur-genera-otro-hecho-imponible">2. La conversion TON -&gt; EUR genera otro hecho imponible</h3>
 <p>Si los TON se revalorizan o devaluan entre el dia que los recibes y el dia que los vendes, esa diferencia es ganancia o perdida patrimonial. Hay que llevar registro fechado de ambos momentos.</p>
-<h3>3. Obligacion de alta en Hacienda</h3>
+<h3 id="3-obligacion-de-alta-en-hacienda">3. Obligacion de alta en Hacienda</h3>
 <p>Si recibes pagos de forma regular, necesitas <strong>alta en Hacienda</strong> (modelo 036 o 037) bajo el epigrafe correspondiente (normalmente 844 - servicios de publicidad). Si superas el SMI anual con estos ingresos, alta tambien en autonomos. Para el detalle fiscal completo de canales y comunidades, mira la <a href="/blog/impuestos-monetizar-canal-telegram-espana">guia de impuestos para canales de Telegram en Espana</a>.</p>
-<h2>Caso practico: ingresos esperados por tamano de canal</h2>
+<h2 id="caso-practico-ingresos-esperados-por-tamano-de-canal">Caso practico: ingresos esperados por tamano de canal</h2>
 <p>Calculos con CPM medio realista de 0,30 EUR (nicho intermedio) y 4 impresiones al mes por suscriptor activo:</p>
 <table>
 <thead>
@@ -460,27 +493,27 @@
 </tr>
 </tbody></table>
 <p>Para canales por debajo de 20.000 suscriptores, los ingresos netos rondan los 5-20 EUR/mes. Para que merezca la pena la friccion fiscal y operativa, los ingresos deberian estar por encima de 30-50 EUR/mes consistentes.</p>
-<h2>Errores tipicos al usar Telegram Ads</h2>
-<h3>1. No verificar el monedero correctamente</h3>
+<h2 id="errores-tipicos-al-usar-telegram-ads">Errores tipicos al usar Telegram Ads</h2>
+<h3 id="1-no-verificar-el-monedero-correctamente">1. No verificar el monedero correctamente</h3>
 <p>Si el monedero no esta verificado, Fragment acumula los pagos pero no los libera. Verifica el wallet inmediatamente al activar Ad Revenue.</p>
-<h3>2. Mantener TON sin convertir y olvidar declarar</h3>
+<h3 id="2-mantener-ton-sin-convertir-y-olvidar-declarar">2. Mantener TON sin convertir y olvidar declarar</h3>
 <p>El error fiscal mas comun: pensar que &quot;como aun no he convertido a euros, no hay que declarar&quot;. Falso. El hecho imponible se produce cuando el TON llega al wallet.</p>
-<h3>3. No medir el coste de oportunidad</h3>
+<h3 id="3-no-medir-el-coste-de-oportunidad">3. No medir el coste de oportunidad</h3>
 <p>Si Telegram Ads paga 10 EUR/mes pero perdiste un patrocinio directo de 200 EUR porque la marca vio anuncios automaticos en tu canal y considero que tu canal estaba &quot;sobrecargado&quot;, pierdes mas que ganas. Equilibra.</p>
-<h3>4. Confiar la fiscalidad cripto a un asesor generalista</h3>
+<h3 id="4-confiar-la-fiscalidad-cripto-a-un-asesor-generalista">4. Confiar la fiscalidad cripto a un asesor generalista</h3>
 <p>Los pagos en TON desde Fragment son un caso poco habitual en Espana. Un asesor especializado en cripto-fiscalidad (no un asesor generalista) ahorra problemas con Hacienda.</p>
-<h2>Preguntas frecuentes</h2>
-<h3>¿Cuánto paga Telegram Ads en 2026 por 1.000 impresiones?</h3>
+<h2 id="preguntas-frecuentes">Preguntas frecuentes</h2>
+<h3 id="cuánto-paga-telegram-ads-en-2026-por-1000-impresiones">¿Cuánto paga Telegram Ads en 2026 por 1.000 impresiones?</h3>
 <p>El CPM medio en canales en espanol oscila entre 0,10 y 0,90 EUR segun nicho. Cripto y finanzas son los mas rentables (0,40-0,90 EUR). Generalista paga 0,10-0,30 EUR. Es 5-15x menos que la publicidad directa con marcas.</p>
-<h3>¿Cuándo recibo los pagos de Telegram Ads?</h3>
+<h3 id="cuándo-recibo-los-pagos-de-telegram-ads">¿Cuándo recibo los pagos de Telegram Ads?</h3>
 <p>Los pagos se acumulan durante el mes y se liquidan los primeros 5 dias del mes siguiente. Si el balance es inferior al minimo (1 TON, aproximadamente 5 EUR a precios de 2026), se acumula al siguiente mes.</p>
-<h3>¿Puedo combinar Telegram Ads con publicidad directa?</h3>
+<h3 id="puedo-combinar-telegram-ads-con-publicidad-directa">¿Puedo combinar Telegram Ads con publicidad directa?</h3>
 <p>Si, pero con cuidado. Telegram inserta anuncios automaticos que pueden chocar visualmente con patrocinios directos. Muchos creadores limitan Telegram Ads a 2-3 anuncios al dia o lo desactivan durante semanas con campanas directas grandes.</p>
-<h3>¿Tengo que pagar impuestos en España por los TON que recibo?</h3>
+<h3 id="tengo-que-pagar-impuestos-en-españa-por-los-ton-que-recibo">¿Tengo que pagar impuestos en España por los TON que recibo?</h3>
 <p>Si. Los TON son rendimientos tributables el dia que llegan a tu wallet, valorados en euros a ese precio. Adicionalmente, la diferencia entre el valor de recepcion y el de conversion es ganancia o perdida patrimonial separada.</p>
-<h3>¿Qué pasa si TON cae mucho de precio entre recibirlo y convertirlo?</h3>
+<h3 id="qué-pasa-si-ton-cae-mucho-de-precio-entre-recibirlo-y-convertirlo">¿Qué pasa si TON cae mucho de precio entre recibirlo y convertirlo?</h3>
 <p>La perdida es deducible como perdida patrimonial. Pero declaraste los TON al valor de recepcion, asi que pagaste IRPF sobre un importe superior al que finalmente cobraste. Es uno de los riesgos reales de cobrar en cripto.</p>
-<h2>Conclusion</h2>
+<h2 id="conclusion">Conclusion</h2>
 <p>Telegram Ads via Fragment es un ingreso pasivo accesible para cualquier canal de 1.000+ suscriptores, pero los CPMs son 5-15x menores que la publicidad directa con marcas. Tiene sentido como base para canales generalistas o nuevos, y como ingreso complementario mientras se cierran patrocinios directos. Para canales de nicho premium, la prioridad debe ser la publicidad directa.</p>
 <p>Si quieres maximizar ingresos y cerrar patrocinios con marcas verificadas sin pasar semanas haciendo outreach, <a href="/">publica tu canal en Channelad</a>. Pago en euros via escrow, metricas auditadas y zero friccion fiscal con TON. Compatible con Telegram Ads si quieres combinar las dos fuentes.</p>
 
