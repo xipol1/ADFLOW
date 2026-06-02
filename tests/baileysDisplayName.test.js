@@ -4,7 +4,24 @@
  * Regression guard for the bug where a channel resolved by public invite link
  * returned `name` as an object, which showed as "[object Object]" in the picker.
  */
-const { asDisplayName } = require('../services/baileys/displayName');
+const { asDisplayName, asDisplayText } = require('../services/baileys/displayName');
+
+describe('asDisplayText (empty fallback — description / group subject)', () => {
+  test('returns a non-empty string as-is', () => {
+    expect(asDisplayText('Hola canal')).toBe('Hola canal');
+  });
+  test('extracts a text subfield from an object', () => {
+    expect(asDisplayText({ text: 'Desc real' })).toBe('Desc real');
+  });
+  test('falls back to EMPTY string (not a placeholder) for opaque/empty/nullish', () => {
+    expect(asDisplayText({ foo: 'bar' })).toBe('');
+    expect(asDisplayText(null, undefined, {}, '')).toBe('');
+    expect(asDisplayText()).toBe('');
+  });
+  test('never returns "[object Object]"', () => {
+    expect(String(asDisplayText({}))).not.toBe('[object Object]');
+  });
+});
 
 describe('asDisplayName', () => {
   test('returns a non-empty string as-is', () => {
