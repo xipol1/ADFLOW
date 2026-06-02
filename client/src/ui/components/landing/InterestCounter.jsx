@@ -2,17 +2,17 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Users, ArrowRight } from 'lucide-react'
 import { FONT_BODY, FONT_DISPLAY } from '../../theme/tokens'
-import { CAP, COUNTER_LABEL } from '../../theme/channelOne'
+import { CAP, COUNTER_LABEL } from '../../theme/founderWaitlist'
 
 const GREEN = '#25d366'
 const greenAlpha = (o) => `rgba(37,211,102,${o})`
 
 /**
- * Public-facing "canales interesados" counter for Channel One.
+ * Public-facing "canales interesados" counter for the founding cohort.
  *
- * Reads /api/channel-one/counter. The label is intentionally
+ * Reads /api/founder-waitlist/counter. The label is intentionally
  * "interesados" (not "pre-registrados") because the number aggregates
- * multiple interest signals — see config/channelOne.js for the rules.
+ * multiple interest signals — see config/founderWaitlist.js for the rules.
  *
  * Variants:
  *   - hero   → big number, full-width, used as a section block
@@ -25,7 +25,7 @@ export default function InterestCounter({ variant = 'hero', ctaLabel = 'Reserva 
 
   useEffect(() => {
     let alive = true
-    fetch('/api/channel-one/counter')
+    fetch('/api/founder-waitlist/counter')
       .then(r => r.json())
       .then(json => {
         if (!alive) return
@@ -36,8 +36,8 @@ export default function InterestCounter({ variant = 'hero', ctaLabel = 'Reserva 
     return () => { alive = false }
   }, [])
 
-  // Optimistic anchor while the API resolves — avoids the "0 / 1000" flash.
-  const displayed = data?.displayed ?? 247
+  // Optimistic anchor while the API resolves — avoids the "0 / 150" flash.
+  const displayed = data?.displayed ?? 96
   const cap = data?.cap ?? CAP
   const remaining = data?.remaining ?? Math.max(0, cap - displayed)
   const pct = data?.percentFull ?? Math.round((displayed / cap) * 100)
@@ -45,7 +45,7 @@ export default function InterestCounter({ variant = 'hero', ctaLabel = 'Reserva 
   if (variant === 'inline') {
     return (
       <Link
-        to="/channel-one"
+        to="/founding"
         style={{
           display: 'inline-flex', alignItems: 'center', gap: 8,
           background: greenAlpha(0.10), border: `1px solid ${greenAlpha(0.30)}`,
@@ -72,7 +72,7 @@ export default function InterestCounter({ variant = 'hero', ctaLabel = 'Reserva 
           fontSize: 10, fontWeight: 700, color: GREEN,
           textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8,
         }}>
-          Channel One · pre-registro
+          Founding cohort · pre-registro
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
           <span style={{
@@ -97,7 +97,7 @@ export default function InterestCounter({ variant = 'hero', ctaLabel = 'Reserva 
           }} />
         </div>
         <Link
-          to="/channel-one"
+          to="/founding"
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
             color: GREEN, textDecoration: 'none',
@@ -131,7 +131,7 @@ export default function InterestCounter({ variant = 'hero', ctaLabel = 'Reserva 
           width: 6, height: 6, borderRadius: '50%', background: GREEN,
           boxShadow: `0 0 0 0 ${greenAlpha(0.6)}`, animation: 'ic-pulse 1.8s infinite',
         }} />
-        Channel One · pre-registro abierto
+        Founding cohort · pre-registro abierto
       </div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
         <span style={{

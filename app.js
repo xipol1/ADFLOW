@@ -54,7 +54,7 @@ try { _routes['./routes/adminSubscriptions']  = require('./routes/adminSubscript
 try { _routes['./routes/subscriptions']       = require('./routes/subscriptions');       } catch (e) { _routes['./routes/subscriptions']       = e; }
 try { _routes['./routes/swapsCron']           = require('./routes/swapsCron');           } catch (e) { _routes['./routes/swapsCron']           = e; }
 try { _routes['./routes/authMaintenanceCron'] = require('./routes/authMaintenanceCron'); } catch (e) { _routes['./routes/authMaintenanceCron'] = e; }
-try { _routes['./routes/channelOne']          = require('./routes/channelOne');          } catch (e) { _routes['./routes/channelOne']          = e; }
+try { _routes['./routes/founderWaitlist']     = require('./routes/founderWaitlist');     } catch (e) { _routes['./routes/founderWaitlist']     = e; }
 try { _routes['./routes/founders']            = require('./routes/founders');            } catch (e) { _routes['./routes/founders']            = e; }
 try { _routes['./routes/calculator']          = require('./routes/calculator');          } catch (e) { _routes['./routes/calculator']          = e; }
 try { _routes['./routes/features']            = require('./routes/features');            } catch (e) { _routes['./routes/features']            = e; }
@@ -612,7 +612,7 @@ const enabledRoutes = [
   ['/api/swaps',     './routes/swaps'],
   ['/api/jobs',      './routes/swapsCron'],
   ['/api/jobs',      './routes/authMaintenanceCron'],
-  ['/api/channel-one', './routes/channelOne'],
+  ['/api/founder-waitlist', './routes/founderWaitlist'],
   ['/api/founders',    './routes/founders'],
   ['/api/calculator',  './routes/calculator'],
   ['/api/features',    './routes/features'],

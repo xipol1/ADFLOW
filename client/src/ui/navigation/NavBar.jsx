@@ -46,10 +46,10 @@ const MEGA_CREATORS = {
   ],
   cta: {
     eyebrow: 'Pre-registro · cohorte septiembre',
-    title: 'Channel One',
-    body: '1.000 slots prioritarios · 0% comisión primer trimestre.',
-    to: '/channel-one',
-    label: 'Reservar slot',
+    title: 'Founding cohort',
+    body: '150 plazas · 18% de comisión vitalicio, la más baja.',
+    to: '/founding',
+    label: 'Reservar plaza',
     accent: true,
   },
 }
@@ -474,8 +474,8 @@ function MobileDrawer({ open, onClose, topNav, isAuthenticated, dashboardPath, o
           ><XIcon size={22} /></button>
         </div>
 
-        {/* Channel One pill — always at top, the most active promo */}
-        <Link to="/channel-one" onClick={onClose}
+        {/* Founding cohort pill — always at top, the most active promo */}
+        <Link to="/founding" onClick={onClose}
           style={{
             display: 'flex', alignItems: 'center', gap: 10,
             padding: '12px 14px', borderRadius: 12, marginBottom: 10,
@@ -486,7 +486,7 @@ function MobileDrawer({ open, onClose, topNav, isAuthenticated, dashboardPath, o
             width: 8, height: 8, borderRadius: '50%', background: '#25d366',
             animation: 'nav-co-pulse 1.8s infinite', flexShrink: 0,
           }} />
-          Channel One
+          Founding cohort
           <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, opacity: 0.85 }}>
             Pre-registro
           </span>
@@ -754,13 +754,13 @@ export default function NavBar() {
           ))}
         </nav>
 
-        {/* ─── RIGHT: Channel One pill + search + auth ─── */}
+        {/* ─── RIGHT: Founding cohort pill + search + auth ─── */}
         <div className="nav-right-cluster" style={{
           display: 'flex', alignItems: 'center', gap: 10,
           justifyContent: 'flex-end', minWidth: 0,
         }}>
-          <NavLink to="/channel-one"
-            className="nav-channel-one"
+          <NavLink to="/founding"
+            className="nav-founding"
             style={({ isActive }) => ({
               display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '6px 12px 6px 10px', fontSize: 13, fontWeight: 600,
@@ -776,7 +776,7 @@ export default function NavBar() {
               width: 6, height: 6, borderRadius: '50%', background: '#25d366',
               animation: 'nav-co-pulse 1.8s infinite', flexShrink: 0,
             }} />
-            Channel One
+            Founding cohort
           </NavLink>
 
           <nav className="nav-desktop-right" aria-label="Cuenta"
@@ -852,12 +852,12 @@ export default function NavBar() {
           to   { transform: translateX(0); }
         }
         @media (prefers-reduced-motion: reduce) {
-          .nav-channel-one span,
+          .nav-founding span,
           .nav-drawer-root *,
           .nav-header { animation: none !important; transition: none !important; }
         }
         @media (max-width: 1024px) {
-          .nav-channel-one { display: none !important; }
+          .nav-founding { display: none !important; }
         }
         @media (max-width: 900px) {
           .nav-marketplace-btn { display: none !important; }

@@ -7,23 +7,18 @@ const GREEN = '#25d366'
 const greenAlpha = (o) => `rgba(37,211,102,${o})`
 
 // Context-tuned copy. The component is dropped on creator-bound landings
-// (/para-canales, /founding, /whatsapp) right above <CrossLinks> so the
-// last impression before the footer is a live Channel One scarcity hook.
+// (/para-canales, /whatsapp) right above <CrossLinks> so the last impression
+// before the footer is a live founding-cohort scarcity hook.
 const COPY = {
   creator: {
     eyebrow: 'Pre-registro · cohorte septiembre',
-    title: 'Asegura tu slot antes que el marketplace público.',
-    body: 'Los 1.000 primeros canales en español pagan 0% de comisión el primer trimestre, acceden al dataset privado desde hoy y se activan antes que el marketplace abierto.',
-  },
-  founding: {
-    eyebrow: 'Channel One · cohorte complementaria',
-    title: '¿No encajas en founding? Channel One es el siguiente nivel.',
-    body: 'Founding son 150 plazas con 18% vitalicio. Channel One son 1.000 plazas con activación prioritaria y 0% comisión el primer trimestre. Puedes estar en las dos.',
+    title: 'Asegura tu plaza antes que el marketplace público.',
+    body: 'Los primeros 150 canales en español entran al founding cohort: 18% de comisión vitalicia —la más baja de la plataforma—, onboarding personal y activación antes que el marketplace abierto. Tú siempre cobras el 100%.',
   },
   whatsapp: {
     eyebrow: 'Pre-registro · cohorte septiembre',
-    title: 'Reserva tu slot WhatsApp antes del lanzamiento.',
-    body: 'Solo 80 plazas por nicho en Channel One. Cuando el cohort se llene, no hay forma de entrar — ni con waitlist. Activación prioritaria y 0% comisión los primeros 3 meses.',
+    title: 'Reserva tu plaza WhatsApp antes del lanzamiento.',
+    body: 'Solo 10 plazas por nicho en el founding cohort. Cuando se llene tu vertical, no hay forma de entrar. 18% de comisión vitalicio, la más baja de la plataforma, y activación prioritaria.',
   },
 }
 
@@ -32,7 +27,7 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
 }
 
-export default function ChannelOnePromoBlock({ context = 'creator' }) {
+export default function FounderWaitlistPromoBlock({ context = 'creator' }) {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
   const copy = COPY[context] || COPY.creator
@@ -88,7 +83,7 @@ export default function ChannelOnePromoBlock({ context = 'creator' }) {
           </p>
         </div>
         <div>
-          <InterestCounter variant="card" ctaLabel="Reservar mi slot" />
+          <InterestCounter variant="card" ctaLabel="Reservar mi plaza" />
         </div>
       </motion.div>
       <style>{`

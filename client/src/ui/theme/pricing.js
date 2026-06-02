@@ -11,6 +11,7 @@ export const COMMISSION_TIERS = {
   partnerAPI:     0.18,
   volumeMid:      0.18,
   volumeHigh:     0.15,
+  founder:        0.18,
 }
 
 // Volume-based discounts (advertiser monthly GMV in €). Flat 0.20 standard

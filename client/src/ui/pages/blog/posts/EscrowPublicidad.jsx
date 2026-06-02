@@ -285,10 +285,10 @@ export default function EscrowPublicidad() {
       {/* ─── Section 8: ¿Encarece la publicidad? ─── */}
       <h2 style={h2Style}>¿El escrow encarece la publicidad? La verdad sobre las comisiones</h2>
       <p style={pStyle}>
-        Esta es la pregunta que siempre sale. Y la entiendo perfectamente, porque al principio yo también pensaba que el pago custodiado iba a encarecerme las campañas. La realidad es que sí, hay una comisión. Normalmente las plataformas que ofrecen escrow cobran entre un 5% y un 15% sobre el precio de la campaña. Channelad, por ejemplo, se mueve en ese rango.
+        Esta es la pregunta que siempre sale. Y la entiendo perfectamente, porque al principio yo también pensaba que el pago custodiado iba a encarecerme las campañas. La realidad es que sí, hay una comisión. La mayoría de marketplaces con escrow cobran entre un 10% y un 30% sobre el precio de la campaña. En Channelad la comisión estándar es del 20%, con tarifas reducidas para volumen alto (15%) y para el programa Fundador y Partner API (18%).
       </p>
       <p style={pStyle}>
-        Pero vamos a hacer las cuentas reales. Yo perdí 240€ en una sola estafa. Con una comisión del 10%, tendría que gastar 2.400€ en publicidad para que el coste del escrow igualara lo que perdí por no usarlo. Y eso asumiendo que no me vuelven a estafar nunca más, cosa que estadísticamente no es realista si sigues operando sin protección.
+        Pero vamos a hacer las cuentas reales. Yo perdí 240€ en una sola estafa. Con la comisión estándar del 20%, tendría que gastar 1.200€ en publicidad para que esa comisión igualara lo que perdí por no usar escrow. Y eso asumiendo que no me vuelven a estafar nunca más, cosa que estadísticamente no es realista si sigues operando sin protección.
       </p>
       <p style={pStyle}>
         La comisión del escrow no es un gasto extra. Es un seguro. Es el coste de dormir tranquilo sabiendo que tu inversión publicitaria está protegida. Y si eres una empresa o autónomo, esa comisión es deducible como gasto de servicio. Los 240€ que perdí por Bizum no los pude deducir de nada.

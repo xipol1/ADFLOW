@@ -549,7 +549,7 @@ export default function AuthPage({ defaultTab = 'login' }) {
                   <p style={{ fontSize: '12px', color: 'var(--text)', lineHeight: 1.5, margin: 0 }}>
                     {founderData.channelUsername && <><strong>{founderData.channelUsername}</strong> · </>}
                     {founderData.niche && <>{founderData.niche} · </>}
-                    Comision del 10% permanente + €10 de bono de bienvenida
+                    Comision del 18% vitalicia + €10 de bono de bienvenida
                   </p>
                 </div>
               )}
