@@ -33,7 +33,7 @@
     "@react-oauth/google": "^0.13.5",
     "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "axios": "^1.16.1",
-    "bcryptjs": "^2.4.3",
+    "bcryptjs": "^3.0.3",
     "chart.js": "^4.5.1",
     "cheerio": "^1.2.0",
     "compression": "^1.7.4",
