@@ -68,7 +68,7 @@
     "react-helmet-async": "^2.0.5",
     "react-router-dom": "^6.15.0",
     "recharts": "^3.8.1",
-    "redis": "^4.6.8",
+    "redis": "^6.0.0",
     "sharp": "^0.34.5",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
