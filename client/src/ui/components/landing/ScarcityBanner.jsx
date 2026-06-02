@@ -7,8 +7,8 @@ import { Link } from 'react-router-dom'
 //
 // Two palette variants:
 //   - "advertiser" (default): warm amber, points at the brands batch (anchors #hero-cta)
-//   - "creator":              soft green, surfaces the live Channel One counter
-//                             and links straight to /channel-one (cross-surface funnel)
+//   - "creator":              soft green, surfaces the live founding-cohort counter
+//                             and links straight to /founding (cross-surface funnel)
 
 const VARIANTS = {
   advertiser: {
@@ -24,26 +24,26 @@ const VARIANTS = {
     bg: '#DCFCE7',
     border: '#BBF7D0',
     text: '#166534',
-    prefix: 'Channel One · ',
-    middle: ' canales reservan slot prioritario · 0% comisión primer trimestre',
-    cta: 'Reservar mi slot →',
+    prefix: 'Founding cohort · ',
+    middle: ' canales reservan plaza · 18% de comisión vitalicio, la más baja',
+    cta: 'Reservar mi plaza →',
   },
 }
 
-const CHANNEL_ONE_CAP = 1000
+const FOUNDER_CAP = 150
 
 export default function ScarcityBanner({ variant = 'advertiser' } = {}) {
   const v = VARIANTS[variant] || VARIANTS.advertiser
   const isCreator = variant === 'creator'
 
   // Live counter — only fetched for the creator variant since it points
-  // at the Channel One funnel. Falls back to the optimistic anchor (247)
+  // at the founding-cohort funnel. Falls back to the optimistic anchor (96)
   // so the banner renders something sensible while the request resolves.
   const [counter, setCounter] = useState(null)
   useEffect(() => {
     if (!isCreator) return
     let alive = true
-    fetch('/api/channel-one/counter')
+    fetch('/api/founder-waitlist/counter')
       .then(r => r.json())
       .then(j => { if (alive && j?.success && j.data) setCounter(j.data) })
       .catch(() => {})
@@ -56,11 +56,11 @@ export default function ScarcityBanner({ variant = 'advertiser' } = {}) {
     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
-  // Creator: dynamic count + hard link to /channel-one (cross-surface).
+  // Creator: dynamic count + hard link to /founding (cross-surface).
   // Advertiser: legacy in-page anchor scroll.
   if (isCreator) {
-    const displayed = counter?.displayed ?? 247
-    const cap = counter?.cap ?? CHANNEL_ONE_CAP
+    const displayed = counter?.displayed ?? 96
+    const cap = counter?.cap ?? FOUNDER_CAP
     return (
       <div style={{ background: v.bg, borderBottom: `1px solid ${v.border}`, width: '100%' }}>
         <div
@@ -82,7 +82,7 @@ export default function ScarcityBanner({ variant = 'advertiser' } = {}) {
           <span className="scarcity-prefix">{v.middle}</span>
           <span> · </span>
           <Link
-            to="/channel-one"
+            to="/founding"
             style={{
               color: v.text, fontWeight: 700, textDecoration: 'none', textUnderlineOffset: 2,
             }}

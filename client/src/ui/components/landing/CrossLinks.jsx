@@ -1,14 +1,13 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Megaphone, Wallet, Search, BookOpen, MessageCircle, Sparkles, Users } from 'lucide-react'
+import { Megaphone, Wallet, Search, BookOpen, MessageCircle, Sparkles } from 'lucide-react'
 import { FONT_BODY, FONT_DISPLAY, PURPLE, purpleAlpha } from '../../theme/tokens'
 
 const ALL_LINKS = [
   { to: '/para-anunciantes', label: 'Para anunciantes', desc: 'Encuentra canales verificados para tu marca', Icon: Megaphone, color: PURPLE },
   { to: '/para-canales', label: 'Para creadores', desc: 'Monetiza tu comunidad con publicidad nativa', Icon: Wallet, color: '#15803d' },
   { to: '/whatsapp', label: 'Canales WhatsApp', desc: 'Monetiza tu canal privado con escrow', Icon: MessageCircle, color: '#15803d' },
-  { to: '/founding', label: 'Founding cohort', desc: 'Comisión 18% vitalicia · plazas limitadas', Icon: Sparkles, color: '#15803d' },
-  { to: '/channel-one', label: 'Channel One', desc: 'Pre-registro · 1.000 canales prioritarios para septiembre', Icon: Users, color: '#15803d' },
+  { to: '/founding', label: 'Founding cohort', desc: 'Pre-registro · 18% vitalicio · 150 plazas para septiembre', Icon: Sparkles, color: '#15803d' },
   { to: '/marketplace', label: 'Marketplace', desc: 'Explora canales por nicho, plataforma y precio', Icon: Search, color: '#1d4ed8' },
   { to: '/blog', label: 'Blog', desc: 'Guías sobre publicidad en comunidades', Icon: BookOpen, color: '#b45309' },
 ]

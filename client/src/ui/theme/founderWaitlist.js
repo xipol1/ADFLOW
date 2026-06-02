@@ -1,9 +1,10 @@
-// ─── Channel One pre-registration — frontend constants ───────────────
-// Mirrors config/channelOne.js (backend). Keep both in sync if the niche
-// list or sizes ever change. Imported by ChannelOnePage and InterestCounter.
+// ─── Founding cohort pre-registration — frontend constants ───────────
+// Mirrors config/founderWaitlist.js (backend). Keep both in sync if the
+// niche list, sizes or cohort size ever change. Imported by FoundingPage
+// and InterestCounter.
 
-export const CAP = 1000
-export const SLOTS_PER_NICHE = 80
+export const SLOTS_PER_NICHE = 10
+export const CAP = 150 // 12 niches × 10 + 30 wildcard — keep aligned with FOUNDING_TOTAL in stats.js
 
 export const NICHES = [
   { id: 'finanzas',       label: 'Finanzas e inversión',  emoji: '📈' },
@@ -35,6 +36,6 @@ export const PLATFORMS = [
 ]
 
 // Public-facing label — NOT "pre-registrados".
-// Aggregates founding reservados + audits + qualified conversations.
+// Aggregates founding reservados + qualified conversations.
 export const COUNTER_LABEL = 'canales interesados'
 export const COUNTER_LABEL_LONG = 'canales en lista de interés'

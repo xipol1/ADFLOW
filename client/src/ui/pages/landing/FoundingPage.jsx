@@ -1,21 +1,15 @@
-import React, { useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import {
-  ArrowRight, CheckCircle2, Calendar, MessageCircle,
-  Sparkles, Percent, Headphones, FileText, GitBranch, Quote,
+  ArrowRight, CheckCircle2, AlertCircle, Mail, Copy, Share2,
+  Users, Sparkles, Zap, Lock, Database, Twitter, MessageCircle,
 } from 'lucide-react'
 import SEO from '../../components/SEO'
 import CrossLinks from '../../components/landing/CrossLinks'
-import ChannelOnePromoBlock from '../../components/landing/ChannelOnePromoBlock'
-import PhoneFrame from '../../components/landing/PhoneFrame'
-import DemoCreatorInbox from '../../components/landing/demo/DemoCreatorInbox'
-import DemoCreatorPublish from '../../components/landing/demo/DemoCreatorPublish'
-import DemoCreatorEarnings from '../../components/landing/demo/DemoCreatorEarnings'
-import DemoCreatorPayout from '../../components/landing/demo/DemoCreatorPayout'
 import { FONT_BODY, FONT_DISPLAY, MAX_W } from '../../theme/tokens'
-import { FOUNDING_RESERVED, FOUNDING_TOTAL } from '../../theme/stats'
+import { CAP, SLOTS_PER_NICHE, NICHES, SIZES, PLATFORMS, COUNTER_LABEL } from '../../theme/founderWaitlist'
 
 const F = FONT_BODY
 const D = FONT_DISPLAY
@@ -23,19 +17,14 @@ const GREEN = '#25d366'
 const GREEN_DARK = '#1ea952'
 const greenAlpha = (o) => `rgba(37,211,102,${o})`
 
-const CAL_LINK = 'https://cal.com/rafa-ferrer-xnpskg/15min?utm_source=founding_landing'
-const CONTACT_MAIL = 'mailto:contact@channelad.io?subject=Founding%20cohort%20Channelad'
-
+// ─── Motion presets ──────────────────────────────────────────────────
 const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i = 0) => ({
-    opacity: 1, y: 0,
-    transition: { duration: 0.55, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] },
-  }),
-}
-const staggerContainer = { hidden: {}, visible: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } } }
-const staggerItem = {
   hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
+}
+const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }
+const item = {
+  hidden: { opacity: 0, y: 18 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] } },
 }
 
@@ -44,183 +33,134 @@ function Section({ children, style, id }) {
   const inView = useInView(ref, { once: true, margin: '-60px' })
   return (
     <motion.section
-      ref={ref}
-      id={id}
-      style={style}
-      initial="hidden"
-      animate={inView ? 'visible' : 'hidden'}
-      variants={staggerContainer}
-    >
-      {children}
-    </motion.section>
+      ref={ref} id={id} style={style}
+      initial="hidden" animate={inView ? 'visible' : 'hidden'} variants={stagger}
+    >{children}</motion.section>
   )
 }
 
+// ─── Static copy ─────────────────────────────────────────────────────
 const BENEFITS = [
-  {
-    Icon: Percent,
-    title: 'Comisión 18% vitalicia',
-    body: 'Tus anunciantes pagan 18% en vez del 20% estándar — para siempre, mientras tu canal siga activo. Tarifas más competitivas significan más propuestas que cierran.',
-  },
-  {
-    Icon: Headphones,
-    title: 'Onboarding personal',
-    body: 'Sin formularios ni colas de soporte. El equipo te acompaña en la vinculación del canal y activa tu primera campaña contigo, paso a paso.',
-  },
-  {
-    Icon: FileText,
-    title: 'Tu caso, documentado',
-    body: 'Tras tus primeros 3 deals y con tu aprobación, documentamos tu caso real — cifras incluidas. Aparece en las landings de Channelad como prueba social.',
-  },
-  {
-    Icon: GitBranch,
-    title: 'Voz en el roadmap',
-    body: 'Tu feedback de las primeras semanas pesa. Lo que pidan los founding partners se prioriza antes que cualquier petición posterior vía soporte.',
-  },
-]
-
-const WE_ASK = [
-  'Feedback honesto en las primeras semanas — qué falla, qué falta, qué sobra.',
-  'Disposición a cerrar tus primeras campañas reales por la plataforma.',
-  'Permitir que documentemos tu caso tras 3 deals (siempre con tu aprobación previa).',
-]
-
-const COMPARE_ROWS = [
-  { label: 'Comisión al anunciante', founding: '18% · vitalicio', standard: '20%' },
-  { label: 'Onboarding', founding: 'Personal 1:1', standard: 'Self-service' },
-  { label: 'Caso documentado en landings', founding: 'Sí', standard: 'No' },
-  { label: 'Prioridad en el roadmap', founding: 'Sí', standard: 'Vía soporte' },
-  { label: 'Coste para el creador', founding: '0 €', standard: '0 €' },
-  { label: 'Exclusividad / permanencia', founding: 'Ninguna', standard: 'Ninguna' },
-]
-
-// Pantallas reales del producto — lo que el founding partner usa desde el día 1.
-const PRODUCT_SCREENS = [
-  {
-    n: '01',
-    title: 'Tu inbox de propuestas',
-    body: 'Anunciantes con KYC te encuentran por nicho y tamaño. Llegan con precio, copy y plazo. Aceptas, negocias o rechazas sin penalización.',
-    appLabel: 'Inbox',
-    sub: '3 propuestas · 1.590 € en escrow',
-    Demo: DemoCreatorInbox,
-  },
-  {
-    n: '02',
-    title: 'Publicas con tu copy',
-    body: 'Apruebas o reescribes el anuncio. Tracking link único auto-generado. La verificación se valida sola al alcanzar 3 clicks en 48h.',
-    appLabel: 'Campaña activa',
-    sub: 'Q4_SaaS · NorthFlow',
-    Demo: DemoCreatorPublish,
-  },
-  {
-    n: '03',
-    title: 'Tu balance crece',
-    body: 'Cada campaña verificada libera el escrow a tu balance. Sparkline en vivo, próximo payout calculado, CPM medio comparado con tu nicho.',
-    appLabel: 'Earnings',
-    sub: 'Balance 1.247 €',
-    Demo: DemoCreatorEarnings,
-  },
-  {
-    n: '04',
-    title: 'Retiras a tu banco',
-    body: 'SEPA Instant a tu cuenta — 1 día hábil. Sin comisiones bancarias, sin retenciones. 100% del precio que tú fijaste.',
-    appLabel: 'Retiro confirmado',
-    sub: '312 € · SEPA Instant',
-    Demo: DemoCreatorPayout,
-  },
+  { Icon: Zap,      title: 'Activación prioritaria',      body: 'Los founding partners se activan antes que el marketplace público de septiembre. Cuando todos lleguen, tú ya estarás cobrando.' },
+  { Icon: Sparkles, title: '18% vitalicio, la más baja',  body: 'Como founding partner, tus anunciantes pagan solo 18% de comisión — la más baja de la plataforma (vs 20% estándar) — vitalicia mientras tu canal siga activo. El creador siempre cobra el 100%.' },
+  { Icon: Lock,     title: 'Slot reservado en tu nicho',  body: `Solo ${SLOTS_PER_NICHE} plazas por nicho en el founding cohort. Cuando se llene tu vertical, no hay forma de entrar — ni con waitlist.` },
+  { Icon: Database, title: 'Onboarding y datos de nicho', body: 'Desde el día 1: onboarding personal 1:1, CPMs reales por nicho y plataforma, formatos que convierten y línea directa con el equipo.' },
 ]
 
 const STEPS = [
-  {
-    n: '01',
-    title: 'Reservas 15 minutos',
-    body: 'Una llamada corta con el equipo. Sin pitch: nos cuentas tu canal, te contamos el modelo, vemos juntos si encaja.',
-  },
-  {
-    n: '02',
-    title: 'Vinculas tu canal',
-    body: 'Si encaja, vinculas el canal de WhatsApp (o Telegram / Discord). Verificación con tracking link en 5 minutos, sin documentos.',
-  },
-  {
-    n: '03',
-    title: 'Entras en el cohort',
-    body: 'Quedas registrado como founding partner: 18% vitalicio fijado, acceso al toolkit y a la línea directa con el equipo.',
-  },
-  {
-    n: '04',
-    title: 'Activamos tu primera campaña',
-    body: 'El equipo gestiona contigo el primer deal de principio a fin. A partir de ahí, el marketplace funciona solo.',
-  },
+  { n: '01', title: 'Te registras', body: 'Email + handle del canal + nicho + tamaño. 20 segundos. Sin tarjeta.' },
+  { n: '02', title: 'Confirmas el email', body: 'Click en el link que te enviamos. Solo cuenta tu plaza si confirmas.' },
+  { n: '03', title: 'Compartes tu link', body: 'Recibes un link único. Cada canal que se sume con tu link te sube en la cola.' },
+  { n: '04', title: 'Activas en septiembre', body: 'Lanzamiento público. Tu canal founding se activa antes que el marketplace abierto, con tu 18% vitalicio ya fijado.' },
 ]
 
 const FAQS = [
-  {
-    q: '¿El 18% lo pago yo o el anunciante?',
-    a: 'El anunciante, siempre. Channelad nunca cobra comisión al creador: tú recibes el 100% del precio que fijas. La comisión (18% founding vs 20% estándar) se suma encima de tu precio y la paga quien anuncia. Una comisión más baja hace tus tarifas más competitivas, así que cierras más deals.',
-  },
-  {
-    q: '¿Hasta cuándo dura el "vitalicio"?',
-    a: 'Mientras tu canal siga activo en Channelad. No hay renovación, no hay letra pequeña, no hay fecha de caducidad. Si entras como founding partner, tus anunciantes pagan 18% el primer mes y el año diez.',
-  },
-  {
-    q: '¿Qué pasa cuando se ocupen las 150 plazas?',
-    a: `Actualmente hay ${FOUNDING_RESERVED} de ${FOUNDING_TOTAL} reservadas. Cuando se completen, la comisión para canales nuevos pasa al 20% estándar. Los ${FOUNDING_TOTAL} founding partners mantienen su 18% para siempre — esa es toda la ventaja de entrar antes.`,
-  },
-  {
-    q: '¿Cuánto cuesta ser founding partner?',
-    a: 'Cero. El founding cohort es gratis, igual que el resto de la plataforma para creadores. No hay fee de alta, ni cuota mensual, ni coste oculto. Lo que pedimos no es dinero — es feedback y disposición a cerrar tus primeras campañas reales.',
-  },
-  {
-    q: '¿Y si entro y no me convence?',
-    a: 'Te vas cuando quieras, sin penalización. No hay permanencia ni exclusividad: puedes seguir cerrando patrocinios por tu cuenta o con otras plataformas en paralelo. Channelad es una capa más, no un contrato que te ate.',
-  },
-  {
-    q: '¿Tengo que dejar que publiquéis mi caso sí o sí?',
-    a: 'No. Documentar tu caso siempre requiere tu aprobación previa — texto y cifras incluidos. Puedes ser founding partner y mantener tu caso totalmente privado. La documentación es una opción que te ofrecemos, no una obligación.',
-  },
+  { q: '¿El 18% lo pago yo o el anunciante?', a: 'El anunciante, siempre. Channelad nunca cobra comisión al creador: tú recibes el 100% del precio que fijas. La comisión (18% founding vs 20% estándar) se suma encima de tu precio y la paga quien anuncia. Una comisión más baja hace tus tarifas más competitivas, así que cierras más deals.' },
+  { q: '¿Hasta cuándo dura el "vitalicio"?', a: 'Mientras tu canal siga activo en Channelad. No hay renovación, no hay letra pequeña, no hay fecha de caducidad. Si entras como founding partner, tus anunciantes pagan 18% el primer mes y el año diez.' },
+  { q: '¿Qué significa "canales interesados"?', a: 'La métrica agrega varias señales reales de interés: founding reservados, conversaciones cualificadas y registros confirmados en esta lista. Es honesta y se actualiza a diario.' },
+  { q: '¿Hay coste?', a: 'Cero. El founding cohort es gratis, igual que el resto de la plataforma para creadores. Lo único que pedimos es que confirmes el email para que tu plaza cuente.' },
+  { q: '¿Puedo cambiarme de nicho después?', a: 'Sí, mientras quede plaza en el nuevo nicho. Escríbenos a contact@channelad.io con tu link de referido y lo movemos.' },
+  { q: '¿Qué pasa si no confirmo el email?', a: 'Tu plaza no cuenta en el cohort y otro canal puede ocupar el slot. Si pierdes el correo, registra de nuevo el mismo email y te lo reenviamos.' },
+  { q: '¿Cómo funcionan los referidos?', a: 'Cada canal recibe un link único. Por cada 3 confirmados que entren a través de tu link, tu posición visible en la cola sube 100 puestos. El backend no reordena nada — es un boost de motivación, no una promesa.' },
+  { q: '¿Se publica mi nombre en algún sitio?', a: 'No. El founding cohort es privado mientras no se cierre. En septiembre, si das tu consentimiento explícito, podemos mencionar tu canal como caso. Si no, sigues siendo privado.' },
 ]
 
+// ─── Page ────────────────────────────────────────────────────────────
 export default function FoundingPage() {
-  const [openFaq, setOpenFaq] = useState(null)
-  const [activeScreen, setActiveScreen] = useState(0)
-  const reservedPct = Math.round((FOUNDING_RESERVED / FOUNDING_TOTAL) * 100)
-  const remaining = FOUNDING_TOTAL - FOUNDING_RESERVED
-  const ActiveDemo = PRODUCT_SCREENS[activeScreen].Demo
+  const [searchParams] = useSearchParams()
+  const refParam = searchParams.get('ref') || ''
+  const confirmedFlag = searchParams.get('confirmed') === '1'
+  const errFlag = searchParams.get('err') || ''
 
-  const faqSchema = {
+  // Niche personalization — ?nicho=cripto rewrites the hero H1 and pre-selects
+  // the form's nicho field. SEO-safe: canonical URL is /founding (no query).
+  const nichoParam = (searchParams.get('nicho') || '').toLowerCase()
+  const personalizedNiche = useMemo(
+    () => NICHES.find(n => n.id === nichoParam) || null,
+    [nichoParam],
+  )
+
+  const [counter, setCounter] = useState(null)
+  const [nicheData, setNicheData] = useState([])
+  const [openFaq, setOpenFaq] = useState(null)
+
+  // Form state — nicho is pre-filled when arriving via ?nicho=<id>.
+  const [form, setForm] = useState({
+    email: '', handle: '', platform: 'telegram',
+    nicho: personalizedNiche?.id || '', size: '',
+  })
+  const [submitting, setSubmitting] = useState(false)
+  const [submitResult, setSubmitResult] = useState(null) // { ok, message, referralToken }
+
+  // Refs for the hero "email-first" widget → smooth-scroll + focus handle field
+  // in the full form below, instead of duplicating the submit endpoint.
+  const handleInputRef = useRef(null)
+
+  // Initial fetch
+  useEffect(() => {
+    fetch('/api/founder-waitlist/counter').then(r => r.json()).then(j => j?.success && setCounter(j.data)).catch(() => {})
+    fetch('/api/founder-waitlist/niches').then(r => r.json()).then(j => j?.success && setNicheData(j.data.niches || [])).catch(() => {})
+  }, [])
+
+  const onChange = (k) => (e) => setForm(prev => ({ ...prev, [k]: e.target.value }))
+
+  const onSubmit = async (e) => {
+    e.preventDefault()
+    if (submitting) return
+    setSubmitting(true)
+    setSubmitResult(null)
+    try {
+      const res = await fetch('/api/founder-waitlist/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...form,
+          ref: refParam || undefined,
+          source: searchParams.get('utm_source') || 'direct',
+        }),
+      })
+      const json = await res.json()
+      setSubmitResult({
+        ok: !!json?.success,
+        message: json?.message || (json?.success ? 'Listo.' : 'Algo falló.'),
+        referralToken: json?.data?.referralToken || null,
+        // Persist the handle the user just typed so the success/share screens
+        // can pre-fill social copy with their own channel name (C1).
+        handle: form.handle?.trim() || '',
+      })
+    } catch {
+      setSubmitResult({ ok: false, message: 'Error de red. Vuelve a intentarlo.' })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const displayed = counter?.displayed ?? 96
+  const remaining = counter?.remaining ?? (CAP - displayed)
+  const pct = counter?.percentFull ?? Math.round((displayed / CAP) * 100)
+
+  // SEO schema
+  const faqSchema = useMemo(() => ({
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: FAQS.map((f) => ({
-      '@type': 'Question',
-      name: f.q,
-      acceptedAnswer: { '@type': 'Answer', text: f.a },
-    })),
-  }
-  const pageSchema = {
+    mainEntity: FAQS.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  }), [])
+  const pageSchema = useMemo(() => ({
     '@context': 'https://schema.org',
     '@type': 'WebPage',
-    name: 'Founding cohort — Channelad',
-    description: `Los primeros ${FOUNDING_TOTAL} admins entran con comisión 18% vitalicia. ${remaining} plazas disponibles.`,
+    name: 'Founding cohort · Pre-registro Channelad',
+    description: `Pre-registro abierto · ${CAP} canales founding para el lanzamiento de septiembre 2026. Activación prioritaria, 18% de comisión vitalicio (la más baja), slot reservado por nicho.`,
     url: 'https://channelad.io/founding',
     publisher: { '@type': 'Organization', name: 'Channelad', url: 'https://channelad.io' },
-    breadcrumb: {
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://channelad.io/' },
-        { '@type': 'ListItem', position: 2, name: 'Founding cohort', item: 'https://channelad.io/founding' },
-      ],
-    },
-  }
+  }), [])
 
   return (
     // <div>, not <main>: AppLayout already provides the page's <main> landmark.
     <div
       data-testid="founding-page"
       style={{
-        fontFamily: F,
-        color: 'var(--text)',
-        background:
-          'radial-gradient(ellipse 90% 50% at 70% 6%, rgba(37,211,102,0.10) 0%, transparent 55%), var(--bg)',
+        fontFamily: F, color: 'var(--text)',
+        background: 'radial-gradient(ellipse 95% 50% at 30% 4%, rgba(37,211,102,0.10) 0%, transparent 55%), var(--bg)',
         position: 'relative',
       }}
     >
@@ -229,24 +169,36 @@ export default function FoundingPage() {
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
       </Helmet>
       <SEO
-        title="Founding cohort · comisión 18% vitalicia"
-        description={`Los primeros ${FOUNDING_TOTAL} admins de canales privados entran con comisión 18% vitalicia para sus anunciantes. ${remaining} plazas disponibles. Sin coste, sin permanencia.`}
+        title="Founding cohort · comisión 18% vitalicia · pre-registro"
+        description={`Pre-registro abierto. Los primeros ${CAP} canales en español entran al founding cohort: 18% de comisión vitalicia para sus anunciantes (la más baja), activación prioritaria y slot reservado por nicho.`}
         path="/founding"
       />
 
-      {/* 1 · HERO — texto + phone con DemoCreatorEarnings */}
-      <section style={{ padding: '100px 32px 60px', position: 'relative', overflow: 'hidden' }}>
+      {/* ── 0 · Confirmation / error banners (URL-driven) ───────── */}
+      {confirmedFlag && (
+        <ConfirmBanner kind="success">
+          ¡Plaza confirmada! Tu slot en el founding cohort ya cuenta. Comparte tu link
+          de referidos para subir en la cola.
+        </ConfirmBanner>
+      )}
+      {errFlag && (
+        <ConfirmBanner kind="error">
+          No hemos podido confirmar tu plaza ({errFlag}). Vuelve a registrarte o
+          escríbenos a contact@channelad.io.
+        </ConfirmBanner>
+      )}
+
+      {/* ── 1 · Hero ──────────────────────────────────────────── */}
+      <section className="co-hero-section" style={{ padding: 'clamp(56px, 8vw, 90px) clamp(16px, 4vw, 32px) clamp(36px, 5vw, 50px)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div className="fd-hero-grid" style={{
-            display: 'grid', gridTemplateColumns: '1.1fr 1fr',
-            gap: 52, alignItems: 'center',
+          <div className="co-hero-grid" style={{
+            display: 'grid', gridTemplateColumns: '1.05fr 1fr',
+            gap: 56, alignItems: 'center',
           }}>
             {/* LEFT */}
             <div>
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 7,
                   background: greenAlpha(0.10), border: `1px solid ${greenAlpha(0.24)}`,
@@ -256,88 +208,103 @@ export default function FoundingPage() {
               >
                 <span style={{
                   width: 7, height: 7, borderRadius: '50%', background: GREEN,
-                  boxShadow: `0 0 0 0 ${greenAlpha(0.6)}`, animation: 'fd-pulse 1.8s infinite',
+                  boxShadow: `0 0 0 0 ${greenAlpha(0.6)}`, animation: 'co-pulse 1.8s infinite',
                 }} />
-                Founding cohort · {remaining} plazas disponibles
+                Founding cohort · {remaining.toLocaleString('es-ES')} plazas libres
               </motion.div>
 
               <motion.h1
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
+                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
                 style={{
                   fontFamily: D, fontSize: 'clamp(34px, 4.6vw, 54px)', fontWeight: 700,
                   letterSpacing: '-0.035em', lineHeight: 1.05, margin: '0 0 18px',
                 }}
               >
-                Entra entre los primeros {FOUNDING_TOTAL}.{' '}
+                {personalizedNiche ? (
+                  <>
+                    Reserva tu plaza entre los {SLOTS_PER_NICHE} canales de{' '}
+                    <span style={{ whiteSpace: 'nowrap' }}>
+                      {personalizedNiche.emoji} {personalizedNiche.label}
+                    </span>{' '}
+                    que se activan{' '}
+                  </>
+                ) : (
+                  <>
+                    Reserva tu plaza entre los {CAP.toLocaleString('es-ES')} canales founding que se activan{' '}
+                  </>
+                )}
                 <span style={{
                   background: 'linear-gradient(135deg, #1ea952 0%, #25d366 100%)',
-                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}>Fija tu 18% para siempre.</span>
+                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+                }}>antes del marketplace público.</span>
               </motion.h1>
 
               <motion.p
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                style={{ fontSize: 17, color: 'var(--muted)', lineHeight: 1.65, maxWidth: 520, margin: '0 0 24px' }}
+                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.18 }}
+                style={{ fontSize: 17, color: 'var(--muted)', lineHeight: 1.65, maxWidth: 540, margin: '0 0 26px' }}
               >
-                Los founding partners de Channelad fijan una comisión del 18% para sus anunciantes —
-                vitalicia. Cuando se ocupen las {FOUNDING_TOTAL} plazas, los canales nuevos pasan al 20%.
+                El founding cohort es la cohorte de pre-registro para el lanzamiento de Channelad en
+                septiembre 2026. Los {CAP.toLocaleString('es-ES')} primeros canales en español fijan{' '}
+                <strong style={{ color: 'var(--text)' }}>solo 18% de comisión vitalicia — la más baja</strong>,
+                con onboarding personal y activación antes que el marketplace abierto. Tú siempre cobras el 100%.
               </motion.p>
 
               {/* Progreso inline */}
               <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.28 }}
-                style={{ marginBottom: 26, maxWidth: 420 }}
+                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.28 }}
+                style={{ marginBottom: 26, maxWidth: 460 }}
               >
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
                   <span style={{
                     fontFamily: D, fontSize: 17, fontWeight: 700, color: 'var(--text)',
                     fontVariantNumeric: 'tabular-nums',
                   }}>
-                    {FOUNDING_RESERVED} <span style={{ color: 'var(--muted)', fontWeight: 500 }}>/ {FOUNDING_TOTAL} reservadas</span>
+                    {displayed.toLocaleString('es-ES')}{' '}
+                    <span style={{ color: 'var(--muted)', fontWeight: 500 }}>
+                      / {CAP.toLocaleString('es-ES')} {COUNTER_LABEL}
+                    </span>
                   </span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: GREEN }}>{remaining} libres</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: GREEN }}>
+                    {remaining.toLocaleString('es-ES')} libres
+                  </span>
                 </div>
                 <div style={{
                   width: '100%', height: 8, borderRadius: 8,
                   background: 'var(--surface)', border: '1px solid var(--border)', overflow: 'hidden',
                 }}>
                   <div style={{
-                    height: '100%', width: `${reservedPct}%`,
+                    height: '100%', width: `${pct}%`,
                     background: `linear-gradient(90deg, ${GREEN}, ${GREEN_DARK})`,
                     boxShadow: `0 0 14px ${greenAlpha(0.5)}`,
+                    transition: 'width .8s ease-out',
                   }} />
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8, lineHeight: 1.5 }}>
+                  Incluye founding reservados y conversaciones cualificadas.
                 </div>
               </motion.div>
 
+              {/* Activity ticker — last confirmed signups, masked handles. */}
+              <ActivityTicker />
+
               <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.36 }}
-                style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}
+                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.36 }}
+                style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}
               >
                 <a
-                  href={CAL_LINK}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="#registro"
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 8,
                     background: GREEN, color: '#fff', textDecoration: 'none',
                     borderRadius: 12, padding: '14px 24px',
                     fontSize: 15, fontWeight: 600,
                     boxShadow: `0 12px 28px -8px ${greenAlpha(0.45)}`,
-                    transition: 'transform .2s, background .2s',
+                    transition: 'background .2s, transform .2s',
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = GREEN_DARK; e.currentTarget.style.transform = 'translateY(-2px)' }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = GREEN; e.currentTarget.style.transform = 'none' }}
                 >
-                  <Calendar size={16} strokeWidth={2.4} /> Reservar mi plaza · 15 min
+                  <Users size={16} strokeWidth={2.4} /> Reservar mi slot
                 </a>
                 <Link
                   to="/whatsapp"
@@ -352,133 +319,60 @@ export default function FoundingPage() {
                   Ver cómo funciona <ArrowRight size={16} strokeWidth={2.4} />
                 </Link>
               </motion.div>
-
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.45, duration: 0.5 }}
-                style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic', margin: 0 }}
-              >
-                Sin coste · sin permanencia · sin exclusividad · 15 min sin pitch
-              </motion.p>
             </div>
 
-            {/* RIGHT — phone con DemoCreatorEarnings */}
-            <div className="fd-hero-phone" style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
-              <motion.div
-                initial={{ opacity: 0, y: 30, scale: 0.96 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <PhoneFrame
-                  appLabel="Earnings · Channelad"
-                  subLabel="Balance 1.247 € · +22% mes"
-                  width={336} height={668}
-                >
-                  <DemoCreatorEarnings />
-                </PhoneFrame>
-              </motion.div>
-
-              {/* Floating badge — 18% */}
-              <motion.div
-                initial={{ opacity: 0, x: -20, y: -10 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                transition={{ delay: 0.85, duration: 0.55 }}
-                style={{
-                  position: 'absolute', left: -16, top: 90,
-                  background: 'var(--surface)', border: `1px solid ${greenAlpha(0.30)}`,
-                  borderRadius: 14, padding: '12px 16px',
-                  boxShadow: `0 22px 46px -18px ${greenAlpha(0.35)}`,
-                  zIndex: 4,
+            {/* RIGHT — email-first capture (highest conversion slot above the fold) */}
+            <div className="co-hero-niches">
+              <HeroEmailWidget
+                heroEmail={form.email}
+                onHeroEmailChange={(v) => setForm(prev => ({ ...prev, email: v }))}
+                onContinue={() => {
+                  const section = document.getElementById('registro')
+                  if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  // Defer focus until the scroll animation is comfortably underway.
+                  setTimeout(() => handleInputRef.current?.focus(), 650)
                 }}
-              >
-                <div style={{ fontSize: 10, fontWeight: 700, color: GREEN, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 2 }}>
-                  Comisión founding
-                </div>
-                <div style={{
-                  fontFamily: D, fontSize: 26, fontWeight: 700, color: 'var(--text)',
-                  letterSpacing: '-0.03em', lineHeight: 1,
-                }}>
-                  18% <span style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 500 }}>vitalicio</span>
-                </div>
-              </motion.div>
+              />
             </div>
           </div>
         </div>
-
         <style>{`
-          @keyframes fd-pulse {
+          @keyframes co-pulse {
             0%   { box-shadow: 0 0 0 0 ${greenAlpha(0.6)}; }
             70%  { box-shadow: 0 0 0 6px ${greenAlpha(0)}; }
             100% { box-shadow: 0 0 0 0 ${greenAlpha(0)}; }
           }
           @media (max-width: 920px) {
-            .fd-hero-grid { grid-template-columns: 1fr !important; gap: 44px !important; }
+            .co-hero-grid { grid-template-columns: 1fr !important; gap: 44px !important; }
           }
         `}</style>
       </section>
 
-      {/* 1.5 · TRUST STRIP */}
-      <Section style={{ padding: '12px 48px 56px', background: 'transparent' }}>
-        <div style={{ maxWidth: MAX_W, margin: '0 auto' }}>
-          <motion.p variants={fadeUp} style={{
-            fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
-            letterSpacing: '0.14em', color: 'var(--muted)', textAlign: 'center', marginBottom: 22,
-          }}>
-            Operado sobre infraestructura verificable
-          </motion.p>
-          <motion.div variants={staggerContainer}
-            style={{
-              display: 'flex', justifyContent: 'center', alignItems: 'center',
-              flexWrap: 'wrap', gap: 'clamp(20px, 4vw, 48px)',
-            }}
-          >
-            {[
-              { name: 'Stripe Connect', sub: 'escrow' },
-              { name: 'WhatsApp Channel API', sub: 'Meta · marzo 2026' },
-              { name: 'SEPA Instant', sub: '1 día hábil' },
-              { name: 'MICHI SOLUCIONS S.L.', sub: 'sociedad española' },
-            ].map((item) => (
-              <motion.div key={item.name} variants={staggerItem}
-                style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5, color: 'var(--text)', fontWeight: 600 }}
-              >
-                <span style={{
-                  width: 8, height: 8, borderRadius: '50%', background: GREEN, flexShrink: 0,
-                  boxShadow: `0 0 10px ${greenAlpha(0.5)}`,
-                }} />
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span>{item.name}</span>
-                  <span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 500 }}>{item.sub}</span>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </Section>
+      {/* ── 1.5 · Trust row ────────────────────────────────────── */}
+      <TrustRow />
 
-      {/* 2 · QUÉ INCLUYE */}
-      <Section style={{ padding: '72px 48px', background: 'transparent' }}>
+      {/* ── 2 · Beneficios ────────────────────────────────────── */}
+      <Section style={{ padding: '72px 32px', background: 'transparent' }}>
         <div style={{ maxWidth: MAX_W, margin: '0 auto' }}>
-          <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: 48 }}>
-            <p style={{
-              fontSize: 11, fontWeight: 600, color: GREEN,
-              textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12,
-            }}>Qué incluye</p>
+          <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: 44 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
+              Qué incluye el founding cohort
+            </p>
             <h2 style={{
               fontFamily: D, fontSize: 'clamp(26px, 3.2vw, 38px)', fontWeight: 700,
               letterSpacing: '-0.03em', maxWidth: 680, margin: '0 auto', lineHeight: 1.1,
             }}>
-              Cuatro ventajas que solo tienen los primeros {FOUNDING_TOTAL}.
+              Cuatro ventajas concretas, no promesas.
             </h2>
           </motion.div>
 
-          <div className="fd-grid-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 18 }}>
+          <div className="co-grid-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
             {BENEFITS.map((b, i) => (
-              <motion.div key={b.title} variants={staggerItem}
-                whileHover={{ y: -4 }}
+              <motion.div key={b.title} variants={item}
+                whileHover={{ y: -3 }}
                 style={{
                   background: 'var(--surface)', border: `1px solid ${greenAlpha(0.18)}`,
-                  borderRadius: 18, padding: '28px', position: 'relative', overflow: 'hidden',
+                  borderRadius: 16, padding: 26, position: 'relative', overflow: 'hidden',
                   transition: 'border-color .25s, box-shadow .25s',
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = greenAlpha(0.35); e.currentTarget.style.boxShadow = `0 18px 50px -22px ${greenAlpha(0.30)}` }}
@@ -486,259 +380,199 @@ export default function FoundingPage() {
               >
                 <div style={{
                   position: 'absolute', top: 14, right: 18,
-                  fontFamily: D, fontSize: 38, fontWeight: 700,
+                  fontFamily: D, fontSize: 34, fontWeight: 700,
                   color: greenAlpha(0.08), lineHeight: 1, letterSpacing: '-0.04em',
                 }}>{`0${i + 1}`}</div>
                 <div style={{
-                  width: 44, height: 44, borderRadius: 12,
+                  width: 42, height: 42, borderRadius: 12,
                   background: greenAlpha(0.10), color: GREEN,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  marginBottom: 16,
+                  marginBottom: 14,
                 }}>
-                  <b.Icon size={22} strokeWidth={2} />
+                  <b.Icon size={20} strokeWidth={2} />
                 </div>
-                <h3 style={{
-                  fontFamily: D, fontSize: 18, fontWeight: 700,
-                  letterSpacing: '-0.015em', margin: '0 0 8px',
-                }}>{b.title}</h3>
+                <h3 style={{ fontFamily: D, fontSize: 17, fontWeight: 700, letterSpacing: '-0.015em', margin: '0 0 8px' }}>{b.title}</h3>
                 <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>{b.body}</p>
               </motion.div>
             ))}
           </div>
-
-          <style>{`@media (max-width: 720px) { .fd-grid-2 { grid-template-columns: 1fr !important; } }`}</style>
+          <style>{`@media (max-width: 720px) { .co-grid-2 { grid-template-columns: 1fr !important; } }`}</style>
         </div>
       </Section>
 
-      {/* 3 · ESTO ES LO QUE USARÁS — phone interactivo con demos reales */}
-      <Section style={{ padding: '90px 48px', background: 'var(--bg2)' }}>
+      {/* ── 3 · Nichos (scarcity per vertical) ────────────────── */}
+      <Section id="nichos" style={{ padding: '72px 32px', background: 'var(--bg2)' }}>
         <div style={{ maxWidth: MAX_W, margin: '0 auto' }}>
-          <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: 52 }}>
-            <p style={{
-              fontSize: 11, fontWeight: 600, color: GREEN,
-              textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12,
-            }}>Esto es lo que usarás</p>
+          <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: 36 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
+              Slots por nicho
+            </p>
             <h2 style={{
-              fontFamily: D, fontSize: 'clamp(26px, 3.2vw, 38px)', fontWeight: 700,
-              letterSpacing: '-0.03em', maxWidth: 700, margin: '0 auto', lineHeight: 1.1,
+              fontFamily: D, fontSize: 'clamp(24px, 2.8vw, 34px)', fontWeight: 700,
+              letterSpacing: '-0.025em', lineHeight: 1.15,
             }}>
-              No es una promesa. Es la plataforma, ya construida.
+              {SLOTS_PER_NICHE} plazas por nicho. Cuando se llena, se llena.
             </h2>
+            <p style={{ fontSize: 14, color: 'var(--muted)', maxWidth: 560, margin: '12px auto 0', lineHeight: 1.6 }}>
+              Mantenemos diversidad: ningún nicho domina el cohort. Si tu vertical está casi
+              lleno, no esperes — reserva ahora.
+            </p>
           </motion.div>
 
-          <div className="fd-product-grid" style={{
-            display: 'grid', gridTemplateColumns: '1fr 1.05fr', gap: 56, alignItems: 'center',
+          <div className="co-niches-grid" style={{
+            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12,
           }}>
-            {/* LEFT — phone con demo activo */}
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <motion.div
-                key={activeScreen}
-                initial={{ opacity: 0, y: 14, scale: 0.97 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <PhoneFrame
-                  appLabel={PRODUCT_SCREENS[activeScreen].appLabel}
-                  subLabel={PRODUCT_SCREENS[activeScreen].sub}
-                  width={336} height={668}
-                >
-                  <ActiveDemo />
-                </PhoneFrame>
-              </motion.div>
-            </div>
-
-            {/* RIGHT — screens interactivas */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {PRODUCT_SCREENS.map((screen, i) => {
-                const active = i === activeScreen
-                return (
-                  <motion.button
-                    key={screen.n}
-                    type="button"
-                    variants={staggerItem}
-                    onMouseEnter={() => setActiveScreen(i)}
-                    onFocus={() => setActiveScreen(i)}
-                    onClick={() => setActiveScreen(i)}
-                    whileHover={{ x: 4 }}
-                    style={{
-                      textAlign: 'left', cursor: 'pointer',
-                      background: active ? greenAlpha(0.06) : 'var(--surface)',
-                      border: `1px solid ${active ? greenAlpha(0.35) : 'var(--border)'}`,
-                      borderRadius: 16, padding: '20px 22px',
-                      display: 'flex', gap: 16, alignItems: 'flex-start',
-                      transition: 'all .25s',
-                      boxShadow: active ? `0 14px 36px -18px ${greenAlpha(0.30)}` : 'none',
-                    }}
-                  >
-                    <div style={{
-                      flexShrink: 0,
-                      width: 40, height: 40, borderRadius: 12,
-                      background: active ? GREEN : greenAlpha(0.10),
-                      color: active ? '#fff' : GREEN,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: D, fontWeight: 700, fontSize: 14,
-                      transition: 'background .25s, color .25s',
-                    }}>{screen.n}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <h3 style={{
-                        fontFamily: D, fontSize: 16, fontWeight: 700,
-                        margin: '0 0 6px', lineHeight: 1.2,
-                      }}>{screen.title}</h3>
-                      <p style={{ fontSize: 13.5, color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                        {screen.body}
-                      </p>
-                    </div>
-                  </motion.button>
-                )
-              })}
-            </div>
+            {(nicheData.length ? nicheData : NICHES.map(n => ({ ...n, slots: SLOTS_PER_NICHE, filled: 0, percentFull: 0, almostFull: false, full: false }))).map(n => (
+              <NicheCard key={n.id} niche={n} />
+            ))}
           </div>
-
           <style>{`
-            @media (max-width: 980px) {
-              .fd-product-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
-            }
+            @media (max-width: 920px) { .co-niches-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+            @media (max-width: 560px) { .co-niches-grid { grid-template-columns: 1fr !important; } }
           `}</style>
         </div>
       </Section>
 
-      {/* 4 · QUÉ PEDIMOS A CAMBIO */}
-      <Section style={{ padding: '80px 48px', background: 'transparent' }}>
-        <div style={{ maxWidth: 840, margin: '0 auto' }}>
-          <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: 36 }}>
-            <p style={{
-              fontSize: 11, fontWeight: 600, color: GREEN,
-              textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12,
-            }}>El trato, claro</p>
-            <h2 style={{
-              fontFamily: D, fontSize: 'clamp(24px, 2.8vw, 32px)', fontWeight: 700,
-              letterSpacing: '-0.025em', maxWidth: 620, margin: '0 auto', lineHeight: 1.15,
-            }}>
-              No es gratis-gratis. Es un trato — y preferimos decirlo.
-            </h2>
-            <p style={{
-              fontSize: 15, color: 'var(--muted)', lineHeight: 1.6,
-              maxWidth: 560, margin: '14px auto 0',
-            }}>
-              No te cobramos nada. Pero entrar pronto tiene un porqué: nos ayudas a construir bien.
-              Esto es lo que esperamos de ti a cambio del 18% vitalicio.
+      {/* ── 4 · Formulario de registro ─────────────────────────── */}
+      <Section id="registro" style={{ padding: '80px 32px', background: 'transparent' }}>
+        <div style={{ maxWidth: 720, margin: '0 auto' }}>
+          <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: 32 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
+              Reserva tu slot
             </p>
-          </motion.div>
-
-          <motion.div variants={fadeUp} style={{
-            background: 'var(--surface)', border: '1px solid var(--border)',
-            borderRadius: 18, padding: 'clamp(24px, 3vw, 32px)',
-          }}>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {WE_ASK.map((item) => (
-                <li key={item} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, fontSize: 15, color: 'var(--text)', lineHeight: 1.55 }}>
-                  <span style={{
-                    width: 24, height: 24, borderRadius: '50%',
-                    background: greenAlpha(0.15), color: GREEN,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0, marginTop: 1,
-                  }}>
-                    <CheckCircle2 size={14} strokeWidth={2.6} />
-                  </span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-        </div>
-      </Section>
-
-      {/* 5 · COMPARATIVA */}
-      <Section style={{ padding: '80px 48px', background: 'var(--bg2)' }}>
-        <div style={{ maxWidth: 880, margin: '0 auto' }}>
-          <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: 40 }}>
-            <p style={{
-              fontSize: 11, fontWeight: 600, color: GREEN,
-              textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12,
-            }}>Founding vs estándar</p>
             <h2 style={{
-              fontFamily: D, fontSize: 'clamp(24px, 2.8vw, 32px)', fontWeight: 700,
+              fontFamily: D, fontSize: 'clamp(24px, 2.8vw, 34px)', fontWeight: 700,
               letterSpacing: '-0.025em', lineHeight: 1.15,
             }}>
-              La misma plataforma. Mejores condiciones para siempre.
+              20 segundos. Sin tarjeta. Doble opt-in.
             </h2>
+            {refParam && (
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                background: greenAlpha(0.10), border: `1px solid ${greenAlpha(0.25)}`,
+                borderRadius: 999, padding: '5px 14px', marginTop: 16,
+                fontSize: 12, fontWeight: 600, color: GREEN,
+              }}>
+                <Share2 size={13} strokeWidth={2.2} />
+                Te ha invitado un partner — tu plaza cuenta el doble en su cola
+              </div>
+            )}
           </motion.div>
 
-          <motion.div variants={fadeUp} style={{
-            background: 'var(--surface)', border: '1px solid var(--border)',
-            borderRadius: 16, overflow: 'hidden',
-          }}>
-            <div style={{
-              display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr',
-              background: greenAlpha(0.06),
-              borderBottom: `1px solid ${greenAlpha(0.20)}`,
-            }}>
-              <div style={{ padding: '14px 18px' }} />
-              <div style={{
-                padding: '14px 18px', textAlign: 'center',
-                fontFamily: D, fontSize: 13, fontWeight: 700, color: GREEN,
-                borderLeft: `1px solid ${greenAlpha(0.15)}`,
-              }}>
-                Founding<br /><span style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 500 }}>primeros {FOUNDING_TOTAL}</span>
+          {submitResult?.ok && submitResult.referralToken ? (
+            <RegistrationSuccess result={submitResult} />
+          ) : (
+            <motion.form
+              variants={fadeUp}
+              onSubmit={onSubmit}
+              style={{
+                background: 'var(--surface)', border: '1px solid var(--border)',
+                borderRadius: 18, padding: 'clamp(22px, 3vw, 32px)',
+              }}
+            >
+              <style>{`
+                @media (max-width: 560px) {
+                  .co-form-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+                }
+              `}</style>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }} className="co-form-grid">
+                <Field label="Email" required>
+                  <input
+                    type="email" required value={form.email} onChange={onChange('email')}
+                    placeholder="tu@email.com"
+                    style={inputStyle}
+                  />
+                </Field>
+                <Field label="Handle de tu canal" required>
+                  <input
+                    ref={handleInputRef}
+                    type="text" required value={form.handle} onChange={onChange('handle')}
+                    placeholder="@micanal o url"
+                    style={inputStyle}
+                  />
+                </Field>
+                <Field label="Plataforma">
+                  <select value={form.platform} onChange={onChange('platform')} style={inputStyle}>
+                    {PLATFORMS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+                  </select>
+                </Field>
+                <Field label="Tamaño del canal" required>
+                  <select value={form.size} onChange={onChange('size')} required style={inputStyle}>
+                    <option value="">Selecciona…</option>
+                    {SIZES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                  </select>
+                </Field>
+                <Field label="Nicho" required wide>
+                  <select value={form.nicho} onChange={onChange('nicho')} required style={inputStyle}>
+                    <option value="">Selecciona el nicho de tu canal…</option>
+                    {NICHES.map(n => {
+                      const data = nicheData.find(x => x.id === n.id)
+                      const full = data?.full
+                      const almost = data?.almostFull
+                      const label = full ? `${n.label} · LLENO` : (almost ? `${n.label} · casi lleno` : n.label)
+                      return <option key={n.id} value={n.id} disabled={full}>{n.emoji} {label}</option>
+                    })}
+                  </select>
+                </Field>
               </div>
-              <div style={{
-                padding: '14px 18px', textAlign: 'center',
-                fontFamily: D, fontSize: 13, fontWeight: 700, color: 'var(--muted)',
-                borderLeft: '1px solid var(--border)',
-              }}>
-                Estándar<br /><span style={{ fontSize: 10, fontWeight: 500 }}>tras lanzamiento</span>
-              </div>
-            </div>
-            {COMPARE_ROWS.map((row, i) => (
-              <div key={row.label} style={{
-                display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr',
-                borderBottom: i < COMPARE_ROWS.length - 1 ? '1px solid var(--border)' : 'none',
-                fontSize: 13.5,
-              }}>
-                <div style={{ padding: '14px 18px', color: 'var(--text)', fontWeight: 500 }}>{row.label}</div>
+
+              {submitResult && !submitResult.ok && (
                 <div style={{
-                  padding: '14px 18px', textAlign: 'center',
-                  color: GREEN, fontWeight: 700,
-                  borderLeft: `1px solid ${greenAlpha(0.15)}`,
-                  background: greenAlpha(0.03),
-                }}>{row.founding}</div>
-                <div style={{
-                  padding: '14px 18px', textAlign: 'center',
-                  color: 'var(--muted)', fontWeight: 500,
-                  borderLeft: '1px solid var(--border)',
-                }}>{row.standard}</div>
-              </div>
-            ))}
-          </motion.div>
+                  marginTop: 16, padding: 12,
+                  background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)',
+                  borderRadius: 10, fontSize: 13, color: '#dc2626',
+                  display: 'flex', alignItems: 'flex-start', gap: 8,
+                }}>
+                  <AlertCircle size={16} strokeWidth={2.2} style={{ flexShrink: 0, marginTop: 1 }} />
+                  {submitResult.message}
+                </div>
+              )}
+
+              <button
+                type="submit" disabled={submitting}
+                style={{
+                  marginTop: 20, width: '100%',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  background: submitting ? greenAlpha(0.55) : GREEN, color: '#fff',
+                  border: 'none', borderRadius: 12, padding: '14px 22px',
+                  fontSize: 15, fontWeight: 600, cursor: submitting ? 'wait' : 'pointer',
+                  boxShadow: `0 12px 28px -8px ${greenAlpha(0.45)}`,
+                  transition: 'background .2s',
+                }}
+              >
+                {submitting ? 'Enviando…' : <>Reservar mi slot <ArrowRight size={16} strokeWidth={2.4} /></>}
+              </button>
+
+              <p style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'center', marginTop: 12, lineHeight: 1.6 }}>
+                Al enviar aceptas que te enviemos un email para confirmar tu plaza. Nada de spam,
+                cero compartir tu dato. RGPD: <Link to="/privacidad" style={{ color: GREEN }}>política de privacidad</Link>.
+              </p>
+            </motion.form>
+          )}
         </div>
       </Section>
 
-      {/* 6 · CÓMO ENTRAR */}
-      <Section style={{ padding: '80px 48px', background: 'transparent' }}>
+      {/* ── 5 · Cómo funciona ──────────────────────────────────── */}
+      <Section style={{ padding: '72px 32px', background: 'var(--bg2)' }}>
         <div style={{ maxWidth: MAX_W, margin: '0 auto' }}>
-          <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: 48 }}>
-            <p style={{
-              fontSize: 11, fontWeight: 600, color: GREEN,
-              textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12,
-            }}>Cómo entrar</p>
-            <h2 style={{
-              fontFamily: D, fontSize: 'clamp(26px, 3.2vw, 38px)', fontWeight: 700,
-              letterSpacing: '-0.03em', lineHeight: 1.1,
-            }}>
-              De la llamada al cohort, en cuatro pasos.
+          <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: 40 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
+              Cómo funciona
+            </p>
+            <h2 style={{ fontFamily: D, fontSize: 'clamp(24px, 2.8vw, 34px)', fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.15 }}>
+              De aquí a septiembre, en cuatro pasos.
             </h2>
           </motion.div>
-
-          <div className="fd-steps" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <div className="co-steps" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
             {STEPS.map((s, i) => (
-              <motion.div key={s.n} variants={staggerItem}
+              <motion.div key={s.n} variants={item}
                 style={{
                   background: 'var(--surface)', border: '1px solid var(--border)',
-                  borderRadius: 16, padding: '24px', position: 'relative',
+                  borderRadius: 16, padding: 22, position: 'relative',
                 }}
               >
                 {i < STEPS.length - 1 && (
-                  <div className="fd-step-arrow" style={{
+                  <div className="co-step-arrow" style={{
                     position: 'absolute', right: -12, top: '50%', transform: 'translateY(-50%)',
                     color: greenAlpha(0.4), zIndex: 2,
                   }}>
@@ -751,37 +585,33 @@ export default function FoundingPage() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontFamily: D, fontWeight: 700, fontSize: 13, marginBottom: 14,
                 }}>{s.n}</div>
-                <h3 style={{
-                  fontFamily: D, fontSize: 15, fontWeight: 700,
-                  margin: '0 0 8px', lineHeight: 1.2,
-                }}>{s.title}</h3>
+                <h3 style={{ fontFamily: D, fontSize: 15, fontWeight: 700, margin: '0 0 8px', lineHeight: 1.2 }}>{s.title}</h3>
                 <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>{s.body}</p>
               </motion.div>
             ))}
           </div>
-
           <style>{`
             @media (max-width: 1024px) {
-              .fd-steps { grid-template-columns: 1fr 1fr !important; }
-              .fd-step-arrow { display: none; }
+              .co-steps { grid-template-columns: 1fr 1fr !important; }
+              .co-step-arrow { display: none; }
             }
-            @media (max-width: 560px) { .fd-steps { grid-template-columns: 1fr !important; } }
+            @media (max-width: 560px) { .co-steps { grid-template-columns: 1fr !important; } }
           `}</style>
         </div>
       </Section>
 
-      {/* 7 · FAQ */}
-      <Section style={{ padding: '80px 48px', background: 'var(--bg2)' }}>
+      {/* ── 6 · FAQ ────────────────────────────────────────────── */}
+      <Section style={{ padding: '72px 32px', background: 'transparent' }}>
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
-          <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: 40 }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>FAQ</p>
-            <h2 style={{ fontFamily: D, fontSize: 'clamp(24px, 2.8vw, 34px)', fontWeight: 700, letterSpacing: '-0.025em' }}>
-              Lo que preguntan antes de reservar plaza
+          <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: 36 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>FAQ</p>
+            <h2 style={{ fontFamily: D, fontSize: 'clamp(22px, 2.6vw, 30px)', fontWeight: 700, letterSpacing: '-0.025em' }}>
+              Lo que preguntan antes de reservar
             </h2>
           </motion.div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {FAQS.map((faq, i) => (
-              <motion.div key={i} variants={staggerItem} style={{
+              <motion.div key={i} variants={item} style={{
                 background: 'var(--surface)',
                 border: `1px solid ${openFaq === i ? greenAlpha(0.25) : 'var(--border)'}`,
                 borderRadius: 14, overflow: 'hidden', transition: 'border-color .2s',
@@ -789,16 +619,14 @@ export default function FoundingPage() {
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   aria-expanded={openFaq === i}
-                  aria-controls={`fd-faq-panel-${i}`}
-                  id={`fd-faq-trigger-${i}`}
                   style={{
                     width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '18px 22px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
+                    padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
                   }}
                 >
-                  <span style={{ fontSize: 15, fontWeight: 500, color: openFaq === i ? GREEN : 'var(--text)', fontFamily: F }}>{faq.q}</span>
+                  <span style={{ fontSize: 15, fontWeight: 500, color: openFaq === i ? GREEN : 'var(--text)' }}>{faq.q}</span>
                   <motion.svg animate={{ rotate: openFaq === i ? 45 : 0 }} transition={{ duration: 0.3 }}
-                    width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                    width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                     style={{ color: openFaq === i ? GREEN : 'var(--muted)', flexShrink: 0, marginLeft: 16 }}>
                     <path d="M12 5v14M5 12h14"/>
                   </motion.svg>
@@ -806,16 +634,11 @@ export default function FoundingPage() {
                 <AnimatePresence>
                   {openFaq === i && (
                     <motion.div
-                      id={`fd-faq-panel-${i}`}
-                      role="region"
-                      aria-labelledby={`fd-faq-trigger-${i}`}
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
+                      initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
                       style={{ overflow: 'hidden' }}
                     >
-                      <div style={{ padding: '0 22px 18px' }}>
+                      <div style={{ padding: '0 20px 18px' }}>
                         <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.7, margin: 0 }}>{faq.a}</p>
                       </div>
                     </motion.div>
@@ -827,63 +650,756 @@ export default function FoundingPage() {
         </div>
       </Section>
 
-      {/* 8 · FINAL CTA */}
-      <Section style={{ padding: '80px 48px 110px', background: 'transparent' }}>
-        <motion.div variants={fadeUp} style={{
-          maxWidth: MAX_W, margin: '0 auto',
-          background: 'linear-gradient(135deg, #052e16 0%, #064e3b 50%, #052e16 100%)',
-          border: `1px solid ${greenAlpha(0.15)}`,
-          borderRadius: 24, padding: 'clamp(40px, 5vw, 64px) clamp(28px, 4vw, 56px)',
-          textAlign: 'center', position: 'relative', overflow: 'hidden',
-        }}>
-          <Quote size={40} strokeWidth={1.6} style={{ color: greenAlpha(0.4), marginBottom: 16 }} />
-          <h2 style={{
-            fontFamily: D, fontSize: 'clamp(24px, 3.2vw, 36px)', fontWeight: 700,
-            color: '#fff', margin: '0 0 14px', letterSpacing: '-0.025em', lineHeight: 1.15,
-          }}>
-            {remaining} plazas. Después, el 18% deja de estar disponible.
-          </h2>
-          <p style={{
-            fontSize: 16, color: 'rgba(255,255,255,0.7)', lineHeight: 1.65,
-            maxWidth: 540, margin: '0 auto 28px',
-          }}>
-            Una llamada de 15 minutos para ver si tu canal encaja. Sin pitch, sin tarjeta, sin
-            compromiso de listar nada hasta que tú quieras.
-          </p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a
-              href={CAL_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                background: GREEN, color: '#fff', textDecoration: 'none',
-                padding: '14px 28px', borderRadius: 12,
-                fontWeight: 600, fontSize: 15,
-                boxShadow: `0 0 30px ${greenAlpha(0.35)}`,
-              }}
-            >
-              <Calendar size={16} strokeWidth={2.4} /> Reservar mi plaza
-            </a>
-            <a
-              href={CONTACT_MAIL}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                background: 'rgba(255,255,255,0.06)', color: '#fff', textDecoration: 'none',
-                padding: '14px 24px', borderRadius: 12,
-                fontWeight: 600, fontSize: 15,
-                border: '1px solid rgba(255,255,255,0.12)',
-              }}
-            >
-              <MessageCircle size={16} strokeWidth={2.4} /> Escribir por email
-            </a>
-          </div>
-        </motion.div>
-      </Section>
-
-      <ChannelOnePromoBlock context="founding" />
-
       <CrossLinks exclude="/founding" />
+
+      {/* Sticky bottom CTA — only when the user has scrolled past the hero
+          and hasn't yet hit the registration section / success state. */}
+      <StickyCTA
+        displayed={displayed}
+        cap={CAP}
+        hideWhen={!!(submitResult?.ok && submitResult.referralToken)}
+      />
+
+      {/* Post-confirm share modal — opens automatically when the user arrives
+          via the email confirmation link (?confirmed=1&ref=<token>) (C3). */}
+      {confirmedFlag && refParam && (
+        <PostConfirmShareModal refToken={refParam} />
+      )}
+    </div>
+  )
+}
+
+// ─── Sub-components ──────────────────────────────────────────────────
+function ConfirmBanner({ kind, children }) {
+  const bg = kind === 'success' ? greenAlpha(0.12) : 'rgba(220,38,38,0.10)'
+  const fg = kind === 'success' ? GREEN : '#dc2626'
+  const Icon = kind === 'success' ? CheckCircle2 : AlertCircle
+  return (
+    <div style={{
+      background: bg, borderBottom: `1px solid ${kind === 'success' ? greenAlpha(0.25) : 'rgba(220,38,38,0.25)'}`,
+      padding: '12px 24px', textAlign: 'center', fontSize: 14, color: fg, fontWeight: 500,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+    }}>
+      <Icon size={16} strokeWidth={2.2} />
+      <span>{children}</span>
+    </div>
+  )
+}
+
+function NicheCard({ niche }) {
+  const pct = Math.min(100, niche.percentFull || 0)
+  const meta = NICHES.find(n => n.id === niche.id)
+  const emoji = meta?.emoji || ''
+  return (
+    <motion.div variants={item}
+      style={{
+        background: 'var(--surface)', border: `1px solid ${niche.almostFull ? '#f59e0b' : 'var(--border)'}`,
+        borderRadius: 14, padding: 16,
+        opacity: niche.full ? 0.55 : 1,
+        position: 'relative',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+        <span style={{ fontSize: 18 }}>{emoji}</span>
+        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{niche.label}</span>
+        {niche.almostFull && !niche.full && (
+          <span style={{
+            marginLeft: 'auto', background: 'rgba(245,158,11,0.12)', color: '#f59e0b',
+            border: '1px solid rgba(245,158,11,0.3)', borderRadius: 999, padding: '2px 8px',
+            fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
+          }}>Casi lleno</span>
+        )}
+        {niche.full && (
+          <span style={{
+            marginLeft: 'auto', background: 'rgba(120,120,120,0.12)', color: 'var(--muted)',
+            border: '1px solid var(--border)', borderRadius: 999, padding: '2px 8px',
+            fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
+          }}>Cerrado</span>
+        )}
+      </div>
+      <div style={{
+        width: '100%', height: 6, borderRadius: 6,
+        background: 'var(--bg2)', overflow: 'hidden', marginBottom: 8,
+      }}>
+        <div style={{
+          height: '100%', width: `${pct}%`,
+          background: niche.almostFull ? '#f59e0b' : GREEN,
+          transition: 'width .6s ease-out',
+        }} />
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--muted)', fontVariantNumeric: 'tabular-nums' }}>
+        {niche.filled || 0} / {niche.slots || SLOTS_PER_NICHE} slots
+      </div>
+    </motion.div>
+  )
+}
+
+// Normalise the raw handle into a public-looking @handle for social copy.
+// Strips URLs and leading slashes; keeps an @ prefix where it makes sense.
+function publicShareHandle(raw) {
+  if (!raw) return null
+  const trimmed = String(raw).trim()
+  if (!trimmed) return null
+  // URL-style handles → use the last path segment, prefix with @
+  const urlMatch = trimmed.match(/^(?:https?:\/\/)?(?:t\.me|wa\.me|whatsapp\.com\/channel|discord\.gg)\/(?:invite\/)?([A-Za-z0-9_.-]+)/i)
+  if (urlMatch && urlMatch[1]) return '@' + urlMatch[1]
+  if (trimmed.startsWith('@')) return trimmed.slice(0, 40)
+  // Looks like an email — don't expose it in a tweet
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return null
+  return '@' + trimmed.replace(/^[/@]+/, '').slice(0, 30)
+}
+
+function RegistrationSuccess({ result }) {
+  const [copied, setCopied] = useState(false)
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://channelad.io'
+  const refUrl = `${origin}/founding?ref=${result.referralToken}`
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(refUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch { /* ignore */ }
+  }
+
+  // Social copy — when we have a usable handle, lead with it for stronger
+  // social proof. Falls back to a generic first-person opener otherwise.
+  const shareHandle = publicShareHandle(result.handle)
+  const tweetBody = shareHandle
+    ? `${shareHandle} se acaba de unir al founding cohort de @channelad — pre-registro para el lanzamiento en septiembre. Comisión 18% vitalicia (la más baja), activación prioritaria.\n\nReserva tu plaza:`
+    : `Acabo de reservar mi plaza en el founding cohort de @channelad — pre-registro para el lanzamiento en septiembre. Comisión 18% vitalicia (la más baja), activación prioritaria.\n\nReserva la tuya:`
+  const twText = encodeURIComponent(tweetBody)
+  const twUrl = `https://twitter.com/intent/tweet?text=${twText}&url=${encodeURIComponent(refUrl)}`
+  const waUrl = `https://wa.me/?text=${twText}%20${encodeURIComponent(refUrl)}`
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+      style={{
+        background: 'var(--surface)', border: `1px solid ${greenAlpha(0.30)}`,
+        borderRadius: 18, padding: 'clamp(24px, 3vw, 36px)', textAlign: 'center',
+      }}
+    >
+      <div style={{
+        width: 56, height: 56, borderRadius: '50%',
+        background: greenAlpha(0.12), color: GREEN,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        marginBottom: 18,
+      }}>
+        <Mail size={26} strokeWidth={2} />
+      </div>
+      <h3 style={{ fontFamily: D, fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 10px' }}>
+        Revisa tu email para confirmar
+      </h3>
+      <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.6, maxWidth: 480, margin: '0 auto 22px' }}>
+        Te hemos enviado un link de confirmación. <strong style={{ color: 'var(--text)' }}>Tu plaza solo cuenta cuando confirmes</strong>.
+        Mientras tanto, ya tienes tu link de referidos.
+      </p>
+
+      <div style={{
+        background: 'var(--bg2)', border: '1px solid var(--border)',
+        borderRadius: 12, padding: 14, display: 'flex', alignItems: 'center', gap: 10,
+        marginBottom: 18, maxWidth: 520, margin: '0 auto 18px',
+      }}>
+        <code style={{
+          flex: 1, fontSize: 12, color: 'var(--text)',
+          fontFamily: 'ui-monospace, monospace', overflow: 'hidden', textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap', textAlign: 'left',
+        }}>{refUrl}</code>
+        <button
+          onClick={copy}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: copied ? greenAlpha(0.15) : GREEN, color: copied ? GREEN : '#fff',
+            border: 'none', borderRadius: 8, padding: '8px 12px',
+            fontSize: 12, fontWeight: 600, cursor: 'pointer',
+          }}
+        >
+          {copied ? <><CheckCircle2 size={13} strokeWidth={2.4} /> Copiado</> : <><Copy size={13} strokeWidth={2.4} /> Copiar</>}
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <a href={twUrl} target="_blank" rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            minHeight: 44, padding: '11px 20px',
+            background: '#000', color: '#fff', textDecoration: 'none',
+            borderRadius: 10, fontSize: 13, fontWeight: 600,
+          }}>
+          <Twitter size={14} strokeWidth={2.4} /> Compartir en X
+        </a>
+        <a href={waUrl} target="_blank" rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            minHeight: 44, padding: '11px 20px',
+            background: GREEN, color: '#fff', textDecoration: 'none',
+            borderRadius: 10, fontSize: 13, fontWeight: 600,
+          }}>
+          <MessageCircle size={14} strokeWidth={2.4} /> WhatsApp
+        </a>
+      </div>
+
+      <ReferralThermometer refToken={result.referralToken} />
+    </motion.div>
+  )
+}
+
+// ─── Referral thermometer (C2) ──────────────────────────────────────
+// Polls /status/:refToken so a freshly-registered user sees their referral
+// progress update live. 3 confirmed referrals = +100 visible queue positions
+// (a UI boost — backend never reorders). Renders even on first paint with
+// a 0/3 baseline so the call-to-action is always present.
+function ReferralThermometer({ refToken }) {
+  const [status, setStatus] = useState(null)
+
+  useEffect(() => {
+    if (!refToken) return
+    let alive = true
+    const load = () => {
+      fetch(`/api/founder-waitlist/status/${refToken}`)
+        .then(r => r.json())
+        .then(j => { if (alive && j?.success && j.data) setStatus(j.data) })
+        .catch(() => {})
+    }
+    load()
+    const poll = setInterval(load, 30 * 1000)
+    return () => { alive = false; clearInterval(poll) }
+  }, [refToken])
+
+  const refs = status?.referralCount ?? 0
+  const inCycle = refs % 3
+  const cyclesDone = Math.floor(refs / 3)
+  const pct = Math.min(100, Math.round((inCycle / 3) * 100))
+  const remainingForBoost = 3 - inCycle
+  const totalBoost = cyclesDone * 100
+
+  return (
+    <div style={{
+      marginTop: 22, padding: 16,
+      background: greenAlpha(0.06), border: `1px solid ${greenAlpha(0.22)}`,
+      borderRadius: 14, textAlign: 'left',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, gap: 8, flexWrap: 'wrap' }}>
+        <span style={{
+          fontSize: 11, fontWeight: 700, color: GREEN,
+          textTransform: 'uppercase', letterSpacing: '0.12em',
+        }}>
+          Tu progreso de referidos
+        </span>
+        <span style={{
+          fontSize: 13, fontWeight: 700, color: 'var(--text)',
+          fontVariantNumeric: 'tabular-nums',
+        }}>
+          {inCycle}/3
+          {cyclesDone > 0 && (
+            <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600, color: GREEN }}>
+              · +{totalBoost} puestos
+            </span>
+          )}
+        </span>
+      </div>
+      <div style={{
+        width: '100%', height: 8, borderRadius: 8,
+        background: 'var(--bg2)', border: '1px solid var(--border)', overflow: 'hidden',
+      }}>
+        <div style={{
+          height: '100%', width: `${pct}%`,
+          background: `linear-gradient(90deg, ${GREEN}, ${GREEN_DARK})`,
+          boxShadow: `0 0 10px ${greenAlpha(0.4)}`,
+          transition: 'width .6s ease-out',
+        }} />
+      </div>
+      <p style={{
+        fontSize: 12, color: 'var(--muted)', lineHeight: 1.5, margin: '10px 0 0',
+      }}>
+        {remainingForBoost === 3
+          ? 'Comparte tu link: cada 3 confirmados subes 100 puestos visibles en la cola.'
+          : `Faltan ${remainingForBoost} confirmado${remainingForBoost > 1 ? 's' : ''} para subir otros 100 puestos.`}
+      </p>
+    </div>
+  )
+}
+
+function Field({ label, required, wide, children }) {
+  return (
+    <label style={{
+      display: 'flex', flexDirection: 'column', gap: 6,
+      gridColumn: wide ? '1 / -1' : 'auto',
+    }}>
+      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
+        {label} {required && <span style={{ color: GREEN }}>*</span>}
+      </span>
+      {children}
+    </label>
+  )
+}
+
+const inputStyle = {
+  background: 'var(--bg)', color: 'var(--text)',
+  border: '1px solid var(--border)', borderRadius: 10,
+  padding: '11px 14px', fontSize: 14, fontFamily: 'inherit',
+  outline: 'none', transition: 'border-color .2s, box-shadow .2s',
+  width: '100%',
+}
+
+// ─── Post-confirm share modal (C3) ──────────────────────────────────
+// Fires after the user clicks the email confirmation link. Closes via the
+// X button, ESC, or backdrop click. The modal reuses ReferralThermometer
+// so the user sees their live referral progress without leaving the page.
+function PostConfirmShareModal({ refToken }) {
+  const [open, setOpen] = useState(true)
+  const [copied, setCopied] = useState(false)
+
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://channelad.io'
+  const refUrl = `${origin}/founding?ref=${refToken}`
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+    }
+  }, [open])
+
+  if (!open) return null
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(refUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch { /* ignore */ }
+  }
+
+  const tweetBody = `Acabo de confirmar mi plaza en el founding cohort de @channelad — pre-registro para el lanzamiento en septiembre. Comisión 18% vitalicia (la más baja), activación prioritaria.\n\nReserva la tuya:`
+  const twText = encodeURIComponent(tweetBody)
+  const twUrl = `https://twitter.com/intent/tweet?text=${twText}&url=${encodeURIComponent(refUrl)}`
+  const waUrl = `https://wa.me/?text=${twText}%20${encodeURIComponent(refUrl)}`
+
+  return (
+    <div
+      role="dialog" aria-modal="true" aria-labelledby="co-share-title"
+      onClick={() => setOpen(false)}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 220,
+        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 18,
+        animation: 'co-fade-in .22s ease-out',
+      }}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 12, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: 'var(--surface)', color: 'var(--text)',
+          border: `1px solid ${greenAlpha(0.30)}`,
+          borderRadius: 20, padding: 'clamp(24px, 3vw, 36px)',
+          width: 'min(560px, 100%)', position: 'relative',
+          boxShadow: '0 30px 80px -20px rgba(0,0,0,0.45)',
+        }}
+      >
+        <button
+          onClick={() => setOpen(false)} aria-label="Cerrar"
+          style={{
+            position: 'absolute', top: 10, right: 10,
+            background: 'transparent', border: 'none', cursor: 'pointer',
+            color: 'var(--muted)',
+            width: 44, height: 44, padding: 0, borderRadius: 10,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'background .15s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg3)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+
+        <div style={{
+          width: 56, height: 56, borderRadius: '50%',
+          background: greenAlpha(0.14), color: GREEN,
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          marginBottom: 16,
+        }}>
+          <CheckCircle2 size={28} strokeWidth={2.2} />
+        </div>
+
+        <h3 id="co-share-title" style={{
+          fontFamily: D, fontSize: 24, fontWeight: 700,
+          letterSpacing: '-0.025em', margin: '0 0 10px', lineHeight: 1.2,
+        }}>
+          ¡Plaza confirmada!
+        </h3>
+        <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.6, margin: '0 0 22px' }}>
+          Estás dentro del cohort. Ahora invita a otros canales con tu link:
+          <strong style={{ color: 'var(--text)' }}> cada 3 confirmados subes 100 puestos visibles en la cola</strong>.
+        </p>
+
+        <div style={{
+          background: 'var(--bg2)', border: '1px solid var(--border)',
+          borderRadius: 12, padding: 12, display: 'flex', alignItems: 'center', gap: 10,
+          marginBottom: 16,
+        }}>
+          <code style={{
+            flex: 1, fontSize: 12, color: 'var(--text)',
+            fontFamily: 'ui-monospace, monospace',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>{refUrl}</code>
+          <button
+            onClick={copyLink}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: copied ? greenAlpha(0.15) : GREEN, color: copied ? GREEN : '#fff',
+              border: 'none', borderRadius: 8, padding: '8px 12px',
+              fontSize: 12, fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            {copied ? <><CheckCircle2 size={13} strokeWidth={2.4} /> Copiado</>
+                    : <><Copy size={13} strokeWidth={2.4} /> Copiar</>}
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 18 }}>
+          <a href={twUrl} target="_blank" rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              minHeight: 44, padding: '11px 20px',
+              background: '#000', color: '#fff', textDecoration: 'none',
+              borderRadius: 10, fontSize: 13, fontWeight: 600,
+            }}>
+            <Twitter size={14} strokeWidth={2.4} /> Compartir en X
+          </a>
+          <a href={waUrl} target="_blank" rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              minHeight: 44, padding: '11px 20px',
+              background: GREEN, color: '#fff', textDecoration: 'none',
+              borderRadius: 10, fontSize: 13, fontWeight: 600,
+            }}>
+            <MessageCircle size={14} strokeWidth={2.4} /> WhatsApp
+          </a>
+        </div>
+
+        <ReferralThermometer refToken={refToken} />
+      </motion.div>
+      <style>{`
+        @keyframes co-fade-in {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+      `}</style>
+    </div>
+  )
+}
+
+// ─── Activity ticker (B3) ───────────────────────────────────────────
+// Discrete social proof under the hero progress bar. Polls /recent every
+// 60s, cycles one item at a time. Renders nothing when the endpoint is
+// unavailable or returns no items (graceful degradation in DB-less envs).
+function formatRelativeMin(iso) {
+  const d = new Date(iso).getTime()
+  if (Number.isNaN(d)) return ''
+  const min = Math.max(0, Math.round((Date.now() - d) / 60000))
+  if (min < 1) return 'ahora mismo'
+  if (min < 60) return `hace ${min} min`
+  const hr = Math.round(min / 60)
+  if (hr < 24) return `hace ${hr} h`
+  const day = Math.round(hr / 24)
+  return `hace ${day} d`
+}
+
+function ActivityTicker() {
+  const [items, setItems] = useState([])
+  const [idx, setIdx] = useState(0)
+
+  useEffect(() => {
+    let alive = true
+    const load = () => {
+      fetch('/api/founder-waitlist/recent')
+        .then(r => r.json())
+        .then(j => { if (alive && j?.success && Array.isArray(j.data?.items)) setItems(j.data.items) })
+        .catch(() => {})
+    }
+    load()
+    const poll = setInterval(load, 60 * 1000)
+    return () => { alive = false; clearInterval(poll) }
+  }, [])
+
+  useEffect(() => {
+    if (items.length < 2) return
+    const t = setInterval(() => setIdx(i => (i + 1) % items.length), 4500)
+    return () => clearInterval(t)
+  }, [items.length])
+
+  if (!items.length) return null
+  const it = items[idx % items.length]
+  const meta = NICHES.find(n => n.id === it.nicho)
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.32 }}
+      aria-live="polite"
+      style={{
+        marginBottom: 22, display: 'inline-flex', alignItems: 'center', gap: 8,
+        background: greenAlpha(0.06), border: `1px solid ${greenAlpha(0.18)}`,
+        borderRadius: 999, padding: '6px 12px',
+        fontSize: 12, color: 'var(--muted)',
+        maxWidth: '100%', overflow: 'hidden',
+      }}
+    >
+      <span style={{
+        width: 6, height: 6, borderRadius: '50%', background: GREEN, flexShrink: 0,
+        animation: 'co-pulse 1.8s infinite',
+      }} />
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={`${it.handle}-${it.at}`}
+          initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.25 }}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            minWidth: 0,
+          }}
+        >
+          <strong style={{ color: 'var(--text)', fontWeight: 600 }}>{it.handle}</strong>
+          {meta && (
+            <span style={{ color: 'var(--muted)' }}>
+              · {meta.emoji} {meta.label}
+            </span>
+          )}
+          <span style={{ color: 'var(--muted)' }}>· {formatRelativeMin(it.at)}</span>
+        </motion.span>
+      </AnimatePresence>
+    </motion.div>
+  )
+}
+
+// ─── Hero email-first widget (B1) ───────────────────────────────────
+// Sits in the hero right column. Captures email in the shared form state
+// then scrolls to the full form below and focuses the handle field —
+// no duplicate endpoint, no two-step backend.
+function HeroEmailWidget({ heroEmail, onHeroEmailChange, onContinue }) {
+  const submit = (e) => {
+    e.preventDefault()
+    if (!heroEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(heroEmail)) return
+    onContinue()
+  }
+  return (
+    <motion.form
+      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.25 }}
+      onSubmit={submit}
+      style={{
+        background: 'var(--surface)', border: `1px solid ${greenAlpha(0.25)}`,
+        borderRadius: 18, padding: 26, maxWidth: 440, marginLeft: 'auto',
+        boxShadow: `0 24px 60px -28px ${greenAlpha(0.40)}`,
+      }}
+    >
+      <div style={{
+        display: 'inline-flex', alignItems: 'center', gap: 7,
+        fontSize: 10, fontWeight: 700, color: GREEN,
+        textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12,
+      }}>
+        <span style={{
+          width: 6, height: 6, borderRadius: '50%', background: GREEN,
+          animation: 'co-pulse 1.8s infinite',
+        }} />
+        Empieza en 20 segundos
+      </div>
+      <h2 style={{
+        fontFamily: FONT_DISPLAY, fontSize: 22, fontWeight: 700,
+        letterSpacing: '-0.02em', margin: '0 0 14px', lineHeight: 1.2,
+      }}>
+        Reserva tu slot
+      </h2>
+      <label style={{
+        display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 6,
+      }}>
+        Tu email
+      </label>
+      <input
+        type="email" required value={heroEmail} onChange={(e) => onHeroEmailChange(e.target.value)}
+        placeholder="tu@email.com"
+        style={{ ...inputStyle, marginBottom: 10 }}
+      />
+      <button
+        type="submit"
+        style={{
+          width: '100%',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          background: GREEN, color: '#fff',
+          border: 'none', borderRadius: 10, padding: '12px 18px',
+          fontSize: 14, fontWeight: 600, cursor: 'pointer',
+          boxShadow: `0 10px 24px -8px ${greenAlpha(0.45)}`,
+          transition: 'background .2s, transform .2s',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = GREEN_DARK }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = GREEN }}
+      >
+        Continuar <ArrowRight size={15} strokeWidth={2.4} />
+      </button>
+      <p style={{
+        fontSize: 11, color: 'var(--muted)', textAlign: 'center',
+        marginTop: 12, marginBottom: 0, lineHeight: 1.5,
+      }}>
+        Sin tarjeta · Doble opt-in · RGPD
+      </p>
+    </motion.form>
+  )
+}
+
+// ─── Trust row (B4) ─────────────────────────────────────────────────
+function TrustRow() {
+  const platforms = ['Telegram', 'WhatsApp', 'Discord', 'Instagram', 'Newsletter']
+  return (
+    <section
+      aria-label="Información legal y plataformas soportadas"
+      style={{
+        padding: '28px 32px', background: 'var(--bg2)',
+        borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)',
+      }}
+    >
+      <div style={{
+        maxWidth: 1100, margin: '0 auto',
+        display: 'grid', gridTemplateColumns: '1fr 1.4fr 1fr', gap: 24,
+        alignItems: 'center', fontSize: 12, color: 'var(--muted)',
+      }} className="co-trust-row">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--text)' }}>
+            Publicado por
+          </span>
+          <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 600 }}>Channelad</span>
+          <span style={{ fontSize: 11 }}>MICHI SOLUCIONS S.L. · España</span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', textAlign: 'center' }}>
+          <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--text)' }}>
+            Plataformas soportadas
+          </span>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {platforms.map(p => (
+              <span key={p} style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{p}</span>
+            ))}
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, textAlign: 'right' }} className="co-trust-contact">
+          <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--text)' }}>
+            Contacto
+          </span>
+          <a href="mailto:contact@channelad.io" style={{ fontSize: 13, color: GREEN, fontWeight: 600, textDecoration: 'none' }}>
+            contact@channelad.io
+          </a>
+          <span style={{ fontSize: 11 }}>Respuesta en 24h hábiles</span>
+        </div>
+      </div>
+      <style>{`
+        @media (max-width: 780px) {
+          .co-trust-row { grid-template-columns: 1fr !important; text-align: center !important; gap: 18px !important; }
+          .co-trust-contact { text-align: center !important; }
+        }
+      `}</style>
+    </section>
+  )
+}
+
+// ─── Sticky bottom CTA (B2) ─────────────────────────────────────────
+// Slides in after the user scrolls past the hero so a "Reservar mi slot"
+// button is always one tap away. Hides while the registration section is
+// in view (no point doubling the CTA) and after success.
+function StickyCTA({ displayed, cap, hideWhen }) {
+  const [shown, setShown] = useState(false)
+
+  useEffect(() => {
+    let registroEl = null
+    const update = () => {
+      if (hideWhen) { setShown(false); return }
+      const past = window.scrollY > 600
+      if (!registroEl) registroEl = document.getElementById('registro')
+      if (registroEl) {
+        const rect = registroEl.getBoundingClientRect()
+        const inView = rect.top < window.innerHeight - 80 && rect.bottom > 0
+        setShown(past && !inView)
+      } else {
+        setShown(past)
+      }
+    }
+    window.addEventListener('scroll', update, { passive: true })
+    update()
+    return () => window.removeEventListener('scroll', update)
+  }, [hideWhen])
+
+  const onClick = (e) => {
+    e.preventDefault()
+    const target = document.getElementById('registro')
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const remaining = Math.max(0, cap - displayed)
+
+  return (
+    <div
+      role="region"
+      aria-label="Reserva tu plaza en el founding cohort"
+      style={{
+        position: 'fixed', left: '50%', bottom: 18,
+        transform: `translateX(-50%) translateY(${shown ? 0 : 120}px)`,
+        opacity: shown ? 1 : 0,
+        transition: 'transform .35s cubic-bezier(.22,1,.36,1), opacity .25s',
+        zIndex: 90, pointerEvents: shown ? 'auto' : 'none',
+        maxWidth: 'calc(100vw - 24px)',
+      }}
+    >
+      <a
+        href="#registro" onClick={onClick}
+        className="co-sticky-pill"
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 14,
+          padding: '10px 14px 10px 18px',
+          background: 'var(--surface)', border: `1px solid ${greenAlpha(0.3)}`,
+          borderRadius: 999, textDecoration: 'none',
+          boxShadow: `0 18px 50px -16px ${greenAlpha(0.45)}, 0 2px 8px rgba(0,0,0,0.08)`,
+          backdropFilter: 'saturate(140%) blur(6px)',
+        }}
+      >
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          fontSize: 13, fontWeight: 600, color: 'var(--text)',
+          fontVariantNumeric: 'tabular-nums',
+        }}>
+          <span style={{
+            width: 7, height: 7, borderRadius: '50%', background: GREEN,
+            animation: 'co-pulse 1.8s infinite',
+          }} />
+          <span className="co-sticky-count">
+            {displayed.toLocaleString('es-ES')}/{cap.toLocaleString('es-ES')}
+          </span>
+          <span style={{ color: 'var(--muted)', fontWeight: 500 }} className="co-sticky-remaining">
+            · {remaining.toLocaleString('es-ES')} libres
+          </span>
+        </span>
+        <span className="co-sticky-cta" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          background: GREEN, color: '#fff',
+          padding: '8px 14px', borderRadius: 999,
+          fontSize: 13, fontWeight: 600,
+        }}>
+          Reservar <ArrowRight size={14} strokeWidth={2.4} />
+        </span>
+      </a>
+      <style>{`
+        @media (max-width: 480px) {
+          .co-sticky-remaining { display: none; }
+          .co-sticky-pill { gap: 10px !important; padding: 8px 12px 8px 14px !important; }
+          .co-sticky-cta { padding: 7px 12px !important; font-size: 12px !important; }
+        }
+      `}</style>
     </div>
   )
 }

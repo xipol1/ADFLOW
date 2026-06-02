@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import SEO from '../../components/SEO'
 import CrossLinks from '../../components/landing/CrossLinks'
-import ChannelOnePromoBlock from '../../components/landing/ChannelOnePromoBlock'
+import FounderWaitlistPromoBlock from '../../components/landing/FounderWaitlistPromoBlock'
 import EscrowFlowAnimation from '../../components/landing/EscrowFlowAnimation'
 import ComparisonSection from '../../components/landing/ComparisonSection'
 import ChannelCalculator from '../../components/calculator/ChannelCalculator'
@@ -1155,7 +1155,7 @@ export default function ForChannelsPage() {
         </motion.div>
       </Section>
 
-      <ChannelOnePromoBlock context="creator" />
+      <FounderWaitlistPromoBlock context="creator" />
 
       <CrossLinks exclude="/para-canales" />
     </div>

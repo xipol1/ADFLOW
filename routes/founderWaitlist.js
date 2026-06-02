@@ -1,15 +1,16 @@
 /**
- * Channel One — pre-registration waitlist endpoints.
+ * Founding cohort — pre-registration waitlist endpoints.
  *
  * Public (no auth). Hardened with a per-IP rate limit so the signup form
  * can't be turned into a write-amplifier by a single bot. Counter and
  * niche lookups are cached for 30s in process memory.
  *
- *   GET  /api/channel-one/counter             — public counter (label "interesados")
- *   GET  /api/channel-one/niches              — slot status per nicho
- *   POST /api/channel-one/register            — create signup (double opt-in)
- *   GET  /api/channel-one/confirm/:token      — confirm email, redirect to /channel-one
- *   GET  /api/channel-one/status/:refToken    — lookup my position + referrals
+ *   GET  /api/founder-waitlist/counter           — public counter (label "interesados")
+ *   GET  /api/founder-waitlist/niches            — slot status per nicho
+ *   GET  /api/founder-waitlist/recent            — masked activity feed
+ *   POST /api/founder-waitlist/register          — create signup (double opt-in)
+ *   GET  /api/founder-waitlist/confirm/:token    — confirm email, redirect to /founding
+ *   GET  /api/founder-waitlist/status/:refToken  — lookup my position + referrals
  */
 
 const express = require('express');
@@ -27,11 +28,11 @@ const {
   NICHE_ALMOST_FULL_AT,
   computeDisplayedCount,
   computeNichePadding,
-} = require('../config/channelOne');
+} = require('../config/founderWaitlist');
 
-let ChannelOneRegistration;
+let FounderRegistration;
 try {
-  ChannelOneRegistration = require('../models/ChannelOneRegistration');
+  FounderRegistration = require('../models/FounderRegistration');
 } catch (_) { /* DB-less environments — endpoints will 503 below. */ }
 
 // ── In-process caches (30s TTL) ───────────────────────────────────────
@@ -106,9 +107,9 @@ router.get('/counter', async (req, res) => {
 
     let realConfirmed = 0;
     const dbOk = await ensureDb().catch(() => false);
-    if (dbOk && ChannelOneRegistration) {
+    if (dbOk && FounderRegistration) {
       try {
-        realConfirmed = await ChannelOneRegistration.countDocuments({ confirmed: true });
+        realConfirmed = await FounderRegistration.countDocuments({ confirmed: true });
       } catch (_) { realConfirmed = 0; }
     }
 
@@ -124,7 +125,7 @@ router.get('/counter', async (req, res) => {
       remaining,
       percentFull,
       label: 'canales interesados',
-      anchorLabel: 'incluye founding reservados, audits y conversaciones cualificadas',
+      anchorLabel: 'incluye founding reservados y conversaciones cualificadas',
     };
     _counterCache = { at: Date.now(), value };
     res.json({ success: true, data: value });
@@ -143,9 +144,9 @@ router.get('/niches', async (req, res) => {
     // Real per-niche confirmed counts.
     const realByNiche = Object.fromEntries(NICHE_IDS.map(id => [id, 0]));
     const dbOk = await ensureDb().catch(() => false);
-    if (dbOk && ChannelOneRegistration) {
+    if (dbOk && FounderRegistration) {
       try {
-        const grouped = await ChannelOneRegistration.aggregate([
+        const grouped = await FounderRegistration.aggregate([
           { $match: { confirmed: true } },
           { $group: { _id: '$nicho', n: { $sum: 1 } } },
         ]);
@@ -191,9 +192,9 @@ router.get('/recent', async (req, res) => {
 
     let items = [];
     const dbOk = await ensureDb().catch(() => false);
-    if (dbOk && ChannelOneRegistration) {
+    if (dbOk && FounderRegistration) {
       try {
-        const raw = await ChannelOneRegistration
+        const raw = await FounderRegistration
           .find({ confirmed: true })
           .sort({ confirmedAt: -1, createdAt: -1 })
           .limit(5)
@@ -219,7 +220,7 @@ router.get('/recent', async (req, res) => {
 router.post('/register', rateLimit, async (req, res) => {
   try {
     const dbOk = await ensureDb().catch(() => false);
-    if (!dbOk || !ChannelOneRegistration) {
+    if (!dbOk || !FounderRegistration) {
       return res.status(503).json({ success: false, message: 'Servicio no disponible momentáneamente.' });
     }
 
@@ -246,19 +247,19 @@ router.post('/register', rateLimit, async (req, res) => {
     const cleanHandle = handle.trim().slice(0, 120);
 
     // Total cap guard (counts confirmed only).
-    const totalConfirmed = await ChannelOneRegistration.countDocuments({ confirmed: true });
+    const totalConfirmed = await FounderRegistration.countDocuments({ confirmed: true });
     if (totalConfirmed >= CAP) {
-      return res.status(409).json({ success: false, message: 'Las 1.000 plazas están ocupadas. Te avisamos en el lanzamiento público.' });
+      return res.status(409).json({ success: false, message: `Las ${CAP} plazas founding están ocupadas. Te avisamos en el lanzamiento público.` });
     }
 
     // Niche cap guard (real-only — padding never blocks signups).
-    const nicheConfirmed = await ChannelOneRegistration.countDocuments({ confirmed: true, nicho });
+    const nicheConfirmed = await FounderRegistration.countDocuments({ confirmed: true, nicho });
     if (nicheConfirmed >= SLOTS_PER_NICHE) {
       return res.status(409).json({ success: false, message: 'Este nicho ya está completo. Prueba con otro nicho cercano.' });
     }
 
     // Already exists?
-    const existing = await ChannelOneRegistration.findOne({ email: normEmail });
+    const existing = await FounderRegistration.findOne({ email: normEmail });
     if (existing) {
       // Idempotent — return the existing referral link so they can share again.
       return res.json({
@@ -279,11 +280,11 @@ router.post('/register', rateLimit, async (req, res) => {
     // Validate referrer token if provided.
     let referredByToken = null;
     if (ref && typeof ref === 'string' && /^[a-f0-9]{16}$/.test(ref)) {
-      const referrer = await ChannelOneRegistration.exists({ referralToken: ref });
+      const referrer = await FounderRegistration.exists({ referralToken: ref });
       if (referrer) referredByToken = ref;
     }
 
-    const doc = await ChannelOneRegistration.create({
+    const doc = await FounderRegistration.create({
       email: normEmail,
       handle: cleanHandle,
       platform: plat,
@@ -299,18 +300,18 @@ router.post('/register', rateLimit, async (req, res) => {
     setImmediate(async () => {
       try {
         const base = (config?.frontend?.url || 'https://channelad.io').replace(/\/$/, '');
-        const confirmUrl = `${base}/api/channel-one/confirm/${doc.confirmToken}`;
+        const confirmUrl = `${base}/api/founder-waitlist/confirm/${doc.confirmToken}`;
         const emailService = require('../services/emailService');
         await emailService.enviarEmail({
           para: doc.email,
-          asunto: 'Confirma tu plaza en Channel One',
+          asunto: 'Confirma tu plaza en el founding cohort de Channelad',
           html: renderConfirmEmail({ confirmUrl, handle: cleanHandle }),
-          texto: `Confirma tu plaza en Channel One:\n${confirmUrl}\n\n— Channelad`,
+          texto: `Confirma tu plaza founding:\n${confirmUrl}\n\n— Channelad`,
         });
       } catch (e) {
         // Email failure is logged but the signup still exists — the user can
         // request a resend later. We do NOT roll back the registration.
-        console.error('[channelOne] confirm email failed:', e?.message || e);
+        console.error('[founderWaitlist] confirm email failed:', e?.message || e);
       }
     });
 
@@ -328,31 +329,31 @@ router.post('/register', rateLimit, async (req, res) => {
     if (err?.code === 11000) {
       return res.status(409).json({ success: false, message: 'Este email ya está registrado.' });
     }
-    console.error('[channelOne] register error:', err?.message || err);
+    console.error('[founderWaitlist] register error:', err?.message || err);
     res.status(500).json({ success: false, message: 'Error al registrar.' });
   }
 });
 
 // ── GET /confirm/:token ───────────────────────────────────────────────
-// Public confirm link from the email. Redirects to /channel-one with a
+// Public confirm link from the email. Redirects to /founding with a
 // query flag so the landing can show a success banner.
 router.get('/confirm/:token', async (req, res) => {
   try {
     const dbOk = await ensureDb().catch(() => false);
-    if (!dbOk || !ChannelOneRegistration) {
-      return res.redirect(302, '/channel-one?confirmed=0&err=db');
+    if (!dbOk || !FounderRegistration) {
+      return res.redirect(302, '/founding?confirmed=0&err=db');
     }
     const { token } = req.params;
     if (!token || !/^[a-f0-9]{32}$/.test(token)) {
-      return res.redirect(302, '/channel-one?confirmed=0&err=invalid');
+      return res.redirect(302, '/founding?confirmed=0&err=invalid');
     }
-    const doc = await ChannelOneRegistration.findOne({ confirmToken: token });
+    const doc = await FounderRegistration.findOne({ confirmToken: token });
     if (!doc) {
-      return res.redirect(302, '/channel-one?confirmed=0&err=notfound');
+      return res.redirect(302, '/founding?confirmed=0&err=notfound');
     }
     if (!doc.confirmed) {
       // Assign queue position atomically against the confirmed count.
-      const pos = (await ChannelOneRegistration.countDocuments({ confirmed: true })) + 1;
+      const pos = (await FounderRegistration.countDocuments({ confirmed: true })) + 1;
       doc.confirmed = true;
       doc.confirmedAt = new Date();
       doc.queuePosition = pos;
@@ -361,7 +362,7 @@ router.get('/confirm/:token', async (req, res) => {
       // Bump referrer's count if this signup came in through a link.
       if (doc.referredByToken) {
         try {
-          await ChannelOneRegistration.findOneAndUpdate(
+          await FounderRegistration.findOneAndUpdate(
             { referralToken: doc.referredByToken },
             { $inc: { referralCount: 1 } }
           );
@@ -370,10 +371,10 @@ router.get('/confirm/:token', async (req, res) => {
 
       invalidateCache();
     }
-    return res.redirect(302, `/channel-one?confirmed=1&ref=${encodeURIComponent(doc.referralToken)}`);
+    return res.redirect(302, `/founding?confirmed=1&ref=${encodeURIComponent(doc.referralToken)}`);
   } catch (err) {
-    console.error('[channelOne] confirm error:', err?.message || err);
-    return res.redirect(302, '/channel-one?confirmed=0&err=server');
+    console.error('[founderWaitlist] confirm error:', err?.message || err);
+    return res.redirect(302, '/founding?confirmed=0&err=server');
   }
 });
 
@@ -383,14 +384,14 @@ router.get('/confirm/:token', async (req, res) => {
 router.get('/status/:refToken', async (req, res) => {
   try {
     const dbOk = await ensureDb().catch(() => false);
-    if (!dbOk || !ChannelOneRegistration) {
+    if (!dbOk || !FounderRegistration) {
       return res.status(503).json({ success: false, message: 'Servicio no disponible momentáneamente.' });
     }
     const { refToken } = req.params;
     if (!/^[a-f0-9]{16}$/.test(refToken || '')) {
       return res.status(400).json({ success: false, message: 'Token no válido.' });
     }
-    const doc = await ChannelOneRegistration.findOne({ referralToken: refToken }).lean();
+    const doc = await FounderRegistration.findOne({ referralToken: refToken }).lean();
     if (!doc) return res.status(404).json({ success: false, message: 'No encontrado.' });
 
     const nicheLabel = NICHE_MAP[doc.nicho]?.label || doc.nicho;
@@ -415,19 +416,19 @@ router.get('/status/:refToken', async (req, res) => {
 // ── Email template (inline — keeps the route self-contained) ──────────
 function renderConfirmEmail({ confirmUrl, handle }) {
   return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Confirma tu plaza · Channel One</title></head>
+<html><head><meta charset="utf-8"><title>Confirma tu plaza · Founding cohort</title></head>
 <body style="margin:0;padding:0;background:#f5f7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f7fa;padding:32px 16px;">
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
         <tr><td style="padding:32px 32px 16px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#25d366;margin-bottom:14px;">CHANNEL ONE · CHANNELAD</div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#25d366;margin-bottom:14px;">FOUNDING COHORT · CHANNELAD</div>
           <h1 style="font-size:24px;font-weight:700;letter-spacing:-0.02em;line-height:1.2;margin:0 0 12px;">
-            Confirma tu plaza en Channel One.
+            Confirma tu plaza founding.
           </h1>
           <p style="font-size:15px;line-height:1.6;color:#475569;margin:0 0 24px;">
             Hemos recibido la solicitud de tu canal <strong>${escapeHtml(handle)}</strong>.
-            Confirma el email haciendo clic abajo para reservar tu slot — solo 1.000 canales entran en el cohort.
+            Confirma el email haciendo clic abajo para reservar tu slot — el founding cohort fija el 18% vitalicio.
           </p>
           <a href="${confirmUrl}" style="display:inline-block;background:#25d366;color:#ffffff;text-decoration:none;border-radius:12px;padding:14px 28px;font-size:15px;font-weight:600;">
             Confirmar mi plaza

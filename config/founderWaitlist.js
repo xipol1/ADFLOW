@@ -1,39 +1,44 @@
 /**
- * Channel One — pre-registration cohort configuration.
+ * Founding cohort — pre-registration waitlist configuration.
  *
- * Single source of truth for the pre-registration mechanic that sits next
- * to the founding cohort (40-150 founders). Channel One is the broader
- * waitlist (cap 1.000) used to maximize organic reach: every signup is a
- * social-shareable referral and a slot-by-niche scarcity signal.
+ * Single source of truth for the pre-registration mechanic behind the
+ * /founding landing. The founding cohort is the first FOUNDING_CAP channels
+ * (18% vitalicio commission for their advertisers); this waitlist captures
+ * interest before launch and turns every signup into a social-shareable
+ * referral plus a slot-by-niche scarcity signal.
  *
  * The public counter shown on landings is intentionally labeled
  * "canales interesados" — semantically honest because it aggregates real
- * signals (registered + email-confirmed + founding reserved + audit
- * requests + qualified Daily-5 conversations). The anchor + deterministic
- * daily growth padding sits on top of that aggregate.
+ * signals (registered + email-confirmed + qualified conversations). The
+ * anchor + deterministic daily growth padding sits on top of that aggregate.
+ *
+ * NOTE on cohort size: the founding cohort is 150 plazas (12 niches × 10 +
+ * 30 wildcard). To resize the cohort, change SLOTS_PER_NICHE / WILDCARD_SLOTS
+ * here and FOUNDING_TOTAL in client/src/ui/theme/stats.js — keep them aligned.
  */
 
-// ── Niches (12 × 80 slots = 960, + 40 wildcard = 1.000 cap) ─────────────
+// ── Niches (12 × 10 slots = 120, + 30 wildcard = 150 cap) ───────────────
+const SLOTS_PER_NICHE = 10;
+const WILDCARD_SLOTS = 30;
+
 const NICHES = [
-  { id: 'finanzas',       label: 'Finanzas e inversión',    slots: 80 },
-  { id: 'marketing',      label: 'Marketing & growth',      slots: 80 },
-  { id: 'tech',           label: 'Tecnología & SaaS',       slots: 80 },
-  { id: 'cripto',         label: 'Cripto & web3',           slots: 80 },
-  { id: 'emprendimiento', label: 'Emprendimiento',          slots: 80 },
-  { id: 'noticias',       label: 'Noticias & actualidad',   slots: 80 },
-  { id: 'lifestyle',      label: 'Lifestyle & ocio',        slots: 80 },
-  { id: 'gaming',         label: 'Gaming & esports',        slots: 80 },
-  { id: 'deporte',        label: 'Deporte',                 slots: 80 },
-  { id: 'humor',          label: 'Humor & memes',           slots: 80 },
-  { id: 'educacion',      label: 'Educación & cultura',     slots: 80 },
-  { id: 'otros',          label: 'Otros',                   slots: 80 },
+  { id: 'finanzas',       label: 'Finanzas e inversión',    slots: SLOTS_PER_NICHE },
+  { id: 'marketing',      label: 'Marketing & growth',      slots: SLOTS_PER_NICHE },
+  { id: 'tech',           label: 'Tecnología & SaaS',       slots: SLOTS_PER_NICHE },
+  { id: 'cripto',         label: 'Cripto & web3',           slots: SLOTS_PER_NICHE },
+  { id: 'emprendimiento', label: 'Emprendimiento',          slots: SLOTS_PER_NICHE },
+  { id: 'noticias',       label: 'Noticias & actualidad',   slots: SLOTS_PER_NICHE },
+  { id: 'lifestyle',      label: 'Lifestyle & ocio',        slots: SLOTS_PER_NICHE },
+  { id: 'gaming',         label: 'Gaming & esports',        slots: SLOTS_PER_NICHE },
+  { id: 'deporte',        label: 'Deporte',                 slots: SLOTS_PER_NICHE },
+  { id: 'humor',          label: 'Humor & memes',           slots: SLOTS_PER_NICHE },
+  { id: 'educacion',      label: 'Educación & cultura',     slots: SLOTS_PER_NICHE },
+  { id: 'otros',          label: 'Otros',                   slots: SLOTS_PER_NICHE },
 ];
 
 const NICHE_IDS = NICHES.map(n => n.id);
 const NICHE_MAP = Object.fromEntries(NICHES.map(n => [n.id, n]));
-const SLOTS_PER_NICHE = 80;
-const WILDCARD_SLOTS = 40;
-const CAP = NICHES.reduce((s, n) => s + n.slots, 0) + WILDCARD_SLOTS; // 1000
+const CAP = NICHES.reduce((s, n) => s + n.slots, 0) + WILDCARD_SLOTS; // 150
 
 // Channel sizes — explicit, no overlap.
 const SIZES = [
@@ -55,9 +60,9 @@ const PLATFORM_IDS = PLATFORMS.map(p => p.id);
 
 // ── Public counter padding logic ────────────────────────────────────────
 // The "anchor" is the baseline displayed on day 0 of the campaign. It
-// aggregates: founding reservations + audits requested + qualified Daily-5
-// conversations + blog subscribers. Defensible if anyone asks.
-const ANCHOR_COUNT = 247;
+// aggregates: founding reservations + qualified Daily-5 conversations +
+// blog subscribers. Defensible if anyone asks.
+const ANCHOR_COUNT = 96;
 
 // Launch date for the public counter. Day 0 shows ANCHOR_COUNT. Counter
 // grows deterministically from here (mulberry32 seeded by day index) so
@@ -65,11 +70,11 @@ const ANCHOR_COUNT = 247;
 const COUNTER_LAUNCH_DATE = '2026-05-23';
 
 // Daily growth bounds (inclusive). Seeded random picks within the range.
-const DAILY_GROWTH_MIN = 8;
-const DAILY_GROWTH_MAX = 15;
+const DAILY_GROWTH_MIN = 1;
+const DAILY_GROWTH_MAX = 3;
 
 // Slowdown when approaching the cap — creates the "casi sold out" feel.
-const SLOWDOWN_AT = 800;
+const SLOWDOWN_AT = 130;
 const SLOWDOWN_DIVISOR = 3;
 
 // Hard floor — never let the displayed count drop below the previous day,
@@ -77,13 +82,13 @@ const SLOWDOWN_DIVISOR = 3;
 const ABSOLUTE_FLOOR = ANCHOR_COUNT;
 
 // Per-niche padding (small, stable) — gives the niche bars some life from
-// day 0 instead of showing 0/80 everywhere. Each niche has its own seed.
-const NICHE_PADDING_MIN = 4;
-const NICHE_PADDING_MAX = 18;
+// day 0 instead of showing 0/10 everywhere. Each niche has its own seed.
+const NICHE_PADDING_MIN = 2;
+const NICHE_PADDING_MAX = 7;
 
-// Threshold (out of 80) above which a niche is flagged "casi lleno" on
-// the UI to drive horizontal scarcity.
-const NICHE_ALMOST_FULL_AT = 70;
+// Threshold (out of SLOTS_PER_NICHE) above which a niche is flagged
+// "casi lleno" on the UI to drive horizontal scarcity.
+const NICHE_ALMOST_FULL_AT = 8;
 
 // ── Deterministic randoms (mulberry32) ──────────────────────────────────
 // Identical seed → identical output across server processes. Required so
@@ -114,7 +119,7 @@ function daysSinceLaunch(now = new Date()) {
  *  4. Never drop below ABSOLUTE_FLOOR.
  *  5. If real confirmed registrations exceed the projected number, the
  *     real number wins (the padding is only there until organic catches up).
- *  6. Cap below the hard ceiling so the bar never reads "1000/1000" before
+ *  6. Cap below the hard ceiling so the bar never reads "150/150" before
  *     a real human flips the switch.
  */
 function computeDisplayedCount(realConfirmed = 0, now = new Date()) {
@@ -133,7 +138,7 @@ function computeDisplayedCount(realConfirmed = 0, now = new Date()) {
   displayed = Math.max(displayed, realConfirmed, ABSOLUTE_FLOOR);
   // Never display ≥ cap. Leave a small head-room buffer so the marketing
   // narrative ("casi sold out") survives until a human flips the switch.
-  return Math.min(displayed, CAP - 5);
+  return Math.min(displayed, CAP - 3);
 }
 
 /**

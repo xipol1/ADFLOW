@@ -11,8 +11,8 @@ const SERIF = "'Instrument Serif', Georgia, serif"
 const SANS = "'DM Sans', system-ui, sans-serif"
 
 // Slug keyword heuristic for "this post is read by channel owners, not brands".
-// Channel One is a creator-side pre-registration, so it only makes sense to
-// surface the callout on creator-bound articles. ES-only for now.
+// The founding cohort is a creator-side pre-registration, so it only makes sense
+// to surface the callout on creator-bound articles. ES-only for now.
 const CREATOR_SLUG_KEYWORDS = [
   'monetizar', 'cuanto-cobrar', 'cuanto-paga', 'media-kit',
   'crear-canal', 'crear-servidor', 'casos-exito', 'impuestos-canal',
@@ -24,8 +24,8 @@ const isCreatorPost = (post) =>
 
 // Compact inline block used inside blog posts. Wraps InterestCounter card
 // with a short context paragraph so a reader who landed via SEO understands
-// why Channel One is relevant to them.
-function ChannelOneInlineCallout() {
+// why the founding cohort is relevant to them.
+function FounderInlineCallout() {
   return (
     <aside style={{
       margin: '40px 0', padding: 'clamp(20px, 3vw, 28px)',
@@ -51,9 +51,9 @@ function ChannelOneInlineCallout() {
           fontSize: 14, color: 'var(--muted)', lineHeight: 1.6, margin: 0,
           fontFamily: SANS,
         }}>
-          Channel One es el pre-registro para el lanzamiento de Channelad en septiembre.
-          Los 1.000 primeros canales pagan 0% comisión el primer trimestre y se activan
-          antes que el marketplace abierto.
+          El founding cohort es el pre-registro para el lanzamiento de Channelad en septiembre.
+          Los primeros 150 canales fijan 18% de comisión vitalicia —la más baja de
+          la plataforma— y se activan antes que el marketplace abierto. Tú siempre cobras el 100%.
         </p>
       </div>
       <div>
@@ -358,7 +358,7 @@ export default function BlogPost() {
       {/* ─── CHANNEL ONE CALLOUT (only for creator-bound ES posts) ─── */}
       {isCreatorPost(post) && (
         <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 24px' }}>
-          <ChannelOneInlineCallout />
+          <FounderInlineCallout />
         </div>
       )}
 
