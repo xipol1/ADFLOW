@@ -236,18 +236,25 @@ async function linkNewsletterToCanal(req, res) {
       { $set: { 'newsletters.$.linkedToCanalId': canalId } }
     );
 
-    // Update the canal with the verified data from WhatsApp.
-    //
-    // A successful QR pair where the user appears as OWNER/ADMIN of the
-    // newsletter is the strongest ownership proof we have for WhatsApp:
-    // - flip `verificado` and `claimed` (this IS the claim event)
-    // - upgrade `verificacion.tipoAcceso` to `admin_directo` (mirrors the
-    //   semantic used by other platforms in the same enum)
-    // - bump `confianzaScore` to 95 — equivalent to Telegram MTProto claim
-    // - OWNER → 'oro', ADMIN → 'plata' (platino is reserved for manual review)
     const now = new Date();
     const isOwner = newsletter.role === 'OWNER';
 
+    // ── Baileys ownership trust gate (BETA FREEZE — 2026-06-01) ─────────────
+    // Invite/role-based WhatsApp ownership is NOT yet sound: `newsletter.role`
+    // is resolved by matching the newsletter owner JID against the paired
+    // account's number (BaileysSessionManager.js ~L142/L342), which breaks on
+    // LID-vs-phone, and `viewer_metadata.role` is frequently absent. A public
+    // invite + a wrong role read could therefore grant a channel the caller
+    // does not actually administer full verified status (confianzaScore 95).
+    //
+    // Until the ownership redesign lands (see MANUAL_ACTIONS.md §B3) we still
+    // link the newsletter for metric polling, but WITHHOLD the strong grant
+    // (verified / admin_directo / 95 / oro·plata / auto-claim) unless an
+    // operator explicitly opts back in via BAILEYS_TRUSTED_OWNERSHIP=true.
+    const trustedOwnership = process.env.BAILEYS_TRUSTED_OWNERSHIP === 'true';
+
+    // Always-applied: link the channel + refresh its metrics (harmless, and the
+    // caller already owns the Canal doc — verified above at L229).
     canal.set({
       'botConfig.whatsapp.channelJid': newsletterJid,
       'botConfig.whatsapp.channelName': newsletter.name,
@@ -257,22 +264,33 @@ async function linkNewsletterToCanal(req, res) {
       'botConfig.whatsapp.seguidoresVerificados': newsletter.subscribers || 0,
       'estadisticas.seguidores': newsletter.subscribers || 0,
       'estadisticas.ultimaActualizacion': now,
-      nivelVerificacion: isOwner ? 'oro' : 'plata',
       estado: 'activo',
-      verificado: true,
-      'verificacion.tipoAcceso': 'admin_directo',
-      'verificacion.confianzaScore': 95,
     });
 
-    // The claim is only set the first time — preserve the original claimer
-    // and timestamp if this canal had already been claimed (e.g. via the
-    // Telegram description flow before being relinked).
-    if (!canal.claimed) {
-      canal.claimed = true;
-      canal.claimedBy = userId;
-      canal.claimedAt = now;
-      // Clear any pending claim token now that ownership is proven
-      canal.claimToken = null;
+    if (trustedOwnership) {
+      // Strong grant — opt-in only. OWNER → 'oro', ADMIN → 'plata'.
+      canal.set({
+        nivelVerificacion: isOwner ? 'oro' : 'plata',
+        verificado: true,
+        'verificacion.tipoAcceso': 'admin_directo',
+        'verificacion.confianzaScore': 95,
+      });
+      // Claim is only set the first time — preserve the original claimer.
+      if (!canal.claimed) {
+        canal.claimed = true;
+        canal.claimedBy = userId;
+        canal.claimedAt = now;
+        canal.claimToken = null;
+      }
+    } else if (!canal.verificado) {
+      // BETA / FROZEN (default): soft-trust only, no verified ownership and no
+      // auto-claim. Flags the channel for manual review via a low score. Never
+      // DOWNGRADES a channel already verified by a stronger path (Telegram
+      // MTProto, OAuth) — those keep their existing verification.
+      canal.set({
+        'verificacion.tipoAcceso': 'declarado',
+        'verificacion.confianzaScore': 30,
+      });
     }
 
     await canal.save();
@@ -282,17 +300,22 @@ async function linkNewsletterToCanal(req, res) {
       sessionId,
       canalId,
       action: 'newsletter.linked_to_canal',
-      summary: `Canal "${newsletter.name}" vinculado a ChannelAd (${newsletter.subscribers || 0} seguidores)`,
+      summary: `Canal "${newsletter.name}" vinculado a ChannelAd (${newsletter.subscribers || 0} seguidores)${trustedOwnership ? '' : ' [beta: sin verificación de propiedad]'}`,
       data: {
         newsletterJid,
         subscribers: newsletter.subscribers,
         role: newsletter.role,
+        trustedOwnership,
       },
       ip: clientIp(req),
       userAgent: clientUA(req),
     });
 
-    res.json({ success: true, canal: { id: canal._id, nombre: canal.nombreCanal } });
+    res.json({
+      success: true,
+      beta: !trustedOwnership,
+      canal: { id: canal._id, nombre: canal.nombreCanal },
+    });
   } catch (err) {
     res.status(err.status || 500).json({ success: false, message: err.message });
   }
