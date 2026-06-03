@@ -14,8 +14,11 @@
  */
 
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const { ensureDb } = require('../lib/ensureDb');
+const { autenticar, autorizarRoles } = require('../middleware/auth');
+const { migrateLegacyWaitlist } = require('../lib/migrateLegacyWaitlist');
 const config = require('../config/config');
 const {
   NICHES,
@@ -452,5 +455,36 @@ function escapeHtml(s) {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   }[c]));
 }
+
+// ── POST /admin/migrate-legacy ────────────────────────────────────────
+// One-off admin tool: migrate the orphaned Channel One waitlist collection
+// (`channeloneregistrations`) into this cohort's collection. Runs server-side
+// where the cluster IS reachable, so it can be triggered with a single
+// authenticated request instead of running the CLI locally.
+//
+//   POST /api/founder-waitlist/admin/migrate-legacy            → DRY-RUN
+//   POST /api/founder-waitlist/admin/migrate-legacy?apply=true → copy docs
+//   POST .../migrate-legacy?apply=true&dropOld=true            → copy, drop old
+//
+// Idempotent (skips already-present email/referralToken). Shares logic with
+// scripts/migrate-channelone-to-founder.js via lib/migrateLegacyWaitlist.
+router.post('/admin/migrate-legacy', autenticar, autorizarRoles('admin'), async (req, res) => {
+  try {
+    const ok = await ensureDb();
+    if (!ok || mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ success: false, message: 'DB unavailable' });
+    }
+    const apply = req.query.apply === 'true' || req.body?.apply === true;
+    const dropOld = req.query.dropOld === 'true' || req.body?.dropOld === true;
+
+    const result = await migrateLegacyWaitlist(mongoose.connection.db, { apply, dropOld });
+    if (apply) invalidateCache(); // counter/niche caches now stale
+
+    return res.json({ success: true, mode: apply ? 'APPLY' : 'DRY-RUN', data: result });
+  } catch (err) {
+    console.error('[founderWaitlist] migrate-legacy error:', err?.message || err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 module.exports = router;
