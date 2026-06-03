@@ -1,22 +1,18 @@
 const rateLimit = require('express-rate-limit');
 
-// Use MongoDB store for distributed rate limiting (Vercel serverless)
+// Use a MongoDB-backed store for distributed rate limiting (Vercel serverless).
+// Custom store over the app's mongoose connection — replaces the unmaintained
+// `rate-limit-mongo`, which pulled a vulnerable, unpatched `underscore`. The
+// store itself is fail-open, so a Mongo outage degrades to "not blocked"
+// rather than erroring requests.
 let storeFactory = null;
 try {
-  const MongoStore = require('rate-limit-mongo');
+  const MongoRateLimitStore = require('./mongoRateLimitStore');
   if (process.env.MONGODB_URI) {
-    storeFactory = (windowMs) => new MongoStore({
-      uri: process.env.MONGODB_URI,
-      collectionName: 'rateLimits',
-      expireTimeMs: windowMs,
-      errorHandler: (err) => {
-        // Fall back to memory if Mongo fails — don't block requests
-        console.error('Rate limit MongoDB store error:', err?.message);
-      },
-    });
+    storeFactory = () => new MongoRateLimitStore({ collectionName: 'rateLimits' });
   }
 } catch {
-  // rate-limit-mongo not available, fall back to in-memory
+  // Store unavailable, fall back to express-rate-limit's in-memory store.
 }
 
 const limitarIntentos = (options = {}) => {
