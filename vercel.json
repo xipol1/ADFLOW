@@ -48,6 +48,10 @@
     {
       "path": "/api/jobs/auth-cleanup",
       "schedule": "30 4 * * *"
+    },
+    {
+      "path": "/api/jobs/campaign-settlement",
+      "schedule": "45 4 * * *"
     }
   ],
   "headers": [
