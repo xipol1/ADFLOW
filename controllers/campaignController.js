@@ -279,6 +279,40 @@ const getCampaigns = async (req, res, next) => {
     const items = await Campaign.find({ $or: or })
       .populate('channel', 'nombreCanal plataforma categoria identificadorCanal foto')
       .sort({ createdAt: -1 }).lean();
+
+    // Enrich with click counts so dashboards can show real engagement. WhatsApp
+    // channels have no native views/impressions — attribution is by tracked-link
+    // clicks. Two sources: confirmed campaigns carry a TrackingLink (stats), and
+    // direct /r/:campaignId links record into models/Tracking. Non-fatal.
+    try {
+      const TrackingLink = require('../models/TrackingLink');
+      const Tracking = require('../models/Tracking');
+      const linkIds = items.map((c) => c.trackingLinkId).filter(Boolean);
+      const links = linkIds.length
+        ? await TrackingLink.find({ _id: { $in: linkIds } }).select('campaign stats').lean()
+        : [];
+      const byLink = new Map();
+      for (const l of links) {
+        if (l.campaign) byLink.set(String(l.campaign), { clicks: l.stats?.totalClicks || 0, uniqueClicks: l.stats?.uniqueClicks || 0 });
+      }
+      const noLinkIds = items.filter((c) => !c.trackingLinkId).map((c) => c._id);
+      const agg = noLinkIds.length
+        ? await Tracking.aggregate([
+            { $match: { campaign: { $in: noLinkIds } } },
+            { $group: { _id: '$campaign', clicks: { $sum: 1 }, ips: { $addToSet: '$ip' } } },
+          ])
+        : [];
+      const byTracking = new Map();
+      for (const t of agg) byTracking.set(String(t._id), { clicks: t.clicks || 0, uniqueClicks: (t.ips || []).length });
+
+      for (const c of items) {
+        const src = c.trackingLinkId ? byLink.get(String(c._id)) : byTracking.get(String(c._id));
+        c.tracking = { ...(c.tracking || {}), clicks: src?.clicks || 0, uniqueClicks: src?.uniqueClicks || 0 };
+      }
+    } catch (e) {
+      // dashboards just won't show click counts; never block the list
+    }
+
     return res.json({ success: true, data: { items } });
   } catch (error) {
     next(error);

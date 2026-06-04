@@ -44,13 +44,21 @@ async function deliverAd(campaignId) {
     return { success: false, error: 'Channel not found' };
   }
 
-  // Skip delivery for platforms that don't support auto-publishing
+  // Skip delivery for platforms that don't support auto-publishing.
+  // WhatsApp is intentionally EXCLUDED: channels are not delivered to linked
+  // devices, so neither whatsapp-web.js nor Baileys can publish to a channel
+  // (proven — see docs/wa-web-metrics-validation.md). WhatsApp campaigns are
+  // published manually by the creator and attributed via tracked-link clicks,
+  // so we mark delivery 'skipped' (manual) instead of attempting + failing +
+  // retrying forever.
   const platform = String(channel.plataforma || '').toLowerCase();
-  const autoPublishPlatforms = ['telegram', 'discord', 'whatsapp', 'facebook', 'linkedin'];
+  const autoPublishPlatforms = ['telegram', 'discord', 'facebook', 'linkedin'];
   if (!autoPublishPlatforms.includes(platform)) {
     campaign.delivery = {
       status: 'skipped',
-      platformResponse: `Auto-publish not supported for ${platform}`,
+      platformResponse: platform === 'whatsapp'
+        ? 'Manual publishing — creator posts to the WhatsApp channel; attribution by link clicks'
+        : `Auto-publish not supported for ${platform}`,
       attempts: 0,
       lastAttemptAt: new Date(),
     };

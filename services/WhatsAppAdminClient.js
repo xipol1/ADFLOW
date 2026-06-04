@@ -199,6 +199,24 @@ class WhatsAppAdminClient {
     return this._sendRequest('healthCheck', {}, 5000);
   }
 
+  // ─── Diagnostic / channel-resolution ───────────────────────────────────────
+
+  async listChannels() {
+    return this._sendRequest('listChannels', {});
+  }
+
+  async getChannelByInvite(inviteCode) {
+    return this._sendRequest('getChannelByInvite', { inviteCode });
+  }
+
+  async rawInviteMetadata(inviteCode) {
+    return this._sendRequest('rawInviteMetadata', { inviteCode });
+  }
+
+  async debugRawPosts(channelId, limit = 5) {
+    return this._sendRequest('debugRawPosts', { channelId, limit });
+  }
+
   // ─── Shutdown ──────────────────────────────────────────────────────────────
 
   shutdown() {

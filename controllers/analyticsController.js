@@ -672,13 +672,25 @@ const getCampaignAnalytics = async (req, res, next) => {
       .map(([browser, clicks]) => ({ browser, clicks }))
       .sort((a, b) => b.clicks - a.clicks);
 
-    // Aggregate totals from tracking link stats
-    let totalClicks = 0;
-    let uniqueClicks = 0;
-    for (const link of trackingLinks) {
-      totalClicks += link.stats?.totalClicks || 0;
-      uniqueClicks += link.stats?.uniqueClicks || 0;
-    }
+    // Totals MUST be derived from the SAME source as the per-dimension
+    // breakdowns above (the period-filtered `filteredClicks`), NOT from the
+    // denormalised `link.stats` counters. Those counters are all-time and can
+    // drift from the embedded `clicks[]` array, so summing them produced a
+    // totalClicks that disagreed with the breakdown sums — the client then
+    // divided a breakdown count by a smaller total and rendered impossible
+    // percentages (e.g. "Desktop 112.5%"). Deriving from filteredClicks
+    // guarantees totalClicks === Σ(deviceBreakdown) === Σ(countryBreakdown)
+    // === … and makes the headline respect the selected period like the chart.
+    const totalClicks = filteredClicks.length;
+    const uniqueClicks = new Set(
+      filteredClicks.map((c) => c.ip).filter(Boolean)
+    ).size;
+
+    // Audience reached by the post (subscribers snapshotted at close, falling
+    // back to start) — only set for link-attribution campaigns. Lets the client
+    // show a REAL click-through rate (clicks / reach) instead of a proxy when
+    // the denominator is known. Null when unknown.
+    const reach = campaign.reachAtEnd || campaign.reachAtStart || null;
 
     return res.json({
       success: true,
@@ -687,6 +699,7 @@ const getCampaignAnalytics = async (req, res, next) => {
         status: campaign.status,
         price: campaign.price,
         netAmount: campaign.netAmount,
+        reach,
         period,
         startDate,
         totals: {

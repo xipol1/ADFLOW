@@ -660,7 +660,13 @@ export default function CreatorRequestsPage() {
     setLoading(true)
     try {
       const r = await apiService.getCreatorCampaigns()
-      if (r?.success && Array.isArray(r.data)) setCampaigns(r.data)
+      // GET /api/campaigns returns { data: { items: [...] } } — not a raw array.
+      // The old Array.isArray(r.data) check was always false, so the creator never
+      // saw the campaigns booked on their channels (page showed 0).
+      if (r?.success) {
+        const list = Array.isArray(r.data) ? r.data : (r.data?.items || [])
+        setCampaigns(list)
+      }
     } catch {
       setFetchError('No se pudieron cargar los datos. Verifica tu conexión.')
     }

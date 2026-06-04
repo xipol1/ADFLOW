@@ -70,7 +70,11 @@ export default function OverviewPage() {
     const activeAds = campaigns.filter(c => c.status === 'PUBLISHED' || c.status === 'PAID').length
     const totalViews = campaigns.reduce((s, c) => s + (c.tracking?.impressions || c.views || 0), 0)
     const totalClicks = campaigns.reduce((s, c) => s + (c.tracking?.clicks || c.clicks || 0), 0)
-    const avgCtr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : '0.0'
+    const totalUniqueClicks = campaigns.reduce((s, c) => s + (c.tracking?.uniqueClicks || 0), 0)
+    // CTR needs impressions. WhatsApp/link-attribution channels expose none, so
+    // CTR is undefined → null (widgets render "—" instead of a misleading 0.0%).
+    // The dashboard now leads with clicks, the real signal for these campaigns.
+    const avgCtr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : null
 
     const spendDelta = (() => {
       if (monthlySpend.length < 2) return undefined
@@ -125,6 +129,7 @@ export default function OverviewPage() {
       totalCampaigns: campaigns.length,
       totalViews,
       totalClicks,
+      totalUniqueClicks,
       avgCtr,
       spendDelta,
       unreadMessages,

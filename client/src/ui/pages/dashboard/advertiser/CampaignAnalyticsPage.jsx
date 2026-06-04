@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, MousePointerClick, Users, Monitor, Smartphone,
-  Tablet, Globe, Link2, BarChart3, TrendingUp, ExternalLink,
-  Clock, Eye, CheckCircle, Shield, XCircle, Loader2,
+  Tablet, Globe, Link2, BarChart3, ExternalLink,
+  Clock, Eye, CheckCircle, Shield, XCircle, Loader2, Percent,
 } from 'lucide-react'
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -167,7 +167,13 @@ export default function CampaignAnalyticsPage() {
         }
 
         if (campaignsRes?.success && campaignsRes.data) {
-          const found = campaignsRes.data.find(c => (c._id || c.id) === id)
+          // GET /api/campaigns returns { data: { items: [...] } }, not a raw array.
+          // Calling .find on the object threw a TypeError → the whole page fell into
+          // the catch below and showed "Error de conexion" even when analytics loaded.
+          const list = Array.isArray(campaignsRes.data)
+            ? campaignsRes.data
+            : (campaignsRes.data.items || [])
+          const found = list.find(c => (c._id || c.id) === id)
           if (found) setCampaign(found)
         }
       } catch {
@@ -199,9 +205,18 @@ export default function CampaignAnalyticsPage() {
 
   const totalClicks = data?.totals?.totalClicks || 0
   const uniqueClicks = data?.totals?.uniqueClicks || 0
-  const ctr = totalClicks > 0 && campaign?.price
-    ? ((uniqueClicks / totalClicks) * 100).toFixed(1)
-    : null
+  const reach = data?.reach || 0
+
+  // 4th KPI. When the audience reached is known (link-attribution campaigns
+  // snapshot the channel's subscriber count) we show a REAL click-through rate:
+  // unique clickers / people reached. Otherwise we fall back to the share of
+  // clicks that were unique visitors — labelled honestly as "% únicos", NOT
+  // "CTR", because uniqueClicks/totalClicks is a dedup ratio, not a CTR.
+  const rateMetric = reach > 0
+    ? { icon: Percent, label: 'CTR', sub: 'únicos / alcance', value: `${Math.min(100, (uniqueClicks / reach) * 100).toFixed(1)}%` }
+    : totalClicks > 0
+      ? { icon: Percent, label: '% únicos', sub: 'del total de clicks', value: `${((uniqueClicks / totalClicks) * 100).toFixed(1)}%` }
+      : { icon: Percent, label: '% únicos', sub: undefined, value: '—' }
 
   const statusCfg = STATUS_CFG[data?.status] || STATUS_CFG.DRAFT
   const StatusIcon = statusCfg.icon
@@ -273,7 +288,7 @@ export default function CampaignAnalyticsPage() {
         <KpiCard icon={MousePointerClick} label="Clicks totales" value={fmtNum(totalClicks)} color="var(--accent)" />
         <KpiCard icon={Users} label="Clicks unicos" value={fmtNum(uniqueClicks)} sub={totalClicks > 0 ? `${pct(uniqueClicks, totalClicks)} del total` : undefined} color="#3B82F6" />
         <KpiCard icon={Link2} label="Tracking links" value={data?.totals?.trackingLinks || 0} color="#8B5CF6" />
-        <KpiCard icon={TrendingUp} label="CTR estimado" value={ctr ? `${ctr}%` : '—'} color="#F59E0B" />
+        <KpiCard icon={rateMetric.icon} label={rateMetric.label} value={rateMetric.value} sub={rateMetric.sub} color="#F59E0B" />
       </div>
 
       {/* ── Click Timeline ── */}

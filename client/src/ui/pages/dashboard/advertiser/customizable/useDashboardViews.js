@@ -41,7 +41,8 @@ export const PRESETS = {
       { i: 'p-ctr', type: 'KPI_CTR', variant: 'standard', x: 6, y: 2, w: 3, h: 3 },
       { i: 'p-roi', type: 'KPI_ROI', variant: 'standard', x: 9, y: 2, w: 3, h: 3 },
       { i: 'p-c', type: 'KPI_CAMPAIGNS', variant: 'compact', x: 6, y: 5, w: 3, h: 2 },
-      { i: 'p-vw', type: 'KPI_VIEWS', variant: 'compact', x: 9, y: 5, w: 3, h: 2 },
+      // Clicks are the universal engagement metric (WhatsApp channels have no views).
+      { i: 'p-vw', type: 'KPI_CLICKS', variant: 'compact', x: 9, y: 5, w: 3, h: 2 },
       { i: 'p-chart', type: 'SPEND_CHART', variant: 'line', x: 0, y: 7, w: 7, h: 4 },
       { i: 'p-don', type: 'BUDGET_DONUT', variant: 'standard', x: 7, y: 7, w: 5, h: 4 },
       { i: 'p-tab', type: 'CAMPAIGNS_TABLE', variant: 'full', x: 0, y: 11, w: 12, h: 5 },
@@ -69,7 +70,8 @@ export const PRESETS = {
       { i: 'mn-s', type: 'KPI_SPEND', variant: 'compact', x: 0, y: 0, w: 3, h: 2 },
       { i: 'mn-c', type: 'KPI_CAMPAIGNS', variant: 'compact', x: 3, y: 0, w: 3, h: 2 },
       { i: 'mn-ct', type: 'KPI_CTR', variant: 'compact', x: 6, y: 0, w: 3, h: 2 },
-      { i: 'mn-v', type: 'KPI_VIEWS', variant: 'compact', x: 9, y: 0, w: 3, h: 2 },
+      // Clicks are the universal engagement metric (WhatsApp channels have no views).
+      { i: 'mn-v', type: 'KPI_CLICKS', variant: 'compact', x: 9, y: 0, w: 3, h: 2 },
       { i: 'mn-tab', type: 'CAMPAIGNS_TABLE', variant: 'full', x: 0, y: 2, w: 12, h: 5 },
     ],
   },
