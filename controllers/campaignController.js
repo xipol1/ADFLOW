@@ -361,10 +361,13 @@ const updateCampaignStatus = async (req, res, next) => {
     const isAdvertiser = campaign.advertiser?.toString?.() === String(userId);
     const isChannelOwner = await Canal.exists({ _id: campaign.channel, propietario: userId });
 
+    // NOTE: PUBLISHED → COMPLETED is deliberately NOT a user-driven transition.
+    // Completing a campaign releases escrow + pays the creator, so it is a
+    // platform decision handled exclusively by completeCampaign (admin/system)
+    // and the 15-day settlement job. Neither counterparty may complete here.
     const isValidTransition =
       (currentStatus === 'DRAFT' && desiredStatus === 'PAID' && isAdvertiser) ||
       (currentStatus === 'PAID' && desiredStatus === 'PUBLISHED' && Boolean(isChannelOwner)) ||
-      (currentStatus === 'PUBLISHED' && desiredStatus === 'COMPLETED') ||
       (desiredStatus === 'CANCELLED' && isAdvertiser);
 
     if (!isValidTransition) return next(httpError(400, 'Transición de estado inválida'));
@@ -599,8 +602,17 @@ const completeCampaign = async (req, res, next) => {
     const campaign = await Campaign.findById(req.params.id);
     if (!campaign) return next(httpError(404, 'Campaign no encontrada'));
 
-    const allowed = await canAccessCampaign(campaign, userId);
-    if (!allowed) return next(httpError(403, 'No autorizado'));
+    // Releasing escrow + paying the creator is a PLATFORM decision, never the
+    // advertiser's or the creator's. Campaigns settle automatically 15 days
+    // after publication (jobs/campaignSettlementJob) once the post has survived
+    // the verification window with no open dispute. Only the platform itself
+    // may trigger a release here: admins (manual override / dispute fallout) or
+    // the settlement job, which calls this handler with a system 'admin' actor.
+    // A counterparty who thinks something is wrong opens a dispute instead.
+    const isPlatform = (req.usuario?.rol || req.usuario?.role) === 'admin';
+    if (!isPlatform) {
+      return next(httpError(403, 'La plataforma libera el pago automáticamente tras el periodo de verificación. Si hay un problema, abre una disputa.'));
+    }
 
     if (campaign.status !== 'PUBLISHED') {
       return next(httpError(400, `No se puede completar una campaña en estado ${campaign.status}`));

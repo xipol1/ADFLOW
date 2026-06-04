@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  AlertTriangle, CheckCircle2, MessageSquare, Sparkles,
+  AlertTriangle, MessageSquare, Sparkles, Shield,
 } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
-import { OK, WARN, BLUE } from '../../../theme/tokens'
+import { WARN, BLUE } from '../../../theme/tokens'
 import CustomizableDashboard from './customizable/CustomizableDashboard'
 import OnboardingChecklist from '../../../components/OnboardingChecklist'
 
@@ -97,10 +97,10 @@ export default function OverviewPage() {
     }
     if (publishedCount > 0) {
       actionItems.push({
-        icon: CheckCircle2, color: OK, count: publishedCount,
-        title: 'Campañas listas para liberar',
-        description: `${publishedCount === 1 ? 'Una campaña ha sido publicada' : `${publishedCount} campañas han sido publicadas`} y esperan tu confirmación.`,
-        ctaLabel: 'Revisar', onClick: () => navigate('/advertiser/campaigns?tab=publicada'),
+        icon: Shield, color: BLUE, count: publishedCount,
+        title: 'Campañas en verificación',
+        description: `${publishedCount === 1 ? 'Una campaña está publicada' : `${publishedCount} campañas están publicadas`}. La plataforma libera el pago automáticamente tras el periodo de verificación; si hay un problema, repórtalo.`,
+        ctaLabel: 'Ver estado', onClick: () => navigate('/advertiser/campaigns?tab=publicada'),
       })
     }
     if (unreadMessages > 0) {
