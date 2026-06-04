@@ -80,4 +80,12 @@ describe('nameFromSlug', () => {
   test('handles bare slugs and leading @', () => {
     expect(nameFromSlug('@beginners-group-notify')).toBe('Beginners Group Notify');
   });
+  test('decodes percent-encoded emojis instead of mangling the hex', () => {
+    // %f0%9f%92%af = 💯, %f0%9f%94%a5 = 🔥
+    expect(nameFromSlug('wa:beginners-group-notifications-%f0%9f%92%af%f0%9f%94%a5'))
+      .toBe('Beginners Group Notifications 💯🔥');
+  });
+  test('leaves a malformed lone % untouched (no throw)', () => {
+    expect(nameFromSlug('wa:50%-off-deals')).toBe('50% Off Deals');
+  });
 });
