@@ -1,6 +1,8 @@
 const Canal = require('../models/Canal');
 const ChannelMetrics = require('../models/ChannelMetrics');
 const { ensureDb } = require('../lib/ensureDb');
+const { sanitizeChannelName } = require('../lib/channelName');
+const { cleanChannelNames } = require('../lib/cleanChannelNames');
 
 // Fallback demo channels shown before real data is in DB
 const DEMO_CHANNELS = [
@@ -95,7 +97,7 @@ const listChannels = async (req, res) => {
       const CAS = c.CAS ?? 50;
       return {
         id: c._id,
-        nombre: c.nombreCanal || '',
+        nombre: sanitizeChannelName(c.nombreCanal, c.identificadorCanal),
         username: c.identificadorCanal || '',
         plataforma: c.plataforma || '',
         categoria: c.categoria || '',
@@ -163,7 +165,7 @@ const getChannelById = async (req, res) => {
       success: true,
       data: {
         id: canal._id,
-        nombre: canal.nombreCanal || '',
+        nombre: sanitizeChannelName(canal.nombreCanal, canal.identificadorCanal),
         plataforma: canal.plataforma || '',
         categoria: canal.categoria || '',
         audiencia: canal.estadisticas?.seguidores || 0,
@@ -405,7 +407,7 @@ const getRankings = async (req, res) => {
     const rankings = items.map((c, idx) => ({
       position: idx + 1,
       id: c._id,
-      nombre: c.nombreCanal || '',
+      nombre: sanitizeChannelName(c.nombreCanal, c.identificadorCanal),
       username: c.identificadorCanal || '',
       foto: c.foto || '',
       plataforma: c.plataforma || '',
@@ -502,7 +504,7 @@ const getChannelByUsername = async (req, res) => {
       success: true,
       data: {
         id: canal._id,
-        nombre: canal.nombreCanal || '',
+        nombre: sanitizeChannelName(canal.nombreCanal, canal.identificadorCanal),
         plataforma: canal.plataforma || '',
         categoria: canal.categoria || '',
         descripcion: canal.descripcion || '',
@@ -533,4 +535,28 @@ const getChannelByUsername = async (req, res) => {
   }
 };
 
-module.exports = { listChannels, getChannelById, getChannelByUsername, getChannelAvailability, updateChannelAvailability, getChannelSnapshots, getRankings };
+// POST /api/channels/admin/clean-names  (admin only)
+// One-off cleanup of poisoned display names — leaked "<img ...>" markup (and the
+// odd bare URL / image filename) stored in nombreCanal before the WhatsApp
+// scraper was hardened. Runs server-side where Atlas is reachable, so it can be
+// triggered with a single authenticated request instead of the CLI. Shares logic
+// with scripts/migrate-clean-channel-names.js via lib/cleanChannelNames.
+//   POST .../admin/clean-names            → DRY-RUN (counts only)
+//   POST .../admin/clean-names?apply=true → write fixes
+// Idempotent (only updates when the sanitised name differs).
+const cleanCanalNames = async (req, res) => {
+  try {
+    const dbOk = await ensureDb();
+    if (!dbOk) return res.status(503).json({ success: false, message: 'DB unavailable' });
+
+    const apply = req.query.apply === 'true' || req.body?.apply === true;
+    const result = await cleanChannelNames({ apply });
+
+    return res.json({ success: true, mode: apply ? 'APPLY' : 'DRY-RUN', data: result });
+  } catch (err) {
+    console.error('cleanCanalNames error:', err.message);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { listChannels, getChannelById, getChannelByUsername, getChannelAvailability, updateChannelAvailability, getChannelSnapshots, getRankings, cleanCanalNames };

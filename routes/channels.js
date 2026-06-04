@@ -2,6 +2,7 @@ const express = require('express');
 const { query } = require('express-validator');
 const { validarCampos } = require('../middleware/validarCampos');
 const { limitadorAPI } = require('../middleware/rateLimiter');
+const { autenticar, autorizarRoles } = require('../middleware/auth');
 const channelsController = require('../controllers/channelsController');
 
 const router = express.Router();
@@ -32,5 +33,10 @@ router.get('/:id/availability', limitadorAPI, channelsController.getChannelAvail
 
 // Score snapshots for charts (public, last 30 days)
 router.get('/:id/snapshots', limitadorAPI, channelsController.getChannelSnapshots);
+
+// ── Admin ─────────────────────────────────────────────────────────────
+// One-off cleanup of poisoned display names (leaked "<img ...>" markup stored
+// by the old WhatsApp scraper). Dry-run by default; ?apply=true to write.
+router.post('/admin/clean-names', autenticar, autorizarRoles('admin'), channelsController.cleanCanalNames);
 
 module.exports = router;
