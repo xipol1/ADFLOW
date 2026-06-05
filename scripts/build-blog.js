@@ -815,12 +815,10 @@ function build() {
     console.log(`  📎 ${reactEntries.length} React-only post(s) added to sitemap: ${reactOnlyPosts.map(p => p.slug).join(', ')}`);
   }
 
-  const allEntries = [...staticPages, ...blogEntries, ...reactEntries];
   const todayDate = new Date().toISOString().slice(0, 10);
-
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+  const renderUrlset = (entries) => `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allEntries.map(e => `  <url>
+${entries.map(e => `  <url>
     <loc>${DOMAIN}${e.url}</loc>
     <lastmod>${e.lastmod || todayDate}</lastmod>
     <changefreq>${e.freq}</changefreq>
@@ -828,26 +826,36 @@ ${allEntries.map(e => `  <url>
   </url>`).join('\n')}
 </urlset>`;
 
-  fs.writeFileSync(SITEMAP_PATH, sitemap, 'utf-8');
-  console.log(`  \u2705 sitemap.xml (${allEntries.length} URLs)`);
+  // Child 1: marketing/static pages \u2192 /sitemap-pages.xml
+  const PAGES_SITEMAP_PATH = path.join(ROOT, 'public', 'sitemap-pages.xml');
+  fs.writeFileSync(PAGES_SITEMAP_PATH, renderUrlset(staticPages), 'utf-8');
+  console.log(`  \u2705 sitemap-pages.xml (${staticPages.length} URLs)`);
 
-  // \u2500\u2500\u2500 Blog-only sitemap (recommended by Google for content-heavy sections) \u2500\u2500\u2500
-  // Submitted separately in Search Console as `/blog/sitemap.xml`. Lets
-  // Google prioritise blog crawl independently from the main sitemap and
-  // makes per-section indexing stats actionable.
+  // Child 2: blog (markdown + React-only posts) \u2192 /blog/sitemap.xml
   const blogSitemapEntries = [...blogEntries, ...reactEntries];
-  const blogSitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${blogSitemapEntries.map(e => `  <url>
-    <loc>${DOMAIN}${e.url}</loc>
-    <lastmod>${e.lastmod || todayDate}</lastmod>
-    <changefreq>${e.freq}</changefreq>
-    <priority>${e.priority}</priority>
-  </url>`).join('\n')}
-</urlset>`;
   const BLOG_SITEMAP_PATH = path.join(OUTPUT_DIR, 'sitemap.xml');
-  fs.writeFileSync(BLOG_SITEMAP_PATH, blogSitemap, 'utf-8');
+  fs.writeFileSync(BLOG_SITEMAP_PATH, renderUrlset(blogSitemapEntries), 'utf-8');
   console.log(`  \u2705 blog/sitemap.xml (${blogSitemapEntries.length} URLs)`);
+
+  // Parent: /sitemap.xml as a <sitemapindex> referencing both children.
+  // robots.txt points only here; Google discovers the children from the index,
+  // so there is a single canonical sitemap entry point (no main-vs-blog split).
+  // Per-child lastmod = newest entry date \u2192 each section is re-crawled only
+  // when it actually changed.
+  const maxDate = (entries) => entries.reduce((max, e) => (e.lastmod && e.lastmod > max ? e.lastmod : max), '') || todayDate;
+  const children = [
+    { loc: `${DOMAIN}/sitemap-pages.xml`, lastmod: maxDate(staticPages) },
+    { loc: `${DOMAIN}/blog/sitemap.xml`, lastmod: maxDate(blogSitemapEntries) },
+  ];
+  const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${children.map(c => `  <sitemap>
+    <loc>${c.loc}</loc>
+    <lastmod>${c.lastmod}</lastmod>
+  </sitemap>`).join('\n')}
+</sitemapindex>`;
+  fs.writeFileSync(SITEMAP_PATH, sitemapIndex, 'utf-8');
+  console.log(`  \u2705 sitemap.xml (index \u2192 ${children.length} child sitemaps)`);
 
   // ─── Generate RSS feed ───
   const allPostsForFeed = [...posts, ...reactOnlyPosts].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
