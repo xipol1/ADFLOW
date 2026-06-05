@@ -140,18 +140,27 @@ const KPI_CONFIGS = {
   },
   [WIDGET_TYPES.KPI_CTR]: {
     icon: Activity, label: 'CTR promedio', accent: BLUE,
-    getValue: (d) => `${d.avgCtr ?? '0.0'}%`,
+    // CTR needs impressions. Link-attribution channels (WhatsApp) have none, so
+    // show "—" instead of a misleading 0.0% and let the clicks count carry the
+    // signal in the sublabel.
+    getValue: (d) => (d.avgCtr != null ? `${d.avgCtr}%` : '—'),
     getSublabel: (d) => `${(d.totalClicks || 0).toLocaleString('es')} clicks`,
   },
   [WIDGET_TYPES.KPI_VIEWS]: {
     icon: Eye, label: 'Vistas totales', accent: '#f59e0b',
-    getValue: (d) => (d.totalViews || 0).toLocaleString('es'),
-    getSublabel: () => 'impresiones acumuladas',
+    // Most channels (WhatsApp/link-attribution) don't expose native views —
+    // show "—" rather than a perpetual 0, and point to clicks as the signal.
+    getValue: (d) => ((d.totalViews || 0) > 0 ? d.totalViews.toLocaleString('es') : '—'),
+    getSublabel: (d) => ((d.totalViews || 0) > 0 ? 'impresiones acumuladas' : 'sin vistas nativas · mira clicks'),
   },
   [WIDGET_TYPES.KPI_CLICKS]: {
     icon: MousePointerClick, label: 'Clicks totales', accent: '#ec4899',
     getValue: (d) => (d.totalClicks || 0).toLocaleString('es'),
-    getSublabel: () => 'en todas las campañas',
+    // Unique clicks ≈ the real "click-through" on the tracked link (deduped
+    // visitors) — the headline signal for link-attribution campaigns.
+    getSublabel: (d) => ((d.totalUniqueClicks || 0) > 0
+      ? `${d.totalUniqueClicks.toLocaleString('es')} únicos`
+      : 'en todas las campañas'),
   },
   [WIDGET_TYPES.KPI_ROI]: {
     // Label adapts: "ROI real" if we have real conversions in scope,
@@ -165,13 +174,18 @@ const KPI_CONFIGS = {
       }
       const spend = d.totalSpend || 0
       if (!spend) return '—'
+      // Estimate value from whatever signal exists: native views (CPM-style)
+      // when reported, otherwise tracked clicks (link-attribution channels). A
+      // click is worth far more than an impression, hence the higher factor.
       const views = d.totalViews || 0
-      const estimatedValue = views * 0.015
+      const estimatedValue = views > 0 ? views * 0.015 : (d.totalClicks || 0) * 0.30
+      if (!estimatedValue) return '—'
       return `${((estimatedValue / spend) * 100).toFixed(0)}%`
     },
-    getSublabel: (d) => d.realRoi?.hasRealData
-      ? `${d.realRoi.conversions} conversiones · €${d.realRoi.revenue} ingresos`
-      : 'basado en CPM estimado',
+    getSublabel: (d) => {
+      if (d.realRoi?.hasRealData) return `${d.realRoi.conversions} conversiones · €${d.realRoi.revenue} ingresos`
+      return (d.totalViews || 0) > 0 ? 'basado en CPM estimado' : 'basado en valor por click'
+    },
   },
 }
 
@@ -414,7 +428,7 @@ function CampaignsTableWidget({ data, variant, widgetId }) {
         title={variant === 'compact' ? 'Campañas' : 'Campañas recientes'}
         icon={Megaphone}
         accent={PURPLE}
-        description="Tus campañas más recientes con vistas, CTR, gasto y estado. Click en una fila abre el detalle sin salir del dashboard."
+        description="Tus campañas más recientes con clicks, clicks únicos, gasto y estado. Click en una fila abre el detalle sin salir del dashboard."
         badge={{ count: newCount, label: newCount === 1 ? 'nueva' : 'nuevas' }}
         loading={isLoading}
         empty={isEmpty ? {
@@ -455,7 +469,7 @@ function CampaignsTableBody({ campaigns, variant, width, height, navigate, onRow
           {items.map(ad => {
             const st = STATUS_CFG[ad.status] || { color: '#94a3b8', label: ad.status }
             const title = ad.title || ad.content?.slice(0, 40) || 'Campaña'
-            const views = ad.tracking?.impressions || ad.views || 0
+            const clicks = ad.tracking?.clicks || ad.clicks || 0
             return (
               <div key={ad.id || ad._id}
                 onClick={() => handleClick(ad)}
@@ -468,7 +482,7 @@ function CampaignsTableBody({ campaigns, variant, width, height, navigate, onRow
                   {title}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>{Number(views).toLocaleString('es')} vistas</span>
+                  <span style={{ fontSize: 10.5, color: 'var(--muted)' }}>{Number(clicks).toLocaleString('es')} clicks</span>
                   <span style={{ background: `${st.color}12`, color: st.color, border: `1px solid ${st.color}35`, borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 600 }}>
                     {st.label}
                   </span>
@@ -534,15 +548,14 @@ function CampaignsTableBody({ campaigns, variant, width, height, navigate, onRow
         gridTemplateColumns: showAllCols ? '1fr 60px 50px 60px 70px' : showCols ? '1fr 60px 70px' : '1fr 70px',
         padding: '6px 0', borderBottom: '1px solid var(--border)', gap: 8,
       }}>
-        {(showAllCols ? ['Campaña','Vistas','CTR','Gasto','Estado'] : showCols ? ['Campaña','Vistas','Estado'] : ['Campaña','Estado']).map(h => (
+        {(showAllCols ? ['Campaña','Clicks','Únicos','Gasto','Estado'] : showCols ? ['Campaña','Clicks','Estado'] : ['Campaña','Estado']).map(h => (
           <div key={h} style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</div>
         ))}
       </div>
       {items.map((ad, i) => {
         const st = STATUS_CFG[ad.status] || { color: '#94a3b8', label: ad.status }
-        const views = ad.tracking?.impressions || ad.views || 0
         const clicks = ad.tracking?.clicks || ad.clicks || 0
-        const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : '0.0'
+        const uniqueClicks = ad.tracking?.uniqueClicks || 0
         const spent = ad.price || ad.spent || ad.budget || 0
         return (
           <div key={ad.id || ad._id}
@@ -558,8 +571,8 @@ function CampaignsTableBody({ campaigns, variant, width, height, navigate, onRow
             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {ad.title || ad.content?.slice(0, 40) || 'Campaña'}
             </div>
-            {showCols && <div style={{ fontSize: 11.5, color: 'var(--text)' }}>{Number(views).toLocaleString('es')}</div>}
-            {showAllCols && <div style={{ fontSize: 11.5, color: Number(ctr) > 4 ? OK : 'var(--text)', fontWeight: 600 }}>{ctr}%</div>}
+            {showCols && <div style={{ fontSize: 11.5, color: 'var(--text)' }}>{Number(clicks).toLocaleString('es')}</div>}
+            {showAllCols && <div style={{ fontSize: 11.5, color: 'var(--text)', fontWeight: 600 }}>{Number(uniqueClicks).toLocaleString('es')}</div>}
             {showAllCols && <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)' }}>€{spent}</div>}
             <span style={{ background: `${st.color}12`, color: st.color, border: `1px solid ${st.color}35`, borderRadius: 20, padding: '2px 6px', fontSize: 10, fontWeight: 600, textAlign: 'center' }}>
               {st.label}
@@ -857,13 +870,13 @@ function TopChannelsWidget({ data, variant }) {
   const channelMap = {}
   campaigns.forEach(c => {
     const name = typeof c.channel === 'object' ? c.channel?.nombreCanal : c.channel || 'Desconocido'
-    if (!channelMap[name]) channelMap[name] = { name, views: 0, clicks: 0, spent: 0, count: 0 }
-    channelMap[name].views += (c.tracking?.impressions || c.views || 0)
+    if (!channelMap[name]) channelMap[name] = { name, clicks: 0, uniqueClicks: 0, spent: 0, count: 0 }
     channelMap[name].clicks += (c.tracking?.clicks || c.clicks || 0)
+    channelMap[name].uniqueClicks += (c.tracking?.uniqueClicks || 0)
     channelMap[name].spent += (c.price || c.spent || 0)
     channelMap[name].count++
   })
-  const channels = Object.values(channelMap).sort((a, b) => b.views - a.views)
+  const channels = Object.values(channelMap).sort((a, b) => b.clicks - a.clicks)
   const isLoading = data.loading && channels.length === 0
   const isEmpty = !isLoading && channels.length === 0
   const rowH = 38
@@ -876,12 +889,12 @@ function TopChannelsWidget({ data, variant }) {
         title="Top canales"
         icon={Users}
         accent={PURPLE}
-        description="Los canales con más vistas acumuladas en tus campañas."
+        description="Los canales con más clicks acumulados en tus campañas."
         loading={isLoading}
         empty={isEmpty ? {
           illustration: <IllustrationNoData accent={PURPLE} size={52} />,
           title: 'Sin datos de canales',
-          description: 'Cuando tus campañas empiecen a recibir vistas verás aquí los mejores canales.',
+          description: 'Cuando tus campañas empiecen a recibir clicks verás aquí los mejores canales.',
         } : null}
       >
         <div style={{ ...fill, justifyContent: 'flex-start' }}>
@@ -895,7 +908,7 @@ function TopChannelsWidget({ data, variant }) {
                 {showSecondary && <div style={{ fontSize: 10.5, color: 'var(--muted)' }}>{ch.count} campaña{ch.count !== 1 ? 's' : ''}</div>}
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)' }}>{ch.views.toLocaleString('es')}</div>
+                <div style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text)' }}>{ch.clicks.toLocaleString('es')}</div>
                 {showSecondary && <div style={{ fontSize: 10.5, color: 'var(--muted)' }}>€{ch.spent}</div>}
               </div>
             </div>

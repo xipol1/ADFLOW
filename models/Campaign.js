@@ -93,7 +93,27 @@ const CampaignSchema = new mongoose.Schema(
       lastAttemptAt: { type: Date, default: null },
       deliveredAt: { type: Date, default: null },
       error: { type: String, default: '' },
-    }
+    },
+
+    // ── Link-attribution campaigns (manual creator publishing) ───────────────
+    // WhatsApp does NOT sync channels to linked devices, so we can't auto-publish
+    // or read native views/reactions (see docs/wa-web-metrics-validation.md). For
+    // those channels the CREATOR publishes the ad himself and we attribute by
+    // clicks on the tracked link (GET /r/:campaignId → models/Tracking). All
+    // fields below are optional + defaulted, so legacy campaigns are unaffected.
+    //   - channel (above)  == canalId        - content (above) == creativeText
+    //   - publishedAt (above) reused for the post time
+    creator: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', default: null, index: true },
+    attributionMode: { type: String, enum: ['native', 'link'], default: 'native' },
+    reachAtStart: { type: Number, default: null },      // subscribers when the campaign was created
+    reachAtEnd: { type: Number, default: null },        // subscribers when the campaign closed
+    deliveryConfirmedAt: { type: Date, default: null }, // when the creator confirmed the post is live
+    // Snapshot of the WhatsApp channel — it may not exist as a Canal (prospects).
+    waChannel: {
+      invite: { type: String, default: '' },
+      jid: { type: String, default: '' },
+      name: { type: String, default: '' },
+    },
   },
   { timestamps: false }
 );

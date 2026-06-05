@@ -143,6 +143,12 @@ async function getChannelInfo({ channelId }) {
     isChannel: chat.isChannel || false,
     isGroup: chat.isGroup || false,
     participants: chat.participants?.length || 0,
+    // Channels expose no participants — the real follower count + role live in metadata.
+    subscribersCount:
+      chat.channelMetadata?.subscribersCount ??
+      chat.channelMetadata?.size ??
+      null,
+    role: chat.channelMetadata?.membershipType || null,
     timestamp: new Date(),
   };
 }
@@ -196,7 +202,14 @@ async function getChannelFollowers({ channelId }) {
   if (!chat) throw new Error(`Canal no encontrado: ${channelId}`);
 
   return {
-    count: chat.participants?.length || chat.groupMetadata?.size || 0,
+    // Channels keep the count in newsletter metadata, not in participants.
+    count:
+      chat.channelMetadata?.subscribersCount ??
+      chat.channelMetadata?.size ??
+      chat.participants?.length ??
+      chat.groupMetadata?.size ??
+      0,
+    source: chat.channelMetadata ? 'channelMetadata' : 'participants',
     channelId,
   };
 }
@@ -286,6 +299,105 @@ async function getRecentPosts({ channelId, limit = 10 }) {
   }));
 }
 
+// ─── Diagnostic / channel-resolution actions (added for local validation) ─────
+
+/**
+ * Lists every channel (newsletter) the logged-in account can see.
+ * NOTE: channels live in WAWebNewsletterCollection, NOT in the Chat collection,
+ * so getChats() does NOT include them — we must use getChannels().
+ */
+async function listChannels() {
+  ensureReady();
+  log('info', 'listChannels');
+
+  const channels = await client.getChannels();
+  return (channels || []).map(c => ({
+    id: c.id?._serialized || null,
+    name: c.name || '',
+    isChannel: c.isChannel || false,
+    isReadOnly: c.isReadOnly || false,
+    role: c.channelMetadata?.membershipType || null,
+    // expose raw metadata keys so we can see exactly what WA gives us per channel
+    channelMetadataKeys: c.channelMetadata ? Object.keys(c.channelMetadata) : [],
+    subscribersCount:
+      c.channelMetadata?.subscribersCount ??
+      c.channelMetadata?.size ??
+      null,
+  }));
+}
+
+/**
+ * Resolves an invite code (the part after /channel/) to a full Channel +
+ * the clean metadata WA returns (id JID, subscribersCount, isVerified...).
+ */
+async function getChannelByInvite({ inviteCode }) {
+  ensureReady();
+  log('info', 'getChannelByInvite', { inviteCode });
+
+  const channel = await client.getChannelByInviteCode(inviteCode);
+  if (!channel) throw new Error(`No se pudo resolver el invite: ${inviteCode}`);
+
+  return {
+    id: channel.id?._serialized || null,
+    name: channel.name || '',
+    description: channel.description || '',
+    isChannel: channel.isChannel || false,
+    isReadOnly: channel.isReadOnly || false,
+    channelMetadata: channel.channelMetadata || null,
+  };
+}
+
+/**
+ * Returns the clean newsletter metadata WA serves for an invite code,
+ * including subscribersCount + isVerified (the real follower count).
+ */
+async function rawInviteMetadata({ inviteCode }) {
+  ensureReady();
+  log('info', 'rawInviteMetadata', { inviteCode });
+
+  return await client.pupPage.evaluate(
+    (code) => window.WWebJS.getChannelMetadata(code),
+    inviteCode,
+  );
+}
+
+/**
+ * Dumps the RAW internal message model (_data) for recent posts so we can
+ * empirically inspect which metric fields WA actually exposes (views, reactions,
+ * forwards) before whatsapp-web.js strips them in its Message getter.
+ */
+async function debugRawPosts({ channelId, limit = 5 }) {
+  ensureReady();
+  log('info', 'debugRawPosts', { channelId, limit });
+
+  const chat = await client.getChatById(channelId);
+  if (!chat) throw new Error(`Canal no encontrado: ${channelId}`);
+
+  const messages = await chat.fetchMessages({ limit: Math.min(limit, 50) });
+
+  return messages.map(m => {
+    const raw = m._data || {};
+    // surface anything that looks like a metric without guessing exact names
+    const metricLike = {};
+    for (const k of Object.keys(raw)) {
+      if (/view|seen|read|react|forward|count|stat|recipient/i.test(k)) {
+        metricLike[k] = raw[k];
+      }
+    }
+    return {
+      id: m.id?._serialized || null,
+      type: m.type,
+      fromMe: m.fromMe || false,
+      timestamp: m.timestamp ? new Date(m.timestamp * 1000) : null,
+      bodyPreview: (m.body || '').substring(0, 60),
+      hasReaction: m.hasReaction || false,
+      forwardingScore: m.forwardingScore || 0,
+      rawKeys: Object.keys(raw),
+      metricLike,
+    };
+  });
+}
+
 async function healthCheck() {
   return {
     ready: isReady,
@@ -312,6 +424,11 @@ const ACTIONS = {
   publishToChannel,
   getRecentPosts,
   healthCheck,
+  // diagnostic / channel-resolution
+  listChannels,
+  getChannelByInvite,
+  rawInviteMetadata,
+  debugRawPosts,
 };
 
 process.on('message', async (msg) => {

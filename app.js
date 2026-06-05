@@ -54,6 +54,7 @@ try { _routes['./routes/adminSubscriptions']  = require('./routes/adminSubscript
 try { _routes['./routes/subscriptions']       = require('./routes/subscriptions');       } catch (e) { _routes['./routes/subscriptions']       = e; }
 try { _routes['./routes/swapsCron']           = require('./routes/swapsCron');           } catch (e) { _routes['./routes/swapsCron']           = e; }
 try { _routes['./routes/authMaintenanceCron'] = require('./routes/authMaintenanceCron'); } catch (e) { _routes['./routes/authMaintenanceCron'] = e; }
+try { _routes['./routes/campaignSettlementCron'] = require('./routes/campaignSettlementCron'); } catch (e) { _routes['./routes/campaignSettlementCron'] = e; }
 try { _routes['./routes/founderWaitlist']     = require('./routes/founderWaitlist');     } catch (e) { _routes['./routes/founderWaitlist']     = e; }
 try { _routes['./routes/founders']            = require('./routes/founders');            } catch (e) { _routes['./routes/founders']            = e; }
 try { _routes['./routes/calculator']          = require('./routes/calculator');          } catch (e) { _routes['./routes/calculator']          = e; }
@@ -612,6 +613,7 @@ const enabledRoutes = [
   ['/api/swaps',     './routes/swaps'],
   ['/api/jobs',      './routes/swapsCron'],
   ['/api/jobs',      './routes/authMaintenanceCron'],
+  ['/api/jobs',      './routes/campaignSettlementCron'],
   ['/api/founder-waitlist', './routes/founderWaitlist'],
   ['/api/founders',    './routes/founders'],
   ['/api/calculator',  './routes/calculator'],

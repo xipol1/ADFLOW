@@ -278,7 +278,7 @@ export const WIDGET_CATALOG = {
  * practices for advertising dashboards:
  *
  *   Row 0-1  Welcome + Quick Actions    ← greeting + immediate CTAs
- *   Row 2-3  4 KPIs (Spend/Campaigns/CTR/ROI)  ← Stripe "prime real estate"
+ *   Row 2-3  4 KPIs (Spend/Campaigns/Clicks/ROI)  ← Stripe "prime real estate"
  *            Outcome metrics over vanity (Meta best practice)
  *   Row 4-6  Action Items + Spend Chart  ← blockers next to performance trend
  *   Row 7-10 Campaigns Table + Top Channels  ← drill-down + scale opportunity
@@ -292,10 +292,12 @@ export function getDefaultLayout() {
     { i: 'w-welcome',    type: WIDGET_TYPES.WELCOME,        variant: 'compact',  x: 0, y: 0, w: 8, h: 2 },
     { i: 'w-quick',      type: WIDGET_TYPES.QUICK_ACTIONS,  variant: 'standard', x: 8, y: 0, w: 4, h: 2 },
 
-    // Row 2-3 — 4 outcome KPIs in horizontal scan order (Stripe pattern)
+    // Row 2-3 — 4 outcome KPIs in horizontal scan order (Stripe pattern).
+    // Clicks (not CTR) leads: link-attribution channels expose no impressions,
+    // so CTR is undefined — tracked-link clicks are the real engagement signal.
     { i: 'w-spend',      type: WIDGET_TYPES.KPI_SPEND,      variant: 'compact',  x: 0, y: 2, w: 3, h: 2 },
     { i: 'w-campaigns',  type: WIDGET_TYPES.KPI_CAMPAIGNS,  variant: 'compact',  x: 3, y: 2, w: 3, h: 2 },
-    { i: 'w-ctr',        type: WIDGET_TYPES.KPI_CTR,        variant: 'compact',  x: 6, y: 2, w: 3, h: 2 },
+    { i: 'w-clicks',     type: WIDGET_TYPES.KPI_CLICKS,     variant: 'compact',  x: 6, y: 2, w: 3, h: 2 },
     { i: 'w-roi',        type: WIDGET_TYPES.KPI_ROI,        variant: 'compact',  x: 9, y: 2, w: 3, h: 2 },
 
     // Row 4-6 — blockers + performance trend, side by side

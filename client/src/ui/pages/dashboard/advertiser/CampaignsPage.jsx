@@ -23,6 +23,18 @@ const VIEW_MODE_KEY = 'channelad-campaigns-view-mode'
 
 const SLATE = '#64748b'
 
+// Verification window (must match jobs/campaignSettlementJob SETTLEMENT_WINDOW_DAYS):
+// the post has to stay live this many days before the platform auto-releases the
+// payment. Neither advertiser nor creator can release early — they can only
+// open a dispute if something is wrong.
+const VERIFY_DAYS = 15
+const releaseDateLabel = (publishedAt) => {
+  if (!publishedAt) return null
+  const d = new Date(new Date(publishedAt).getTime() + VERIFY_DAYS * 24 * 60 * 60 * 1000)
+  if (isNaN(d.getTime())) return null
+  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
 /* ── Status pipeline config ────────────────────────────────────────────────── */
 const PIPELINE = [
   { key: 'DRAFT',     label: 'Borrador',   icon: Clock,       color: SLATE,  desc: 'Pendiente de pago' },
@@ -37,6 +49,7 @@ const STATUS_CFG = {
   PUBLISHED: { color: OK,       bg: `${OK}14`,    label: 'Publicada',  icon: Eye },
   COMPLETED: { color: '#6b7280',bg: 'rgba(107,114,128,0.1)', label: 'Completada', icon: CheckCircle },
   CANCELLED: { color: ERR,      bg: `${ERR}14`,   label: 'Cancelada',  icon: XCircle },
+  DISPUTED:  { color: WARN,     bg: `${WARN}14`,  label: 'En disputa', icon: AlertCircle },
 }
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('es', { day: 'numeric', month: 'short' }) : '-'
@@ -619,11 +632,11 @@ export default function CampaignsPage() {
     doAction(campaign._id, apiService.payCampaign)
   }
 
-  const doCompleteWithConfirm = (campaign) => {
-    if (!window.confirm(
-      `¿Confirmas que la campaña está completada?\n\nSe liberará el pago de €${(campaign.netAmount || 0).toFixed(2)} al creador. Esta acción no se puede deshacer.`
-    )) return
-    doAction(campaign._id, apiService.completeCampaign)
+  // The advertiser can no longer "complete" a campaign — releasing the payment
+  // is the platform's decision after the verification window. If something is
+  // wrong, they report a problem, which opens a dispute and halts auto-release.
+  const reportProblem = (campaign) => {
+    navigate(`/advertiser/disputes?new=${campaign._id}`)
   }
 
   const handleChatUpdate = (updated) => {
@@ -1114,16 +1127,49 @@ export default function CampaignsPage() {
                   {sel.status === 'PUBLISHED' && (
                     <>
                       {sel.delivery && <DeliveryBadge delivery={sel.delivery} />}
-                      <button onClick={() => doCompleteWithConfirm(sel)} disabled={actionLoading === sel._id} className="adf-btn-primary" style={{
-                        flex: 1, background: OK, color: '#fff', border: 'none', borderRadius: '12px',
-                        padding: '13px 20px', fontSize: '14px', fontWeight: 600,
-                        cursor: actionLoading === sel._id ? 'not-allowed' : 'pointer', fontFamily: FONT_BODY,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                        boxShadow: `0 4px 14px ${OK}30`,
+                      <div style={{
+                        flex: 1, background: `${BLUE}08`, border: `1px solid ${BLUE}20`,
+                        borderRadius: '12px', padding: '14px 18px',
+                        display: 'flex', alignItems: 'center', gap: '10px',
                       }}>
-                        <CheckCircle size={16} /> {actionLoading === sel._id ? 'Procesando...' : 'Completar y liberar pago'}
+                        <Shield size={18} color={BLUE} style={{ flexShrink: 0 }} />
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 600, color: BLUE }}>En verificación</div>
+                          <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                            {releaseDateLabel(sel.publishedAt)
+                              ? `La plataforma liberará el pago automáticamente el ${releaseDateLabel(sel.publishedAt)}, tras comprobar que el anuncio se mantiene publicado (${VERIFY_DAYS} días).`
+                              : `La plataforma libera el pago automáticamente tras el periodo de verificación (${VERIFY_DAYS} días desde la publicación).`}
+                          </div>
+                        </div>
+                      </div>
+                      <button onClick={() => reportProblem(sel)} disabled={actionLoading === sel._id} style={{
+                        background: 'var(--bg)', color: ERR, border: `1px solid ${ERR}30`,
+                        borderRadius: '12px', padding: '13px 18px', fontSize: '13px', fontWeight: 600,
+                        cursor: actionLoading === sel._id ? 'not-allowed' : 'pointer', fontFamily: FONT_BODY,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', whiteSpace: 'nowrap',
+                      }}>
+                        <AlertCircle size={16} /> Reportar un problema
                       </button>
                     </>
+                  )}
+                  {sel.status === 'DISPUTED' && (
+                    <div style={{
+                      flex: 1, background: `${WARN}08`, border: `1px solid ${WARN}20`,
+                      borderRadius: '12px', padding: '14px 18px',
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                    }}>
+                      <AlertCircle size={18} color={WARN} style={{ flexShrink: 0 }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: WARN }}>En disputa</div>
+                        <div style={{ fontSize: '12px', color: 'var(--muted)' }}>El pago está retenido hasta que nuestro equipo resuelva la disputa.</div>
+                      </div>
+                      <button onClick={() => navigate('/advertiser/disputes')} style={{
+                        background: 'none', border: 'none', color: PURPLE, fontWeight: 600, fontSize: '12px',
+                        cursor: 'pointer', fontFamily: FONT_BODY, whiteSpace: 'nowrap',
+                      }}>
+                        Ver disputa →
+                      </button>
+                    </div>
                   )}
                   {sel.status === 'COMPLETED' && (
                     <div style={{

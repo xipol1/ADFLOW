@@ -202,21 +202,53 @@ class NotificationService extends EventEmitter {
         'anuncio.aprobado': 'aprobacion-anuncio',
         'anuncio.rechazado': 'aprobacion-anuncio',
         'transaccion.completada': 'notificacion-pago',
-        'usuario.bienvenida': 'bienvenida'
+        'usuario.bienvenida': 'bienvenida',
+        // ── Ciclo de vida de campañas → plantillas dedicadas ──────────────
+        // Tipos verificados contra los call sites reales (campaignController,
+        // campaignCron, partnerIntegrationService). `campana.expirada` y
+        // `campana.recordatorio` NO tienen plantilla propia y caen a la
+        // genérica a propósito: su `mensaje` ya es autoexplicativo.
+        'campana.nueva': 'campana-creada',
+        'campana.publicada': 'campana-publicada',
+        'campana.pagada': 'campana-pagada',
+        'campana.completada': 'campana-completada',
+        'campana.cancelada': 'campana-cancelada',
+        'campana.disponible': 'campana-disponible',
+        'campana.auditada': 'campana-auditada'
       };
 
-      const plantilla = plantillas[datos.tipo] || 'notificacion-generica';
-      
-      // Preparar variables para la plantilla
-      const variables = {
+      let plantilla = plantillas[datos.tipo] || 'notificacion-generica';
+
+      // Variables base disponibles para cualquier plantilla.
+      let variables = {
         nombre: usuario.nombre,
         titulo: datos.titulo,
         mensaje: datos.mensaje,
         ...datos.datos
       };
 
-      const contenido = await emailService.cargarPlantilla(plantilla, variables);
-      
+      // Las plantillas campana-* son fragmentos con muchos {{campos}} (canal,
+      // anunciante, precio, fechas, reembolso…) que la notificación NO
+      // transporta — solo lleva un campaignId. Las enriquecemos con una
+      // lectura de solo-lectura (sin escrituras ni cambios de estado). Si la
+      // resolución falla, caemos a la genérica para no enviar un email con
+      // tarjetas en blanco.
+      if (plantilla.startsWith('campana-') && datos.datos?.campaignId) {
+        const enriquecidas = await this.construirVariablesCampana(datos.tipo, usuario, datos.datos);
+        if (enriquecidas) {
+          variables = { ...variables, ...enriquecidas };
+        } else {
+          plantilla = 'notificacion-generica';
+        }
+      }
+
+      // renderTemplate envuelve el fragmento en el layout base
+      // (cabecera/pie/preheader) y elimina los {{placeholders}} sin resolver;
+      // si el fichero no se puede cargar recurre internamente a
+      // cargarPlantilla. Es el mismo renderizador que usan los métodos
+      // dedicados enviarCampana* de emailService.
+      const contenido = await emailService.renderTemplate(plantilla, variables);
+
       return await emailService.enviarEmail({
         para: usuario.email,
         asunto: datos.titulo,
@@ -225,6 +257,161 @@ class NotificationService extends EventEmitter {
     } catch (error) {
       console.error('Error al enviar notificación por email:', error);
       return { exito: false, error: error.message };
+    }
+  }
+
+  /**
+   * Construir las {{variables}} ricas que necesitan las plantillas campana-*.
+   *
+   * El payload de la notificación solo lleva un `campaignId`, pero las
+   * plantillas esperan nombre de canal, anunciante, precio, fechas, reembolso,
+   * etc. Las resolvemos con una lectura de SOLO LECTURA (Campaign + Canal +
+   * Usuario): no hay escrituras ni transiciones de estado, solo presentación
+   * del email. Devuelve `null` ante cualquier problema para que el llamante
+   * recurra a la plantilla genérica.
+   *
+   * @param {string} tipo              tipo de notificación (p.ej. 'campana.nueva')
+   * @param {object} usuario           destinatario (doc Usuario con _id/nombre)
+   * @param {object} datosAdicionales  datos.datos de la notificación ({ campaignId, … })
+   * @returns {Promise<object|null>}   variables para la plantilla, o null
+   */
+  async construirVariablesCampana(tipo, usuario, datosAdicionales = {}) {
+    try {
+      const { ensureDb } = require('../lib/ensureDb');
+      await ensureDb();
+
+      const Campaign = require('../models/Campaign');
+      const Canal = require('../models/Canal');
+      const { sanitizeChannelName } = require('../lib/channelName');
+
+      const campaign = await Campaign.findById(datosAdicionales.campaignId).lean();
+      if (!campaign) return null;
+
+      // Entidades relacionadas (best-effort; las plantillas tienen fallback).
+      const [canal, anunciante] = await Promise.all([
+        campaign.channel
+          ? Canal.findById(campaign.channel).select('nombreCanal identificadorCanal').lean()
+          : null,
+        campaign.advertiser
+          ? Usuario.findById(campaign.advertiser).select('nombre').lean()
+          : null
+      ]);
+
+      // Nunca servir markup envenenado (ver lib/channelName.js).
+      const channelName =
+        sanitizeChannelName(canal?.nombreCanal, canal?.identificadorCanal) ||
+        campaign.waChannel?.name ||
+        'tu canal';
+      const advertiserName = anunciante?.nombre || 'Anunciante';
+      const campaignUrl = `${config.frontend.url}/campanas/${campaign._id}`;
+      const fmtPrice = (n) => emailService._formatPrice(n);
+      const fmtDate = (d) => emailService._formatDate(d);
+      const esAnunciante = String(usuario._id) === String(campaign.advertiser);
+
+      switch (tipo) {
+        // campana-creada → destinatario: creador/dueño del canal. El importe
+        // relevante para él es lo que recibe (netAmount), igual que el `mensaje`
+        // ("recibes €…"), no el bruto que paga el anunciante.
+        case 'campana.nueva':
+          return {
+            creatorName: usuario.nombre,
+            advertiserName,
+            channelName,
+            content: campaign.content || '',
+            price: fmtPrice(campaign.netAmount || campaign.price),
+            deadline: fmtDate(campaign.deadline),
+            campaignUrl
+          };
+
+        // campana-publicada → destinatario: anunciante.
+        case 'campana.publicada':
+          return {
+            advertiserName: usuario.nombre,
+            channelName,
+            publishedAt: fmtDate(campaign.publishedAt || new Date()),
+            campaignUrl
+          };
+
+        // campana-pagada → destinatario: anunciante. Mostramos lo realmente
+        // capturado en EUR cuando existe; si no, el precio de la campaña.
+        case 'campana.pagada':
+          return {
+            advertiserName: usuario.nombre,
+            channelName,
+            price: fmtPrice(campaign.capturedAmount ?? campaign.price),
+            campaignUrl
+          };
+
+        // campana-completada → destinatario: anunciante O creador. El neto del
+        // creador es su parte (earnings de la notificación / creatorPayable);
+        // para el anunciante el neto es el total que pagó.
+        case 'campana.completada': {
+          const neto = esAnunciante
+            ? campaign.price
+            : (datosAdicionales.earnings ?? campaign.creatorPayable ?? campaign.netAmount);
+          return {
+            nombre: usuario.nombre,
+            channelName,
+            price: fmtPrice(campaign.price),
+            netAmount: fmtPrice(neto),
+            stats: 'Estadísticas detalladas disponibles en tu panel.',
+            campaignUrl
+          };
+        }
+
+        // campana-cancelada → destinatario: dueño del canal. El reembolso
+        // devuelve lo capturado; una campaña sin pagar (DRAFT) → 0. El motivo
+        // no se persiste en el modelo, así que se usa el que venga o un default.
+        case 'campana.cancelada':
+          return {
+            nombre: usuario.nombre,
+            channelName,
+            reason: datosAdicionales.reason || 'No especificado',
+            refundAmount: fmtPrice(campaign.capturedAmount ?? 0)
+          };
+
+        // campana-auditada → destinatario: anunciante (o creador). Email del
+        // resultado de la verificación/auditoría de una campaña publicada. El
+        // resultado y la fecha pueden venir en datos.datos; si no, se derivan
+        // del estado/entrega de la campaña.
+        case 'campana.auditada':
+          return {
+            nombre: usuario.nombre,
+            advertiserName,
+            channelName,
+            auditResult:
+              datosAdicionales.auditResult ||
+              (campaign.status === 'DISPUTED'
+                ? 'Requiere revisión'
+                : 'Publicación verificada correctamente'),
+            auditDate: fmtDate(
+              datosAdicionales.auditDate ||
+              campaign.deliveryConfirmedAt ||
+              campaign.publishedAt ||
+              new Date()
+            ),
+            campaignUrl
+          };
+
+        // campana-disponible → destinatario: dueño del canal (variables en
+        // español). presupuesto = lo que recibe el creador.
+        case 'campana.disponible':
+          return {
+            nombre: usuario.nombre,
+            nombreCanal: channelName,
+            nombreAnunciante: advertiserName,
+            tipoCampana: datosAdicionales.tipoCampana || 'Publicación patrocinada',
+            presupuesto: fmtPrice(campaign.netAmount || campaign.price),
+            fechaPropuesta: fmtDate(campaign.createdAt),
+            linkCampana: campaignUrl
+          };
+
+        default:
+          return null;
+      }
+    } catch (error) {
+      console.error('construirVariablesCampana: no se pudieron resolver variables de campaña:', error?.message || error);
+      return null;
     }
   }
 

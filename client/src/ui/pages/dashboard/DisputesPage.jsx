@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ShieldAlert, Plus, ArrowLeft, Send, X, Clock, CheckCircle, AlertCircle, Search as SearchIcon, MessageCircle } from 'lucide-react'
 import apiService from '../../../services/api'
 import { ErrorBanner } from './shared/DashComponents'
@@ -58,8 +59,8 @@ const inputStyle = (focused) => ({
 })
 
 // ── Create dispute modal ──────────────────────────────────────────────────────
-function CreateModal({ onClose, onCreated }) {
-  const [form, setForm] = useState({ campaignId: '', reason: 'not_published', description: '' })
+function CreateModal({ onClose, onCreated, initialCampaignId = '' }) {
+  const [form, setForm] = useState({ campaignId: initialCampaignId || '', reason: 'not_published', description: '' })
   const [sending, setSending] = useState(false)
   const [focusedField, setFocusedField] = useState(null)
 
@@ -469,6 +470,14 @@ export default function DisputesPage() {
   const [fetchError, setFetchError] = useState(null)
   const [selectedDispute, setSelectedDispute] = useState(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const newCampaignId = searchParams.get('new') || ''
+
+  // Deep-link: /…/disputes?new=<campaignId> (from the "Reportar un problema"
+  // button on a published campaign) opens the create modal pre-filled.
+  useEffect(() => {
+    if (newCampaignId) setShowCreateModal(true)
+  }, [newCampaignId])
 
   const loadDisputes = useCallback(async () => {
     setLoading(true)
@@ -583,7 +592,8 @@ export default function DisputesPage() {
       {/* Create modal */}
       {showCreateModal && (
         <CreateModal
-          onClose={() => setShowCreateModal(false)}
+          initialCampaignId={newCampaignId}
+          onClose={() => { setShowCreateModal(false); if (newCampaignId) setSearchParams({}, { replace: true }) }}
           onCreated={loadDisputes}
         />
       )}

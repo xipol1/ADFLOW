@@ -279,6 +279,40 @@ const getCampaigns = async (req, res, next) => {
     const items = await Campaign.find({ $or: or })
       .populate('channel', 'nombreCanal plataforma categoria identificadorCanal foto')
       .sort({ createdAt: -1 }).lean();
+
+    // Enrich with click counts so dashboards can show real engagement. WhatsApp
+    // channels have no native views/impressions — attribution is by tracked-link
+    // clicks. Two sources: confirmed campaigns carry a TrackingLink (stats), and
+    // direct /r/:campaignId links record into models/Tracking. Non-fatal.
+    try {
+      const TrackingLink = require('../models/TrackingLink');
+      const Tracking = require('../models/Tracking');
+      const linkIds = items.map((c) => c.trackingLinkId).filter(Boolean);
+      const links = linkIds.length
+        ? await TrackingLink.find({ _id: { $in: linkIds } }).select('campaign stats').lean()
+        : [];
+      const byLink = new Map();
+      for (const l of links) {
+        if (l.campaign) byLink.set(String(l.campaign), { clicks: l.stats?.totalClicks || 0, uniqueClicks: l.stats?.uniqueClicks || 0 });
+      }
+      const noLinkIds = items.filter((c) => !c.trackingLinkId).map((c) => c._id);
+      const agg = noLinkIds.length
+        ? await Tracking.aggregate([
+            { $match: { campaign: { $in: noLinkIds } } },
+            { $group: { _id: '$campaign', clicks: { $sum: 1 }, ips: { $addToSet: '$ip' } } },
+          ])
+        : [];
+      const byTracking = new Map();
+      for (const t of agg) byTracking.set(String(t._id), { clicks: t.clicks || 0, uniqueClicks: (t.ips || []).length });
+
+      for (const c of items) {
+        const src = c.trackingLinkId ? byLink.get(String(c._id)) : byTracking.get(String(c._id));
+        c.tracking = { ...(c.tracking || {}), clicks: src?.clicks || 0, uniqueClicks: src?.uniqueClicks || 0 };
+      }
+    } catch (e) {
+      // dashboards just won't show click counts; never block the list
+    }
+
     return res.json({ success: true, data: { items } });
   } catch (error) {
     next(error);
@@ -327,10 +361,13 @@ const updateCampaignStatus = async (req, res, next) => {
     const isAdvertiser = campaign.advertiser?.toString?.() === String(userId);
     const isChannelOwner = await Canal.exists({ _id: campaign.channel, propietario: userId });
 
+    // NOTE: PUBLISHED → COMPLETED is deliberately NOT a user-driven transition.
+    // Completing a campaign releases escrow + pays the creator, so it is a
+    // platform decision handled exclusively by completeCampaign (admin/system)
+    // and the 15-day settlement job. Neither counterparty may complete here.
     const isValidTransition =
       (currentStatus === 'DRAFT' && desiredStatus === 'PAID' && isAdvertiser) ||
       (currentStatus === 'PAID' && desiredStatus === 'PUBLISHED' && Boolean(isChannelOwner)) ||
-      (currentStatus === 'PUBLISHED' && desiredStatus === 'COMPLETED') ||
       (desiredStatus === 'CANCELLED' && isAdvertiser);
 
     if (!isValidTransition) return next(httpError(400, 'Transición de estado inválida'));
@@ -565,8 +602,17 @@ const completeCampaign = async (req, res, next) => {
     const campaign = await Campaign.findById(req.params.id);
     if (!campaign) return next(httpError(404, 'Campaign no encontrada'));
 
-    const allowed = await canAccessCampaign(campaign, userId);
-    if (!allowed) return next(httpError(403, 'No autorizado'));
+    // Releasing escrow + paying the creator is a PLATFORM decision, never the
+    // advertiser's or the creator's. Campaigns settle automatically 15 days
+    // after publication (jobs/campaignSettlementJob) once the post has survived
+    // the verification window with no open dispute. Only the platform itself
+    // may trigger a release here: admins (manual override / dispute fallout) or
+    // the settlement job, which calls this handler with a system 'admin' actor.
+    // A counterparty who thinks something is wrong opens a dispute instead.
+    const isPlatform = (req.usuario?.rol || req.usuario?.role) === 'admin';
+    if (!isPlatform) {
+      return next(httpError(403, 'La plataforma libera el pago automáticamente tras el periodo de verificación. Si hay un problema, abre una disputa.'));
+    }
 
     if (campaign.status !== 'PUBLISHED') {
       return next(httpError(400, `No se puede completar una campaña en estado ${campaign.status}`));

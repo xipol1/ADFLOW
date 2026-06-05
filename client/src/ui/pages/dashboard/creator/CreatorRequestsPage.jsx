@@ -18,6 +18,16 @@ const BLUE = _BLUE
 const AMBER = WARN
 const RED  = ERR
 
+// Verification window (must match jobs/campaignSettlementJob SETTLEMENT_WINDOW_DAYS):
+// the platform auto-releases the payment this many days after publication, once
+// the post has proven to stay live. The creator cannot release it early.
+const VERIFY_DAYS = 15
+const releaseDateLabel = (publishedAt) => {
+  if (!publishedAt) return null
+  const d = new Date(new Date(publishedAt).getTime() + VERIFY_DAYS * 24 * 60 * 60 * 1000)
+  return isNaN(d.getTime()) ? null : d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
 /* ── Animations ────────────────────────────────────────────────────────────── */
 const CSS = `
 @keyframes adf-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
@@ -45,6 +55,7 @@ const STATUS_CFG = {
   PUBLISHED: { color: OK,        bg: `${OK}12`,   label: 'Publicada', tab: 'Publicadas' },
   COMPLETED: { color: '#6b7280', bg: 'rgba(107,114,128,0.1)', label: 'Completada', tab: 'Completadas' },
   CANCELLED: { color: RED,       bg: `${RED}10`,  label: 'Rechazada', tab: 'Rechazadas' },
+  DISPUTED:  { color: AMBER,     bg: `${AMBER}12`, label: 'En disputa', tab: 'Todas' },
 }
 
 /* ── Deadline helper (48h from creation) ─────────────────────────────────── */
@@ -378,7 +389,7 @@ const ChatPanel = ({ campaign, onSent, onCampaignUpdate }) => {
 }
 
 /* ── Detail modal ──────────────────────────────────────────────────────────── */
-const DetailModal = ({ campaign: c, onClose, onConfirm, onComplete, onDecline, onChat, busy }) => {
+const DetailModal = ({ campaign: c, onClose, onConfirm, onDecline, onChat, busy }) => {
   const ch = c.channel || {}
   const adv = c.advertiser || {}
 
@@ -597,16 +608,35 @@ const DetailModal = ({ campaign: c, onClose, onConfirm, onComplete, onDecline, o
             {c.status === 'PUBLISHED' && (
               <>
               {c.delivery && <DeliveryBadge delivery={c.delivery} />}
-              <button onClick={() => onComplete(c._id)} disabled={busy} className="cr-btn" style={{
-                flex: 1, background: V, color: '#fff', border: 'none', borderRadius: '14px',
-                padding: '16px', fontSize: '15px', fontWeight: 700, fontFamily: F,
-                cursor: busy ? 'not-allowed' : 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                boxShadow: `0 6px 24px ${VG(0.35)}`, transition: 'all .15s',
+              <div style={{
+                flex: 1, background: `${BLUE}08`, border: `1px solid ${BLUE}20`,
+                borderRadius: '14px', padding: '16px',
+                display: 'flex', alignItems: 'center', gap: '12px',
               }}>
-                {busy ? 'Procesando...' : 'Marcar como completada'}
-              </button>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: BLUE }}>En verificación</div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.4 }}>
+                    {releaseDateLabel(c.publishedAt)
+                      ? `La plataforma liberará tu pago de €${(c.netAmount || 0).toFixed(2)} automáticamente el ${releaseDateLabel(c.publishedAt)}. Mantén el anuncio publicado durante ${VERIFY_DAYS} días.`
+                      : `La plataforma liberará tu pago automáticamente tras ${VERIFY_DAYS} días con el anuncio publicado. No tienes que hacer nada.`}
+                  </div>
+                </div>
+              </div>
               </>
+            )}
+            {c.status === 'DISPUTED' && (
+              <div style={{
+                flex: 1, background: `${AMBER}08`, border: `1px solid ${AMBER}20`,
+                borderRadius: '14px', padding: '16px',
+                display: 'flex', alignItems: 'center', gap: '12px',
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={AMBER} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: AMBER }}>En disputa</div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.4 }}>El pago está retenido hasta que nuestro equipo revise el caso.</div>
+                </div>
+              </div>
             )}
             {c.status === 'CANCELLED' && (
               <div style={{
@@ -660,7 +690,13 @@ export default function CreatorRequestsPage() {
     setLoading(true)
     try {
       const r = await apiService.getCreatorCampaigns()
-      if (r?.success && Array.isArray(r.data)) setCampaigns(r.data)
+      // GET /api/campaigns returns { data: { items: [...] } } — not a raw array.
+      // The old Array.isArray(r.data) check was always false, so the creator never
+      // saw the campaigns booked on their channels (page showed 0).
+      if (r?.success) {
+        const list = Array.isArray(r.data) ? r.data : (r.data?.items || [])
+        setCampaigns(list)
+      }
     } catch {
       setFetchError('No se pudieron cargar los datos. Verifica tu conexión.')
     }
@@ -700,7 +736,8 @@ export default function CreatorRequestsPage() {
   }
 
   const doConfirm = (id) => doAction(id, apiService.confirmCampaign.bind(apiService), 'PUBLISHED')
-  const doComplete = (id) => doAction(id, apiService.completeCampaign.bind(apiService), 'COMPLETED')
+  // Completion (escrow release) is no longer creator-driven — the platform
+  // auto-releases after the verification window. See jobs/campaignSettlementJob.
   const doDecline = async (id) => {
     const ok = await confirm({
       title: 'Rechazar solicitud',
@@ -891,7 +928,6 @@ export default function CreatorRequestsPage() {
           campaign={selected}
           onClose={() => setSelected(null)}
           onConfirm={doConfirm}
-          onComplete={doComplete}
           onDecline={doDecline}
           onChat={doChat}
           busy={busy}

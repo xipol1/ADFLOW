@@ -1063,14 +1063,28 @@ class ApiService {
    * Obtener campañas del usuario autenticado
    */
   async getMyCampaigns() {
-    return this.request('/campaigns');
+    return this._normalizeCampaignsRes(await this.request('/campaigns'));
   }
 
   /**
    * Obtener campañas donde el usuario es creador (tiene el canal)
    */
   async getCreatorCampaigns() {
-    return this.request('/campaigns?role=creator');
+    return this._normalizeCampaignsRes(await this.request('/campaigns?role=creator'));
+  }
+
+  /**
+   * GET /api/campaigns responds with { success, data: { items: [...] } }, but many
+   * dashboard pages treat `data` as a raw array (Array.isArray / .find / .filter)
+   * and silently showed nothing when it wasn't. Normalize here so every caller gets
+   * `data` = array. Pages that read `data.items` keep working via their `|| data`
+   * fallback. Single source of truth avoids fixing the same bug in ~10 pages.
+   */
+  _normalizeCampaignsRes(r) {
+    if (r && r.success && r.data && !Array.isArray(r.data) && Array.isArray(r.data.items)) {
+      return { ...r, data: r.data.items };
+    }
+    return r;
   }
 
   /**
