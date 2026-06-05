@@ -127,10 +127,18 @@ class EmailService {
       const preheader = preheaderMatch ? preheaderMatch[1] : '';
       html = html.replace(/{{PREHEADER}}/g, preheader);
 
-      // Replace user-provided variables
+      // Replace user-provided variables. Values are HTML-escaped because some
+      // (ad copy, advertiser/user display names) are attacker-controlled and
+      // would otherwise allow stored→email HTML injection. Only the per-variable
+      // values are escaped — the trusted {{CONTENT}} layout slot (merged above)
+      // and template-authored entities like &euro; are never passed through here,
+      // so nothing gets double-encoded. The replacer is a function so '$' runs
+      // in user content (e.g. "$&", "$1") are inserted literally rather than
+      // interpreted as String.replace substitution patterns.
       for (const [key, value] of Object.entries(variables)) {
         const regex = new RegExp(`{{${key}}}`, 'g');
-        html = html.replace(regex, String(value ?? ''));
+        const safeValue = this._escapeHtml(value);
+        html = html.replace(regex, () => safeValue);
       }
 
       // Replace global app variables
@@ -180,7 +188,11 @@ class EmailService {
 
       for (const [variable, valor] of Object.entries(variables)) {
         const regex = new RegExp(`{{${variable}}}`, 'g');
-        contenido = contenido.replace(regex, String(valor));
+        // HTML-escape per-variable values here too: this legacy loader is the
+        // fallback path of renderTemplate(), and must not reopen the
+        // stored→email injection hole when it runs.
+        const safeValor = this._escapeHtml(valor);
+        contenido = contenido.replace(regex, () => safeValor);
       }
 
       contenido = contenido.replace(/{{APP_NAME}}/g, config.app.nombre);
@@ -694,6 +706,22 @@ class EmailService {
       </div>
     </body></html>`;
     return this.enviarEmail({ para: user.email, asunto: subject, html });
+  }
+
+  /**
+   * Escape a value for safe interpolation into an HTML email body. Guards
+   * against stored→email HTML injection from advertiser/user-controlled fields
+   * (ad copy, display names, dispute reasons). Escapes the five HTML-significant
+   * characters; URLs and numbers pass through unchanged except for `&` (which is
+   * correctly encoded as `&amp;` inside both text and href attributes).
+   */
+  _escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   _formatPrice(amount) {
