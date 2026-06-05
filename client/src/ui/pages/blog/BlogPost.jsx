@@ -293,6 +293,20 @@ export default function BlogPost() {
   const platformLabel = PLATFORM_BRAND[post.platform]?.label || post.platform
   const ArticleContent = post.component
 
+  // hreflang: emit ES↔EN alternates when the post declares a counterpart (post.altLang).
+  // Mirrors build-blog.js; stays undefined (no tags) for monolingual posts.
+  const hreflangAlternates = post.altLang ? (() => {
+    const lang = post.lang === 'en' ? 'en' : 'es'
+    const esSlug = lang === 'es' ? post.slug : post.altLang
+    const enSlug = lang === 'en' ? post.slug : post.altLang
+    const u = (s) => `https://channelad.io/blog/${s}`
+    return [
+      { hreflang: 'es', href: u(esSlug) },
+      { hreflang: 'en', href: u(enSlug) },
+      { hreflang: 'x-default', href: u(esSlug) },
+    ]
+  })() : undefined
+
   return (
     <article style={{ fontFamily: SANS, color: 'var(--text)', background: 'var(--bg)', minHeight: '100vh' }}>
       <GrainOverlay />
@@ -302,7 +316,7 @@ export default function BlogPost() {
       <SEO
         title={post.title} description={post.description} path={`/blog/${post.slug}`}
         type="article" date={post.date} dateModified={post.dateModified || post.date}
-        lang={post.lang}
+        lang={post.lang} alternates={hreflangAlternates}
       />
 
       <Helmet>

@@ -354,6 +354,40 @@ function buildHowToSchema(meta) {
   return `<script type="application/ld+json">\n  ${JSON.stringify(schema, null, 2).replace(/\n/g, '\n  ')}\n  </script>`;
 }
 
+// ─── hreflang alternates (bilingual ES↔EN) ───
+// A post declares its counterpart via frontmatter `altLang: <other-language-slug>`.
+// Both posts MUST reference each other (Google requires reciprocal hreflang).
+// Dormant until a pair is declared: returns '' / undefined when altLang is absent,
+// so monolingual posts emit nothing. x-default points to Spanish (primary market).
+const HREFLANG_XDEFAULT = 'es';
+function hreflangPair(p) {
+  if (!p || !p.altLang) return null;
+  const lang = p.lang === 'en' ? 'en' : 'es';
+  const esSlug = lang === 'es' ? p.slug : p.altLang;
+  const enSlug = lang === 'en' ? p.slug : p.altLang;
+  return { esUrl: `${DOMAIN}/blog/${esSlug}`, enUrl: `${DOMAIN}/blog/${enSlug}` };
+}
+function buildHreflangTags(meta) {
+  const pair = hreflangPair(meta);
+  if (!pair) return '';
+  const xdefault = HREFLANG_XDEFAULT === 'en' ? pair.enUrl : pair.esUrl;
+  return [
+    `<link rel="alternate" hreflang="es" href="${pair.esUrl}">`,
+    `<link rel="alternate" hreflang="en" href="${pair.enUrl}">`,
+    `<link rel="alternate" hreflang="x-default" href="${xdefault}">`,
+  ].join('\n  ');
+}
+function hreflangAlternates(p) {
+  const pair = hreflangPair(p);
+  if (!pair) return undefined;
+  const xdefault = HREFLANG_XDEFAULT === 'en' ? pair.enUrl : pair.esUrl;
+  return [
+    { hreflang: 'es', href: pair.esUrl },
+    { hreflang: 'en', href: pair.enUrl },
+    { hreflang: 'x-default', href: xdefault },
+  ];
+}
+
 // ─── Main build ───
 function build() {
   console.log('\n\u{1F4DD} Channelad Blog Builder\n');
@@ -458,6 +492,7 @@ function build() {
       .replace(/{{description}}/g, meta.description || '')
       .replace(/{{slug}}/g, meta.slug)
       .replace(/{{canonicalUrl}}/g, canonicalUrl)
+      .replace(/{{hreflang}}/g, buildHreflangTags(meta))
       .replace(/{{dateISO}}/g, dateISO)
       .replace(/{{dateModifiedISO}}/g, dateModifiedISO)
       .replace(/{{date}}/g, formattedDate)
@@ -800,6 +835,7 @@ function build() {
     priority: PILLAR_SLUGS.has(p.slug) ? '0.9' : '0.7',
     freq: PILLAR_SLUGS.has(p.slug) ? 'weekly' : 'monthly',
     lastmod: p.dateModified || p.date,
+    alternates: hreflangAlternates(p),
   }));
 
   // Include React-only posts (no markdown) in sitemap too
@@ -817,12 +853,13 @@ function build() {
 
   const todayDate = new Date().toISOString().slice(0, 10);
   const renderUrlset = (entries) => `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${entries.map(e => `  <url>
     <loc>${DOMAIN}${e.url}</loc>
     <lastmod>${e.lastmod || todayDate}</lastmod>
     <changefreq>${e.freq}</changefreq>
-    <priority>${e.priority}</priority>
+    <priority>${e.priority}</priority>${(e.alternates || []).map(a => `
+    <xhtml:link rel="alternate" hreflang="${a.hreflang}" href="${a.href}"/>`).join('')}
   </url>`).join('\n')}
 </urlset>`;
 
