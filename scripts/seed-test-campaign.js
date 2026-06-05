@@ -71,7 +71,7 @@ async function resolveReach() {
   return { count: 0, source: 'fallback' };
 }
 
-async function upsertUser(email, fields, { isNew }) {
+async function upsertUser(email, fields) {
   const Usuario = require('../models/Usuario');
   let u = await Usuario.findOne({ email });
   const action = u ? 'update' : 'create';
@@ -110,7 +110,7 @@ async function upsertUser(email, fields, { isNew }) {
     nombre: 'Creator', apellido: 'Channelad', rol: 'creator',
     emailVerificado: true, activo: true, betaAccess: true, founderTier: true,
     tipoPerfil: 'individual',
-  }, {});
+  });
   console.log(`  creator    : ${creator._id} (${creator.action})`);
 
   // 2. Advertiser (fiscal data complete → datosFacturacion.completado=true via hook)
@@ -123,7 +123,7 @@ async function upsertUser(email, fields, { isNew }) {
       direccion: 'Calle de Prueba 1', cp: '46001', ciudad: 'Valencia',
       provincia: 'Valencia', pais: 'ES', emailFacturacion: ADV_EMAIL, esEmpresa: true,
     },
-  }, {});
+  });
   console.log(`  advertiser : ${advertiser._id} (${advertiser.action})`);
 
   // 3. Channel (owned by creator, priced, marketplace-visible)

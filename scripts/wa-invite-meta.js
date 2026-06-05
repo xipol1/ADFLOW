@@ -24,7 +24,7 @@ const client = new Client({
 });
 
 let started = false;
-client.on('loading_screen', (p, m) => console.log(`LOADING ${p}%`));
+client.on('loading_screen', (p) => console.log(`LOADING ${p}%`));
 client.on('ready', () => go('ready'));
 client.on('auth_failure', m => { console.error('auth_failure', m); process.exit(1); });
 client.initialize().catch(e => { console.error('init', e.message); process.exit(1); });
