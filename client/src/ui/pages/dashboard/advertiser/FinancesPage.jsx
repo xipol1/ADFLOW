@@ -267,11 +267,17 @@ function buildMonthlySpend(transactions) {
 
 // ─── Spending breakdown from transactions ─────────────────────────────────────
 function buildPlatformBreakdown(transactions) {
+  // Channel.plataforma is stored lowercase ('telegram'); map to the display
+  // name so it matches PLAT_COLORS and never renders as raw/"Otros" when known.
+  const PLAT_LABELS = { telegram: 'Telegram', whatsapp: 'WhatsApp', instagram: 'Instagram', discord: 'Discord', newsletter: 'Newsletter', facebook: 'Facebook', linkedin: 'LinkedIn' }
   const byPlatform = {}
   let total = 0
   transactions.forEach(tx => {
     if (tx.type === 'refund') return
-    const plat = tx.campaign?.channel?.plataforma || 'Otros'
+    const raw = tx.campaign?.channel?.plataforma
+    const plat = raw
+      ? (PLAT_LABELS[String(raw).toLowerCase()] || (String(raw).charAt(0).toUpperCase() + String(raw).slice(1)))
+      : 'Otros'
     const amt = Math.abs(tx.amount || 0)
     byPlatform[plat] = (byPlatform[plat] || 0) + amt
     total += amt

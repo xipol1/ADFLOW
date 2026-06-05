@@ -26,7 +26,13 @@ const obtenerMisTransacciones = async (req, res, next) => {
     if (!userId) return next(httpError(401, 'No autorizado'));
 
     const items = await Transaccion.find({ advertiser: userId })
-      .populate('campaign', 'content status targetUrl price createdAt channel')
+      .populate({
+        path: 'campaign',
+        select: 'content status targetUrl price createdAt channel',
+        // Nested-populate the channel platform so the Finances "by platform"
+        // breakdown shows Telegram/WhatsApp/… instead of falling back to "Otros".
+        populate: { path: 'channel', select: 'plataforma nombreCanal' },
+      })
       .sort({ createdAt: -1 })
       .lean();
 
