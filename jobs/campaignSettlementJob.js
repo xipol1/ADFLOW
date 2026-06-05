@@ -93,6 +93,14 @@ async function runCampaignSettlementJob({ now = new Date(), windowDays = SETTLEM
     }
   }
 
+  // Surface results to the Vercel runtime logs — the cron discards the HTTP
+  // response body, so without this a failed settlement (money not released)
+  // would fail silently with no trail.
+  console.log(`[campaignSettlement] scanned=${due.length} released=${released} skippedDisputed=${skippedDisputed} failed=${failed}`);
+  if (failed > 0) {
+    console.error(`[campaignSettlement] ${failed}/${due.length} settlement(s) FAILED:`, JSON.stringify(errors));
+  }
+
   return {
     ok: true,
     windowDays,
