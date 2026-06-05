@@ -8,7 +8,7 @@ const AUTHOR = 'Rafa Ferrer'
 
 export default function SEO({
   title, description, path = '', noIndex = false,
-  type = 'website', image, date, dateModified, lang = 'es',
+  type = 'website', image, date, dateModified, lang = 'es', alternates,
 }) {
   const fullTitle = title ? `${title} — ${SITE_NAME}` : `${SITE_NAME} — Publicidad en comunidades que escuchan`
   const desc = description || DEFAULT_DESC
@@ -22,6 +22,9 @@ export default function SEO({
       <meta name="description" content={desc} />
       <meta name="author" content={AUTHOR} />
       <link rel="canonical" href={url} />
+      {Array.isArray(alternates) && alternates.map(a => (
+        <link key={a.hreflang} rel="alternate" hrefLang={a.hreflang} href={a.href} />
+      ))}
 
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={desc} />
