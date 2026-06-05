@@ -49,6 +49,7 @@ const STATUS_CFG = {
   PUBLISHED: { color: OK,       bg: `${OK}14`,    label: 'Publicada',  icon: Eye },
   COMPLETED: { color: '#6b7280',bg: 'rgba(107,114,128,0.1)', label: 'Completada', icon: CheckCircle },
   CANCELLED: { color: ERR,      bg: `${ERR}14`,   label: 'Cancelada',  icon: XCircle },
+  DISPUTED:  { color: WARN,     bg: `${WARN}14`,  label: 'En disputa', icon: AlertCircle },
 }
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('es', { day: 'numeric', month: 'short' }) : '-'

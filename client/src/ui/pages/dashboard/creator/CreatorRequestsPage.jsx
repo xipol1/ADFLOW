@@ -55,6 +55,7 @@ const STATUS_CFG = {
   PUBLISHED: { color: OK,        bg: `${OK}12`,   label: 'Publicada', tab: 'Publicadas' },
   COMPLETED: { color: '#6b7280', bg: 'rgba(107,114,128,0.1)', label: 'Completada', tab: 'Completadas' },
   CANCELLED: { color: RED,       bg: `${RED}10`,  label: 'Rechazada', tab: 'Rechazadas' },
+  DISPUTED:  { color: AMBER,     bg: `${AMBER}12`, label: 'En disputa', tab: 'Todas' },
 }
 
 /* ── Deadline helper (48h from creation) ─────────────────────────────────── */
