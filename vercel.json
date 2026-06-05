@@ -88,6 +88,10 @@
       "headers": [{ "key": "Content-Type", "value": "application/xml; charset=utf-8" }]
     },
     {
+      "source": "/sitemap-pages.xml",
+      "headers": [{ "key": "Content-Type", "value": "application/xml; charset=utf-8" }]
+    },
+    {
       "source": "/llms.txt",
       "headers": [
         { "key": "Content-Type", "value": "text/markdown; charset=utf-8" },
@@ -105,6 +109,14 @@
     {
       "source": "/blog/index.html",
       "headers": [{ "key": "Cache-Control", "value": "public, s-maxage=1800, stale-while-revalidate=3600" }]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.channelad.io" }],
+      "destination": "https://channelad.io/:path*",
+      "permanent": true
     }
   ],
   "rewrites": [
