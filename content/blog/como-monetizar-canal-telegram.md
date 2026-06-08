@@ -2,6 +2,7 @@
 title: "Cómo monetizar un canal de Telegram en 2026: 7 métodos reales"
 description: "Guía definitiva 2026 para monetizar un canal de Telegram. 7 métodos reales, CPMs por nicho, ingresos según tamaño y errores que cuestan dinero."
 slug: "como-monetizar-canal-telegram"
+altLang: "how-to-monetize-telegram-channel"
 pillar: "true"
 date: "2026-05-05"
 dateModified: "2026-06-05"
