@@ -27,9 +27,22 @@ const INDEX = path.join(DIST, 'index.html');
 const DOMAIN = 'https://channelad.io';
 const OG_IMAGE = `${DOMAIN}/og-default.png`;
 
-// route → { title, description }. Titles <= 60 chars, descriptions <= 160.
+// Shared hreflang set for the /para-canales ↔ /en/for-creators bilingual pair.
+const FORCREATORS_ALT = [
+  { hreflang: 'es', href: DOMAIN + '/para-canales' },
+  { hreflang: 'en', href: DOMAIN + '/en/for-creators' },
+  { hreflang: 'x-default', href: DOMAIN + '/para-canales' },
+];
+
+// route → { title, description, lang?, alternates? }. Titles <= 60 chars, descriptions <= 160.
 // Kept in sync with each page's <SEO>/<Helmet> props (client/src/ui/pages/**).
 const ROUTES = {
+  '/en/for-creators': {
+    title: 'Monetize your WhatsApp, Telegram or Discord channel',
+    description: 'Free for creators: list your channel, receive verified advertiser proposals and keep 100% of your price, protected by escrow. Get paid for sponsored posts in 2026.',
+    lang: 'en',
+    alternates: FORCREATORS_ALT,
+  },
   '/blog/calculadora-precios-publicidad': {
     title: 'Calculadora precios publicidad Telegram/WhatsApp/Discord 2026',
     description: 'Calculadora interactiva 2026: cuánto cobrar por publicidad en tu canal en 30 segundos. CPMs reales del mercado español para Telegram, WhatsApp y Discord.',
@@ -41,6 +54,7 @@ const ROUTES = {
   '/para-canales': {
     title: 'Monetiza tu canal de WhatsApp, Telegram o Discord',
     description: 'Gratis para creadores: lista tu canal, recibe propuestas verificadas y cobra el 100% de tu precio en escrow. Toolkit de crecimiento incluido.',
+    alternates: FORCREATORS_ALT,
   },
   '/marketplace': {
     title: 'Marketplace de canales verificados — Channelad',
@@ -105,6 +119,17 @@ function prerender(html, route, meta) {
     /(<link rel="canonical" href=")[^"]*(">)/,
     `$1${url}$2`
   );
+  // Per-route language + reciprocal hreflang (bilingual pages). Baked into the
+  // static HTML so HTML-only crawlers see them; SEO.jsx keeps them at runtime.
+  if (meta.lang) {
+    out = out.replace(/<html lang="[^"]*"/, `<html lang="${meta.lang}"`);
+  }
+  if (meta.alternates && meta.alternates.length) {
+    const links = meta.alternates
+      .map((a) => `<link rel="alternate" hreflang="${a.hreflang}" href="${a.href}">`)
+      .join('\n    ');
+    out = out.replace(/(<link rel="canonical" href="[^"]*">)/, `$1\n    ${links}`);
+  }
   out = setMeta(out, 'name', 'description', meta.description);
   out = setMeta(out, 'property', 'og:title', meta.title);
   out = setMeta(out, 'property', 'og:description', meta.description);
@@ -162,6 +187,7 @@ function build() {
   for (const [route, meta] of Object.entries(ROUTES)) {
     const out = prerender(baseHtml, route, meta);
     const file = path.join(DIST, route.replace(/^\//, '') + '.html');
+    fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, out, 'utf-8');
     console.log(`  ✅ ${path.basename(file)} (${meta.title.length}c title)`);
     count++;

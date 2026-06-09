@@ -67,7 +67,7 @@ Building and managing Discord servers for brands. Retainers of €500-2,000/mont
 | Affiliates (gaming hardware) | ~€40 |
 | **Total** | **~€520/mo** |
 
-The key was professionalizing the operation and registering the server on [Channelad](https://channelad.io/para-canales) to receive proposals with guaranteed payment.
+The key was professionalizing the operation and registering the server on [Channelad](https://channelad.io/en/for-creators) to receive proposals with guaranteed payment.
 
 ## How to start monetizing your server, step by step
 
@@ -92,4 +92,4 @@ Discord isn't the only platform where this logic applies. If you want to see how
 
 ---
 
-*Ready to monetize your server? [Register on Channelad](https://channelad.io/para-canales) and start receiving proposals from verified advertisers.*
+*Ready to monetize your server? [Register on Channelad](https://channelad.io/en/for-creators) and start receiving proposals from verified advertisers.*

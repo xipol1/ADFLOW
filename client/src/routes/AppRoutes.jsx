@@ -26,6 +26,7 @@ const ClaimChannelPage = lazyWithRetry(() => import('../ui/pages/claim/ClaimChan
 const ChannelDetailPage = lazyWithRetry(() => import('../ui/pages/marketplace/ChannelDetailPage'))
 
 const ForChannelsPage = lazyWithRetry(() => import('../ui/pages/landing/ForChannelsPage'))
+const ForCreatorsEN = lazyWithRetry(() => import('../ui/pages/landing/ForCreatorsEN'))
 const WhatsAppPage = lazyWithRetry(() => import('../ui/pages/landing/WhatsAppPage'))
 const BenchmarkPage = lazyWithRetry(() => import('../ui/pages/landing/BenchmarkPage'))
 const FoundingPage = lazyWithRetry(() => import('../ui/pages/landing/FoundingPage'))
@@ -37,8 +38,10 @@ const QueEsChanneladPage = lazyWithRetry(() => import('../ui/pages/landing/QueEs
 const BlogIndex = lazyWithRetry(() => import('../ui/pages/blog/BlogIndex'))
 const BlogPost = lazyWithRetry(() => import('../ui/pages/blog/BlogPost'))
 
-const PrivacyPage = lazyWithRetry(() => import('../ui/pages/legal/PrivacyPage'))
-const TermsPage = lazyWithRetry(() => import('../ui/pages/legal/TermsPage'))
+// Canonical legal-document viewer (renders the real docs/legal HTML). The old
+// JSX summary pages (/terminos, /privacidad) now redirect here so what users
+// read is exactly what they accept.
+const LegalDocPage = lazyWithRetry(() => import('../ui/pages/legal/LegalDocPage'))
 const AboutPage = lazyWithRetry(() => import('../ui/pages/legal/AboutPage'))
 const SupportPage = lazyWithRetry(() => import('../ui/pages/legal/SupportPage'))
 const DataProcessingPage = lazyWithRetry(() => import('../ui/pages/legal/DataProcessingPage'))
@@ -208,8 +211,16 @@ export default function AppRoutes() {
           <Route path="auth/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="auth/reset-password/:token" element={<ResetPasswordPage />} />
           <Route path="verificar-email/:token" element={<VerifyEmailPage />} />
-          <Route path="privacidad" element={<PrivacyPage />} />
-          <Route path="terminos" element={<TermsPage />} />
+          {/* Canonical legal documents (served from /legal/<slug>.html). */}
+          <Route path="legal/:slug" element={<LegalDocPage />} />
+          {/* Legacy + friendly URLs → canonical viewer (single source of truth). */}
+          <Route path="privacidad" element={<Navigate to="/legal/politica-privacidad" replace />} />
+          <Route path="terminos" element={<Navigate to="/legal/terminos-condiciones" replace />} />
+          <Route path="condiciones-creador" element={<Navigate to="/legal/condiciones-creador" replace />} />
+          <Route path="condiciones-anunciante" element={<Navigate to="/legal/condiciones-anunciante" replace />} />
+          <Route path="condiciones-contratacion" element={<Navigate to="/legal/condiciones-contratacion" replace />} />
+          <Route path="politica-cookies" element={<Navigate to="/legal/politica-cookies" replace />} />
+          <Route path="aviso-legal" element={<Navigate to="/legal/aviso-legal" replace />} />
           <Route path="sobre-nosotros" element={<AboutPage />} />
           <Route path="que-es-channelad" element={<QueEsChanneladPage />} />
           <Route path="soporte" element={<SupportPage />} />
@@ -379,6 +390,9 @@ export default function AppRoutes() {
           <Route path="verify" element={<VerifyStep />} />
           <Route path="success" element={<SuccessStep />} />
         </Route>
+
+        {/* ── English landing (standalone, own EN header/footer) ── */}
+        <Route path="/en/for-creators" element={<ForCreatorsEN />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

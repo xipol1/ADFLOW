@@ -313,6 +313,11 @@ export default function ForChannelsPage() {
         title="Monetiza tu canal de WhatsApp, Telegram o Discord"
         description="Gratis para creadores: lista tu canal, recibe propuestas verificadas y cobra el 100% de tu precio en escrow. Toolkit de crecimiento incluido."
         path="/para-canales"
+        alternates={[
+          { hreflang: 'es', href: 'https://channelad.io/para-canales' },
+          { hreflang: 'en', href: 'https://channelad.io/en/for-creators' },
+          { hreflang: 'x-default', href: 'https://channelad.io/para-canales' },
+        ]}
       />
 
       {/* ══════════════════════════════════════════════════════
