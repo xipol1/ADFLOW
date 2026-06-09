@@ -70,7 +70,7 @@ If the last time you looked at WhatsApp Business was 2024, you've missed a lot. 
 
 **January 2026**: WhatsApp launched "Promoted Channels," a paid discovery system. You can pay to appear featured in the channel exploration tab. It doesn't generate income directly, but it multiplies visibility and organic growth.
 
-**March 2026**: Meta opened the channels API for third-party integrations. This lets platforms like [Channelad](https://channelad.io/para-canales) connect directly to your channel metrics to verify audience and engagement automatically. Before, everything was done with screenshots and blind trust.
+**March 2026**: Meta opened the channels API for third-party integrations. This lets platforms like [Channelad](https://channelad.io/en/for-creators) connect directly to your channel metrics to verify audience and engagement automatically. Before, everything was done with screenshots and blind trust.
 
 **Key ecosystem numbers in 2026:**
 
@@ -93,7 +93,7 @@ The key difference: open rate. A Telegram channel with good engagement sees 30-4
 
 The problem: the market is still immature. There are no consolidated marketplaces like there are on Telegram, prices aren't standardized, and most deals happen over DM with no protection of any kind.
 
-I've had two bad experiences with this: an advertiser who didn't pay after the post went live (€120 lost) and another who paid but demanded endless copy changes. Since then, I only work through platforms that offer escrow. [Channelad](https://channelad.io/para-canales) handles WhatsApp channel advertising with automatic metric verification and escrow payments, so funds are only released once the post is confirmed as delivered. If you want the wider landscape, I compared the options in [the best WhatsApp advertising platforms](/blog/best-whatsapp-advertising-platforms).
+I've had two bad experiences with this: an advertiser who didn't pay after the post went live (€120 lost) and another who paid but demanded endless copy changes. Since then, I only work through platforms that offer escrow. [Channelad](https://channelad.io/en/for-creators) handles WhatsApp channel advertising with automatic metric verification and escrow payments, so funds are only released once the post is confirmed as delivered. If you want the wider landscape, I compared the options in [the best WhatsApp advertising platforms](/blog/best-whatsapp-advertising-platforms).
 
 In my case, I charge €45-75 per sponsored post in my 6,000-subscriber channel. With an average of 5 sponsored posts a month, that's €225-375 monthly.
 
@@ -206,7 +206,7 @@ Monetization comes after growth. These are the strategies that have worked for m
 ## Tools to run your channel professionally
 
 - **WhatsApp Business API**: for larger-scale channels, enables integrations and automations
-- **[Channelad](https://channelad.io/para-canales)**: to connect with advertisers and run campaigns with escrow
+- **[Channelad](https://channelad.io/en/for-creators)**: to connect with advertisers and run campaigns with escrow
 - **Canva**: to create professional images and graphics for your posts
 - **Google Analytics + UTM links**: to track the traffic your channel generates
 - **Later or Buffer**: to plan content (WhatsApp still requires manual publishing in most cases)
@@ -244,7 +244,7 @@ Monetizing a WhatsApp channel has the same legal implications as any economic ac
 
 4. **Turn on premium subscriptions when you hit 1,000 followers.** Even with 5 paying subscribers, that recurring income is your base.
 
-5. **Register your channel on [Channelad](https://channelad.io/para-canales) once you reach 500 followers.** Automatic verification gives you credibility and escrow protects you from non-payment.
+5. **Register your channel on [Channelad](https://channelad.io/en/for-creators) once you reach 500 followers.** Automatic verification gives you credibility and escrow protects you from non-payment.
 
 6. **Measure everything.** Channel stats, the performance of each sponsored post, affiliate conversion. This data is your portfolio for justifying price increases.
 
@@ -254,4 +254,4 @@ WhatsApp's monetization ecosystem is where Telegram was two years ago. The creat
 
 ---
 
-*Got a WhatsApp channel? [Register it on Channelad](https://channelad.io/para-canales) and start monetizing today with protected payments and verified advertisers.*
+*Got a WhatsApp channel? [Register it on Channelad](https://channelad.io/en/for-creators) and start monetizing today with protected payments and verified advertisers.*

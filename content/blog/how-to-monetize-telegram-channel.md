@@ -267,7 +267,7 @@ From month 2 onward, the business becomes optimization: raise prices when you re
 
 If you have a Telegram channel with an active audience, there's no reason to leave money on the table. The infrastructure to monetize it exists, advertisers are looking for audiences like yours, and the 2026 market timing is probably the best it'll be for years before it saturates.
 
-If you want to connect with brands already buying ads in channels like yours, [sign up free on Channelad](https://channelad.io/para-canales) and set up your first channel in under 10 minutes. No exclusivity, no fixed costs, and payment guaranteed by escrow from your very first post.
+If you want to connect with brands already buying ads in channels like yours, [sign up free on Channelad](https://channelad.io/en/for-creators) and set up your first channel in under 10 minutes. No exclusivity, no fixed costs, and payment guaranteed by escrow from your very first post.
 
 Want to go deeper?
 

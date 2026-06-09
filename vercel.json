@@ -131,6 +131,7 @@
     { "source": "/blog/:slug", "destination": "/blog/:slug.html" },
     { "source": "/para-anunciantes", "destination": "/para-anunciantes.html" },
     { "source": "/para-canales", "destination": "/para-canales.html" },
+    { "source": "/en/for-creators", "destination": "/en/for-creators.html" },
     { "source": "/marketplace", "destination": "/marketplace.html" },
     { "source": "/explore", "destination": "/explore.html" },
     { "source": "/rankings", "destination": "/rankings.html" },
