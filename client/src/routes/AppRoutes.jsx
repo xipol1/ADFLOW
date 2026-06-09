@@ -26,6 +26,7 @@ const ClaimChannelPage = lazyWithRetry(() => import('../ui/pages/claim/ClaimChan
 const ChannelDetailPage = lazyWithRetry(() => import('../ui/pages/marketplace/ChannelDetailPage'))
 
 const ForChannelsPage = lazyWithRetry(() => import('../ui/pages/landing/ForChannelsPage'))
+const ForCreatorsEN = lazyWithRetry(() => import('../ui/pages/landing/ForCreatorsEN'))
 const WhatsAppPage = lazyWithRetry(() => import('../ui/pages/landing/WhatsAppPage'))
 const BenchmarkPage = lazyWithRetry(() => import('../ui/pages/landing/BenchmarkPage'))
 const FoundingPage = lazyWithRetry(() => import('../ui/pages/landing/FoundingPage'))
@@ -379,6 +380,9 @@ export default function AppRoutes() {
           <Route path="verify" element={<VerifyStep />} />
           <Route path="success" element={<SuccessStep />} />
         </Route>
+
+        {/* ── English landing (standalone, own EN header/footer) ── */}
+        <Route path="/en/for-creators" element={<ForCreatorsEN />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
