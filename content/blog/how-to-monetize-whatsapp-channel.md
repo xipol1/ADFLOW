@@ -120,7 +120,7 @@ Recommended affiliate programs for channels:
 - **Amazon Associates** (general, 1-10% commissions)
 - **Hotmart / Gumroad** (info-products, 30-80% commissions)
 - **Awin and Impact** (ecommerce, services)
-- **Direct brand programs** in your niche (the best paying)
+- **Direct brand programs** in your niche (the highest-paying)
 
 I make around €50-80 a month with affiliates for productivity tools. The key: always be transparent. Disclose that it's an affiliate link and only recommend products you actually use. Your audience's trust is your most valuable asset.
 
@@ -134,7 +134,7 @@ Your WhatsApp channel acts as your portfolio and lead-generation engine: the bus
 
 ### 5. Your own products and services
 
-If you have your own product (ebook, course, consulting, templates, software), your WhatsApp channel is a brutally effective distribution channel. An 80%+ open rate means that when you launch something, the vast majority of your audience hears about it.
+If you have your own product (ebook, course, consulting, templates, software), your WhatsApp channel is one of the most effective distribution channels you have. An 80%+ open rate means that when you launch something, the vast majority of your audience hears about it.
 
 I plan to launch a pack of Notion productivity templates in Q3 2026. Based on my channel polls, I expect 150-300 sales at €19. That would be a €2,850-5,700 launch: several months of ad revenue at once.
 
@@ -236,7 +236,7 @@ Monetizing a WhatsApp channel has the same legal implications as any economic ac
 
 ## How to start today: a step-by-step plan
 
-1. **Create your channel with a clear niche.** The best-monetizing niches: personal finance, tech/productivity, digital marketing, health and wellness, investing. Pick one where you have real knowledge.
+1. **Create your channel with a clear niche.** The highest-earning niches: personal finance, tech/productivity, digital marketing, health and wellness, investing. Pick one where you have real knowledge.
 
 2. **Publish valuable content daily for 30 days.** No excuses. WhatsApp's algorithm rewards consistency, and you need a track record for advertisers to take you seriously.
 
