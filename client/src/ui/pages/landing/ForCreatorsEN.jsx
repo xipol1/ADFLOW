@@ -26,7 +26,7 @@ const STEPS = [
 
 const VALUES = [
   { t: '100% of your price', d: 'The advertiser pays the platform fee on top. You keep the full rate you set.' },
-  { t: 'Escrow protection', d: 'Money is locked before the post goes live, so you never publish on a promise.' },
+  { t: 'Escrow protection', d: 'Money is locked before the post goes live, so you publish only once payment is secured.' },
   { t: 'Verified advertisers', d: 'Every brand is vetted. No spam, no shady info-products hitting your audience.' },
   { t: 'No exclusivity', d: 'Keep selling directly, on other platforms, however you want. Channelad is additive.' },
 ]
@@ -70,7 +70,7 @@ export default function ForCreatorsEN() {
           <nav style={{ display: 'flex', alignItems: 'center', gap: 20, fontSize: 14 }}>
             <Link to="/blog/how-to-monetize-whatsapp-channel" style={{ color: MUTED, textDecoration: 'none' }}>Guides</Link>
             <a href="/para-canales" style={{ color: MUTED, textDecoration: 'none' }} hrefLang="es">ES</a>
-            <Link to="/auth/register" style={{ ...btnPrimary, padding: '9px 18px', fontSize: 14 }}>Sign up free</Link>
+            <Link to="/auth/register" style={{ ...btnPrimary, padding: '9px 18px', fontSize: 14 }}>Register channel</Link>
           </nav>
         </div>
       </header>
@@ -87,7 +87,7 @@ export default function ForCreatorsEN() {
           List your channel, get matched with verified advertisers, and keep <strong style={{ color: INK }}>100% of your price</strong> — protected by escrow on every campaign.
         </p>
         <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link to="/auth/register" style={btnPrimary}>Register your channel free →</Link>
+          <Link to="/auth/register" style={btnPrimary}>Register channel</Link>
           <a href="#how" style={{ ...btnPrimary, background: 'transparent', color: INK, border: `1px solid ${BORDER}`, fontWeight: 600 }}>How it works</a>
         </div>
         <p style={{ fontSize: 13, color: MUTED, marginTop: 18 }}>No fixed costs · Get paid by SEPA · Verification via API</p>
@@ -153,7 +153,7 @@ export default function ForCreatorsEN() {
 
       {/* ── Guides / internal links ── */}
       <section style={{ maxWidth: MAX_W, margin: '0 auto', padding: '56px 24px' }}>
-        <h2 style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 22, marginBottom: 22 }}>Read the playbooks</h2>
+        <h2 style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 22, marginBottom: 22 }}>Guides for creators</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16 }}>
           {PILLARS.map((p) => (
             <Link key={p.href} to={p.href} style={{ display: 'block', border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 22px', textDecoration: 'none', color: INK }}>
@@ -167,9 +167,9 @@ export default function ForCreatorsEN() {
       {/* ── CTA band ── */}
       <section style={{ background: INK, color: '#fff' }}>
         <div style={{ maxWidth: MAX_W, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
-          <h2 style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 'clamp(26px,3.5vw,40px)', marginBottom: 14 }}>Start monetizing your channel today</h2>
+          <h2 style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 'clamp(26px,3.5vw,40px)', marginBottom: 14 }}>Start monetizing your channel</h2>
           <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 17, maxWidth: 540, margin: '0 auto 28px' }}>Free to join. Set up your first channel in under 10 minutes and start receiving verified proposals.</p>
-          <Link to="/auth/register" style={btnPrimary}>Register your channel free →</Link>
+          <Link to="/auth/register" style={btnPrimary}>Register channel</Link>
         </div>
       </section>
 
@@ -180,7 +180,7 @@ export default function ForCreatorsEN() {
           <span style={{ display: 'flex', gap: 18 }}>
             <a href="/para-canales" hrefLang="es" style={{ color: MUTED, textDecoration: 'none' }}>Español</a>
             <Link to="/blog/how-to-monetize-whatsapp-channel" style={{ color: MUTED, textDecoration: 'none' }}>Guides</Link>
-            <Link to="/auth/register" style={{ color: PURPLE, textDecoration: 'none', fontWeight: 600 }}>Sign up</Link>
+            <Link to="/auth/register" style={{ color: PURPLE, textDecoration: 'none', fontWeight: 600 }}>Register channel</Link>
           </span>
         </div>
       </footer>

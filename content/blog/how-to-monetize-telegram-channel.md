@@ -218,7 +218,7 @@ If you don't yet have 1,500-2,000 active subscribers, monetization is secondary.
 
 **3. Exclusive content as a hook.** Give something on Telegram that isn't on your other platforms: premium analysis, templates, exclusive discounts. Communicate it clearly when you promote the channel.
 
-**4. Brutal consistency.** Channels that post 4-7 times a week grow. Those that post once every two weeks don't. Frequency matters more than perfection.
+**4. Relentless consistency.** Channels that post 4-7 times a week grow. Those that post once every two weeks don't. Frequency matters more than perfection.
 
 **5. Optimize the first 5 seconds.** The user decides whether to read your post in the first 5 seconds. Start with a strong stat, a question or a concrete headline. No "Hi everyone, today I bring you...".
 
