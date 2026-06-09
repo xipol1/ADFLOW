@@ -354,6 +354,40 @@ function buildHowToSchema(meta) {
   return `<script type="application/ld+json">\n  ${JSON.stringify(schema, null, 2).replace(/\n/g, '\n  ')}\n  </script>`;
 }
 
+// ─── hreflang alternates (bilingual ES↔EN) ───
+// A post declares its counterpart via frontmatter `altLang: <other-language-slug>`.
+// Both posts MUST reference each other (Google requires reciprocal hreflang).
+// Dormant until a pair is declared: returns '' / undefined when altLang is absent,
+// so monolingual posts emit nothing. x-default points to Spanish (primary market).
+const HREFLANG_XDEFAULT = 'es';
+function hreflangPair(p) {
+  if (!p || !p.altLang) return null;
+  const lang = p.lang === 'en' ? 'en' : 'es';
+  const esSlug = lang === 'es' ? p.slug : p.altLang;
+  const enSlug = lang === 'en' ? p.slug : p.altLang;
+  return { esUrl: `${DOMAIN}/blog/${esSlug}`, enUrl: `${DOMAIN}/blog/${enSlug}` };
+}
+function buildHreflangTags(meta) {
+  const pair = hreflangPair(meta);
+  if (!pair) return '';
+  const xdefault = HREFLANG_XDEFAULT === 'en' ? pair.enUrl : pair.esUrl;
+  return [
+    `<link rel="alternate" hreflang="es" href="${pair.esUrl}">`,
+    `<link rel="alternate" hreflang="en" href="${pair.enUrl}">`,
+    `<link rel="alternate" hreflang="x-default" href="${xdefault}">`,
+  ].join('\n  ');
+}
+function hreflangAlternates(p) {
+  const pair = hreflangPair(p);
+  if (!pair) return undefined;
+  const xdefault = HREFLANG_XDEFAULT === 'en' ? pair.enUrl : pair.esUrl;
+  return [
+    { hreflang: 'es', href: pair.esUrl },
+    { hreflang: 'en', href: pair.enUrl },
+    { hreflang: 'x-default', href: xdefault },
+  ];
+}
+
 // ─── Main build ───
 function build() {
   console.log('\n\u{1F4DD} Channelad Blog Builder\n');
@@ -458,6 +492,7 @@ function build() {
       .replace(/{{description}}/g, meta.description || '')
       .replace(/{{slug}}/g, meta.slug)
       .replace(/{{canonicalUrl}}/g, canonicalUrl)
+      .replace(/{{hreflang}}/g, buildHreflangTags(meta))
       .replace(/{{dateISO}}/g, dateISO)
       .replace(/{{dateModifiedISO}}/g, dateModifiedISO)
       .replace(/{{date}}/g, formattedDate)
@@ -800,6 +835,7 @@ function build() {
     priority: PILLAR_SLUGS.has(p.slug) ? '0.9' : '0.7',
     freq: PILLAR_SLUGS.has(p.slug) ? 'weekly' : 'monthly',
     lastmod: p.dateModified || p.date,
+    alternates: hreflangAlternates(p),
   }));
 
   // Include React-only posts (no markdown) in sitemap too
@@ -815,39 +851,48 @@ function build() {
     console.log(`  📎 ${reactEntries.length} React-only post(s) added to sitemap: ${reactOnlyPosts.map(p => p.slug).join(', ')}`);
   }
 
-  const allEntries = [...staticPages, ...blogEntries, ...reactEntries];
   const todayDate = new Date().toISOString().slice(0, 10);
-
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allEntries.map(e => `  <url>
+  const renderUrlset = (entries) => `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${entries.map(e => `  <url>
     <loc>${DOMAIN}${e.url}</loc>
     <lastmod>${e.lastmod || todayDate}</lastmod>
     <changefreq>${e.freq}</changefreq>
-    <priority>${e.priority}</priority>
+    <priority>${e.priority}</priority>${(e.alternates || []).map(a => `
+    <xhtml:link rel="alternate" hreflang="${a.hreflang}" href="${a.href}"/>`).join('')}
   </url>`).join('\n')}
 </urlset>`;
 
-  fs.writeFileSync(SITEMAP_PATH, sitemap, 'utf-8');
-  console.log(`  \u2705 sitemap.xml (${allEntries.length} URLs)`);
+  // Child 1: marketing/static pages \u2192 /sitemap-pages.xml
+  const PAGES_SITEMAP_PATH = path.join(ROOT, 'public', 'sitemap-pages.xml');
+  fs.writeFileSync(PAGES_SITEMAP_PATH, renderUrlset(staticPages), 'utf-8');
+  console.log(`  \u2705 sitemap-pages.xml (${staticPages.length} URLs)`);
 
-  // \u2500\u2500\u2500 Blog-only sitemap (recommended by Google for content-heavy sections) \u2500\u2500\u2500
-  // Submitted separately in Search Console as `/blog/sitemap.xml`. Lets
-  // Google prioritise blog crawl independently from the main sitemap and
-  // makes per-section indexing stats actionable.
+  // Child 2: blog (markdown + React-only posts) \u2192 /blog/sitemap.xml
   const blogSitemapEntries = [...blogEntries, ...reactEntries];
-  const blogSitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${blogSitemapEntries.map(e => `  <url>
-    <loc>${DOMAIN}${e.url}</loc>
-    <lastmod>${e.lastmod || todayDate}</lastmod>
-    <changefreq>${e.freq}</changefreq>
-    <priority>${e.priority}</priority>
-  </url>`).join('\n')}
-</urlset>`;
   const BLOG_SITEMAP_PATH = path.join(OUTPUT_DIR, 'sitemap.xml');
-  fs.writeFileSync(BLOG_SITEMAP_PATH, blogSitemap, 'utf-8');
+  fs.writeFileSync(BLOG_SITEMAP_PATH, renderUrlset(blogSitemapEntries), 'utf-8');
   console.log(`  \u2705 blog/sitemap.xml (${blogSitemapEntries.length} URLs)`);
+
+  // Parent: /sitemap.xml as a <sitemapindex> referencing both children.
+  // robots.txt points only here; Google discovers the children from the index,
+  // so there is a single canonical sitemap entry point (no main-vs-blog split).
+  // Per-child lastmod = newest entry date \u2192 each section is re-crawled only
+  // when it actually changed.
+  const maxDate = (entries) => entries.reduce((max, e) => (e.lastmod && e.lastmod > max ? e.lastmod : max), '') || todayDate;
+  const children = [
+    { loc: `${DOMAIN}/sitemap-pages.xml`, lastmod: maxDate(staticPages) },
+    { loc: `${DOMAIN}/blog/sitemap.xml`, lastmod: maxDate(blogSitemapEntries) },
+  ];
+  const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${children.map(c => `  <sitemap>
+    <loc>${c.loc}</loc>
+    <lastmod>${c.lastmod}</lastmod>
+  </sitemap>`).join('\n')}
+</sitemapindex>`;
+  fs.writeFileSync(SITEMAP_PATH, sitemapIndex, 'utf-8');
+  console.log(`  \u2705 sitemap.xml (index \u2192 ${children.length} child sitemaps)`);
 
   // ─── Generate RSS feed ───
   const allPostsForFeed = [...posts, ...reactOnlyPosts].sort((a, b) => (b.date || '').localeCompare(a.date || ''));

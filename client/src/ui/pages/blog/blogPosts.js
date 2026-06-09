@@ -354,6 +354,7 @@ export const BLOG_POSTS = [
   {
     slug: 'como-monetizar-servidor-discord',
     pillar: true,
+    altLang: 'how-to-monetize-discord-server',
     component: lazy(() => import('./posts/MonetizarDiscord')),
     title: 'Cómo monetizar un servidor de Discord 2026: 5 métodos probados',
     description: 'Las 5 formas reales de ganar dinero con tu servidor de Discord en 2026: publicidad, roles premium, merchandising, cursos y servicios. Con ingresos reales por tamaño.',
@@ -525,6 +526,7 @@ export const BLOG_POSTS = [
   {
     slug: 'como-monetizar-canal-whatsapp',
     pillar: true,
+    altLang: 'how-to-monetize-whatsapp-channel',
     component: lazy(() => import('./posts/MonetizarWhatsApp')),
     title: 'Monetizar canal de WhatsApp 2026: 6 métodos reales (y cuánto pagan)',
     description: 'Guía paso a paso para ganar dinero con tu canal de WhatsApp en España en 2026. Las 6 formas reales (ads, suscripciones, afiliados), cifras por nicho y cómo empezar hoy.',
