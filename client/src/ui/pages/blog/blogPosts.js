@@ -354,6 +354,7 @@ export const BLOG_POSTS = [
   {
     slug: 'como-monetizar-servidor-discord',
     pillar: true,
+    altLang: 'how-to-monetize-discord-server',
     component: lazy(() => import('./posts/MonetizarDiscord')),
     title: 'Cómo monetizar un servidor de Discord 2026: 5 métodos probados',
     description: 'Las 5 formas reales de ganar dinero con tu servidor de Discord en 2026: publicidad, roles premium, merchandising, cursos y servicios. Con ingresos reales por tamaño.',

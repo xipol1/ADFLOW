@@ -18,6 +18,14 @@
     { "question": "Do I have to pay tax on Telegram channel income?", "answer": "In virtually every country, advertising income is taxable from the first euro or dollar. Whether you must register as self-employed depends on local thresholds and how regular the activity is. Check your local rules before billing regularly, and talk to an accountant." }
   ],
 
+  "how-to-monetize-discord-server": [
+    { "question": "How do you make money from a Discord server?", "answer": "The main ways are sponsored brand posts in your announcements channel, paid premium roles, sponsored events (tournaments, Q&As, giveaways), affiliate links, and offering Discord-as-a-service to brands. Most server owners combine two or three of these rather than relying on one." },
+    { "question": "How many members do I need to monetize a Discord server?", "answer": "From around 500 total members and 50 daily active members you can start with premium roles and affiliates. Sponsored brand deals usually work from about 2,000 members. Active members and daily messages matter far more than the raw total count." },
+    { "question": "How much can a Discord server earn?", "answer": "It depends on active members and niche. A server with 5,000-15,000 active members can earn roughly €400-1,000 per month combining advertising and premium roles. The real 15,000-member gaming server in this guide bills around €520 a month across sponsored posts, premium roles, tournaments and affiliates." },
+    { "question": "Can you charge for Discord roles?", "answer": "Yes. Discord lets you create roles that unlock exclusive channels, content or support, and you can charge a monthly subscription for them. Premium roles are one of the most reliable recurring-income sources for community servers." },
+    { "question": "Is advertising in Discord servers allowed?", "answer": "Yes, sponsored posts are allowed as long as they comply with Discord's Terms of Service and you clearly label them as advertising. Using a marketplace with escrow protects both sides and keeps the deal transparent and verifiable." }
+  ],
+
   "como-monetizar-canal-telegram": [
     { "question": "¿Cuántos suscriptores necesito para monetizar un canal de Telegram?", "answer": "Puedes empezar a vender publicidad a partir de unos 1.000-2.000 suscriptores activos si tu nicho tiene demanda (finanzas, cripto, tecnología). Lo decisivo no es el número total, sino las vistas reales por publicación y el engagement: un canal pequeño y muy activo monetiza mejor que uno grande y dormido." },
     { "question": "¿Cuánto se puede ganar con un canal de Telegram?", "answer": "Depende del nicho y del tamaño. Con la fórmula de CPM del mercado español, un canal de 5.000 suscriptores activos en un nicho medio puede facturar entre 150 y 400 EUR al mes combinando posts patrocinados; en nichos premium como cripto o finanzas, bastante más. Lo habitual es sumar varias vías: publicidad, afiliados y contenido de pago." },
