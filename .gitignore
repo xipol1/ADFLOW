@@ -42,11 +42,10 @@ data/whatsapp-session*/
 !data/.gitkeep
 
 # WhatsApp Web probe artifacts (local validation, never commit)
-_wa-probe-result.json
-_wa-login-qr.png
-_wa-introspect.json
-_wa-invite-meta.json
-_wa-channel-stats.json
+_wa-*
+_canales-*
+_mensaje-*
+_aepd_*
 _campaign-*.json
 
 # WhatsApp auth/session credentials + wweb cache — NEVER commit (contain secrets)

@@ -111,6 +111,11 @@ class OnboardingController {
       };
 
       if (canalId) {
+        const canal = await Canal.findById(canalId).select('propietario').lean();
+        if (!canal) return res.status(404).json({ success: false, error: 'Canal no encontrado' });
+        if (canal.propietario?.toString() !== String(req.usuario?.id)) {
+          return res.status(403).json({ success: false, error: 'No autorizado' });
+        }
         await Canal.findByIdAndUpdate(canalId, { $set: updateData });
       }
 
@@ -203,6 +208,11 @@ class OnboardingController {
       };
 
       if (canalId) {
+        const canal = await Canal.findById(canalId).select('propietario').lean();
+        if (!canal) return res.status(404).json({ success: false, error: 'Canal no encontrado' });
+        if (canal.propietario?.toString() !== String(req.usuario?.id)) {
+          return res.status(403).json({ success: false, error: 'No autorizado' });
+        }
         await Canal.findByIdAndUpdate(canalId, { $set: updateData });
       }
 
