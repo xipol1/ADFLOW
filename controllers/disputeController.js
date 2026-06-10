@@ -2,12 +2,117 @@ const Dispute = require('../models/Dispute');
 const Campaign = require('../models/Campaign');
 const Canal = require('../models/Canal');
 const Transaccion = require('../models/Transaccion');
+const Usuario = require('../models/Usuario');
+const { resolveCreatorPayable } = require('../lib/creatorPayout');
 const { ensureDb } = require('../lib/ensureDb');
 
 const httpError = (status, message) => {
   const err = new Error(message);
   err.status = status;
   return err;
+};
+
+// Lazy-load Stripe only if key is configured (same gating as transaccionController)
+const getStripe = () => {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key || !key.startsWith('sk_')) return null;
+  return require('stripe')(key);
+};
+
+/**
+ * Split a dispute refund into its card and wallet-credit components.
+ *
+ * capturedAmount is the real EUR charged to the card at payment time
+ * (price - promo credits applied, persisted by payCampaign). Only that part
+ * can travel back through Stripe; the credit-funded remainder goes back to
+ * the advertiser's campaignCreditsBalance. Legacy campaigns (capturedAmount
+ * null) predate the split — there creditsUsed was always 0, so the full
+ * price is treated as card money.
+ */
+const refundBreakdown = (campaign, pct) => {
+  const price = campaign.price || 0;
+  const captured = Number.isFinite(campaign.capturedAmount) ? campaign.capturedAmount : price;
+  const creditsUsed = Number.isFinite(campaign.capturedAmount)
+    ? Math.max(0, +(price - campaign.capturedAmount).toFixed(2))
+    : 0;
+  const cardRefund = +(captured * pct / 100).toFixed(2);
+  const creditsRefund = +(creditsUsed * pct / 100).toFixed(2);
+  return { captured, cardRefund, creditsRefund, total: +(cardRefund + creditsRefund).toFixed(2) };
+};
+
+/**
+ * Move the card money back to the advertiser through Stripe BEFORE any DB
+ * write records the refund. Throws httpError(502) on any Stripe failure so
+ * the caller aborts without creating a Transaccion that lies about money
+ * that never moved.
+ *
+ * Returns { piId, refundId } when Stripe was involved, or null when there is
+ * no card money behind the campaign (credits-only / simulated test payment).
+ */
+const executeCardRefund = async (campaign, dispute, money, pct) => {
+  if (!(money.cardRefund > 0)) return null;
+
+  const payTx = await Transaccion.findOne({
+    campaign: campaign._id,
+    tipo: 'pago',
+    stripePaymentIntentId: { $ne: null },
+  }).lean();
+  const piId = campaign.stripePaymentIntentId || payTx?.stripePaymentIntentId || null;
+  // No PaymentIntent: the campaign was funded without a card charge
+  // (credits-only or the simulated test-env path) — nothing to return via Stripe.
+  if (!piId) return null;
+
+  const stripe = getStripe();
+  if (!stripe) {
+    throw httpError(502, 'Stripe no está configurado: no se puede ejecutar el reembolso real');
+  }
+
+  try {
+    const pi = await stripe.paymentIntents.retrieve(piId);
+
+    if (pi.status === 'succeeded') {
+      // Money already captured (dispute resolved after settlement) → real refund.
+      const refund = await stripe.refunds.create(
+        { payment_intent: piId, amount: Math.round(money.cardRefund * 100) },
+        { idempotencyKey: pct < 100 ? `refund-dispute:${dispute._id}:${pct}` : `refund-dispute:${dispute._id}` }
+      );
+      return { piId, refundId: refund.id };
+    }
+
+    if (pi.status === 'requires_capture') {
+      // Dispute resolved BEFORE the 15-day settlement captured the escrow.
+      // refunds.create fails on an uncaptured PI: release the authorization
+      // instead. Partial → capture only the share the creator keeps; Stripe
+      // releases the rest back to the card automatically.
+      const keptOnCard = +(money.captured - money.cardRefund).toFixed(2);
+      if (keptOnCard > 0) {
+        await stripe.paymentIntents.capture(
+          piId,
+          { amount_to_capture: Math.round(keptOnCard * 100) },
+          { idempotencyKey: `capture-dispute:${dispute._id}:${pct}` }
+        );
+      } else {
+        await stripe.paymentIntents.cancel(piId, {
+          idempotencyKey: `cancel-dispute:${dispute._id}`,
+        });
+      }
+      return { piId, refundId: null };
+    }
+
+    throw httpError(502, `No se puede reembolsar: PaymentIntent en estado ${pi.status}`);
+  } catch (err) {
+    if (err.status === 502) throw err;
+    throw httpError(502, `Stripe rechazó el reembolso: ${err.message}`);
+  }
+};
+
+// Wallet-credit restitution — the counterpart of the atomic deduction in
+// payCampaign. Credits never left the platform, so this is a plain $inc.
+const restoreCredits = async (campaign, creditsRefund) => {
+  if (!(creditsRefund > 0) || !campaign.advertiser) return;
+  await Usuario.findByIdAndUpdate(campaign.advertiser, {
+    $inc: { campaignCreditsBalance: creditsRefund },
+  });
 };
 
 // POST /api/disputes
@@ -240,10 +345,22 @@ const resolveDispute = async (req, res, next) => {
     if (resolutionType === 'favor_advertiser') {
       dispute.status = 'resolved_advertiser';
       if (campaign) {
-        refundAmount = campaign.price || 0;
+        const money = refundBreakdown(campaign, 100);
+        // Real money FIRST: if Stripe refuses, abort with 502 and leave the
+        // dispute/campaign untouched — no Transaccion may claim a refund that
+        // never reached the card.
+        const stripeResult = await executeCardRefund(campaign, dispute, money, 100);
+        await restoreCredits(campaign, money.creditsRefund);
+        refundAmount = money.total;
         campaign.status = 'CANCELLED';
         campaign.cancelledAt = new Date();
         await campaign.save();
+        // The original payment is no longer owed to anyone: release the escrow
+        // row as refunded so the advertiser's finances stop showing it held.
+        await Transaccion.updateOne(
+          { campaign: campaign._id, tipo: 'pago', status: { $in: ['escrow', 'pending'] } },
+          { status: 'refunded' }
+        );
         // Create refund transaction
         if (refundAmount > 0) {
           await Transaccion.create({
@@ -253,6 +370,10 @@ const resolveDispute = async (req, res, next) => {
             tipo: 'reembolso',
             status: 'paid',
             paidAt: new Date(),
+            // NOTE: stripePaymentIntentId is NOT set here — the unique
+            // (stripePaymentIntentId, tipo) index would block recording a
+            // second legitimate partial refund against the same PI.
+            stripeRefundId: stripeResult?.refundId || null,
             description: `Reembolso por disputa resuelta a favor del anunciante`,
           });
         }
@@ -273,10 +394,23 @@ const resolveDispute = async (req, res, next) => {
       dispute.status = 'resolved_advertiser';
       const pct = Math.min(100, Math.max(0, Number(refundPercent) || 50));
       if (campaign) {
-        refundAmount = +((campaign.price || 0) * pct / 100).toFixed(2);
+        const money = refundBreakdown(campaign, pct);
+        // Same contract as favor_advertiser: Stripe first, 502 aborts everything.
+        const stripeResult = await executeCardRefund(campaign, dispute, money, pct);
+        await restoreCredits(campaign, money.creditsRefund);
+        refundAmount = money.total;
+        // The creator only keeps the non-refunded share — scale their
+        // withdrawable payout down or the refunded slice would be paid twice
+        // (back to the advertiser AND out to the creator).
+        campaign.creatorPayable = +(resolveCreatorPayable(campaign) * (100 - pct) / 100).toFixed(2);
         campaign.status = 'COMPLETED';
         campaign.completedAt = new Date();
         await campaign.save();
+        // Release the remainder of the escrow to the creator (mirrors favor_creator).
+        await Transaccion.updateOne(
+          { campaign: campaign._id, status: 'escrow' },
+          { status: 'paid', paidAt: new Date() }
+        );
         if (refundAmount > 0) {
           await Transaccion.create({
             campaign: campaign._id,
@@ -285,6 +419,7 @@ const resolveDispute = async (req, res, next) => {
             tipo: 'reembolso',
             status: 'paid',
             paidAt: new Date(),
+            stripeRefundId: stripeResult?.refundId || null,
             description: `Reembolso parcial (${pct}%) por disputa`,
           });
         }

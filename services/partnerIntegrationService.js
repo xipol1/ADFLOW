@@ -211,24 +211,25 @@ const captureEscrowPayment = async (paymentIntentId) => {
   throw createApiError(409, 'CAPTURE_FAILED', `PaymentIntent status: ${pi.status}, cannot capture`);
 };
 
+// Throws on Stripe failure — callers must NOT record a refund Transaccion
+// when the money never moved (they audit + skip instead).
 const cancelEscrowPayment = async (paymentIntentId) => {
   const stripe = getStripe();
-  try {
-    const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
-    if (['requires_capture', 'requires_payment_method', 'requires_confirmation'].includes(pi.status)) {
-      return await stripe.paymentIntents.cancel(paymentIntentId, {
-        idempotencyKey: `cancel:${paymentIntentId}`,
-      });
-    }
-    // If already succeeded, issue refund
-    if (pi.status === 'succeeded') {
-      return await stripe.refunds.create({ payment_intent: paymentIntentId }, {
-        idempotencyKey: `refund:${paymentIntentId}`,
-      });
-    }
-  } catch (err) {
-    console.error('[partner] Stripe cancel/refund error:', err.message);
+  const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+  if (['requires_capture', 'requires_payment_method', 'requires_confirmation'].includes(pi.status)) {
+    return await stripe.paymentIntents.cancel(paymentIntentId, {
+      idempotencyKey: `cancel:${paymentIntentId}`,
+    });
   }
+  // If already succeeded, issue refund
+  if (pi.status === 'succeeded') {
+    return await stripe.refunds.create({ payment_intent: paymentIntentId }, {
+      idempotencyKey: `refund:${paymentIntentId}`,
+    });
+  }
+  // canceled → the authorization was already released; nothing left to return
+  if (pi.status === 'canceled') return pi;
+  throw createApiError(409, 'REFUND_FAILED', `PaymentIntent status: ${pi.status}, cannot cancel/refund`);
 };
 
 // ── Partner user management ────────────────────────────────────────────────────
@@ -567,15 +568,17 @@ const cancelCampaign = async (partnerId, campaignId, payload) => {
   // Refund/cancel Stripe PaymentIntent if exists
   if (campaign.stripePaymentIntentId && process.env.STRIPE_SECRET_KEY) {
     try {
-      await cancelEscrowPayment(campaign.stripePaymentIntentId);
+      const result = await cancelEscrowPayment(campaign.stripePaymentIntentId);
 
-      // Record refund transaction
+      // Record refund transaction — only reached when Stripe actually moved
+      // (or released) the money; a Stripe failure lands in the catch below.
       await Transaccion.create({
         campaign: campaign._id,
         advertiser: campaign.advertiser,
         amount: campaign.price,
         tipo: 'reembolso',
         status: 'paid',
+        stripeRefundId: result?.object === 'refund' ? result.id : null,
         description: `Reembolso por cancelacion — partner campaign`
       });
     } catch (stripeErr) {
