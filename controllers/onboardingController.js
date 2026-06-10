@@ -6,6 +6,42 @@ const Canal = require('../models/Canal');
 const WhatsAppVerification = require('../models/WhatsAppVerification');
 const crypto = require('crypto');
 
+// ─── Instagram OAuth state (firmado con HMAC) ────────────────────────────────
+// El callback de Instagram es público (Meta redirige el navegador sin JWT),
+// así que el parámetro `state` es el único vínculo con el usuario que inició
+// el flujo. Sin firma, cualquiera puede forjar un state con el canalId de otro
+// usuario y sobrescribir su canal. Firmamos { userId, canalId, source, exp }
+// con JWT_SECRET y solo confiamos en el contenido tras verificar la firma.
+
+const IG_STATE_TTL_MS = 15 * 60 * 1000;
+
+function signInstagramState(payload) {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET requerido para firmar el state de Instagram');
+  const encoded = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const sig = crypto.createHmac('sha256', secret).update(encoded).digest('base64url');
+  return `${encoded}.${sig}`;
+}
+
+function verifyInstagramState(state) {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || typeof state !== 'string') return null;
+  const [encoded, sig] = state.split('.');
+  if (!encoded || !sig) return null;
+  const expected = crypto.createHmac('sha256', secret).update(encoded).digest('base64url');
+  const sigBuf = Buffer.from(sig);
+  const expectedBuf = Buffer.from(expected);
+  if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) return null;
+  let payload;
+  try {
+    payload = JSON.parse(Buffer.from(encoded, 'base64url').toString());
+  } catch (_) {
+    return null;
+  }
+  if (!payload || typeof payload.exp !== 'number' || payload.exp < Date.now()) return null;
+  return payload;
+}
+
 /**
  * OnboardingController
  *
@@ -247,12 +283,13 @@ class OnboardingController {
 
       // source: 'onboarding' → callback redirige al wizard. Cualquier otro valor
       // (incluido omitido) mantiene el flujo legacy hacia /creator/channels.
-      const state = Buffer.from(JSON.stringify({
+      const state = signInstagramState({
         canalId: canalId || '',
         source: source === 'onboarding' ? 'onboarding' : 'creator',
+        userId: String(req.usuario?._id || req.usuario?.id || ''),
         nonce: crypto.randomBytes(16).toString('hex'),
-        ts: Date.now(),
-      })).toString('base64');
+        exp: Date.now() + IG_STATE_TTL_MS,
+      });
 
       const authUrl = InstagramAPI.generateAuthUrl(appId, redirectUri, state);
 
@@ -277,17 +314,12 @@ class OnboardingController {
   }
 
   async instagramCallback(req, res) {
-    // Parse state early so we know where to redirect on error. Falls back to the
-    // legacy /creator/channels path if state is missing or malformed.
-    let source = 'creator';
-    let canalId = '';
-    try {
-      if (req.query?.state) {
-        const parsed = JSON.parse(Buffer.from(req.query.state, 'base64').toString());
-        if (parsed?.source === 'onboarding') source = 'onboarding';
-        canalId = parsed?.canalId || '';
-      }
-    } catch (_) { /* use defaults */ }
+    // El state solo se considera tras verificar su firma HMAC — un state
+    // ausente, caducado o forjado cae al flujo legacy y nunca toca la BD.
+    const statePayload = verifyInstagramState(req.query?.state);
+    const source = statePayload?.source === 'onboarding' ? 'onboarding' : 'creator';
+    const canalId = statePayload?.canalId || '';
+    const stateUserId = statePayload?.userId || '';
 
     const frontend = process.env.FRONTEND_URL || '';
     const successPath = source === 'onboarding' ? '/onboarding/success' : '/creator/channels';
@@ -302,6 +334,20 @@ class OnboardingController {
 
       if (!code || !state) {
         return res.status(400).json({ success: false, error: 'Parámetros de callback inválidos' });
+      }
+
+      if (!statePayload) {
+        return res.redirect(`${frontend}${errorPath}?error=instagram_state_invalid`);
+      }
+
+      // Ownership: el canal del state debe pertenecer al usuario que inició el
+      // flujo. Se comprueba antes del intercambio de tokens para no quemar el
+      // code de OAuth en un intento forjado.
+      if (canalId) {
+        const canal = await Canal.findById(canalId).select('propietario').lean();
+        if (!canal || canal.propietario?.toString() !== String(stateUserId)) {
+          return res.redirect(`${frontend}${errorPath}?error=instagram_forbidden`);
+        }
       }
 
       const appId = process.env.INSTAGRAM_APP_ID;
@@ -595,13 +641,23 @@ class OnboardingController {
         return res.status(409).json({ success: false, error: `Estado actual: ${verification.fase}` });
       }
 
+      // Ownership: canalId llega del body, así que un usuario con una
+      // verificación legítima podría apuntar al canal de otro. Se comprueba
+      // antes de completar la verificación para no dejar side effects.
+      const channelId = verification.channelId;
+      const effectiveCanalId = canalId || verification.canalId;
+
+      if (effectiveCanalId) {
+        const canal = await Canal.findById(effectiveCanalId).select('propietario').lean();
+        if (!canal) return res.status(404).json({ success: false, error: 'Canal no encontrado' });
+        if (canal.propietario?.toString() !== userId) {
+          return res.status(403).json({ success: false, error: 'No autorizado' });
+        }
+      }
+
       // Completar verificación
       verification.completarVerificacionCanal();
       await verification.save();
-
-      // Activar canal en BD
-      const channelId = verification.channelId;
-      const effectiveCanalId = canalId || verification.canalId;
 
       const updateData = {
         'botConfig.whatsapp.adminNumber': verification.creatorPhone,
