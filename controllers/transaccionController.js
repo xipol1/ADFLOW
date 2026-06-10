@@ -300,7 +300,12 @@ const webhookPago = async (req, res) => {
         await Transaccion.findByIdAndUpdate(transaccionId, { status: 'paid', paidAt: new Date() });
         const tx = await Transaccion.findById(transaccionId);
         if (tx?.campaign) {
-          await Campaign.findByIdAndUpdate(tx.campaign, { status: 'PAID' });
+          // Solo DRAFT→PAID: un webhook replay no debe retroceder una campaña
+          // ya publicada, completada o en disputa.
+          await Campaign.updateOne(
+            { _id: tx.campaign, status: 'DRAFT' },
+            { $set: { status: 'PAID' } }
+          );
         }
       }
     }

@@ -855,6 +855,12 @@ const cancelCampaign = async (req, res, next) => {
       return next(httpError(400, `No se puede cancelar una campaña en estado ${campaign.status}`));
     }
 
+    // Tras publicar, el anuncio ya está en el canal: el reembolso solo puede
+    // salir de una disputa resuelta, nunca de una cancelación unilateral.
+    if (campaign.status === 'PUBLISHED' || campaign.status === 'DISPUTED') {
+      return next(httpError(409, 'La campaña ya está publicada. Para solicitar un reembolso abre una disputa.'));
+    }
+
     campaign.status = 'CANCELLED';
     campaign.cancelledAt = new Date();
     await campaign.save();
