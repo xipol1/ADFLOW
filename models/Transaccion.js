@@ -21,6 +21,10 @@ const TransaccionSchema = new mongoose.Schema(
     paidAt: { type: Date, default: null },
     stripePaymentIntentId: { type: String, default: null, index: true },
     stripeClientSecret: { type: String, default: null },
+    // Stripe refund id (re_...) backing a tipo:'reembolso' row. Null when the
+    // money went back without a refund object: uncaptured-PI cancel/partial
+    // capture, wallet-credit restitution, or legacy/simulated payments.
+    stripeRefundId: { type: String, default: null },
     description: { type: String, default: '' },
     referralCreditGenerated: { type: Number, default: 0 },
     referralUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', default: null },
