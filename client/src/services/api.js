@@ -660,12 +660,14 @@ class ApiService {
     if (normalized.plataforma == null && normalized.platform != null) normalized.plataforma = normalized.platform;
     if (normalized.categoria == null && normalized.category != null) normalized.categoria = normalized.category;
     if (normalized.ordenPor == null && normalized.sort != null) normalized.ordenPor = normalized.sort;
+    if (normalized.busqueda == null && normalized.q != null) normalized.busqueda = normalized.q;
     delete normalized.limit;
     delete normalized.page;
     delete normalized.verified;
     delete normalized.platform;
     delete normalized.category;
     delete normalized.sort;
+    delete normalized.q;
 
     const queryString = new URLSearchParams(normalized).toString();
     return this.request(`/channels${queryString ? `?${queryString}` : ''}`, { auth: false });
