@@ -1,0 +1,80 @@
+# Metric jobs — daily scraper/scoring runs on a GitHub-hosted runner.
+#
+# WHY HERE
+# --------
+# These jobs are too slow for Vercel Hobby's 60s function cap (telegram-intel
+# alone is ~22 min) and the always-on Fly worker that used to run them
+# (lib/jobScheduler.js, ENABLE_BACKGROUND_JOBS=true) is suspended since the
+# Fly trial ended (2026-06-03). GitHub Actions has no such cap (6h/job) and is
+# free at this volume (~35 min/day).
+#
+# The runner script drives the SAME job functions through runJobNow(), which
+# keeps the JobLog lock + dedup window — so this workflow is safe to fire even
+# if the Fly worker ever comes back: whichever runs first wins, the other
+# skips. If Fly is revived permanently, just delete this file.
+#
+# SECRETS REQUIRED (repo → Settings → Secrets → Actions)
+#   MONGODB_URI         Atlas connection string (prod)
+#   TELEGRAM_API_ID     MTProto app id      (telegram-intel + tgstat-discover)
+#   TELEGRAM_API_HASH   MTProto app hash
+#   TELEGRAM_SESSION    GramJS StringSession (regenerate with
+#                       scripts/generateTelegramSession.js if it expires)
+
+name: Metric jobs
+
+on:
+  schedule:
+    # Daily 02:30 UTC — same slot the Fly scheduler used. GitHub may delay
+    # scheduled runs by a few minutes under load; the dedup window makes the
+    # exact time unimportant.
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+    inputs:
+      jobs:
+        description: 'Space-separated job types (empty = the default set)'
+        required: false
+        default: ''
+
+# Never run two job batches at once: the JobLog lock would make the second a
+# no-op anyway, but overlapping MTProto sessions risk Telegram flood limits.
+concurrency:
+  group: metric-jobs
+  cancel-in-progress: false
+
+jobs:
+  run:
+    name: Run scheduled jobs
+    runs-on: ubuntu-latest
+    # telegram-intel ~22 min + multiplatform-intel + scoring + headroom.
+    timeout-minutes: 90
+
+    env:
+      # The jobs never drive a browser; skip the ~170 MB Chromium download
+      # that puppeteer/whatsapp-web.js would otherwise pull in.
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies (prod only)
+        run: npm ci --omit=dev --prefer-offline --no-audit
+
+      - name: Run jobs
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
+          TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
+          TELEGRAM_SESSION: ${{ secrets.TELEGRAM_SESSION }}
+        # Default set = the jobs Vercel Hobby cannot finish in 60s. The light
+        # daily jobs (meta-refresh, auth-cleanup, settlement, ...) still run as
+        # Vercel crons. tgstat-discover self-limits to weekly via its dedup
+        # window, so listing it daily is fine.
+        run: node scripts/run-scheduled-jobs.js ${{ inputs.jobs || 'telegram-intel multiplatform-intel scoring tgstat-discover' }}
