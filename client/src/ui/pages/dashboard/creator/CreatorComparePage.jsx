@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   GitCompare, Crown, TrendingUp, TrendingDown, Plus, X,
   Wallet, Users, Activity, Target, Star, Radio, Sparkles,
-  ArrowRight, AlertTriangle, CheckCircle2, Eye, Zap,
+  ArrowRight, AlertTriangle, CheckCircle2, Eye, Zap, Download,
 } from 'lucide-react'
 import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
