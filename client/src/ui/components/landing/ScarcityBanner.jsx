@@ -62,7 +62,9 @@ export default function ScarcityBanner({ variant = 'advertiser' } = {}) {
     const displayed = counter?.displayed ?? 96
     const cap = counter?.cap ?? FOUNDER_CAP
     return (
-      <div style={{ background: v.bg, borderBottom: `1px solid ${v.border}`, width: '100%' }}>
+      // role="region": the banner sits outside header/main, so without a
+      // labelled landmark it fails axe "region".
+      <div role="region" aria-label="Aviso de lanzamiento" style={{ background: v.bg, borderBottom: `1px solid ${v.border}`, width: '100%' }}>
         <div
           style={{
             maxWidth: 1280, margin: '0 auto',
@@ -108,7 +110,7 @@ export default function ScarcityBanner({ variant = 'advertiser' } = {}) {
 
   // Advertiser (legacy behaviour, unchanged).
   return (
-    <div style={{ background: v.bg, borderBottom: `1px solid ${v.border}`, width: '100%' }}>
+    <div role="region" aria-label="Aviso de lanzamiento" style={{ background: v.bg, borderBottom: `1px solid ${v.border}`, width: '100%' }}>
       <div
         style={{
           maxWidth: 1280, margin: '0 auto',

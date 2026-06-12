@@ -764,7 +764,9 @@ export default function NavBar() {
             style={({ isActive }) => ({
               display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '6px 12px 6px 10px', fontSize: 13, fontWeight: 600,
-              color: '#1ea952',
+              // green-800: anything lighter measures <4.5:1 on the tinted
+              // chip background (axe color-contrast — #15803d hit 4.45).
+              color: '#166534',
               background: isActive ? 'rgba(37,211,102,0.20)' : 'rgba(37,211,102,0.10)',
               border: '1px solid rgba(37,211,102,0.30)',
               borderRadius: 999, textDecoration: 'none',
@@ -856,7 +858,11 @@ export default function NavBar() {
           .nav-drawer-root *,
           .nav-header { animation: none !important; transition: none !important; }
         }
-        @media (max-width: 1024px) {
+        /* 1200, not 1024: between ~1025-1200px the right cluster (chip +
+           auth, all flexShrink:0) is wider than its 1fr column and, being
+           flex-end aligned, spills LEFT over the center links ("Pricing"
+           under the chip). Hide the promo chip through the squeeze zone. */
+        @media (max-width: 1200px) {
           .nav-founding { display: none !important; }
         }
         @media (max-width: 900px) {

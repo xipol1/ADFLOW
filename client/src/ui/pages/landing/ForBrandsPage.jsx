@@ -186,7 +186,7 @@ function SectionHeader({ eyebrow, title, intro, align = 'center' }) {
       }}
     >
       <p style={{ ...TYPE.label, color: ACCENT, margin: '0 0 12px' }}>{eyebrow}</p>
-      <h2 style={{ ...TYPE.displayL, fontFamily: D, color: 'var(--text)', margin: 0 }}>{title}</h2>
+      <h2 style={{ ...TYPE.displayL, fontFamily: D, color: 'var(--text)', margin: 0, textWrap: 'balance' }}>{title}</h2>
       {intro && (
         <p style={{ ...TYPE.bodyL, color: 'var(--muted)', margin: '16px 0 0' }}>{intro}</p>
       )}
@@ -485,17 +485,10 @@ export default function ForBrandsPage() {
                   fontWeight: 500,
                   color: 'var(--text)',
                   textDecoration: 'none',
-                  marginBottom: SPACE.gapM,
                 }}
               >
                 Ver cómo funciona <ArrowRight size={14} strokeWidth={2.2} />
               </a>
-
-              <div style={{ display: 'flex', gap: SPACE.gapM, paddingTop: 18, flexWrap: 'wrap' }}>
-                <HeroStat value={CHANNELS_LABEL} label="Canales analizados" />
-                <HeroStat value="5" label="Plataformas cubiertas" />
-                <HeroStat value="Día 1" label="Pago en escrow" />
-              </div>
             </div>
 
             {/* ─── RIGHT — the product itself, anonymized channel data ─── */}
@@ -505,11 +498,46 @@ export default function ForBrandsPage() {
               </BrowserChrome>
             </div>
           </div>
+
+          {/* Full-width stat strip — closes the hero, no dead air on either
+              column. One divider, three figures, done. */}
+          <div
+            style={{
+              marginTop: SPACE.gapL,
+              paddingTop: SPACE.gapM,
+              borderTop: '1px solid var(--border)',
+              display: 'flex',
+              gap: 'clamp(32px, 8vw, 120px)',
+              flexWrap: 'wrap',
+            }}
+          >
+            <HeroStat value={CHANNELS_LABEL} label="Canales analizados" />
+            <HeroStat value="5" label="Plataformas cubiertas" />
+            <HeroStat value="Día 1" label="Pago en escrow" />
+          </div>
         </div>
 
         <style>{`
           @media (max-width: 900px) {
             .hero-split { grid-template-columns: 1fr !important; }
+          }
+          /* Keyboard focus — same accent ring everywhere on the page. */
+          [data-testid="for-brands-page"] a:focus-visible,
+          [data-testid="for-brands-page"] button:focus-visible {
+            outline: 2px solid ${ACCENT};
+            outline-offset: 2px;
+          }
+          /* The email input signals focus via the form's border (see
+             onFocusCapture); a second ring inside the pill reads as noise. */
+          [data-testid="for-brands-page"] #hero-cta input:focus-visible {
+            outline: none;
+          }
+          [data-testid="for-brands-page"] .faq-item {
+            transition: border-color .15s ease, background .15s ease;
+          }
+          [data-testid="for-brands-page"] .faq-item:hover {
+            border-color: var(--border-med, #c4c9d2);
+            background: var(--bg2);
           }
         `}</style>
       </section>
@@ -517,7 +545,7 @@ export default function ForBrandsPage() {
       {/* ══════════════════════════════════════════════════════════════════
           2 · TRUST BAR — platforms covered (no client logos pre-launch)
           ══════════════════════════════════════════════════════════════════ */}
-      <MotionSection style={{ padding: `clamp(40px, 5vw, 64px) ${SPACE.gutter}` }}>
+      <MotionSection style={{ padding: `clamp(24px, 3vw, 40px) ${SPACE.gutter} clamp(40px, 5vw, 64px)` }}>
         <motion.div variants={fadeUp} style={{ maxWidth: SPACE.maxSection, margin: '0 auto' }}>
           <p style={{ ...TYPE.label, color: 'var(--muted)', textAlign: 'center', margin: '0 0 20px' }}>
             Operamos en las plataformas de comunidad que importan
@@ -672,9 +700,10 @@ export default function ForBrandsPage() {
           >
             <thead>
               <tr>
-                <th style={compareCell({ header: true })}></th>
-                <th style={compareCell({ header: true })}>Por DM, hoy</th>
-                <th style={{ ...compareCell({ header: true }), color: ACCENT }}>Con Channelad</th>
+                {/* td, not empty th — axe empty-table-header */}
+                <td style={compareCell({ header: true })} aria-hidden="true"></td>
+                <th scope="col" style={compareCell({ header: true })}>Por DM, hoy</th>
+                <th scope="col" style={{ ...compareCell({ header: true }), color: ACCENT }}>Con Channelad</th>
               </tr>
             </thead>
             <tbody>
@@ -733,7 +762,8 @@ export default function ForBrandsPage() {
                   fontWeight: 800,
                   lineHeight: 1,
                   letterSpacing: '-0.05em',
-                  color: ACCENT,
+                  // Neutral on purpose: the section's only purple is the CTA.
+                  color: 'var(--text)',
                   marginBottom: 8,
                 }}
               >
@@ -833,6 +863,7 @@ export default function ForBrandsPage() {
             return (
               <div
                 key={i}
+                className="faq-item"
                 style={{
                   background: 'var(--surface)',
                   border: '1px solid var(--border)',
@@ -908,7 +939,7 @@ export default function ForBrandsPage() {
             textAlign: 'center',
           }}
         >
-          <h2 style={{ fontFamily: D, ...TYPE.displayL, color: '#fff', margin: '0 0 14px' }}>
+          <h2 style={{ fontFamily: D, ...TYPE.displayL, color: '#fff', margin: '0 0 14px', textWrap: 'balance' }}>
             Tu primera campaña, sin DMs.
           </h2>
           <p

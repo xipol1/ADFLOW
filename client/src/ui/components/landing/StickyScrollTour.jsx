@@ -64,7 +64,7 @@ export default function StickyScrollTour({
           style={{ textAlign: 'center', maxWidth: SPACE.maxText, margin: `0 auto ${SPACE.gapL}px` }}
         >
           <p style={{ ...TYPE.label, color: ACCENT, margin: '0 0 12px' }}>{eyebrow}</p>
-          <h2 style={{ ...TYPE.displayL, fontFamily: FONT_DISPLAY, color: 'var(--text)', margin: 0 }}>
+          <h2 style={{ ...TYPE.displayL, fontFamily: FONT_DISPLAY, color: 'var(--text)', margin: 0, textWrap: 'balance' }}>
             {title}
           </h2>
           {subtitle && (
@@ -140,18 +140,22 @@ export default function StickyScrollTour({
 }
 
 function StepBlock({ step, index, active }) {
+  // Active state via color, never via opacity: dimming grey text below
+  // var(--muted) breaks the 4.5:1 contrast floor (axe color-contrast).
   return (
-    <div
-      style={{
-        opacity: active ? 1 : 0.35,
-        transition: 'opacity .3s ease',
-        maxWidth: 420,
-      }}
-    >
+    <div style={{ maxWidth: 420 }}>
       <p style={{ ...TYPE.label, color: active ? ACCENT : 'var(--muted)', margin: '0 0 10px', transition: 'color .3s' }}>
         {String(index + 1).padStart(2, '0')} · {step.kicker}
       </p>
-      <h3 style={{ ...TYPE.titleM, fontFamily: FONT_DISPLAY, color: 'var(--text)', margin: '0 0 12px' }}>
+      <h3
+        style={{
+          ...TYPE.titleM,
+          fontFamily: FONT_DISPLAY,
+          color: active ? 'var(--text)' : 'var(--muted)',
+          margin: '0 0 12px',
+          transition: 'color .3s',
+        }}
+      >
         {step.title}
       </h3>
       <p style={{ ...TYPE.bodyM, fontFamily: FONT_BODY, color: 'var(--muted)', margin: 0 }}>
