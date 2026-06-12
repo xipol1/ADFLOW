@@ -91,7 +91,8 @@ export default function StickyScrollTour({
               display: 'grid',
               gridTemplateColumns: '0.8fr 1.2fr',
               gap: SPACE.gapL,
-              alignItems: 'start',
+              // No alignItems:start here — the right column must stretch to
+              // the full row height or the sticky panel has no room to travel.
             }}
           >
             <div>
@@ -111,22 +112,25 @@ export default function StickyScrollTour({
               ))}
             </div>
 
-            <div style={{ position: 'sticky', top: '16vh', display: 'grid' }}>
-              {screens.map((screen, i) => (
-                <div
-                  key={i}
-                  aria-hidden={active !== i}
-                  style={{
-                    gridArea: '1 / 1',
-                    opacity: active === i ? 1 : 0,
-                    visibility: active === i ? 'visible' : 'hidden',
-                    transition: 'opacity .35s ease, visibility .35s',
-                    pointerEvents: active === i ? 'auto' : 'none',
-                  }}
-                >
-                  {screen}
-                </div>
-              ))}
+            {/* Full-height wrapper: the sticky panel travels inside it. */}
+            <div>
+              <div style={{ position: 'sticky', top: '16vh', display: 'grid' }}>
+                {screens.map((screen, i) => (
+                  <div
+                    key={i}
+                    aria-hidden={active !== i}
+                    style={{
+                      gridArea: '1 / 1',
+                      opacity: active === i ? 1 : 0,
+                      visibility: active === i ? 'visible' : 'hidden',
+                      transition: 'opacity .35s ease, visibility .35s',
+                      pointerEvents: active === i ? 'auto' : 'none',
+                    }}
+                  >
+                    {screen}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}

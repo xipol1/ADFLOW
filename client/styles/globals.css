@@ -113,7 +113,11 @@
     background: var(--bg);
     color: var(--text);
     line-height: 1.6;
+    /* clip, not hidden: hidden computes overflow-y to auto, turning body
+       into a never-scrolling scroll container that disables every
+       position:sticky on the page. hidden stays as the legacy fallback. */
     overflow-x: hidden;
+    overflow-x: clip;
   }
 
   a { text-decoration: none; color: inherit; }
@@ -507,9 +511,17 @@
   h2 { word-break: break-word; }
 }
 
-/* Prevent horizontal overflow globally */
-html, body { overflow-x: hidden; }
-main { overflow-x: hidden; }
+/* Prevent horizontal overflow globally. html's overflow maps to the
+   viewport (harmless); body/main need `clip` so they don't become scroll
+   containers — see the sticky note on the body rule above. */
+html { overflow-x: hidden; }
+body { overflow-x: hidden; overflow-x: clip; }
+/* main uses `clip`, not `hidden`: overflow-x hidden computes overflow-y to
+   auto, which turns <main> into a never-scrolling scroll container and
+   breaks every position:sticky descendant (landing scroll tour). `clip`
+   crops without creating a scroll container; the `hidden` line is the
+   fallback for browsers without clip support (< Safari 16). */
+main { overflow-x: hidden; overflow-x: clip; }
 
 /* ══════════════════════════════════════════════════════════
    BLOG EDITORIAL STYLES
