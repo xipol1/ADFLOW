@@ -11,6 +11,7 @@ import CrossLinks from '../../components/landing/CrossLinks'
 import MotionSection, { fadeUp } from '../../components/landing/MotionSection'
 import BrowserChrome from '../../components/landing/demo/BrowserChrome'
 import DemoCatalogo from '../../components/landing/demo/DemoCatalogo'
+import LandingBackdrop from '../../components/landing/LandingBackdrop'
 import { FONT_BODY, FONT_DISPLAY, PLATFORM_BRAND } from '../../theme/tokens'
 import { TYPE, SPACE, ACCENT } from '../../theme/landingScale'
 import { PUBLIC_COMMISSION_LABEL, CHANNELS_TRACKED_LABEL } from '../../theme/stats'
@@ -323,8 +324,9 @@ export default function ForBrandsPage() {
   return (
     // <div>, not <main>: AppLayout already renders the page's <main> landmark.
     // A nested second <main> fails axe "landmark-no-duplicate-main".
-    // Background: flat var(--bg). The accent lives only in CTAs, focus and
-    // one datum per section — never in page-level gradients.
+    // isolation:isolate creates a stacking context so the fixed LandingBackdrop
+    // (z-index 0) sits behind every section without a negative-z hack. The
+    // backdrop paints var(--bg) + a slow gradient mesh; sections layer on top.
     <div
       data-testid="for-brands-page"
       style={{
@@ -332,8 +334,10 @@ export default function ForBrandsPage() {
         color: 'var(--text)',
         background: 'var(--bg)',
         position: 'relative',
+        isolation: 'isolate',
       }}
     >
+      <LandingBackdrop />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
         <script type="application/ld+json">{JSON.stringify({
