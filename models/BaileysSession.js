@@ -61,15 +61,26 @@ const BaileysSessionSchema = new mongoose.Schema(
 
     // ─── Auth state (the sensitive part) ──────────────────────────────────
     // Baileys produces two structures: `creds` (small, one object) and `keys`
-    // (many small objects keyed by type+id). We store both encoded as JSON
-    // with Buffer → base64 conversion so Mongo can store them.
+    // (many small objects keyed by type+id). They are the user's full WhatsApp
+    // multi-device session, so they are ENCRYPTED at rest (AES-256-GCM) at the
+    // persistence boundary in services/baileys/authStore.js.
+    //
+    // From encryptedVersion 1 the stored content is an encrypted STRING in the
+    // "iv:authTag:ciphertext" hex format. The field type stays Mixed (not
+    // String) on purpose: legacy docs hold a plain OBJECT and Mongoose would
+    // mangle those when casting to String on hydration. Mixed round-trips both
+    // the legacy object and the new encrypted string; authStore.decryptPayload
+    // disambiguates by type + encryptedVersion.
     //
     // Creds: the persistent credentials (identity key, signed pre-key, etc.)
     creds: { type: mongoose.Schema.Types.Mixed, default: null },
 
-    // Keys: a map of { [type]: { [id]: Buffer } }
-    // Stored as nested object with base64 values.
+    // Keys: a map of { [type]: { [id]: Buffer } } (encrypted string from v1).
     keys: { type: mongoose.Schema.Types.Mixed, default: {} },
+
+    // Tags the at-rest format of creds/keys. null = legacy plaintext object;
+    // 1 = AES-256-GCM encrypted string (see authStore.js).
+    encryptedVersion: { type: Number, default: null },
 
     // ─── Consent and audit ────────────────────────────────────────────────
     consentAcceptedAt: { type: Date, default: null },
@@ -155,9 +166,10 @@ BaileysSessionSchema.methods.markRevoked = function (reason = 'user_action') {
   this.status = 'revoked';
   this.revokedAt = new Date();
   this.lastError = reason;
-  // Clear sensitive material
+  // Clear sensitive material (and the encryption tag — nothing left to read).
   this.creds = null;
-  this.keys = {};
+  this.keys = null;
+  this.encryptedVersion = null;
 };
 
 module.exports =

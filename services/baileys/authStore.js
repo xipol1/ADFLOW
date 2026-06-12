@@ -17,6 +17,61 @@
 'use strict';
 
 const BaileysSession = require('../../models/BaileysSession');
+const encryption = require('../../lib/encryption');
+
+// ─── At-rest encryption of session material ─────────────────────────────────
+// `creds` and `keys` are the user's full WhatsApp multi-device session — anyone
+// who can read them from Mongo can hijack the account. We encrypt them at the
+// persistence boundary with the shared AES-256-GCM helper (lib/encryption.js,
+// keyed by ENCRYPTION_KEY). Documents written by this version are tagged
+// `encryptedVersion: 1`; scripts/migrate-baileys-encrypt.js upgrades legacy
+// plaintext docs.
+//
+// Unlike lib/encryption.decrypt() (backward-compat fail-OPEN), this wrapper is
+// fail-CLOSED: it never hands Baileys dubious session material that would make
+// it silently regenerate credentials. A present-but-not-encrypted string, or a
+// ciphertext that won't decrypt (wrong key / bad authTag), THROWS.
+
+const ENCRYPTED_VERSION = 1;
+
+function encryptPayload(obj) {
+  return encryption.encrypt(JSON.stringify(obj));
+}
+
+/**
+ * Turn a stored creds/keys value back into a plain JS object.
+ * @param {string|object|null} stored  The raw value from doc.creds / doc.keys
+ * @param {object} doc                  The BaileysSession doc (for encryptedVersion)
+ * @returns {object|null} parsed payload, or null when there is no material
+ */
+function decryptPayload(stored, doc) {
+  if (stored === null || stored === undefined || stored === '') return null;
+
+  if (typeof stored === 'string') {
+    if (encryption.isEncrypted(stored)) {
+      // decrypt() throws on a bad key / authTag — that propagates (fail-closed).
+      return JSON.parse(encryption.decrypt(stored));
+    }
+    // A plaintext string is never legitimate session material here.
+    throw new Error(
+      `BaileysSession ${doc?._id}: payload is a non-encrypted string — refusing to use (fail-closed)`
+    );
+  }
+
+  if (typeof stored === 'object') {
+    // Legacy plaintext object: accept ONLY while the doc is un-migrated.
+    if (doc?.encryptedVersion === ENCRYPTED_VERSION) {
+      throw new Error(
+        `BaileysSession ${doc?._id}: encryptedVersion=1 but payload is a plain object — refusing (fail-closed)`
+      );
+    }
+    return stored;
+  }
+
+  throw new Error(
+    `BaileysSession ${doc?._id}: payload has unexpected type ${typeof stored} — refusing (fail-closed)`
+  );
+}
 
 // ─── Buffer ↔ base64 helpers ────────────────────────────────────────────────
 // Baileys stores `Buffer` instances inside its creds/keys objects.
@@ -94,16 +149,18 @@ async function useMongoAuthState(sessionId) {
 
   // Initialize creds from DB or generate fresh ones
   let creds;
-  if (session.creds) {
+  const storedCreds = decryptPayload(session.creds, session);
+  if (storedCreds) {
     // Round-trip via JSON using BufferJSON to restore Buffers
-    const raw = JSON.stringify(session.creds);
+    const raw = JSON.stringify(storedCreds);
     creds = JSON.parse(raw, BufferJSON.reviver);
   } else {
     creds = initAuthCreds();
   }
 
   // Key store — in-memory cache backed by DB
-  const keysCache = session.keys ? decode(session.keys) : {};
+  const storedKeys = decryptPayload(session.keys, session);
+  const keysCache = storedKeys ? decode(storedKeys) : {};
 
   const keys = {
     get: async (type, ids) => {
@@ -133,20 +190,24 @@ async function useMongoAuthState(sessionId) {
           }
         }
       }
-      // Persist to DB
+      // Persist to DB (encrypted at rest — encrypt() throws if no key set).
       await BaileysSession.findByIdAndUpdate(sessionId, {
-        $set: { keys: encode(keysCache) },
+        $set: {
+          keys: encryptPayload(encode(keysCache)),
+          encryptedVersion: ENCRYPTED_VERSION,
+        },
       });
     },
   };
 
   const saveCreds = async () => {
     // Serialize creds with Baileys' BufferJSON replacer so Buffer fields
-    // survive the round-trip.
+    // survive the round-trip, then encrypt the serialized payload at rest.
     const serialized = JSON.parse(JSON.stringify(creds, BufferJSON.replacer));
     await BaileysSession.findByIdAndUpdate(sessionId, {
       $set: {
-        creds: serialized,
+        creds: encryptPayload(serialized),
+        encryptedVersion: ENCRYPTED_VERSION,
         lastActivityAt: new Date(),
       },
     });
@@ -158,4 +219,11 @@ async function useMongoAuthState(sessionId) {
   };
 }
 
-module.exports = { useMongoAuthState, loadBaileys };
+module.exports = {
+  useMongoAuthState,
+  loadBaileys,
+  // Exported for the migration script and tests.
+  encryptPayload,
+  decryptPayload,
+  ENCRYPTED_VERSION,
+};
