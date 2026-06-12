@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { motion, useInView, useReducedMotion } from 'framer-motion'
 
 // Reusable framer-motion variants for landing sections.
 // Co-located with MotionSection because everything that uses these lives in
@@ -49,14 +49,17 @@ export const slideFromRight = {
 export default function MotionSection({ children, style, id, className, margin = '-60px' }) {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin })
+  // prefers-reduced-motion: render sections in their final state, no entry
+  // animation at all (initial=visible means variants never transition).
+  const reduceMotion = useReducedMotion()
   return (
     <motion.section
       ref={ref}
       id={id}
       className={className}
       style={style}
-      initial="hidden"
-      animate={isInView ? 'visible' : 'hidden'}
+      initial={reduceMotion ? 'visible' : 'hidden'}
+      animate={reduceMotion || isInView ? 'visible' : 'hidden'}
       variants={staggerContainer}
     >
       {children}
