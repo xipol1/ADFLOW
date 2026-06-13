@@ -91,7 +91,7 @@ export default function AutoBuyPage() {
     if (channelIds.length === 0) { setFavChannelDetails([]); return }
     // Channels in the list may be either ObjectId strings or already-populated objects
     const ids = channelIds.map(c => (typeof c === 'object' ? (c._id || c.id) : c)).filter(Boolean)
-    Promise.all(ids.map(id => apiService.getChannelById(id).catch(() => null)))
+    Promise.all(ids.map(id => apiService.getChannel(id).catch(() => null)))
       .then(results => {
         if (cancelled) return
         const details = results
