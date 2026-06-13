@@ -30,18 +30,6 @@
       "schedule": "30 3 * * *"
     },
     {
-      "path": "/api/jobs/telegram-intel",
-      "schedule": "30 2 * * *"
-    },
-    {
-      "path": "/api/jobs/tgstat-discover",
-      "schedule": "0 5 * * 1"
-    },
-    {
-      "path": "/api/jobs/multiplatform-intel",
-      "schedule": "0 4 * * *"
-    },
-    {
       "path": "/api/jobs/swaps-maintenance",
       "schedule": "15 4 * * *"
     },
