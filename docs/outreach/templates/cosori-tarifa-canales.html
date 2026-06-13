@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Channelad · Tarifa de canales · Cosori</title>
+<style>
+  :root{
+    --bg:#FFFFFF; --bg2:#F6F8FA; --surface:#FFFFFF;
+    --border:#E5E9F0; --border2:#D0D7DE;
+    --text:#0D1117; --muted:#5B6573; --muted2:#8B949E;
+    --purple:#7C3AED; --purple-deep:#5B21B6; --purple-bg:#F5F0FF;
+    --green:#25D366; --green-dark:#1FA855; --green-bg:#E8F8EE;
+    --ink:#0D1526; --ink2:#1A2840;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:'Inter','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  }
+  h1,h2,h3,h4{font-family:'Sora','Segoe UI',sans-serif;color:var(--text);letter-spacing:-0.02em;font-weight:700;line-height:1.15}
+  p{color:var(--muted)}
+  strong{color:var(--text);font-weight:600}
+  .accent-purple{color:var(--purple-deep)}
+  .accent-green{color:var(--green-dark)}
+
+  .wrap{max-width:200mm;margin:0 auto;padding:0 6mm}
+
+  /* ── COVER ───────────────────────────────────────────── */
+  .cover{min-height:250mm;display:flex;flex-direction:column;break-after:page;position:relative;padding-top:24mm;padding-bottom:6mm}
+  .cover-tag{display:inline-flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--purple-deep);background:var(--purple-bg);padding:7px 13px;border-radius:6px;width:fit-content}
+  .cover-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--green-dark)}
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:30mm}
+  .brand-mark{width:34px;height:34px;border-radius:9px;background:var(--purple);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Sora';font-weight:800;font-size:17px}
+  .brand-name{font-family:'Sora';font-weight:700;font-size:18px;letter-spacing:-0.02em}
+  .cover-head{margin-top:auto}
+  .cover h1{font-size:44px;font-weight:800;line-height:1.06;letter-spacing:-0.03em;margin-bottom:18px;max-width:170mm}
+  .cover h1 .hl{color:var(--green-dark)}
+  .cover-lead{font-size:15.5px;color:var(--muted);max-width:150mm;line-height:1.55;margin-bottom:30px}
+  .cover-prepared{font-size:12px;color:var(--muted2);margin-bottom:26px}
+  .cover-prepared strong{color:var(--muted)}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:26px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 18px}
+  .stat-val{font-family:'Sora';font-weight:800;font-size:30px;line-height:1;letter-spacing:-0.02em}
+  .stat-val.p{color:var(--purple-deep)} .stat-val.g{color:var(--green-dark)} .stat-val.t{color:var(--text)}
+  .stat-label{font-size:11.5px;color:var(--muted);margin-top:9px;font-weight:500;line-height:1.4}
+
+  .cover-band{background:var(--ink);color:#F0F4FF;border-radius:16px;padding:22px 26px;display:flex;justify-content:space-between;align-items:center;gap:16px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .cover-band .b-title{font-family:'Sora';font-weight:700;font-size:16px;color:#fff;margin-bottom:4px}
+  .cover-band .b-sub{font-size:12px;color:#A6B5CC;max-width:120mm}
+  .cover-band .b-pill{font-family:'Sora';font-weight:800;font-size:13px;color:#0D1526;background:var(--green);padding:9px 15px;border-radius:8px;white-space:nowrap;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+  /* ── SECTIONS ────────────────────────────────────────── */
+  section{padding:9mm 0;border-top:1px solid var(--border)}
+  .eyebrow{display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--purple-deep);background:var(--purple-bg);padding:5px 11px;border-radius:6px;margin-bottom:12px}
+  .s-title{font-size:23px;line-height:1.12;margin-bottom:10px;max-width:165mm;break-after:avoid}
+  .s-lead{font-size:13.5px;color:var(--muted);max-width:165mm;margin-bottom:18px}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:16px 18px;break-inside:avoid}
+  .card h4{font-family:'Sora';font-size:13.5px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .card p{font-size:12px;line-height:1.5;margin:0}
+  .card .ic{width:26px;height:26px;border-radius:7px;background:var(--purple-bg);display:inline-flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+  /* ── TABLE ───────────────────────────────────────────── */
+  .country-chip{display:flex;align-items:center;gap:9px;margin:14px 0 8px;break-after:avoid}
+  .country-chip .flag{font-size:18px}
+  .country-chip .cname{font-family:'Sora';font-weight:700;font-size:14px}
+  .country-chip .cmeta{font-size:11.5px;color:var(--muted2);margin-left:auto}
+
+  table.rate{width:100%;border-collapse:collapse;font-size:12px;break-inside:auto}
+  table.rate thead{display:table-header-group}
+  table.rate th{text-align:left;padding:9px 11px;background:var(--ink);color:#E6ECF5;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  table.rate th.r,table.rate td.r{text-align:right}
+  table.rate td{padding:8px 11px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+  table.rate tbody tr{break-inside:avoid}
+  table.rate .cat{font-size:9.5px;font-weight:700;color:var(--purple-deep);text-transform:uppercase;letter-spacing:0.05em}
+  table.rate .chname{font-weight:600;font-size:12px}
+  table.rate .price{font-family:'Sora';font-weight:700;color:var(--green-dark);font-size:13px}
+  table.rate tr.air td{background:var(--green-bg);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  table.rate tr.sub td{background:var(--bg2);font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  table.rate tr.sub .chname{font-family:'Sora'}
+  table.rate tr.tot td{background:var(--ink);color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  table.rate tr.tot .price{color:var(--green)}
+  table.rate tr.tot .chname{color:#fff;font-family:'Sora'}
+  .tbl-note{font-size:10.5px;color:var(--muted);margin-top:10px;line-height:1.55;max-width:175mm}
+
+  /* ── FORMAT MULTIPLIERS ──────────────────────────────── */
+  .fmt-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+  .fmt{border:1px solid var(--border);border-radius:11px;padding:13px 11px;text-align:center;break-inside:avoid}
+  .fmt.base{background:var(--purple-bg);border-color:#D9C9F7;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .fmt-mult{font-family:'Sora';font-weight:800;font-size:24px;color:var(--purple-deep);letter-spacing:-0.02em}
+  .fmt-name{font-size:11px;font-weight:600;color:var(--text);margin-top:6px;line-height:1.3}
+  .fmt-desc{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.35}
+
+  .example{margin-top:14px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .example .ex-h{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:9px}
+  .ex-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px dashed var(--border2)}
+  .ex-row:last-child{border-bottom:none}
+  .ex-row .ev{font-family:'Sora';font-weight:700;color:var(--green-dark)}
+
+  /* ── OFFER ───────────────────────────────────────────── */
+  .offer{background:var(--ink);color:#F0F4FF;border-radius:18px;padding:26px 28px;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .offer-tag{display:inline-flex;align-items:center;gap:7px;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;background:rgba(37,211,102,0.16);color:#25D366;padding:6px 11px;border-radius:6px;margin-bottom:14px;border:1px solid rgba(37,211,102,0.3)}
+  .offer h3{color:#fff;font-size:21px;margin-bottom:8px;max-width:150mm}
+  .offer > p{color:#C5D2E0;font-size:13px;max-width:150mm;margin-bottom:18px}
+  .offer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .ob{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.10);border-radius:11px;padding:15px}
+  .ob h4{color:#fff;font-size:13px;margin-bottom:5px;font-family:'Sora'}
+  .ob p{color:#A6B5CC;font-size:11.5px;line-height:1.5;margin:0}
+
+  /* ── CTA ─────────────────────────────────────────────── */
+  .cta{text-align:center;padding:10mm 0 4mm}
+  .cta h2{font-size:24px;margin-bottom:10px}
+  .cta p{font-size:13.5px;max-width:140mm;margin:0 auto 14px}
+  .cta-mail{display:inline-block;font-family:'Sora';font-weight:700;font-size:15px;color:var(--purple-deep);border:1.5px solid var(--purple);border-radius:10px;padding:11px 22px}
+  .cta-fine{font-size:10.5px;color:var(--muted2);margin-top:16px}
+
+  /* ── RUNNING FOOTER ──────────────────────────────────── */
+  .running-foot{display:none}
+
+  @page{size:A4;margin:13mm 14mm 15mm}
+</style>
+</head>
+<body>
+<div class="running-foot">Channelad · Propuesta confidencial para Cosori · channelad.io</div>
+
+<div class="wrap">
+
+<!-- ── COVER ─────────────────────────────────────────── -->
+<div class="cover">
+  <div class="brand">
+    <div class="brand-mark">C</div>
+    <div class="brand-name">Channelad</div>
+  </div>
+
+  <div class="cover-head">
+    <span class="cover-tag"><span class="dot"></span>Propuesta confidencial · Junio 2026</span>
+    <h1 style="margin-top:16px">Tu freidora de aire,<br><span class="hl">protagonista</span> en WhatsApp.</h1>
+    <p class="cover-lead">
+      Tarifa por canal de nuestra red de cocina en España y Alemania: 14 canales de WhatsApp
+      —cinco de ellos dedicados en exclusiva a la freidora de aire— donde la audiencia ya cocina
+      con el producto de Cosori cada día. Precios cerrados y verificados con cada admin.
+    </p>
+    <p class="cover-prepared"><strong>Preparado para:</strong> equipo de marketing de Cosori &nbsp;·&nbsp; <strong>Por:</strong> Channelad</p>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-val p">14</div>
+        <div class="stat-label">canales de cocina verificados<br>España + Alemania</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val t">5,2 M</div>
+        <div class="stat-label">seguidores totales en la red</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val g">4,2 M</div>
+        <div class="stat-label">en canales de freidora de aire<br>encaje directo con Cosori</div>
+      </div>
+    </div>
+
+    <div class="cover-band">
+      <div>
+        <div class="b-title">Marca fundadora</div>
+        <div class="b-sub">Tu primera campaña entra sin la comisión de marketplace y con pago garantizado por escrow: solo se cobra si el post se publica y se verifica.</div>
+      </div>
+      <div class="b-pill">1ª campaña sin comisión</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONTEXTO ──────────────────────────────────────── -->
+<section style="border-top:none">
+  <span class="eyebrow">Por qué encaja</span>
+  <h2 class="s-title">La audiencia que ya usa freidora de aire, en un solo sitio.</h2>
+  <p class="s-lead">
+    Channelad agrupa canales de WhatsApp de cocina con audiencia propia y comprometida. En este
+    inventario, la freidora de aire no es una categoría más: es el eje de cinco canales con
+    4,2 M de seguidores combinados. El resto —Thermomix, dieta y recetas saludables— comparte el
+    mismo perfil: gente que cocina en casa, sigue recetas y compra electrodoméstico de cocina.
+  </p>
+  <div class="two-col">
+    <div class="card">
+      <h4><span class="ic">🍳</span>Producto protagonista</h4>
+      <p>En los canales de airfryer, tu producto es el contexto de cada receta, no un banner. La marca aparece donde la decisión de compra ya está activa.</p>
+    </div>
+    <div class="card">
+      <h4><span class="ic">🇪🇸</span>España y Alemania (DACH)</h4>
+      <p>Cobertura en los dos mercados donde Cosori vende. Puedes activar solo España, solo Alemania o la red completa.</p>
+    </div>
+    <div class="card">
+      <h4><span class="ic">✅</span>Audiencia verificada</h4>
+      <p>Seguidores y alcance reales por canal, confirmados con cada admin. Sin estimaciones infladas ni bots.</p>
+    </div>
+    <div class="card">
+      <h4><span class="ic">🔒</span>Pago con garantía</h4>
+      <p>El importe queda en escrow. Solo se libera cuando el post está publicado y verificado; si no, se reembolsa.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── TARIFA POR CANAL ──────────────────────────────── -->
+<section>
+  <span class="eyebrow">Tarifa por canal</span>
+  <h2 class="s-title">Precio por publicación, canal a canal.</h2>
+  <p class="s-lead">
+    Precio de un post patrocinado estándar en cada canal. En verde, los canales de freidora de aire.
+    Las cifras son finales para el anunciante e incluyen la gestión y verificación de Channelad.
+  </p>
+
+  <div class="country-chip">
+    <span class="flag">🇪🇸</span><span class="cname">España</span>
+    <span class="cmeta">6 canales · 2.883.538 seguidores</span>
+  </div>
+  <table class="rate">
+    <thead>
+      <tr><th>Categoría</th><th>Canal</th><th class="r">Seguidores</th><th class="r">Alcance / post</th><th class="r">Precio / post</th></tr>
+    </thead>
+    <tbody>
+      <tr class="air"><td class="cat">Airfryer</td><td class="chname">Recetas Freidora de Aire — airfryer</td><td class="r">1.906.021</td><td class="r">572.000</td><td class="r price">1.686 €</td></tr>
+      <tr class="air"><td class="cat">Airfryer</td><td class="chname">1001 Recetas con Freidora de Aire</td><td class="r">677.886</td><td class="r">203.000</td><td class="r price">600 €</td></tr>
+      <tr><td class="cat">Thermomix</td><td class="chname">Recetas para Thermomix</td><td class="r">148.773</td><td class="r">60.000</td><td class="r price">175 €</td></tr>
+      <tr><td class="cat">Thermomix</td><td class="chname">Recetas de DIETA con Thermomix</td><td class="r">25.585</td><td class="r">14.000</td><td class="r price">42 €</td></tr>
+      <tr><td class="cat">Thermomix</td><td class="chname">Postres con Thermomix</td><td class="r">24.178</td><td class="r">13.000</td><td class="r price">40 €</td></tr>
+      <tr><td class="cat">Dieta</td><td class="chname">Recetas de Dieta y saludables</td><td class="r">101.095</td><td class="r">40.000</td><td class="r price">119 €</td></tr>
+      <tr class="sub"><td></td><td class="chname">Subtotal España</td><td class="r">2.883.538</td><td class="r">902.000</td><td class="r price">2.662 €</td></tr>
+    </tbody>
+  </table>
+
+  <div class="country-chip" style="margin-top:18px">
+    <span class="flag">🇩🇪</span><span class="cname">Alemania</span>
+    <span class="cmeta">8 canales · 2.328.000 seguidores</span>
+  </div>
+  <table class="rate">
+    <thead>
+      <tr><th>Categoría</th><th>Canal</th><th class="r">Seguidores</th><th class="r">Alcance / post</th><th class="r">Precio / post</th></tr>
+    </thead>
+    <tbody>
+      <tr class="air"><td class="cat">Airfryer</td><td class="chname">Rezepte für Heißluftfritteusen</td><td class="r">1.300.000</td><td class="r">390.000</td><td class="r price">1.150 €</td></tr>
+      <tr class="air"><td class="cat">Airfryer</td><td class="chname">Heißluftfritteusen — Rezepte</td><td class="r">300.000</td><td class="r">120.000</td><td class="r price">354 €</td></tr>
+      <tr class="air"><td class="cat">Airfryer</td><td class="chname">Heißluftfritteuse: 1001 Rezepte</td><td class="r">50.000</td><td class="r">20.000</td><td class="r price">59 €</td></tr>
+      <tr><td class="cat">Thermomix</td><td class="chname">Thermomix Rezepte</td><td class="r">550.000</td><td class="r">165.000</td><td class="r price">486 €</td></tr>
+      <tr><td class="cat">Thermomix</td><td class="chname">Desserts mit Thermomix</td><td class="r">9.000</td><td class="r">4.900</td><td class="r price">14 €</td></tr>
+      <tr><td class="cat">Thermomix</td><td class="chname">Diätrezepte mit Thermomix</td><td class="r">5.000</td><td class="r">2.800</td><td class="r price">8 €</td></tr>
+      <tr><td class="cat">Dieta</td><td class="chname">Diät- und gesunde Rezepte</td><td class="r">110.000</td><td class="r">44.000</td><td class="r price">130 €</td></tr>
+      <tr><td class="cat">Recetas</td><td class="chname">Rezepte: einfach und unglaublich</td><td class="r">4.000</td><td class="r">2.200</td><td class="r price">6 €</td></tr>
+      <tr class="sub"><td></td><td class="chname">Subtotal Alemania</td><td class="r">2.328.000</td><td class="r">748.900</td><td class="r price">2.207 €</td></tr>
+      <tr class="tot"><td></td><td class="chname">Red completa (14 canales)</td><td class="r">5.211.538</td><td class="r">1.650.900</td><td class="r price">4.869 €</td></tr>
+    </tbody>
+  </table>
+  <p class="tbl-note">
+    El precio incluye la comisión de marketplace de Channelad (20 %): el creador percibe íntegra
+    su tarifa y Channelad contrata, gestiona y verifica la campaña. «Red completa» = un post
+    estándar en cada uno de los 14 canales. Precios sujetos a recalibración con métricas reales del
+    canal; la tarifa de freidora de aire (5 canales) suma 3.849 € por ronda con 1,3 M de alcance.
+  </p>
+</section>
+
+<!-- ── FORMATOS ──────────────────────────────────────── -->
+<section>
+  <span class="eyebrow">Opciones de formato</span>
+  <h2 class="s-title">El precio se ajusta al formato que elijas.</h2>
+  <p class="s-lead">
+    El precio por canal corresponde a un post estándar. Los formatos de mayor atención se aplican
+    como multiplicador sobre esa base. Los anunciantes pagan por atención, no por espacio.
+  </p>
+  <div class="fmt-grid">
+    <div class="fmt base"><div class="fmt-mult">×1</div><div class="fmt-name">Post estándar</div><div class="fmt-desc">Base de la tarifa.</div></div>
+    <div class="fmt"><div class="fmt-mult">×1,5</div><div class="fmt-name">Post + reenvío del admin</div><div class="fmt-desc">Más alcance y credibilidad.</div></div>
+    <div class="fmt"><div class="fmt-mult">×1,8</div><div class="fmt-name">Nota de voz patrocinada</div><div class="fmt-desc">Formato nativo, convierte más.</div></div>
+    <div class="fmt"><div class="fmt-mult">×2,5</div><div class="fmt-name">Mención en descripción</div><div class="fmt-desc">Exposición permanente.</div></div>
+    <div class="fmt"><div class="fmt-mult">×3</div><div class="fmt-name">Post fijado 48 h</div><div class="fmt-desc">La posición más vista del canal.</div></div>
+  </div>
+
+  <div class="example">
+    <div class="ex-h">Ejemplo · Recetas Freidora de Aire (1,9 M seguidores · base 1.686 €)</div>
+    <div class="ex-row"><span>Post estándar</span><span class="ev">1.686 €</span></div>
+    <div class="ex-row"><span>Post + reenvío del admin (×1,5)</span><span class="ev">2.529 €</span></div>
+    <div class="ex-row"><span>Nota de voz patrocinada (×1,8)</span><span class="ev">3.035 €</span></div>
+    <div class="ex-row"><span>Mención en descripción (×2,5)</span><span class="ev">4.215 €</span></div>
+    <div class="ex-row"><span>Post fijado 48 h (×3)</span><span class="ev">5.058 €</span></div>
+  </div>
+</section>
+
+<!-- ── OFERTA ────────────────────────────────────────── -->
+<section>
+  <div class="offer">
+    <span class="offer-tag">★ Condiciones de marca fundadora</span>
+    <h3>Tu primera campaña, sin comisión de marketplace.</h3>
+    <p>
+      Cosori entra como marca fundadora del vertical cocina. La primera campaña va sin el 20 % de
+      gestión de plataforma —pagas solo la tarifa del creador— y siempre con pago garantizado.
+    </p>
+    <div class="offer-grid">
+      <div class="ob">
+        <h4>Sin comisión la 1ª vez</h4>
+        <p>La primera campaña se contrata al precio base del creador, sin el recargo de marketplace.</p>
+      </div>
+      <div class="ob">
+        <h4>Pago por escrow</h4>
+        <p>El importe queda retenido y solo se libera cuando el post está publicado y verificado. Si no se publica, se reembolsa.</p>
+      </div>
+      <div class="ob">
+        <h4>El creador cobra el 100 %</h4>
+        <p>Modelo advertiser-paid: el admin recibe su tarifa íntegra y tú obtienes una relación directa con el canal.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ───────────────────────────────────────────── -->
+<section style="border-top:none">
+  <div class="cta">
+    <h2>¿Empezamos por los canales de freidora de aire?</h2>
+    <p>Dinos qué canales y formato te interesan y te devolvemos una propuesta cerrada con fechas de publicación.</p>
+    <div class="cta-mail">contact@channelad.io</div>
+    <div class="cta-fine">Channelad · channelad.io · Documento confidencial preparado para Cosori · Junio 2026</div>
+  </div>
+</section>
+
+</div>
+</body>
+</html>

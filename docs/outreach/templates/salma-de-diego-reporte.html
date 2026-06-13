@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>salma de diego jungle · Reporte de monetización · Channelad</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAFBFC; --bg2:#F6F8FA; --surface:#FFFFFF;
+    --border:#E5E9F0; --border2:#D0D7DE;
+    --text:#0D1117; --muted:#5B6573; --muted2:#8B949E;
+    --purple:#7C3AED; --purple-light:#9D60F8; --purple-bg:#F5F0FF; --purple-deep:#5B21B6;
+    --green:#25D366; --green-bg:#E8F8EE; --green-dark:#1FA855;
+    --amber:#F59E0B; --amber-bg:#FEF3C7;
+    --red:#DC2626; --red-bg:#FEE2E2;
+    --shadow-sm:0 1px 2px rgba(13,17,23,0.05);
+    --shadow-md:0 4px 12px rgba(13,17,23,0.06);
+    --shadow-lg:0 12px 28px rgba(13,17,23,0.08);
+    --shadow-glow:0 8px 32px rgba(124,58,237,0.18);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--purple);text-decoration:none}
+  a:hover{text-decoration:underline}
+  h1,h2,h3,h4{font-family:Sora,sans-serif;color:var(--text);letter-spacing:-0.02em;font-weight:700}
+  p{color:var(--muted)}
+  strong{color:var(--text);font-weight:600}
+  code{font-family:'SF Mono',Menlo,monospace;font-size:0.9em;background:var(--bg2);padding:2px 6px;border-radius:5px;border:1px solid var(--border)}
+
+  /* ── NAV ────────────────────────────────────────────────── */
+  nav.top{position:sticky;top:0;z-index:50;background:rgba(250,251,252,0.85);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--border)}
+  .nav-inner{max-width:1100px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:24px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-family:Sora;font-weight:800;font-size:16px}
+  .brand-name{font-family:Sora;font-weight:700;font-size:16px;letter-spacing:-0.02em}
+  .nav-links{display:flex;gap:18px;flex:1;margin-left:24px}
+  .nav-links a{font-size:13px;color:var(--muted);text-decoration:none;font-weight:500;transition:color .2s}
+  .nav-links a:hover{color:var(--text)}
+  .nav-cta{padding:8px 14px;background:var(--text);color:#fff;border-radius:8px;font-size:13px;font-weight:600;transition:transform .15s,background .2s}
+  .nav-cta:hover{background:var(--purple);transform:translateY(-1px);text-decoration:none;color:#fff}
+  @media (max-width:900px){.nav-links{display:none}}
+
+  /* ── LAYOUT ─────────────────────────────────────────────── */
+  main{max-width:1100px;margin:0 auto;padding:0 24px}
+  section{padding:80px 0;border-bottom:1px solid var(--border)}
+  section:last-of-type{border-bottom:none}
+  .section-eyebrow{display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--purple);background:var(--purple-bg);padding:6px 12px;border-radius:6px;margin-bottom:18px}
+  .section-title{font-size:34px;line-height:1.15;margin-bottom:14px;max-width:720px}
+  .section-lead{font-size:17px;color:var(--muted);max-width:680px;margin-bottom:36px}
+
+  /* ── HERO ───────────────────────────────────────────────── */
+  .hero{padding:100px 0 80px;position:relative;overflow:hidden}
+  .hero::before{content:'';position:absolute;top:-300px;right:-200px;width:800px;height:800px;background:radial-gradient(circle,rgba(124,58,237,0.12) 0%,transparent 65%);pointer-events:none;z-index:-1}
+  .hero::after{content:'';position:absolute;bottom:-200px;left:-150px;width:600px;height:600px;background:radial-gradient(circle,rgba(37,211,102,0.10) 0%,transparent 65%);pointer-events:none;z-index:-1}
+  .hero h1{font-size:56px;font-weight:800;line-height:1.05;letter-spacing:-0.03em;margin-bottom:22px;max-width:880px}
+  .hero h1 .accent{background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 60%,var(--green) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .hero-lead{font-size:19px;color:var(--muted);max-width:680px;line-height:1.55;margin-bottom:44px}
+  .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:40px;max-width:780px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:var(--shadow-md);transition:transform .25s,box-shadow .25s}
+  .stat:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+  .stat-val{font-family:Sora;font-weight:800;font-size:36px;line-height:1;letter-spacing:-0.02em}
+  .stat-val.purple{color:var(--purple)}
+  .stat-val.green{color:var(--green-dark)}
+  .stat-val.text{color:var(--text)}
+  .stat-label{font-size:13px;color:var(--muted);margin-top:10px;font-weight:500;line-height:1.4}
+  .hero-cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:8px}
+  .btn-primary{padding:14px 24px;background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%);color:#fff;border-radius:11px;font-weight:600;font-size:15px;border:none;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:var(--shadow-glow);display:inline-flex;align-items:center;gap:8px}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(124,58,237,0.28);text-decoration:none;color:#fff}
+  .btn-secondary{padding:14px 22px;background:var(--surface);border:1px solid var(--border2);color:var(--text);border-radius:11px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:8px;transition:border-color .2s}
+  .btn-secondary:hover{border-color:var(--purple);text-decoration:none}
+  .hero-meta{margin-top:48px;font-size:12px;color:var(--muted2);display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+  .hero-meta strong{color:var(--muted);font-weight:600}
+  @media (max-width:760px){.hero h1{font-size:38px}.hero-stats{grid-template-columns:1fr}}
+
+  /* ── EXEC SUMMARY ───────────────────────────────────────── */
+  .summary-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:36px;align-items:start}
+  @media (max-width:900px){.summary-grid{grid-template-columns:1fr}}
+  .summary-text p{font-size:15.5px;line-height:1.7;margin-bottom:14px}
+  .summary-side{background:linear-gradient(135deg,rgba(124,58,237,0.05) 0%,rgba(37,211,102,0.03) 100%);border:1px solid var(--border);border-radius:18px;padding:28px;position:sticky;top:90px}
+  .summary-side h4{font-size:13px;color:var(--purple);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:14px;font-family:Inter}
+  .summary-side .delta{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+  .summary-side .from{font-family:Sora;font-size:24px;font-weight:700;color:var(--muted2);text-decoration:line-through}
+  .summary-side .to{font-family:Sora;font-size:38px;font-weight:800;color:var(--green-dark);letter-spacing:-0.02em}
+  .summary-side .ctx{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:18px}
+  .summary-side .breakdown{padding-top:18px;border-top:1px dashed var(--border2);font-size:13px;color:var(--text)}
+  .summary-side .breakdown-row{display:flex;justify-content:space-between;padding:5px 0}
+  .summary-side .breakdown-row span:last-child{font-family:Sora;font-weight:700;color:var(--green-dark)}
+
+  /* ── FOUNDER BLOCK ──────────────────────────────────────── */
+  .founder-block{background:linear-gradient(135deg,#0D1526 0%,#1A2840 100%);color:#F0F4FF;border-radius:24px;padding:48px;position:relative;overflow:hidden}
+  .founder-block::before{content:'';position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(37,211,102,0.18) 0%,transparent 65%)}
+  .founder-block::after{content:'';position:absolute;bottom:-150px;left:-50px;width:400px;height:400px;background:radial-gradient(circle,rgba(124,58,237,0.18) 0%,transparent 65%)}
+  .founder-inner{position:relative;z-index:1}
+  .founder-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;background:rgba(37,211,102,0.16);color:#25D366;padding:7px 12px;border-radius:6px;margin-bottom:18px;border:1px solid rgba(37,211,102,0.3)}
+  .founder-block h2{color:#F0F4FF;font-size:32px;line-height:1.18;margin-bottom:14px;max-width:680px}
+  .founder-block > .founder-inner > p{font-size:15.5px;color:#C5D2E0;max-width:640px;margin-bottom:36px;line-height:1.6}
+  .benefits{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+  @media (max-width:760px){.benefits{grid-template-columns:1fr}.founder-block{padding:32px 24px}}
+  .benefit{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:14px;padding:20px;transition:background .2s,border-color .2s}
+  .benefit:hover{background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.18)}
+  .benefit-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,rgba(37,211,102,0.18) 0%,rgba(124,58,237,0.18) 100%);display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:20px}
+  .benefit h4{color:#F0F4FF;font-size:15px;margin-bottom:6px;font-family:Sora}
+  .benefit p{color:#A6B5CC;font-size:13px;line-height:1.55;margin:0}
+  .founder-footer{margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+  .slots{font-size:13px;color:#A6B5CC}
+  .slots strong{color:#25D366;font-family:Sora}
+  .slots-bar{height:6px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden;width:240px;margin-top:8px;position:relative}
+  .slots-bar-fill{height:100%;background:linear-gradient(90deg,#25D366 0%,#9D60F8 100%);width:0;transition:width 1.2s cubic-bezier(.22,1,.36,1)}
+
+  /* ── INVENTORY ──────────────────────────────────────────── */
+  .theme-group{margin-bottom:32px}
+  .theme-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px dashed var(--border2)}
+  .theme-icon{font-size:18px}
+  .theme-name{font-family:Sora;font-weight:700;font-size:14px;color:var(--text);text-transform:uppercase;letter-spacing:0.08em}
+  .theme-meta{font-size:12px;color:var(--muted2);margin-left:auto}
+  .channels-grid{display:grid;grid-template-columns:1fr;gap:12px}
+  .channel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 22px;transition:border-color .2s,box-shadow .2s;cursor:default}
+  .channel:hover{border-color:var(--border2);box-shadow:var(--shadow-sm)}
+  .channel-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+  .channel-info{flex:1;min-width:240px}
+  .channel-name{font-family:Sora;font-weight:700;font-size:16px;color:var(--text);margin-bottom:6px;letter-spacing:-0.01em}
+  .channel-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+  .pill{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:0.05em;line-height:1.4}
+  .pill.followers{background:var(--purple-bg);color:var(--purple)}
+  .pill.apto{background:var(--green-bg);color:var(--green-dark)}
+  .pill.growth{background:#ECFDF5;color:#059669}
+  .pill.score{font-weight:800;font-size:10px;letter-spacing:0.04em}
+  .pill.score.silver{background:linear-gradient(135deg,#E5E7EB,#D1D5DB);color:#374151;box-shadow:inset 0 0 0 1px rgba(156,163,175,0.4)}
+  .pill.score.gold{background:linear-gradient(135deg,#FCD34D,#F59E0B);color:#78350F}
+  .pill.score.elite{background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#fff}
+  .channel-link{font-family:'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--muted2);max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .channel-link a{color:var(--muted2)}
+  .channel-link a:hover{color:var(--purple)}
+  .channel-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  @media (max-width:600px){.channel-metrics{grid-template-columns:repeat(2,1fr)}}
+  .metric{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:10px 12px}
+  .metric-label{font-size:10px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px}
+  .metric-val{font-family:Sora;font-weight:700;font-size:16px;letter-spacing:-0.01em;color:var(--text);line-height:1.1}
+  .metric-val.green{color:var(--green-dark)}
+  .metric-val.muted{color:var(--muted2)}
+  .metric-sub{font-size:10px;color:var(--muted);margin-top:3px}
+  .note-box{background:var(--purple-bg);border:1px solid rgba(124,58,237,0.18);border-radius:12px;padding:16px 20px;margin-top:18px;font-size:13px;color:var(--text);line-height:1.6}
+  .note-box strong{color:var(--purple-deep)}
+
+  /* ── COUNTRY SUMMARY ──────────────────────────────────── */
+  .country-summary{display:flex;gap:16px;background:var(--bg2);border-radius:14px;padding:16px 22px;margin-bottom:22px;flex-wrap:wrap;align-items:center}
+  .country-flag{font-size:28px;line-height:1}
+  .country-name{font-family:Sora;font-weight:700;font-size:16px;color:var(--text)}
+  .country-meta{font-size:13px;color:var(--muted);display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}
+  .country-meta span strong{color:var(--text);font-family:Sora}
+
+  /* ── SCORING SECTION ────────────────────────────────────── */
+  .tier-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}
+  @media (max-width:600px){.tier-grid{grid-template-columns:repeat(2,1fr)}}
+  .tier-card{padding:16px;border-radius:12px;text-align:center;position:relative;overflow:hidden}
+  .tier-card.bronze{background:#FEF3C7;border:1px solid #FCD34D}
+  .tier-card.silver{background:linear-gradient(135deg,#F3F4F6,#E5E7EB);border:1px solid #9CA3AF}
+  .tier-card.gold{background:linear-gradient(135deg,#FBBF24,#F59E0B);color:#451A03}
+  .tier-card.elite{background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#fff}
+  .tier-name{font-family:Sora;font-weight:800;font-size:13px;letter-spacing:0.1em;margin-bottom:6px}
+  .tier-range{font-family:Sora;font-weight:700;font-size:20px}
+  .tier-current{font-size:10px;margin-top:8px;opacity:0.85;font-weight:600;text-transform:uppercase;letter-spacing:0.06em}
+
+  .score-table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm)}
+  table.data{width:100%;border-collapse:collapse;font-size:13px}
+  table.data th{text-align:left;padding:14px 16px;background:var(--bg2);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);border-bottom:1px solid var(--border2)}
+  table.data th.r,table.data td.r{text-align:right}
+  table.data td{padding:14px 16px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+  table.data tr:last-child td{border-bottom:none}
+  table.data tr:hover td{background:var(--bg2)}
+  table.data .score-cell{display:inline-flex;align-items:center;gap:6px;font-family:Sora;font-weight:700}
+  table.data .score-dot{width:8px;height:8px;border-radius:99px;flex-shrink:0}
+  .dot-bronze{background:#92400E}
+  .dot-silver{background:#6B7280}
+  .dot-gold{background:#D97706}
+  .dot-elite{background:#7C3AED}
+  .score-bars{display:grid;gap:14px;margin-top:28px}
+  .score-bar-row{display:grid;grid-template-columns:220px 1fr 52px;gap:14px;align-items:center;font-size:13px}
+  @media (max-width:600px){.score-bar-row{grid-template-columns:1fr;gap:4px}}
+  .score-bar-label{color:var(--text);font-weight:500}
+  .score-bar-track{height:10px;background:var(--bg2);border:1px solid var(--border);border-radius:99px;overflow:hidden}
+  .score-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--purple) 0%,var(--green) 130%)}
+  .score-bar-val{font-family:Sora;font-weight:700;color:var(--text);text-align:right}
+
+  /* ── PROJECTIONS ────────────────────────────────────────── */
+  .scenarios{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:30px 0 36px}
+  @media (max-width:800px){.scenarios{grid-template-columns:1fr}}
+  .scen{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:26px;position:relative;transition:transform .25s,box-shadow .25s,border-color .25s}
+  .scen:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+  .scen.featured{background:linear-gradient(135deg,#0D1526 0%,#1A2840 100%);color:#F0F4FF;border:none}
+  .scen.featured *{color:#F0F4FF}
+  .scen-year{font-family:Sora;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
+  .scen-occ{font-size:11px;color:var(--muted2);margin-bottom:18px}
+  .scen.featured .scen-year{color:#8B9EBF}
+  .scen.featured .scen-occ{color:#8B9EBF}
+  .scen-monthly{font-family:Sora;font-weight:800;font-size:38px;letter-spacing:-0.02em;line-height:1;margin-bottom:6px;color:var(--text)}
+  .scen.featured .scen-monthly{color:#fff}
+  .scen-monthly .currency{color:var(--purple);font-size:28px}
+  .scen.featured .scen-monthly .currency{color:#9D60F8}
+  .scen-monthly-label{font-size:12px;color:var(--muted);margin-bottom:18px}
+  .scen.featured .scen-monthly-label{color:#8B9EBF}
+  .scen-annual{padding-top:18px;border-top:1px solid var(--border)}
+  .scen.featured .scen-annual{border-color:rgba(255,255,255,0.08)}
+  .scen-annual-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin-bottom:4px}
+  .scen.featured .scen-annual-label{color:#8B9EBF}
+  .scen-annual-val{font-family:Sora;font-weight:800;font-size:22px;color:var(--green-dark);letter-spacing:-0.015em}
+  .scen.featured .scen-annual-val{color:#25D366}
+
+  .chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:32px;margin-top:14px;box-shadow:var(--shadow-sm)}
+  .chart-title{font-family:Sora;font-weight:700;font-size:15px;color:var(--text);margin-bottom:6px}
+  .chart-subtitle{font-size:12px;color:var(--muted);margin-bottom:24px}
+  .chart{height:260px;position:relative}
+
+  /* ── ACTIVATION TIMELINE ────────────────────────────────── */
+  .timeline{position:relative;padding-left:36px;margin-top:14px}
+  .timeline::before{content:'';position:absolute;left:13px;top:14px;bottom:14px;width:2px;background:linear-gradient(180deg,var(--purple) 0%,var(--green) 100%);border-radius:99px}
+  .step{position:relative;padding:10px 0 28px 24px}
+  .step:last-child{padding-bottom:0}
+  .step-num{position:absolute;left:-36px;top:6px;width:28px;height:28px;border-radius:99px;background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%);color:#fff;font-family:Sora;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px var(--bg)}
+  .step-title{font-family:Sora;font-weight:700;font-size:16px;color:var(--text);margin-bottom:5px}
+  .step-desc{font-size:14px;color:var(--muted);line-height:1.6}
+
+  /* ── REFERRAL ──────────────────────────────────────────── */
+  .referral{background:linear-gradient(135deg,#0D1526 0%,#1A2840 100%);color:#F0F4FF;border-radius:24px;padding:44px;position:relative;overflow:hidden;margin-top:14px}
+  .referral::before{content:'';position:absolute;top:-100px;right:-50px;width:400px;height:400px;background:radial-gradient(circle,rgba(157,96,248,0.15) 0%,transparent 65%)}
+  .referral-inner{position:relative;z-index:1}
+  .referral-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;background:rgba(157,96,248,0.16);color:#9D60F8;padding:7px 12px;border-radius:6px;margin-bottom:18px;border:1px solid rgba(157,96,248,0.3)}
+  .referral h2{color:#F0F4FF;font-size:30px;line-height:1.2;margin-bottom:14px;max-width:640px}
+  .referral > .referral-inner > p{color:#C5D2E0;max-width:640px;font-size:15px;margin-bottom:30px;line-height:1.6}
+  .ref-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:26px}
+  @media (max-width:760px){.ref-kpis{grid-template-columns:1fr};.referral{padding:32px 24px}}
+  .ref-kpi{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:14px;padding:20px}
+  .ref-kpi-val{font-family:Sora;font-weight:800;font-size:38px;letter-spacing:-0.02em;line-height:1;margin-bottom:8px}
+  .ref-kpi-val.green{color:#25D366}
+  .ref-kpi-val.purple{color:#9D60F8}
+  .ref-kpi-val.white{color:#fff;font-size:30px;padding-top:4px}
+  .ref-kpi-label{font-size:12px;color:#A6B5CC;line-height:1.5}
+
+  /* ── CTA ───────────────────────────────────────────────── */
+  .cta-block{background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 60%,var(--green) 130%);border-radius:24px;padding:56px 48px;color:#fff;text-align:center;position:relative;overflow:hidden}
+  .cta-block::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 30%,rgba(255,255,255,0.15) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(255,255,255,0.10) 0%,transparent 50%)}
+  .cta-inner{position:relative;z-index:1}
+  .cta-block h2{color:#fff;font-size:34px;line-height:1.15;margin-bottom:12px;max-width:680px;margin-left:auto;margin-right:auto}
+  .cta-block p{color:rgba(255,255,255,0.9);font-size:16px;max-width:560px;margin:0 auto 28px;line-height:1.6}
+  .cta-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .cta-actions .btn-primary{background:#fff;color:var(--purple);box-shadow:0 12px 32px rgba(0,0,0,0.15)}
+  .cta-actions .btn-primary:hover{background:#fff;color:var(--purple-deep)}
+  .cta-actions .btn-secondary{background:rgba(255,255,255,0.10);color:#fff;border:1px solid rgba(255,255,255,0.30)}
+  .cta-actions .btn-secondary:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.5)}
+  .cta-contact{margin-top:24px;font-size:13px;color:rgba(255,255,255,0.75)}
+  .cta-contact a{color:#fff;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+
+  /* ── FOOTER + LEGAL ─────────────────────────────────────── */
+  footer{background:var(--bg2);border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px}
+  footer .inner{max-width:1100px;margin:0 auto;padding:0 24px}
+  .legal-block{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px 28px;margin-bottom:24px}
+  .legal-block h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);margin-bottom:14px;font-family:Inter}
+  .legal-block p{font-size:11.5px;color:var(--muted);line-height:1.65;margin-bottom:10px}
+  .legal-block p:last-child{margin-bottom:0}
+  .legal-block strong{color:var(--text);font-weight:600}
+  .footer-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--muted2)}
+  .footer-meta a{color:var(--muted2)}
+
+  /* ── ANIMATIONS ─────────────────────────────────────────── */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .reveal{opacity:0;animation:fadeUp .8s cubic-bezier(.22,1,.36,1) forwards}
+  .reveal[data-delay="1"]{animation-delay:.08s}
+  .reveal[data-delay="2"]{animation-delay:.16s}
+  .reveal[data-delay="3"]{animation-delay:.24s}
+  .reveal[data-delay="4"]{animation-delay:.32s}
+  .reveal[data-delay="5"]{animation-delay:.40s}
+
+  /* ── PRINT ──────────────────────────────────────────────── */
+  @media print{
+    nav.top{position:static;background:#fff;backdrop-filter:none}
+    section{padding:32px 0;border-bottom:none;page-break-inside:avoid}
+    .hero{padding:32px 0}
+    .channel,.scen,.stat{page-break-inside:avoid}
+    .founder-block,.referral,.cta-block{background:#0D1526!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .reveal{opacity:1;animation:none}
+    @page{size:A4;margin:18mm}
+  }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ─────────────────────────────────────────────── -->
+<nav class="top">
+  <div class="nav-inner">
+    <div class="brand">
+      <div class="brand-mark">C</div>
+      <div class="brand-name">Channelad</div>
+    </div>
+    <div class="nav-links">
+      <a href="#resumen">Resumen</a>
+      <a href="#fundador">Programa</a>
+      <a href="#inventario">Tu canal</a>
+      <a href="#scoring">Scoring</a>
+      <a href="#proyeccion">Proyección</a>
+      <a href="#activacion">Activación</a>
+      <a href="#referidos">Referidos</a>
+    </div>
+    <a href="#cta" class="nav-cta">Reservar onboarding</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ── HERO ───────────────────────────────────────────── -->
+<section class="hero" id="hero">
+  <span class="section-eyebrow reveal">Reporte privado · Junio 2026</span>
+  <h1 class="reveal" data-delay="1">
+    Tu canal de WhatsApp, listo para <span class="accent">monetizar con Channelad</span>.
+  </h1>
+  <p class="hero-lead reveal" data-delay="2">
+    Hemos auditado <strong>salma de diego jungle</strong> — tu comunidad de arte, ilustración y
+    lifestyle — y calculado los ingresos publicitarios que tu canal puede generar al conectarlo
+    a nuestro marketplace. Hoy esta audiencia genera 0 € en publicidad directa.
+  </p>
+
+  <div class="hero-stats">
+    <div class="stat reveal" data-delay="2">
+      <div class="stat-val purple">1</div>
+      <div class="stat-label">Canal auditado<br>Apto para monetizar</div>
+    </div>
+    <div class="stat reveal" data-delay="3">
+      <div class="stat-val text">16 K</div>
+      <div class="stat-label">Seguidores<br>Comunidad de arte y lifestyle</div>
+    </div>
+    <div class="stat reveal" data-delay="4">
+      <div class="stat-val green">60 → 140 €</div>
+      <div class="stat-label">Ingresos mensuales proyectados (marketplace)<br>Año 1 → Año 3</div>
+    </div>
+  </div>
+
+  <div class="hero-cta reveal" data-delay="5">
+    <a href="#cta" class="btn-primary">Reservar sesión de onboarding →</a>
+    <a href="#resumen" class="btn-secondary">Ver el análisis</a>
+  </div>
+
+  <div class="hero-meta">
+    <span><strong>Auditoría:</strong> 3 junio 2026</span>
+    <span><strong>Vigencia estimación:</strong> 90 días</span>
+    <span><strong>Confidencial</strong></span>
+  </div>
+</section>
+
+<!-- ── RESUMEN ────────────────────────────────────────── -->
+<section id="resumen">
+  <span class="section-eyebrow">Resumen ejecutivo</span>
+  <h2 class="section-title">Tienes algo que el dinero de marca busca: una comunidad que confía en ti.</h2>
+
+  <div class="summary-grid">
+    <div class="summary-text">
+      <p>
+        <strong>salma de diego jungle</strong> reúne a <strong>16.000 seguidoras</strong> en
+        torno a contenido artístico y personal — un canal que tu propia audiencia te pidió que
+        abrieras. En WhatsApp eso se traduce en una de las tasas de visualización más altas de
+        cualquier plataforma: el contenido llega directo, sin algoritmo de por medio.
+      </p>
+      <p>
+        <strong>Veredicto:</strong> el canal supera los criterios de monetización de Channelad y
+        es apto desde el primer día. No estás en un nicho de gran volumen y bajo valor — estás en
+        uno de <strong>alto vínculo</strong>, donde las marcas creativas pagan precio premium por
+        llegar a una audiencia que de verdad presta atención. Por timing — el marketplace abre
+        ahora — te invitamos a entrar como <strong>admin fundadora</strong>, una cohorte limitada
+        con condiciones que no estarán disponibles cuando la plataforma abra al público.
+      </p>
+      <p>
+        <strong>Tu vertical tiene demanda:</strong> plataformas de cursos creativos (Domestika,
+        Skillshare), marcas de material de arte (Posca, Faber-Castell, Royal Talens), papelería
+        premium (Moleskine) y lifestyle mantienen presupuestos activos para creadoras de arte e
+        ilustración en España. Hoy esa demanda no llega a tu canal porque no hay un intermediario
+        que conecte ambos lados. Channelad es ese intermediario.
+      </p>
+    </div>
+    <aside class="summary-side">
+      <h4>Tu monetización hoy → con Channelad</h4>
+      <div class="delta">
+        <span class="from">0 €</span>
+        <span class="to">60 €<span style="font-size:18px;color:var(--muted);font-weight:500"> /mes</span></span>
+      </div>
+      <p class="ctx">Proyección año 1, escenario base (2 posts patrocinados al mes). El ingreso por referidos de marca es adicional.</p>
+      <div class="breakdown">
+        <div class="breakdown-row"><span>Año 1 estimado</span><span>720 €</span></div>
+        <div class="breakdown-row"><span>Año 2 estimado</span><span>1.200 €</span></div>
+        <div class="breakdown-row"><span>Año 3 estimado</span><span>1.680 €</span></div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ── FUNDADOR ──────────────────────────────────────── -->
+<section id="fundador">
+  <span class="section-eyebrow">Programa Admin Fundador</span>
+  <h2 class="section-title">Beneficios reservados a las primeras creadoras de cada vertical.</h2>
+
+  <div class="founder-block">
+    <div class="founder-inner">
+      <span class="founder-tag">★ Cohorte limitada · 40 plazas globales</span>
+      <h2>Lo que recibes por entrar ahora.</h2>
+      <p>
+        Channelad arranca el marketplace este trimestre. Las primeras creadoras que firman reciben
+        condiciones que no estarán disponibles cuando la plataforma abra al público general.
+        Channelad no cobra a la creadora en ningún caso — la comisión la paga el anunciante. Lo que
+        cambia siendo fundadora es el acceso a herramientas, demanda y soporte:
+      </p>
+
+      <div class="benefits">
+        <div class="benefit">
+          <div class="benefit-icon">🛠</div>
+          <h4>3 meses gratis de herramientas Pro</h4>
+          <p>Analytics avanzado, audience insights, content studio y gestión del canal. Herramientas que el resto de creadoras tendrá que pagar cuando salgan al público.</p>
+        </div>
+        <div class="benefit">
+          <div class="benefit-icon">🎯</div>
+          <h4>Acceso prioritario a anunciantes</h4>
+          <p>Cuando llega una marca al vertical arte / creatividad / lifestyle, tu inventario es el primero matchado. Antes que cualquier creadora que entre después.</p>
+        </div>
+        <div class="benefit">
+          <div class="benefit-icon">🤝</div>
+          <h4>Onboarding 1-a-1 con el equipo fundador</h4>
+          <p>Vinculamos tu canal en directo contigo. Canal directo de soporte (no ticket genérico) durante toda la relación.</p>
+        </div>
+        <div class="benefit">
+          <div class="benefit-icon">★</div>
+          <h4>Monetiza los mails de marcas</h4>
+          <p>5 % recurrente sobre el GMV de cada anunciante que entre con tu código + 10 € de bienvenida para ellos. Cualquier marca que te contacte directo se convierte en ingreso pasivo.</p>
+        </div>
+        <div class="benefit">
+          <div class="benefit-icon">⭐</div>
+          <h4>Presencia destacada en el marketplace</h4>
+          <p>Tu canal aparece en el directorio de anunciantes como inventario destacado del vertical arte / lifestyle.</p>
+        </div>
+        <div class="benefit">
+          <div class="benefit-icon">🎤</div>
+          <h4>Voz en el roadmap del producto</h4>
+          <p>Sesión mensual con el equipo. Las features que pidas para WhatsApp y gestión de canal entran en cola prioritaria.</p>
+        </div>
+        <div class="benefit">
+          <div class="benefit-icon">🔓</div>
+          <h4>Sin exclusividad ni lock-in</h4>
+          <p>Puedes seguir monetizando por afiliación, brand deals directos o cualquier otra vía. Channelad solo cobra al anunciante cuando vende.</p>
+        </div>
+        <div class="benefit">
+          <div class="benefit-icon">⏳</div>
+          <h4>Plazas limitadas</h4>
+          <p>El programa cierra al alcanzar el cap de admins fundadores. Reservar tu plaza congela las condiciones durante 30 días.</p>
+        </div>
+      </div>
+
+      <div class="founder-footer">
+        <div class="slots">
+          <div><strong>Plazas disponibles del programa fundador</strong></div>
+          <div class="slots-bar"><div class="slots-bar-fill" data-fill="65"></div></div>
+          <div style="font-size:11.5px;color:#8B9EBF;margin-top:6px">Cohorte abierta · cupo limitado</div>
+        </div>
+        <a href="#cta" class="btn-primary" style="background:#25D366;box-shadow:0 8px 24px rgba(37,211,102,0.30)">Reservar mi plaza →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── INVENTARIO / TU CANAL ────────────────────────────── -->
+<section id="inventario">
+  <span class="section-eyebrow">Tu canal, evaluado</span>
+  <h2 class="section-title">El análisis, métrica a métrica.</h2>
+  <p class="section-lead">
+    Audiencia verificada sobre datos públicos, score asignado por nuestro motor de pricing y
+    proyección económica conservadora a año 1. Las cifras se recalibran al alza una vez vinculado
+    el canal y medido el engagement real.
+  </p>
+
+  <div class="country-summary">
+    <span class="country-flag">🇪🇸</span>
+    <div>
+      <div class="country-name">España · Arte &amp; lifestyle</div>
+      <div style="font-size:12px;color:var(--muted)">16.000 seguidores · WhatsApp</div>
+    </div>
+    <div class="country-meta">
+      <span><strong>30 €</strong> / post (año 1)</span>
+      <span><strong>720 €</strong> / año</span>
+    </div>
+  </div>
+
+  <div class="theme-group">
+    <div class="theme-header"><span class="theme-icon">🎨</span><span class="theme-name">Arte · Ilustración · Lifestyle</span><span class="theme-meta">1 canal · 16.000 seguidores</span></div>
+    <div class="channels-grid">
+      <div class="channel">
+        <div class="channel-head">
+          <div class="channel-info">
+            <div class="channel-name">salma de diego jungle 💋</div>
+            <div class="channel-meta">
+              <span class="pill apto">✓ Apto</span>
+              <span class="pill followers">16.000 seguidores</span>
+              <span class="pill score silver">★ Score 47 · Silver (al vincular)</span>
+              <span class="pill growth">↗ Comunidad muy fiel</span>
+            </div>
+          </div>
+          <div class="channel-link"><a href="https://whatsapp.com/channel/0029VbC43BBCRs1qd5zP4k0P">whatsapp.com/channel/0029VbC43BBCRs1qd5zP4k0P</a></div>
+        </div>
+        <div class="channel-metrics">
+          <div class="metric"><div class="metric-label">Reach / post</div><div class="metric-val">8,8 K</div><div class="metric-sub">audiencia efectiva</div></div>
+          <div class="metric"><div class="metric-label">Tarifa CPM pleno</div><div class="metric-val muted">100 €</div><div class="metric-sub">marketplace pleno</div></div>
+          <div class="metric"><div class="metric-label">Año 1 / post</div><div class="metric-val green">30 €</div><div class="metric-sub">ocupación 30%</div></div>
+          <div class="metric"><div class="metric-label">Mensual @2 posts</div><div class="metric-val green">60 €</div><div class="metric-sub">≈ 720 €/año</div></div>
+        </div>
+        <div class="note-box">
+          <strong>Lectura honesta:</strong> con 16 K seguidoras el ingreso por post estándar es
+          modesto, pero hay dos palancas que lo multiplican y no aparecen en estas cifras
+          conservadoras. (1) <strong>El formato:</strong> una mención orgánica integrada en tu
+          contenido vale ×1,5 y un post fijado 24-48 h vale ×2-×3 sobre la tarifa base. (2)
+          <strong>El reach real:</strong> proyectamos un 55 % de visualización; los canales
+          personales con comunidad fiel como el tuyo suelen ver 60-80 % real en WhatsApp, lo que
+          sube la tarifa al medirlo tras la vinculación.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SCORING ─────────────────────────────────────────── -->
+<section id="scoring">
+  <span class="section-eyebrow">Sistema de scoring</span>
+  <h2 class="section-title">Cómo el marketplace puntúa tu canal.</h2>
+  <p class="section-lead">
+    Nuestro motor de pricing asigna a cada canal una puntuación 0-100 que determina su CPM en el
+    marketplace. A mayor puntuación, mayor precio cobra por cada post. La puntuación se compone
+    de cinco indicadores y se recalcula automáticamente cada noche con datos reales del canal.
+  </p>
+
+  <div class="tier-grid">
+    <div class="tier-card bronze">
+      <div class="tier-name">BRONZE</div>
+      <div class="tier-range">&lt; 41</div>
+      <div class="tier-current">Hoy · solo datos públicos</div>
+    </div>
+    <div class="tier-card silver">
+      <div class="tier-name">SILVER</div>
+      <div class="tier-range">41 — 60</div>
+      <div class="tier-current">Tu canal al vincular</div>
+    </div>
+    <div class="tier-card gold">
+      <div class="tier-name">GOLD</div>
+      <div class="tier-range">61 — 79</div>
+      <div class="tier-current">Objetivo 6 meses</div>
+    </div>
+    <div class="tier-card elite">
+      <div class="tier-name">ELITE</div>
+      <div class="tier-range">≥ 80</div>
+      <div class="tier-current">Top creators del marketplace</div>
+    </div>
+  </div>
+
+  <h3 style="font-size:18px;margin:36px 0 14px">Trayectoria de tu canal — al vincular y a 6 meses</h3>
+  <div class="score-table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Canal</th>
+          <th class="r">Followers</th>
+          <th class="r">Hoy</th>
+          <th class="r">Al vincular</th>
+          <th class="r">A 6 meses</th>
+          <th class="r">CPM al vincular</th>
+          <th class="r">CPM 6 meses</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>🇪🇸 salma de diego jungle 💋</td><td class="r">16 K</td><td class="r"><span class="score-cell" style="color:var(--muted)"><span class="score-dot dot-bronze"></span>38</span></td><td class="r"><span class="score-cell"><span class="score-dot dot-silver"></span>47 Silver</span></td><td class="r"><span class="score-cell" style="color:#78350F"><span class="score-dot dot-gold"></span>66 Gold</span></td><td class="r" style="color:var(--green-dark);font-family:Sora;font-weight:700">18,4 €</td><td class="r" style="color:var(--green-dark);font-family:Sora;font-weight:700">28,7 €</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="score-bars">
+    <div class="score-bar-row">
+      <div class="score-bar-label">Audiencia (16 K activos)</div>
+      <div class="score-bar-track"><div class="score-bar-fill" style="width:72%"></div></div>
+      <div class="score-bar-val">Sólido</div>
+    </div>
+    <div class="score-bar-row">
+      <div class="score-bar-label">Engagement (comunidad fiel)</div>
+      <div class="score-bar-track"><div class="score-bar-fill" style="width:80%"></div></div>
+      <div class="score-bar-val">Alto*</div>
+    </div>
+    <div class="score-bar-row">
+      <div class="score-bar-label">Nicho (demanda de marcas)</div>
+      <div class="score-bar-track"><div class="score-bar-fill" style="width:65%"></div></div>
+      <div class="score-bar-val">Bueno</div>
+    </div>
+    <div class="score-bar-row">
+      <div class="score-bar-label">Plataforma (WhatsApp · open rate alto)</div>
+      <div class="score-bar-track"><div class="score-bar-fill" style="width:90%"></div></div>
+      <div class="score-bar-val">Óptimo</div>
+    </div>
+  </div>
+
+  <p style="font-size:13.5px;color:var(--muted);margin-top:18px;max-width:680px;line-height:1.65">
+    <strong style="color:var(--text)">Lectura:</strong> hoy, sólo con datos públicos, tu canal
+    puntúa <strong>38</strong> (Bronze) — no porque le falte audiencia, sino porque desde fuera no
+    podemos medir tu engagement real. Al vincular el canal y verificar followers y reach, entra
+    directamente en tier <strong>Silver</strong>. A 6 meses, con campañas mostrando el engagement
+    estándar del nicho, sube a tier <strong>Gold</strong>, donde el CPM dinámico que cobra el canal
+    alcanza los <strong>28-29 €</strong>. <em>*El engagement se confirma al vincular; las
+    proyecciones económicas de este reporte usan una estimación conservadora por debajo de este
+    rango.</em>
+  </p>
+</section>
+
+<!-- ── PROYECCION ────────────────────────────────────── -->
+<section id="proyeccion">
+  <span class="section-eyebrow">Proyección</span>
+  <h2 class="section-title">La trayectoria realista de tu canal.</h2>
+  <p class="section-lead">
+    Tres escenarios proyectados según una cadencia conservadora de 2 posts patrocinados al mes.
+    La ocupación del marketplace sube progresivamente conforme entran más anunciantes verificados
+    al directorio. No incluye el ingreso adicional por referidos de marca (sección siguiente).
+  </p>
+
+  <div class="scenarios">
+    <div class="scen featured">
+      <div class="scen-year">Año 1</div>
+      <div class="scen-occ">Ocupación marketplace: 30%</div>
+      <div class="scen-monthly">60 <span class="currency">€</span></div>
+      <div class="scen-monthly-label">por mes</div>
+      <div class="scen-annual">
+        <div class="scen-annual-label">Anual estimado</div>
+        <div class="scen-annual-val">720 €</div>
+      </div>
+    </div>
+    <div class="scen">
+      <div class="scen-year">Año 2</div>
+      <div class="scen-occ">Ocupación marketplace: 50%</div>
+      <div class="scen-monthly">100 <span class="currency">€</span></div>
+      <div class="scen-monthly-label">por mes</div>
+      <div class="scen-annual">
+        <div class="scen-annual-label">Anual estimado</div>
+        <div class="scen-annual-val">1.200 €</div>
+      </div>
+    </div>
+    <div class="scen">
+      <div class="scen-year">Año 3</div>
+      <div class="scen-occ">Ocupación marketplace: 70%</div>
+      <div class="scen-monthly">140 <span class="currency">€</span></div>
+      <div class="scen-monthly-label">por mes</div>
+      <div class="scen-annual">
+        <div class="scen-annual-label">Anual estimado</div>
+        <div class="scen-annual-val">1.680 €</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Crecimiento mensual proyectado</div>
+    <div class="chart-subtitle">Ingresos €/mes — escenario base con 2 posts patrocinados al mes</div>
+    <div class="chart">
+      <svg viewBox="0 0 720 240" preserveAspectRatio="none" style="width:100%;height:100%">
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.55"/>
+            <stop offset="100%" stop-color="#7C3AED" stop-opacity="0.02"/>
+          </linearGradient>
+          <linearGradient id="g2" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#7C3AED"/>
+            <stop offset="100%" stop-color="#25D366"/>
+          </linearGradient>
+        </defs>
+        <!-- grid -->
+        <line x1="0" y1="40" x2="720" y2="40" stroke="#E5E9F0" stroke-dasharray="3,5"/>
+        <line x1="0" y1="100" x2="720" y2="100" stroke="#E5E9F0" stroke-dasharray="3,5"/>
+        <line x1="0" y1="160" x2="720" y2="160" stroke="#E5E9F0" stroke-dasharray="3,5"/>
+        <line x1="0" y1="220" x2="720" y2="220" stroke="#D0D7DE"/>
+        <!-- labels y axis -->
+        <text x="10" y="44" font-size="10" fill="#8B949E" font-family="Inter">160 €</text>
+        <text x="10" y="104" font-size="10" fill="#8B949E" font-family="Inter">120 €</text>
+        <text x="14" y="164" font-size="10" fill="#8B949E" font-family="Inter">80 €</text>
+        <text x="14" y="216" font-size="10" fill="#8B949E" font-family="Inter">40 €</text>
+        <!-- area: month 1 (60€) → month 36 (140€) -->
+        <path d="
+          M 50 175 L 100 169 L 150 163 L 200 156 L 250 150 L 300 144 L 350 138 L 400 131 L 450 125 L 500 119 L 550 113 L 600 106 L 650 100 L 690 95
+          L 690 220 L 50 220 Z
+        " fill="url(#g1)"/>
+        <path d="
+          M 50 175 L 100 169 L 150 163 L 200 156 L 250 150 L 300 144 L 350 138 L 400 131 L 450 125 L 500 119 L 550 113 L 600 106 L 650 100 L 690 95
+        " stroke="url(#g2)" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- Dots at year markers -->
+        <circle cx="50"  cy="175" r="5" fill="#7C3AED"/>
+        <circle cx="290" cy="145" r="5" fill="#9D60F8"/>
+        <circle cx="600" cy="106" r="5" fill="#25D366"/>
+        <!-- Year labels -->
+        <text x="40"  y="240" font-size="11" fill="#5B6573" font-family="Inter" font-weight="600">Mes 1</text>
+        <text x="270" y="240" font-size="11" fill="#5B6573" font-family="Inter" font-weight="600">Mes 12 · 60 €</text>
+        <text x="560" y="240" font-size="11" fill="#5B6573" font-family="Inter" font-weight="600">Mes 24 · 100 €</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ── ACTIVACION ────────────────────────────────────── -->
+<section id="activacion">
+  <span class="section-eyebrow">Cómo activamos tu canal</span>
+  <h2 class="section-title">De cero a marketplace en menos de 30 minutos.</h2>
+  <p class="section-lead">
+    No tienes que migrar nada. WhatsApp sigue siendo tuyo; Channelad solo se conecta para
+    verificar audiencia y proponerte campañas que tú apruebas antes de publicar.
+  </p>
+
+  <div class="timeline">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-title">Registro en channelad.io</div>
+      <div class="step-desc">Te creamos cuenta de creadora y enlazamos tu canal mediante el flujo seguro de vinculación de WhatsApp (Baileys + QR). Una vez verificado, el canal aparece en tu panel "Mis canales".</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-title">Recalibración de tarifas con datos reales</div>
+      <div class="step-desc">Las cifras de este reporte son una estimación conservadora. Una vez vinculado el canal obtenemos métricas reales — followers verificados, posts/mes, engagement, reach efectivo — y el motor de pricing recalibra automáticamente cada noche. Si tu canal puntúa en el top 25 % del nicho (probable dada la fidelidad de tu comunidad), el precio sube respecto al estimado aquí.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-title">Activación del marketplace</div>
+      <div class="step-desc">Tu canal aparece en el directorio público. Anunciantes verificados envían propuestas que aceptas o rechazas con un click. Tu vertical tiene marcas activas: plataformas de cursos creativos (Domestika, Skillshare), material de arte (Posca, Faber-Castell, Royal Talens), papelería premium (Moleskine) y lifestyle.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-title">Wallet con Stripe + retiro a tu cuenta SEPA</div>
+      <div class="step-desc">Cada campaña aceptada genera un cobro pre-autorizado al anunciante (paga antes de publicar). Tras publicar y verificar entrega, el neto se acumula en tu wallet Channelad. Retiras a tu cuenta SEPA cuando quieras desde el panel (mínimo 10 €/retiro, sin coste de plataforma).</div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-title">Seguimiento y reporting</div>
+      <div class="step-desc">Panel de métricas con impresiones, CTR, ingresos por formato/periodo. Reportes mensuales descargables para tu contabilidad.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── REFERIDOS ─────────────────────────────────────── -->
+<section id="referidos">
+  <span class="section-eyebrow">Sistema de referidos</span>
+  <h2 class="section-title">Las marcas ya te escriben por DM — ahora las puedes monetizar.</h2>
+
+  <div class="referral">
+    <div class="referral-inner">
+      <span class="referral-tag">★ Activo desde el día 1</span>
+      <h2>Convierte cada mensaje de una marca en un ingreso recurrente.</h2>
+      <p>
+        Con una comunidad fiel de 16.000 seguidoras en un nicho creativo, recibes mensajes de
+        marcas que quieren colaborar contigo de forma directa — material de arte, cursos creativos,
+        papelería, lifestyle. Hoy, gestionar esos contactos es trabajo gratis: tarifas, facturas,
+        validar el contenido, perseguir pagos. Con Channelad, le pasas tu código a la marca → ella
+        se registra como anunciante, recibe <strong style="color:#fff">10 €</strong> en créditos de
+        bienvenida para probar la plataforma, y tú cobras <strong style="color:#25D366">5 %</strong>
+        recurrente sobre todo lo que gaste en su campaña. La plataforma gestiona la facturación,
+        el cobro y el pago. Tu único trabajo es decir "regístrate con mi código".
+      </p>
+      <div class="ref-kpis">
+        <div class="ref-kpi">
+          <div class="ref-kpi-val green">5 %</div>
+          <div class="ref-kpi-label"><strong style="color:#fff">Comisión recurrente</strong> sobre cada euro que gaste el anunciante referido — mientras siga publicando campañas, sin tope ni caducidad.</div>
+        </div>
+        <div class="ref-kpi">
+          <div class="ref-kpi-val purple">10 €</div>
+          <div class="ref-kpi-label"><strong style="color:#fff">Bonus de bienvenida</strong> en créditos de campaña para cada anunciante que entre con tu código — reduce su fricción para probar la plataforma.</div>
+        </div>
+        <div class="ref-kpi">
+          <div class="ref-kpi-val white">Power</div>
+          <div class="ref-kpi-label"><strong style="color:#fff">Tier desbloqueado el día 1</strong> como fundadora. Conviertes hasta el 50 % de tus créditos acumulados a cash sin esperar umbrales.</div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:12px;padding:18px 22px;margin-top:8px">
+        <div style="font-size:13px;color:#A6B5CC;line-height:1.65">
+          <strong style="color:#F0F4FF;display:block;margin-bottom:6px">Ejemplo concreto</strong>
+          Domestika te escribe pidiendo una campaña de 800 € para promocionar sus cursos de
+          ilustración. Le pasas tu código de referido. Domestika se registra como anunciante en
+          Channelad, recibe <strong style="color:#25D366">10 € en créditos</strong> de bienvenida
+          y lanza la campaña. Tú cobras <strong style="color:#25D366">40 € de comisión de referido</strong>
+          (5 % de los 800 €) <em>además</em> del pago habitual por publicar el post en tu canal.
+          Si Domestika repite cada mes, repites comisión cada mes.
+        </div>
+      </div>
+      <p style="font-size:12.5px;color:#8B9EBF;max-width:none;margin-top:18px">
+        <strong style="color:#F0F4FF">Progresión de tiers:</strong> Normal acumula créditos sin
+        convertir. <strong>Power</strong> (5 referidos o 5 K€ GMV) habilita 50 % credit-to-cash.
+        <strong>Partner</strong> (20 referidos o 20 K€ GMV) habilita 100 %. Aplica también a
+        otras creadoras de WhatsApp que traigas a Channelad.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ───────────────────────────────────────────── -->
+<section id="cta">
+  <div class="cta-block">
+    <div class="cta-inner">
+      <h2>Reservamos sesión de onboarding</h2>
+      <p>
+        30 minutos para registrarte, vincular tu canal en directo y publicarlo al marketplace.
+        Al terminar la sesión empezamos a contactar a los primeros anunciantes del vertical
+        arte / creatividad / lifestyle para tu inventario.
+      </p>
+      <div class="cta-actions">
+        <a href="mailto:contact@channelad.io?subject=Sesi%C3%B3n%20de%20onboarding%20admin%20fundador%20%E2%80%94%20salma%20de%20diego%20jungle&amp;body=Hola%2C%20me%20interesa%20reservar%20mi%20plaza%20del%20programa%20Admin%20Fundador%20de%20Channelad%20para%20mi%20canal%20de%20WhatsApp.%20%C2%BFCu%C3%A1ndo%20podemos%20agendar%20la%20sesi%C3%B3n%3F" class="btn-primary">Agendar por email →</a>
+        <a href="https://channelad.io" class="btn-secondary">channelad.io</a>
+      </div>
+      <div class="cta-contact">
+        Contacto directo: <a href="mailto:contact@channelad.io">contact@channelad.io</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ── FOOTER + LEGAL ───────────────────────────────────── -->
+<footer>
+  <div class="inner">
+    <div class="legal-block">
+      <h4>Aviso legal y limitación de responsabilidad</h4>
+      <p>
+        <strong>1. Naturaleza del documento.</strong> Este reporte es un análisis comercial
+        privado entregado al destinatario nombrado y constituye una proyección orientativa
+        de potencial de monetización de un (1) canal de WhatsApp. No representa una oferta
+        vinculante, garantía de ingresos ni compromiso contractual de Channelad ni de la
+        sociedad MICHI SOLUCIONS S.L. (en constitución).
+      </p>
+      <p>
+        <strong>2. Estimaciones y supuestos.</strong> Todas las cifras económicas, puntuaciones
+        de canal, proyecciones de ingresos y CPMs incluidos son estimaciones basadas en datos
+        públicos disponibles a la fecha de emisión y en supuestos conservadores de mercado.
+        Los resultados reales pueden diferir significativamente al alza o a la baja en función
+        de variables fuera del control de Channelad — entre otras: la demanda real de
+        anunciantes, el engagement medido tras la vinculación del canal, la evolución del
+        marketplace, cambios regulatorios en WhatsApp/Meta, el rendimiento del canal y las
+        decisiones de la propia admin sobre cadencia, precios y aceptación de campañas.
+      </p>
+      <p>
+        <strong>3. Datos de audiencia.</strong> Los recuentos de seguidores y atributos del canal
+        utilizados proceden de información pública visible en la página del canal de WhatsApp a la
+        fecha de auditoría. Channelad no garantiza la exactitud, integridad ni permanencia de
+        dichos datos. La vinculación efectiva del canal vía Baileys puede revelar métricas
+        distintas (al alza o a la baja) que prevalecerán sobre las contenidas en este reporte.
+      </p>
+      <p>
+        <strong>4. Programa Admin Fundador.</strong> Las condiciones y beneficios del programa
+        están sujetos a los términos generales del servicio y al contrato específico que en su
+        caso se firme. Channelad se reserva el derecho a modificar, ampliar o discontinuar el
+        programa, ajustar el cap de plazas, modificar los beneficios incluidos (incluyendo
+        sin limitación: duración del acceso a herramientas Pro, criterios de prioridad de
+        matching con anunciantes, condiciones del programa de referidos) o cerrar la cohorte
+        anticipadamente sin notificación previa. La reserva de plaza de 30 días no garantiza
+        condiciones económicas distintas a las que rijan en el momento de la firma efectiva
+        del contrato.
+      </p>
+      <p>
+        <strong>5. Modelo de comisiones y pagos.</strong> Channelad no cobra comisión a la
+        creadora; la comisión la abona el anunciante sobre el precio neto. Los pagos a la
+        creadora se realizan vía Stripe Connect a una cuenta bancaria SEPA verificada,
+        previa retención del importe en wallet hasta la verificación de entrega de la campaña.
+        Stripe puede aplicar sus propias tarifas estándar al procesar transferencias. Los
+        plazos de payout (1-3 días hábiles) son orientativos y dependen de Stripe y del banco
+        receptor. Los importes mínimos de retiro y otras condiciones operativas pueden
+        variar; consultar las condiciones vigentes en la plataforma.
+      </p>
+      <p>
+        <strong>6. Sistema de scoring.</strong> Las puntuaciones (Bronze/Silver/Gold/Elite) y
+        los CPMs dinámicos asociados son calculados por el motor de pricing de Channelad y
+        pueden recalibrarse en cualquier momento en función del rendimiento real del canal y
+        de los benchmarks por nicho. Las proyecciones "al vincular" y "a 6 meses" asumen
+        condiciones promedio del nicho y no garantizan que el canal alcance dichos tiers.
+      </p>
+      <p>
+        <strong>7. Marcas mencionadas.</strong> Las menciones a Domestika, Skillshare, Posca,
+        Faber-Castell, Royal Talens, Moleskine y otras marcas son ilustrativas del tipo de
+        anunciantes que opera en el vertical arte / creatividad / lifestyle a nivel general.
+        No implican relación comercial existente entre dichas marcas y Channelad ni compromiso
+        de que campañas concretas con dichas marcas vayan a materializarse en el canal del
+        destinatario.
+      </p>
+      <p>
+        <strong>8. Confidencialidad y propiedad intelectual.</strong> Este documento contiene
+        análisis comercial confidencial preparado a medida para el destinatario. Su
+        contenido (cifras, metodología, identificadores de canal, condiciones del programa)
+        no puede reproducirse, distribuirse a terceros, publicarse total o parcialmente, ni
+        utilizarse para fines distintos a la evaluación de la propuesta de Channelad sin
+        consentimiento expreso por escrito de Channelad.
+      </p>
+      <p>
+        <strong>9. Cumplimiento normativo.</strong> El destinatario es responsable de cumplir
+        las normas aplicables a publicidad, etiquetado de contenido patrocinado, protección
+        de datos (RGPD), fiscalidad de los ingresos generados y términos de servicio de
+        WhatsApp/Meta en su jurisdicción de operación. Channelad no presta asesoramiento
+        jurídico, fiscal ni contable.
+      </p>
+      <p>
+        <strong>10. Vigencia.</strong> Las cifras y condiciones de este reporte tienen una
+        vigencia estimada de 90 días desde la fecha de emisión. Transcurrido ese plazo, los
+        datos pueden requerir actualización y las condiciones del programa fundador pueden
+        haber cambiado.
+      </p>
+      <p style="margin-top:14px;font-size:11px;color:var(--muted2)">
+        Emitido el <strong>3 de junio de 2026</strong>. Channelad · MICHI SOLUCIONS S.L. (en
+        constitución) · contact@channelad.io · channelad.io
+      </p>
+    </div>
+    <div class="footer-meta">
+      <span>© 2026 Channelad — Reporte privado, no transferible</span>
+      <span><a href="https://channelad.io">channelad.io</a> · <a href="mailto:contact@channelad.io">contact@channelad.io</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Slots bar fill animation
+  (function(){
+    const bar = document.querySelector('.slots-bar-fill');
+    if (!bar) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          bar.style.width = bar.dataset.fill + '%';
+          observer.disconnect();
+        }
+      });
+    }, { threshold: 0.3 });
+    observer.observe(bar);
+  })();
+
+  // Reveal on scroll
+  (function(){
+    if (!('IntersectionObserver' in window)) return;
+    const elements = document.querySelectorAll('section h2, section .section-lead, .channel, .scen, .benefit, .tier-card');
+    elements.forEach(el => el.style.opacity = '0');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.style.transition = 'opacity .6s ease, transform .6s ease';
+          e.target.style.opacity = '1';
+          e.target.style.transform = 'translateY(0)';
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    elements.forEach(el => {
+      el.style.transform = 'translateY(12px)';
+      observer.observe(el);
+    });
+  })();
+
+  // Smooth nav highlighting
+  (function(){
+    const links = document.querySelectorAll('.nav-links a');
+    const sections = Array.from(links).map(l => document.querySelector(l.getAttribute('href'))).filter(Boolean);
+    function onScroll() {
+      const y = window.scrollY + 120;
+      let active = null;
+      sections.forEach(s => { if (s.offsetTop <= y) active = s; });
+      links.forEach(l => {
+        const match = active && l.getAttribute('href') === '#' + active.id;
+        l.style.color = match ? 'var(--text)' : '';
+        l.style.fontWeight = match ? '700' : '';
+      });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+</script>
+
+</body>
+</html>
