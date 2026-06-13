@@ -1,0 +1,92 @@
+/* Variable weight axis only. @fontsource emits per-subset @font-face with
+   unicode-range, so the browser fetches just the latin woff2 for Spanish text. */
+@import '@fontsource-variable/fraunces/wght.css';
+@import '@fontsource-variable/inter/wght.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Cinematic dark palette — warm near-black, olive accents, amber CTA
+     (Amazon message-match). Neutral store brand, NOT ChannelAd. */
+  --bg: #14130f;          /* warm near-black */
+  --surface: #1d1a15;     /* cards */
+  --paper: #f4efe4;       /* testimonial "paper" tickets */
+  --ink: #f2ede3;         /* main text (cream) */
+  --ink-soft: #a59e8e;    /* secondary text */
+  --brand: #aab873;       /* light olive (accents on dark) */
+  --brand-deep: #45512d;  /* deep olive (block backgrounds) */
+  --accent: #c9d69a;
+  --cta: #f2a33c;         /* warm amber */
+  --cta-ink: #2b2b26;
+  --star: #f5a623;
+  --border: #2c2922;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: '"Inter Variable"', Inter, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3 {
+    font-family: '"Fraunces Variable"', Fraunces, Georgia, serif;
+    font-optical-sizing: auto;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--brand);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+@layer utilities {
+  /* Scroll-reveal: elements start shifted+transparent, .in eases them home.
+     Stagger via inline transitionDelay. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* Big scene words ("Pulveriza.") rise with a touch of blur-out */
+  .reveal-word {
+    opacity: 0;
+    transform: translateY(40px) scale(0.97);
+    filter: blur(6px);
+    transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1), filter 0.9s ease;
+  }
+  .reveal-word.in { opacity: 1; transform: none; filter: none; }
+
+  /* CTA heartbeat on the final block */
+  @keyframes pulse-cta {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(242, 163, 60, 0.45); }
+    50% { box-shadow: 0 0 0 14px rgba(242, 163, 60, 0); }
+  }
+  .pulse-cta { animation: pulse-cta 2.2s ease-in-out infinite; }
+
+  /* Soft olive glow behind hero content */
+  .hero-glow {
+    background: radial-gradient(60% 50% at 50% 42%, rgba(170, 184, 115, 0.16), transparent 70%);
+  }
+}
+
+/* Respect reduced-motion: kill transitions/animations, show content. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .reveal, .reveal-word { opacity: 1 !important; transform: none !important; filter: none !important; }
+}
