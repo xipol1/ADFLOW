@@ -1,0 +1,85 @@
+{
+  "documents": {
+    "acuerdo-confidencialidad": {
+      "slug": "acuerdo-confidencialidad",
+      "titulo": "Acuerdo de Confidencialidad (NDA)",
+      "version": "956fbfe94307",
+      "hash": "956fbfe94307c7454a0a682420a074bf744620309392448a9665b005cbb735f5",
+      "url": "/legal/acuerdo-confidencialidad.html"
+    },
+    "acuerdo-encargo-tratamiento": {
+      "slug": "acuerdo-encargo-tratamiento",
+      "titulo": "Acuerdo de Encargo de Tratamiento de Datos (DPA)",
+      "version": "edf620d996cc",
+      "hash": "edf620d996cc1609ed14d3c9e02dbc95c07abdb9e0d7f778606c7a3017a88961",
+      "url": "/legal/acuerdo-encargo-tratamiento.html"
+    },
+    "aviso-legal": {
+      "slug": "aviso-legal",
+      "titulo": "Aviso Legal",
+      "version": "91b7adebd4cc",
+      "hash": "91b7adebd4cca7518e212e58c55534d711fcc60094c849a3e523d463b7d1a994",
+      "url": "/legal/aviso-legal.html"
+    },
+    "condiciones-anunciante": {
+      "slug": "condiciones-anunciante",
+      "titulo": "Condiciones Específicas del Anunciante",
+      "etiqueta": "Condiciones del Anunciante",
+      "version": "300da7a81e72",
+      "hash": "300da7a81e729aefef36ebeebde8ecaab88c2452e9b0a66608a65e18176fb852",
+      "url": "/legal/condiciones-anunciante.html"
+    },
+    "condiciones-contratacion": {
+      "slug": "condiciones-contratacion",
+      "titulo": "Condiciones de Contratación",
+      "etiqueta": "Condiciones de Contratación",
+      "version": "9ea9c3e063ae",
+      "hash": "9ea9c3e063ae50bdf29fcde210626706d17646cce10ade4cb11a49605186fce6",
+      "url": "/legal/condiciones-contratacion.html"
+    },
+    "condiciones-creador": {
+      "slug": "condiciones-creador",
+      "titulo": "Condiciones Específicas del Creador/Admin",
+      "etiqueta": "Condiciones del Creador (incl. titularidad del canal)",
+      "version": "c176098b605b",
+      "hash": "c176098b605bd2621743aa23c8e688e3dc503e9a435afa73769211ea0957c67d",
+      "url": "/legal/condiciones-creador.html"
+    },
+    "politica-cookies": {
+      "slug": "politica-cookies",
+      "titulo": "Política de Cookies",
+      "version": "aa6599a5a759",
+      "hash": "aa6599a5a759bc8600501d7a6249646dcb63efefd50344ad1a80e976366e3750",
+      "url": "/legal/politica-cookies.html"
+    },
+    "politica-privacidad": {
+      "slug": "politica-privacidad",
+      "titulo": "Política de Privacidad - Rafa Ferrer Castells",
+      "etiqueta": "Política de Privacidad",
+      "version": "e431dc02fcf3",
+      "hash": "e431dc02fcf363f6d3de23d36bc45ff1193aaada8228165e0646bf35327e9675",
+      "url": "/legal/politica-privacidad.html"
+    },
+    "terminos-condiciones": {
+      "slug": "terminos-condiciones",
+      "titulo": "Términos y Condiciones de Uso",
+      "etiqueta": "Términos y Condiciones de uso",
+      "version": "e1c4b210aab3",
+      "hash": "e1c4b210aab310c6b2998227c0541d62a3fcd28b92bd57d88aa199577fe8acab",
+      "url": "/legal/terminos-condiciones.html"
+    }
+  },
+  "required": {
+    "creator": [
+      "terminos-condiciones",
+      "condiciones-creador",
+      "politica-privacidad"
+    ],
+    "advertiser": [
+      "terminos-condiciones",
+      "condiciones-contratacion",
+      "condiciones-anunciante",
+      "politica-privacidad"
+    ]
+  }
+}

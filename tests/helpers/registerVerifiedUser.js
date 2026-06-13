@@ -10,11 +10,20 @@
 // to the Usuario document after registro and before login — the JWT issued
 // at login will then include `emailVerificado: true`.
 const request = require('supertest');
+const legalConsent = require('../../services/legalConsent');
 
 async function registerVerifiedUser(app, { email, password, nombre, role, withFiscal = true, subscriptionPlan = null } = {}) {
+  // Registration now enforces clickwrap acceptance of the role's required legal
+  // documents. Mirror a real signup by sending the consents for the effective
+  // role (the controller defaults anything but 'creator' to 'advertiser').
+  const effectiveRole = ['creator', 'advertiser'].includes(role) ? role : 'advertiser';
+  const consents = legalConsent
+    .requiredDocsForRole(effectiveRole)
+    .map((d) => ({ slug: d.slug, version: d.version }));
+
   const regRes = await request(app)
     .post('/api/auth/registro')
-    .send({ email, password, nombre, role });
+    .send({ email, password, nombre, role, consents });
 
   if (regRes.status === 503) {
     throw new Error('registerVerifiedUser: DB unavailable (503) — MMS should be wired by jest.setup-worker.js');
