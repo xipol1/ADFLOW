@@ -164,17 +164,19 @@ async function verifyAdminAccess({ channelId }) {
 
   // For channels (newsletters)
   if (chat.isChannel) {
-    // Check if we have admin role in the channel
-    const admins = chat.participants?.filter(p =>
-      p.isAdmin || p.isSuperAdmin
-    ) || [];
-    const amIAdmin = admins.some(a => a.id._serialized === myNumber);
+    // A wweb Channel exposes NO `participants` array (that field only exists on
+    // groups via groupMetadata). The viewer's own role lives in
+    // channelMetadata.membershipType — 'owner' | 'admin' | 'subscriber', and it
+    // comes back LOWERCASE. Owning OR admin-ing the channel both grant posting.
+    const role = String(chat.channelMetadata?.membershipType || '').toLowerCase();
+    const amIAdmin = role === 'owner' || role === 'admin';
     return {
       isAdmin: amIAdmin,
       channelId,
       myNumber,
+      role,
       permissions: amIAdmin ? ['post', 'read', 'manage'] : [],
-      totalAdmins: admins.length,
+      totalAdmins: null, // not exposed by WhatsApp for channels
     };
   }
 
