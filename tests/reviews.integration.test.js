@@ -3,6 +3,10 @@ process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh
 
 const request = require('supertest');
 const app = require('../app');
+const legalConsent = require('../services/legalConsent');
+const consentsFor = (role) => legalConsent
+  .requiredDocsForRole(role === 'creator' ? 'creator' : 'advertiser')
+  .map((d) => ({ slug: d.slug, version: d.version }));
 
 describe('Reviews integration — /api/reviews', () => {
   const uniqueId = Date.now();
@@ -20,7 +24,7 @@ describe('Reviews integration — /api/reviews', () => {
     // Register + login advertiser
     const advRes = await request(app)
       .post('/api/auth/registro')
-      .send({ email: advertiserEmail, password, nombre: 'Review Advertiser', role: 'advertiser' });
+      .send({ email: advertiserEmail, password, nombre: 'Review Advertiser', role: 'advertiser', consents: consentsFor('advertiser') });
     if (advRes.status === 503) return;
     const advLogin = await request(app)
       .post('/api/auth/login')
@@ -31,7 +35,7 @@ describe('Reviews integration — /api/reviews', () => {
     // Register + login creator
     const creRes = await request(app)
       .post('/api/auth/registro')
-      .send({ email: creatorEmail, password, nombre: 'Review Creator', role: 'creator' });
+      .send({ email: creatorEmail, password, nombre: 'Review Creator', role: 'creator', consents: consentsFor('creator') });
     if (creRes.status === 503) return;
     const creLogin = await request(app)
       .post('/api/auth/login')

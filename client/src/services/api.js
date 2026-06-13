@@ -226,6 +226,18 @@ class ApiService {
   }
 
   /**
+   * Registrar la aceptación clickwrap de los documentos legales requeridos.
+   * `consents` = [{ slug, version }] de las casillas marcadas. Usado por el
+   * TermsAcceptanceGate (cuentas legacy / Google OAuth y reconsentimiento).
+   */
+  async acceptTerms(consents) {
+    return this.request('/auth/accept-terms', {
+      method: 'POST',
+      body: JSON.stringify({ consents }),
+    });
+  }
+
+  /**
    * Cerrar sesión
    */
   async logout() {

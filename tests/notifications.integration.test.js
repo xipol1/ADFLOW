@@ -3,6 +3,10 @@ process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh
 
 const request = require('supertest');
 const app = require('../app');
+const legalConsent = require('../services/legalConsent');
+const consentsFor = (role) => legalConsent
+  .requiredDocsForRole(role === 'creator' ? 'creator' : 'advertiser')
+  .map((d) => ({ slug: d.slug, version: d.version }));
 
 describe('Notifications integration — /api/notifications', () => {
   const uniqueId = Date.now();
@@ -15,7 +19,7 @@ describe('Notifications integration — /api/notifications', () => {
     // Register + login (register no longer returns tokens — verification required)
     const res = await request(app)
       .post('/api/auth/registro')
-      .send({ email: userEmail, password, nombre: 'Notif User', role: 'advertiser' });
+      .send({ email: userEmail, password, nombre: 'Notif User', role: 'advertiser', consents: consentsFor('advertiser') });
     if (res.status === 503) return;
     const logRes = await request(app)
       .post('/api/auth/login')

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { useAuth } from '../../../auth/AuthContext'
 import apiService from '../../../services/api'
+import { useLegalManifest, requiredDocsForRole } from '../../../services/legal'
 import { PURPLE as A, PURPLE_DARK as AD, purpleAlpha as AG, FONT_BODY, FONT_DISPLAY } from '../../theme/tokens'
 
 export default function AuthPage({ defaultTab = 'login' }) {
@@ -28,6 +29,10 @@ export default function AuthPage({ defaultTab = 'login' }) {
   )
   // Creator sub-type: 'individual' (single creator) or 'agencia' (multi-client)
   const [tipoPerfil, setTipoPerfil] = useState('individual')
+  // Role-specific clickwrap acceptance: { [slug]: true } for each ticked box.
+  // Unchecked by default (RGPD art.7 / Planet49 — no pre-checked consent).
+  const legalManifest = useLegalManifest()
+  const [acceptedDocs, setAcceptedDocs] = useState({})
   const [referral, setReferral] = useState(refCode)
   const [remember, setRemember] = useState(false)
   const [showPass, setShowPass] = useState(false)
@@ -157,6 +162,11 @@ export default function AuthPage({ defaultTab = 'login' }) {
   }
   const passwordValid = Object.values(passwordChecks).every(Boolean)
 
+  // Documents the chosen role must accept (from the legal manifest) and whether
+  // every one has been ticked — gates the submit button.
+  const requiredDocs = requiredDocsForRole(legalManifest, role)
+  const allConsented = requiredDocs.length > 0 && requiredDocs.every((d) => acceptedDocs[d.slug])
+
   const onRegister = async (e) => {
     e.preventDefault()
     setError('')
@@ -169,6 +179,10 @@ export default function AuthPage({ defaultTab = 'login' }) {
       setError(`La contraseña debe incluir: ${missing.join(', ')}`)
       return
     }
+    if (!allConsented) {
+      setError('Debes aceptar los documentos legales requeridos para continuar.')
+      return
+    }
     setLoading(true)
     const regData = { email, password, nombre: name, role }
     // Attach profile sub-type only when creator (advertisers don't have this split)
@@ -176,6 +190,8 @@ export default function AuthPage({ defaultTab = 'login' }) {
     if (botToken) regData.botToken = botToken
     const codeToApply = (referral.trim() || refCode).toUpperCase()
     if (codeToApply) regData.referralCode = codeToApply
+    // Clickwrap evidence: {slug, version} for every required (ticked) document.
+    regData.consents = requiredDocs.map((d) => ({ slug: d.slug, version: d.version }))
     const res = await register(regData)
     setLoading(false)
     if (res?.success) {
@@ -755,25 +771,46 @@ export default function AuthPage({ defaultTab = 'login' }) {
                 )}
               </div>
 
-              <button type="submit" disabled={loading} style={{
-                background: loading ? 'var(--muted2)' : A,
+              {/* Clickwrap legal acceptance — role-specific, unchecked by default.
+                  Each links to the canonical document the user is accepting. */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '2px' }}>
+                {!legalManifest && (
+                  <p style={{ fontSize: '11px', color: 'var(--muted2)' }}>Cargando documentos legales…</p>
+                )}
+                {requiredDocs.map((doc) => (
+                  <label key={doc.slug} style={{
+                    display: 'flex', alignItems: 'flex-start', gap: '8px',
+                    fontSize: '12px', color: 'var(--muted)', cursor: 'pointer', lineHeight: 1.45,
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={!!acceptedDocs[doc.slug]}
+                      onChange={e => setAcceptedDocs(prev => ({ ...prev, [doc.slug]: e.target.checked }))}
+                      style={{ marginTop: '2px', width: '15px', height: '15px', accentColor: A, flexShrink: 0 }}
+                    />
+                    <span>
+                      He leído y acepto{' '}
+                      <Link to={`/legal/${doc.slug}`} target="_blank" rel="noopener noreferrer" style={{ color: A, fontWeight: 500 }}>
+                        {doc.etiqueta || doc.titulo}
+                      </Link>
+                    </span>
+                  </label>
+                ))}
+              </div>
+
+              <button type="submit" disabled={loading || !allConsented} style={{
+                background: (loading || !allConsented) ? 'var(--muted2)' : A,
                 color: '#fff', border: 'none', borderRadius: '10px',
                 padding: '13px', fontSize: '14px', fontWeight: 600,
-                cursor: loading ? 'not-allowed' : 'pointer',
+                cursor: (loading || !allConsented) ? 'not-allowed' : 'pointer',
                 fontFamily: F, transition: 'background .2s',
                 marginTop: '4px',
               }}
-                onMouseEnter={e => { if (!loading) e.currentTarget.style.background = AD }}
-                onMouseLeave={e => { if (!loading) e.currentTarget.style.background = A }}
+                onMouseEnter={e => { if (!loading && allConsented) e.currentTarget.style.background = AD }}
+                onMouseLeave={e => { if (!loading && allConsented) e.currentTarget.style.background = A }}
               >
                 {loading ? 'Creando cuenta…' : 'Crear cuenta gratis'}
               </button>
-
-              <p style={{ fontSize: '11px', color: 'var(--muted2)', textAlign: 'center', lineHeight: 1.5 }}>
-                Al registrarte aceptas los{' '}
-                <Link to="/terminos" style={{ color: A }}>Términos de uso</Link> y la{' '}
-                <Link to="/privacidad" style={{ color: A }}>Política de privacidad</Link>
-              </p>
             </form>
           )}
 

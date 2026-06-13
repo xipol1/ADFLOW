@@ -3,6 +3,10 @@ process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh
 
 const request = require('supertest');
 const app = require('../app');
+const legalConsent = require('../services/legalConsent');
+const consentsFor = (role) => legalConsent
+  .requiredDocsForRole(role === 'creator' ? 'creator' : 'advertiser')
+  .map((d) => ({ slug: d.slug, version: d.version }));
 
 // Tests for the fiscal data persistence flow.
 // Skips gracefully when no database is available (CI without Mongo).
@@ -16,7 +20,7 @@ describe('Fiscal data — PUT /api/auth/perfil', () => {
     // Register + login (register no longer returns tokens — verification required)
     const res = await request(app)
       .post('/api/auth/registro')
-      .send({ email, password, nombre: 'Fiscal Test', role: 'advertiser' });
+      .send({ email, password, nombre: 'Fiscal Test', role: 'advertiser', consents: consentsFor('advertiser') });
     if (res.status === 503) return;
     const logRes = await request(app)
       .post('/api/auth/login')

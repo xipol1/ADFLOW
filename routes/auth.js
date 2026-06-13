@@ -81,6 +81,28 @@ const validacionesRegistro = [
     .withMessage('Codigo de referido invalido')
     .matches(/^[A-Za-z0-9]+$/)
     .withMessage('Codigo de referido solo puede contener letras y numeros'),
+  // Aceptación clickwrap de documentos legales. La forma se valida aquí; la
+  // completitud (que cubra todo lo requerido por rol a la versión vigente) la
+  // comprueba el controlador contra el manifest legal.
+  body('consents')
+    .optional()
+    .isArray()
+    .withMessage('consents debe ser un array'),
+  body('consents.*.slug')
+    .optional()
+    .isString()
+    .withMessage('slug de consentimiento inválido'),
+  body('consents.*.version')
+    .optional()
+    .isString()
+    .withMessage('versión de consentimiento inválida'),
+];
+
+// Validación del payload de aceptación de términos (endpoint /accept-terms).
+const validacionesAceptarTerminos = [
+  body('consents').isArray({ min: 1 }).withMessage('consents debe ser un array'),
+  body('consents.*.slug').isString().withMessage('slug de consentimiento inválido'),
+  body('consents.*.version').isString().withMessage('versión de consentimiento inválida'),
 ];
 
 const validacionesLogin = [
@@ -450,6 +472,19 @@ router.get('/perfil',
 router.get('/me',
   autenticar,
   authController.obtenerPerfil
+);
+
+/**
+ * @route   POST /api/auth/accept-terms
+ * @desc    Registrar la aceptación clickwrap de los documentos legales
+ *          requeridos para el rol del usuario (gate / reconsentimiento).
+ * @access  Privado
+ */
+router.post('/accept-terms',
+  autenticar,
+  validacionesAceptarTerminos,
+  validarCampos,
+  authController.aceptarTerminos
 );
 
 /**

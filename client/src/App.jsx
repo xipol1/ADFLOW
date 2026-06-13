@@ -7,6 +7,8 @@ import { AuthProvider } from './auth/AuthContext'
 import { NotificationsProvider } from './hooks/useNotifications'
 import { ToastProvider } from './components/ui/Toast'
 import PlanGateProvider from './ui/components/PlanGateProvider'
+import TermsAcceptanceGate from './ui/components/TermsAcceptanceGate'
+import CookieBanner from './ui/components/CookieBanner'
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
 
@@ -32,6 +34,8 @@ export default function App() {
             <ToastProvider>
               <AppRoutes />
               <PlanGateProvider />
+              <TermsAcceptanceGate />
+              <CookieBanner />
             </ToastProvider>
           </NotificationsProvider>
         </AuthProvider>

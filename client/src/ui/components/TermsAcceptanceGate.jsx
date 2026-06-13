@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../services/api'
+import { useLegalManifest, requiredDocsForRole } from '../../services/legal'
 
 /**
  * Blocking modal shown to authenticated users who never explicitly accepted
@@ -12,19 +13,25 @@ import apiService from '../../services/api'
  * Mounted globally in App.jsx — must sit inside AuthProvider.
  */
 export default function TermsAcceptanceGate() {
-  const { user, isAuthenticated } = useAuth()
-  const [accepted, setAccepted] = useState(false)
+  const { user, isAuthenticated, rol } = useAuth()
+  const manifest = useLegalManifest()
+  const [accepted, setAccepted] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
   if (!isAuthenticated || !user?.requiresTermsAcceptance) return null
 
+  // Documents required for this user's role, and whether every box is ticked.
+  const docs = requiredDocsForRole(manifest, rol)
+  const allAccepted = docs.length > 0 && docs.every((d) => accepted[d.slug])
+
   const onAccept = async () => {
-    if (!accepted) return
+    if (!allAccepted) return
     setSubmitting(true)
     setError('')
     try {
-      const res = await apiService.acceptTerms('2026-05-05')
+      const consents = docs.map((d) => ({ slug: d.slug, version: d.version }))
+      const res = await apiService.acceptTerms(consents)
       if (!res?.success) {
         setError(res?.message || 'No se pudo registrar la aceptación')
         setSubmitting(false)
@@ -76,34 +83,31 @@ export default function TermsAcceptanceGate() {
           que los revises y los aceptes.
         </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '0 0 20px' }}>
-          <Link to="/terminos" target="_blank" style={linkStyle}>
-            → Leer Términos de uso
-          </Link>
-          <Link to="/privacidad" target="_blank" style={linkStyle}>
-            → Leer Política de privacidad
-          </Link>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '0 0 16px' }}>
+          {!manifest && (
+            <p style={{ fontSize: '13px', color: 'var(--muted, #aab1bb)' }}>Cargando documentos…</p>
+          )}
+          {docs.map((doc) => (
+            <label key={doc.slug} style={{
+              display: 'flex', alignItems: 'flex-start', gap: '10px',
+              fontSize: '13px', cursor: 'pointer', userSelect: 'none',
+              padding: '12px', borderRadius: '10px',
+              background: 'var(--surface-2, rgba(255,255,255,0.03))',
+              border: '1px solid var(--border, rgba(255,255,255,0.08))',
+            }}>
+              <input
+                type="checkbox"
+                checked={!!accepted[doc.slug]}
+                onChange={e => setAccepted(prev => ({ ...prev, [doc.slug]: e.target.checked }))}
+                style={{ marginTop: '2px', width: '16px', height: '16px', accentColor: '#7c3aed', flexShrink: 0 }}
+              />
+              <span>
+                He leído y acepto{' '}
+                <Link to={`/legal/${doc.slug}`} target="_blank" style={{ color: '#7c3aed' }}>{doc.etiqueta || doc.titulo}</Link>.
+              </span>
+            </label>
+          ))}
         </div>
-
-        <label style={{
-          display: 'flex', alignItems: 'flex-start', gap: '10px',
-          fontSize: '13px', cursor: 'pointer', userSelect: 'none',
-          padding: '12px', borderRadius: '10px',
-          background: 'var(--surface-2, rgba(255,255,255,0.03))',
-          border: '1px solid var(--border, rgba(255,255,255,0.08))',
-          margin: '0 0 16px',
-        }}>
-          <input
-            type="checkbox"
-            checked={accepted}
-            onChange={e => setAccepted(e.target.checked)}
-            style={{ marginTop: '2px', width: '16px', height: '16px', accentColor: '#7c3aed', flexShrink: 0 }}
-          />
-          <span>
-            He leído y acepto los <Link to="/terminos" target="_blank" style={{ color: '#7c3aed' }}>Términos de uso</Link> y la{' '}
-            <Link to="/privacidad" target="_blank" style={{ color: '#7c3aed' }}>Política de privacidad</Link>.
-          </span>
-        </label>
 
         {error && (
           <div style={{ fontSize: '13px', color: '#ef4444', margin: '0 0 12px' }}>
@@ -113,14 +117,14 @@ export default function TermsAcceptanceGate() {
 
         <button
           onClick={onAccept}
-          disabled={!accepted || submitting}
+          disabled={!allAccepted || submitting}
           style={{
             width: '100%',
-            background: (!accepted || submitting) ? 'var(--muted2, #4b5563)' : '#7c3aed',
+            background: (!allAccepted || submitting) ? 'var(--muted2, #4b5563)' : '#7c3aed',
             color: '#fff', border: 'none', borderRadius: '10px',
             padding: '13px', fontSize: '14px', fontWeight: 600,
-            cursor: (!accepted || submitting) ? 'not-allowed' : 'pointer',
-            opacity: !accepted ? 0.6 : 1,
+            cursor: (!allAccepted || submitting) ? 'not-allowed' : 'pointer',
+            opacity: !allAccepted ? 0.6 : 1,
             transition: 'opacity .2s',
           }}
         >
@@ -136,11 +140,4 @@ export default function TermsAcceptanceGate() {
       </div>
     </div>
   )
-}
-
-const linkStyle = {
-  fontSize: '13px',
-  color: '#7c3aed',
-  textDecoration: 'none',
-  padding: '4px 0',
 }
