@@ -13,8 +13,15 @@
  * file. react-helmet-async still owns runtime overrides after hydration — the
  * baked tags only need to be correct for the first HTML-only read.
  *
+ * BODY: if a captured shell exists at scripts/shells/<name>.html (produced
+ * locally by scripts/snapshot-routes.js), its markup is injected into the
+ * route's empty #root so the page also ships real, indexable content — not just
+ * a correct <head> over a blank body. Without a shell the route stays head-only
+ * (previous behaviour), so the build never depends on the snapshots existing.
+ *
  * Home ("/") is NOT prerendered here: dist/index.html already carries the
- * homepage metadata as its baseline.
+ * homepage metadata as its baseline (its body hero comes from
+ * scripts/home-shell.html via injectHomeShell below).
  *
  * Run: node scripts/prerender-routes.js  (wired into `npm run build`)
  */
@@ -24,6 +31,7 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
 const INDEX = path.join(DIST, 'index.html');
+const SHELLS_DIR = path.join(__dirname, 'shells');
 const DOMAIN = 'https://channelad.io';
 const OG_IMAGE = `${DOMAIN}/og-default.png`;
 
@@ -141,6 +149,22 @@ function prerender(html, route, meta) {
   return out;
 }
 
+// Inject the captured #root markup (scripts/shells/<name>.html, written by
+// scripts/snapshot-routes.js) into the route's empty <div id="root">. React
+// replaces it on mount via createRoot().render(). No-op (head-only) when the
+// shell is missing or too small, so the build never depends on the snapshots.
+function injectBodyShell(html, route) {
+  const name = route.replace(/^\//, '').replace(/\//g, '__') + '.html';
+  const file = path.join(SHELLS_DIR, name);
+  if (!fs.existsSync(file)) return { html, kb: 0 };
+  const shell = fs.readFileSync(file, 'utf-8');
+  if (!shell || shell.trim().length < 200) return { html, kb: 0 };
+  return {
+    html: html.replace('<div id="root"></div>', `<div id="root">${shell}</div>`),
+    kb: shell.length / 1024,
+  };
+}
+
 // Home ("/") static hero: inject the prerendered shell (captured locally by
 // scripts/snapshot-home.js) INTO dist/index.html so the hero paints before JS.
 //
@@ -185,11 +209,13 @@ function build() {
 
   let count = 0;
   for (const [route, meta] of Object.entries(ROUTES)) {
-    const out = prerender(baseHtml, route, meta);
+    const head = prerender(baseHtml, route, meta);
+    const { html: out, kb } = injectBodyShell(head, route);
     const file = path.join(DIST, route.replace(/^\//, '') + '.html');
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, out, 'utf-8');
-    console.log(`  ✅ ${path.basename(file)} (${meta.title.length}c title)`);
+    const body = kb ? `, +${kb.toFixed(1)}KB body` : ', head-only';
+    console.log(`  ✅ ${path.basename(file)} (${meta.title.length}c title${body})`);
     count++;
   }
 
