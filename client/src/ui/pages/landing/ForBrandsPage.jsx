@@ -360,6 +360,13 @@ export default function ForBrandsPage() {
     ? 'Channelad conecta tu marca con canales verificados de Telegram, WhatsApp, Discord y newsletters. Pago en escrow, métricas certificadas y benchmarks de CPM antes de pagar.'
     : 'Compra publicidad en canales verificados de Telegram, WhatsApp, Discord y newsletters. Pago en escrow, métricas certificadas, benchmarks de CPM antes de pagar.'
   const seoPath = isOnRootPath ? '/' : '/para-anunciantes'
+  // Only the /para-anunciantes view has an EN counterpart (/en/for-advertisers);
+  // the homepage (/) must not claim it. undefined → SEO emits no hreflang.
+  const seoAlternates = isOnRootPath ? undefined : [
+    { hreflang: 'es', href: 'https://channelad.io/para-anunciantes' },
+    { hreflang: 'en', href: 'https://channelad.io/en/for-advertisers' },
+    { hreflang: 'x-default', href: 'https://channelad.io/para-anunciantes' },
+  ]
 
   const structuredData = isOnRootPath
     ? {
@@ -421,7 +428,7 @@ export default function ForBrandsPage() {
           })),
         })}</script>
       </Helmet>
-      <SEO title={seoTitle} description={seoDescription} path={seoPath} type="website" />
+      <SEO title={seoTitle} description={seoDescription} path={seoPath} type="website" alternates={seoAlternates} />
 
       {/* Page-scoped responsive rules. Targets the section nodes inside the
           ForBrandsPage main only — the data-testid scope keeps it from
