@@ -313,6 +313,31 @@ function buildRelatedHtml(posts, currentSlug) {
   </section>`;
 }
 
+// ─── Static internal links to core product pages ───
+// Every post links to the main marketing pages. These are otherwise only
+// reachable via the SPA nav (client-rendered), so HTML-only crawlers had no
+// crawlable path to them from the indexed blog — this gives them link equity
+// and crawl priority from ~all posts. Reuses the .related-* styles.
+function buildExploreHtml() {
+  const links = [
+    { to: '/marketplace', label: 'Marketplace de canales', cat: 'Producto' },
+    { to: '/rankings', label: 'Rankings de canales', cat: 'Datos' },
+    { to: '/pricing', label: 'Precios y planes', cat: 'Producto' },
+    { to: '/herramientas', label: 'Herramientas para anunciantes', cat: 'Anunciantes' },
+    { to: '/que-es-channelad', label: 'Qué es Channelad', cat: 'Guia' },
+  ];
+  const cards = links.map(l => `
+      <a href="${l.to}" class="related-card">
+        <span class="rc-cat">${l.cat}</span>
+        <h3>${l.label}</h3>
+      </a>`).join('\n');
+  return `  <section class="related-section">
+    <h2 class="related-header">Explora Channelad</h2>
+    <div class="related-grid">${cards}
+    </div>
+  </section>`;
+}
+
 // ─── Generate HowTo schema for guide-type posts ───
 // Triggered by frontmatter `howto: "true"` on the post. Extracts steps by parsing
 // the markdown body for H2 headings after the first "paso", or by numbered H2s.
@@ -465,7 +490,7 @@ function build() {
 
     const tagsHtml = buildTagsHtml(meta.keywords);
     const prevNextHtml = buildPrevNextHtml(postsData, i);
-    const relatedHtml = buildRelatedHtml(postsData, meta.slug);
+    const relatedHtml = buildRelatedHtml(postsData, meta.slug) + '\n' + buildExploreHtml();
 
     const formattedDate = formatDate(meta.date, meta.lang || 'es');
     const dateISO = meta.date || '';
