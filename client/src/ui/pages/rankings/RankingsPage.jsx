@@ -92,6 +92,7 @@ export default function RankingsPage() {
       <Helmet>
         <title>{`Top Canales ${categoryLabel} · Rankings · Channelad`}</title>
         <meta name="description" content={`Ranking de los mejores canales de ${categoryLabel} para publicidad.`} />
+        <meta name="robots" content="noindex,follow" />
       </Helmet>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
