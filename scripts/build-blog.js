@@ -836,10 +836,25 @@ function build() {
   console.log(`  \u2705 index.html (${posts.length} articles)`);
 
   // ─── Generate sitemap.xml ───
+  // Bilingual landing pairs: declare reciprocal hreflang in the sitemap so
+  // Google clusters the ES/EN versions (on-page hreflang is also baked by
+  // scripts/prerender-routes.js). x-default points to the Spanish page.
+  const FORCREATORS_ALT = [
+    { hreflang: 'es', href: `${DOMAIN}/para-canales` },
+    { hreflang: 'en', href: `${DOMAIN}/en/for-creators` },
+    { hreflang: 'x-default', href: `${DOMAIN}/para-canales` },
+  ];
+  const FORADVERTISERS_ALT = [
+    { hreflang: 'es', href: `${DOMAIN}/para-anunciantes` },
+    { hreflang: 'en', href: `${DOMAIN}/en/for-advertisers` },
+    { hreflang: 'x-default', href: `${DOMAIN}/para-anunciantes` },
+  ];
   const staticPages = [
     { url: '/', priority: '1.0', freq: 'weekly' },
-    { url: '/para-anunciantes', priority: '0.9', freq: 'monthly' },
-    { url: '/para-canales', priority: '0.9', freq: 'monthly' },
+    { url: '/para-anunciantes', priority: '0.9', freq: 'monthly', alternates: FORADVERTISERS_ALT },
+    { url: '/para-canales', priority: '0.9', freq: 'monthly', alternates: FORCREATORS_ALT },
+    { url: '/en/for-advertisers', priority: '0.8', freq: 'monthly', alternates: FORADVERTISERS_ALT },
+    { url: '/en/for-creators', priority: '0.8', freq: 'monthly', alternates: FORCREATORS_ALT },
     { url: '/marketplace', priority: '0.8', freq: 'weekly' },
     { url: '/explore', priority: '0.8', freq: 'weekly' },
     { url: '/rankings', priority: '0.7', freq: 'weekly' },
