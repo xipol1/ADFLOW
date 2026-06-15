@@ -176,6 +176,7 @@ export default function ExplorePage() {
         <meta name="description" content="Descubre canales verificados de Telegram, WhatsApp, Discord y Newsletter para publicidad. Filtra por categoria, audiencia y score. Metricas reales y pagos protegidos." />
         <meta property="og:title" content="Explorar Canales · Channelad" />
         <meta property="og:description" content="Marketplace de publicidad en comunidades digitales cerradas. Canales verificados con metricas reales." />
+        <meta name="robots" content="noindex,follow" />
       </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 

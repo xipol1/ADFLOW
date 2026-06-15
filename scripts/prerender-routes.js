@@ -82,13 +82,18 @@ const ROUTES = {
     title: 'Marketplace de canales verificados — Channelad',
     description: 'Explora canales verificados de WhatsApp, Telegram y Discord para publicitar tu marca. Filtra por nicho, audiencia y precio. Pagos custodiados.',
   },
+  // Gated product tools: their data is masked/login-gated for anonymous
+  // visitors, so there is no public content to index. noindex,follow keeps
+  // crawl budget on indexable content (blog, marketing pages, hubs).
   '/explore': {
     title: 'Explorar canales verificados — Channelad',
     description: 'Descubre canales verificados de Telegram, WhatsApp, Discord y Newsletter para publicidad. Filtra por categoría, audiencia y score.',
+    noindex: true,
   },
   '/rankings': {
     title: 'Rankings de canales para publicidad — Channelad',
     description: 'Ranking de los mejores canales para publicidad en comunidades de Telegram, WhatsApp y Discord. Datos de audiencia y CPM por nicho.',
+    noindex: true,
   },
   '/herramientas': {
     title: 'Herramientas para anunciantes — Channelad',
@@ -141,6 +146,10 @@ function prerender(html, route, meta) {
     /(<link rel="canonical" href=")[^"]*(">)/,
     `$1${url}$2`
   );
+  // noindex for gated tool routes (overrides the index,follow baseline).
+  if (meta.noindex) {
+    out = out.replace(/<meta name="robots" content="[^"]*">/, '<meta name="robots" content="noindex,follow">');
+  }
   // Per-route language + reciprocal hreflang (bilingual pages). Baked into the
   // static HTML so HTML-only crawlers see them; SEO.jsx keeps them at runtime.
   if (meta.lang) {

@@ -856,8 +856,6 @@ function build() {
     { url: '/en/for-advertisers', priority: '0.8', freq: 'monthly', alternates: FORADVERTISERS_ALT },
     { url: '/en/for-creators', priority: '0.8', freq: 'monthly', alternates: FORCREATORS_ALT },
     { url: '/marketplace', priority: '0.8', freq: 'weekly' },
-    { url: '/explore', priority: '0.8', freq: 'weekly' },
-    { url: '/rankings', priority: '0.7', freq: 'weekly' },
     { url: '/herramientas', priority: '0.7', freq: 'monthly' },
     { url: '/pricing', priority: '0.9', freq: 'monthly' },
     { url: '/que-es-channelad', priority: '0.7', freq: 'monthly' },
