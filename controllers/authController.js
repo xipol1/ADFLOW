@@ -366,6 +366,18 @@ const registro = async (req, res) => {
       logErr('auth.register.verification_email_failed', emailErr, { userId: user._id.toString() });
     }
 
+    // Internal heads-up to the team on every new signup (best-effort, never
+    // blocks registration). Goes to config.email.adminNotify (contact@channelad.io).
+    try {
+      await emailService.enviarAvisoNuevoRegistro(user, {
+        source: 'password',
+        founderApplied,
+        referralApplied,
+      });
+    } catch (notifyErr) {
+      logErr('auth.register.admin_notify_failed', notifyErr, { userId: user._id.toString() });
+    }
+
     authAudit.record('register.success', req, {
       userId: user._id,
       email: user.email,
@@ -948,6 +960,17 @@ const googleLogin = async (req, res) => {
         const emailService = require('../services/emailService');
         await emailService.enviarBienvenida(user);
       } catch {}
+
+      // Internal heads-up to the team on every new signup (best-effort).
+      try {
+        const emailService = require('../services/emailService');
+        await emailService.enviarAvisoNuevoRegistro(user, {
+          source: 'google',
+          referralApplied,
+        });
+      } catch (notifyErr) {
+        logErr('auth.google_login.admin_notify_failed', notifyErr, { userId: user._id.toString() });
+      }
     }
 
     if (!user.activo) {
