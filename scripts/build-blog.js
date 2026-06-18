@@ -313,6 +313,31 @@ function buildRelatedHtml(posts, currentSlug) {
   </section>`;
 }
 
+// ─── Static internal links to core product pages ───
+// Every post links to the main marketing pages. These are otherwise only
+// reachable via the SPA nav (client-rendered), so HTML-only crawlers had no
+// crawlable path to them from the indexed blog — this gives them link equity
+// and crawl priority from ~all posts. Reuses the .related-* styles.
+function buildExploreHtml() {
+  const links = [
+    { to: '/marketplace', label: 'Marketplace de canales', cat: 'Producto' },
+    { to: '/rankings', label: 'Rankings de canales', cat: 'Datos' },
+    { to: '/pricing', label: 'Precios y planes', cat: 'Producto' },
+    { to: '/herramientas', label: 'Herramientas para anunciantes', cat: 'Anunciantes' },
+    { to: '/que-es-channelad', label: 'Qué es Channelad', cat: 'Guia' },
+  ];
+  const cards = links.map(l => `
+      <a href="${l.to}" class="related-card">
+        <span class="rc-cat">${l.cat}</span>
+        <h3>${l.label}</h3>
+      </a>`).join('\n');
+  return `  <section class="related-section">
+    <h2 class="related-header">Explora Channelad</h2>
+    <div class="related-grid">${cards}
+    </div>
+  </section>`;
+}
+
 // ─── Generate HowTo schema for guide-type posts ───
 // Triggered by frontmatter `howto: "true"` on the post. Extracts steps by parsing
 // the markdown body for H2 headings after the first "paso", or by numbered H2s.
@@ -465,7 +490,7 @@ function build() {
 
     const tagsHtml = buildTagsHtml(meta.keywords);
     const prevNextHtml = buildPrevNextHtml(postsData, i);
-    const relatedHtml = buildRelatedHtml(postsData, meta.slug);
+    const relatedHtml = buildRelatedHtml(postsData, meta.slug) + '\n' + buildExploreHtml();
 
     const formattedDate = formatDate(meta.date, meta.lang || 'es');
     const dateISO = meta.date || '';
@@ -811,13 +836,26 @@ function build() {
   console.log(`  \u2705 index.html (${posts.length} articles)`);
 
   // ─── Generate sitemap.xml ───
+  // Bilingual landing pairs: declare reciprocal hreflang in the sitemap so
+  // Google clusters the ES/EN versions (on-page hreflang is also baked by
+  // scripts/prerender-routes.js). x-default points to the Spanish page.
+  const FORCREATORS_ALT = [
+    { hreflang: 'es', href: `${DOMAIN}/para-canales` },
+    { hreflang: 'en', href: `${DOMAIN}/en/for-creators` },
+    { hreflang: 'x-default', href: `${DOMAIN}/para-canales` },
+  ];
+  const FORADVERTISERS_ALT = [
+    { hreflang: 'es', href: `${DOMAIN}/para-anunciantes` },
+    { hreflang: 'en', href: `${DOMAIN}/en/for-advertisers` },
+    { hreflang: 'x-default', href: `${DOMAIN}/para-anunciantes` },
+  ];
   const staticPages = [
     { url: '/', priority: '1.0', freq: 'weekly' },
-    { url: '/para-anunciantes', priority: '0.9', freq: 'monthly' },
-    { url: '/para-canales', priority: '0.9', freq: 'monthly' },
+    { url: '/para-anunciantes', priority: '0.9', freq: 'monthly', alternates: FORADVERTISERS_ALT },
+    { url: '/para-canales', priority: '0.9', freq: 'monthly', alternates: FORCREATORS_ALT },
+    { url: '/en/for-advertisers', priority: '0.8', freq: 'monthly', alternates: FORADVERTISERS_ALT },
+    { url: '/en/for-creators', priority: '0.8', freq: 'monthly', alternates: FORCREATORS_ALT },
     { url: '/marketplace', priority: '0.8', freq: 'weekly' },
-    { url: '/explore', priority: '0.8', freq: 'weekly' },
-    { url: '/rankings', priority: '0.7', freq: 'weekly' },
     { url: '/herramientas', priority: '0.7', freq: 'monthly' },
     { url: '/pricing', priority: '0.9', freq: 'monthly' },
     { url: '/que-es-channelad', priority: '0.7', freq: 'monthly' },

@@ -13,8 +13,15 @@
  * file. react-helmet-async still owns runtime overrides after hydration — the
  * baked tags only need to be correct for the first HTML-only read.
  *
+ * BODY: if a captured shell exists at scripts/shells/<name>.html (produced
+ * locally by scripts/snapshot-routes.js), its markup is injected into the
+ * route's empty #root so the page also ships real, indexable content — not just
+ * a correct <head> over a blank body. Without a shell the route stays head-only
+ * (previous behaviour), so the build never depends on the snapshots existing.
+ *
  * Home ("/") is NOT prerendered here: dist/index.html already carries the
- * homepage metadata as its baseline.
+ * homepage metadata as its baseline (its body hero comes from
+ * scripts/home-shell.html via injectHomeShell below).
  *
  * Run: node scripts/prerender-routes.js  (wired into `npm run build`)
  */
@@ -24,6 +31,7 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
 const INDEX = path.join(DIST, 'index.html');
+const SHELLS_DIR = path.join(__dirname, 'shells');
 const DOMAIN = 'https://channelad.io';
 const OG_IMAGE = `${DOMAIN}/og-default.png`;
 
@@ -32,6 +40,13 @@ const FORCREATORS_ALT = [
   { hreflang: 'es', href: DOMAIN + '/para-canales' },
   { hreflang: 'en', href: DOMAIN + '/en/for-creators' },
   { hreflang: 'x-default', href: DOMAIN + '/para-canales' },
+];
+
+// Shared hreflang set for the /para-anunciantes ↔ /en/for-advertisers pair.
+const FORADVERTISERS_ALT = [
+  { hreflang: 'es', href: DOMAIN + '/para-anunciantes' },
+  { hreflang: 'en', href: DOMAIN + '/en/for-advertisers' },
+  { hreflang: 'x-default', href: DOMAIN + '/para-anunciantes' },
 ];
 
 // route → { title, description, lang?, alternates? }. Titles <= 60 chars, descriptions <= 160.
@@ -43,6 +58,12 @@ const ROUTES = {
     lang: 'en',
     alternates: FORCREATORS_ALT,
   },
+  '/en/for-advertisers': {
+    title: 'Advertise in WhatsApp, Telegram & Discord communities',
+    description: 'Buy ads in verified WhatsApp, Telegram and Discord channels. Real audiences, CPM benchmarks before you pay, and escrow on every campaign — you pay only for verified delivery.',
+    lang: 'en',
+    alternates: FORADVERTISERS_ALT,
+  },
   '/blog/calculadora-precios-publicidad': {
     title: 'Calculadora precios publicidad Telegram/WhatsApp/Discord 2026',
     description: 'Calculadora interactiva 2026: cuánto cobrar por publicidad en tu canal en 30 segundos. CPMs reales del mercado español para Telegram, WhatsApp y Discord.',
@@ -50,6 +71,7 @@ const ROUTES = {
   '/para-anunciantes': {
     title: 'Publicidad en canales privados para marcas — Channelad',
     description: 'Compra publicidad en canales verificados de Telegram, WhatsApp, Discord y newsletters. Pago en escrow, métricas certificadas y benchmarks de CPM.',
+    alternates: FORADVERTISERS_ALT,
   },
   '/para-canales': {
     title: 'Monetiza tu canal de WhatsApp, Telegram o Discord',
@@ -60,13 +82,18 @@ const ROUTES = {
     title: 'Marketplace de canales verificados — Channelad',
     description: 'Explora canales verificados de WhatsApp, Telegram y Discord para publicitar tu marca. Filtra por nicho, audiencia y precio. Pagos custodiados.',
   },
+  // Gated product tools: their data is masked/login-gated for anonymous
+  // visitors, so there is no public content to index. noindex,follow keeps
+  // crawl budget on indexable content (blog, marketing pages, hubs).
   '/explore': {
     title: 'Explorar canales verificados — Channelad',
     description: 'Descubre canales verificados de Telegram, WhatsApp, Discord y Newsletter para publicidad. Filtra por categoría, audiencia y score.',
+    noindex: true,
   },
   '/rankings': {
     title: 'Rankings de canales para publicidad — Channelad',
     description: 'Ranking de los mejores canales para publicidad en comunidades de Telegram, WhatsApp y Discord. Datos de audiencia y CPM por nicho.',
+    noindex: true,
   },
   '/herramientas': {
     title: 'Herramientas para anunciantes — Channelad',
@@ -119,6 +146,10 @@ function prerender(html, route, meta) {
     /(<link rel="canonical" href=")[^"]*(">)/,
     `$1${url}$2`
   );
+  // noindex for gated tool routes (overrides the index,follow baseline).
+  if (meta.noindex) {
+    out = out.replace(/<meta name="robots" content="[^"]*">/, '<meta name="robots" content="noindex,follow">');
+  }
   // Per-route language + reciprocal hreflang (bilingual pages). Baked into the
   // static HTML so HTML-only crawlers see them; SEO.jsx keeps them at runtime.
   if (meta.lang) {
@@ -139,6 +170,22 @@ function prerender(html, route, meta) {
   out = setMeta(out, 'name', 'twitter:description', meta.description);
   out = setMeta(out, 'name', 'twitter:image', OG_IMAGE);
   return out;
+}
+
+// Inject the captured #root markup (scripts/shells/<name>.html, written by
+// scripts/snapshot-routes.js) into the route's empty <div id="root">. React
+// replaces it on mount via createRoot().render(). No-op (head-only) when the
+// shell is missing or too small, so the build never depends on the snapshots.
+function injectBodyShell(html, route) {
+  const name = route.replace(/^\//, '').replace(/\//g, '__') + '.html';
+  const file = path.join(SHELLS_DIR, name);
+  if (!fs.existsSync(file)) return { html, kb: 0 };
+  const shell = fs.readFileSync(file, 'utf-8');
+  if (!shell || shell.trim().length < 200) return { html, kb: 0 };
+  return {
+    html: html.replace('<div id="root"></div>', `<div id="root">${shell}</div>`),
+    kb: shell.length / 1024,
+  };
 }
 
 // Home ("/") static hero: inject the prerendered shell (captured locally by
@@ -185,11 +232,13 @@ function build() {
 
   let count = 0;
   for (const [route, meta] of Object.entries(ROUTES)) {
-    const out = prerender(baseHtml, route, meta);
+    const head = prerender(baseHtml, route, meta);
+    const { html: out, kb } = injectBodyShell(head, route);
     const file = path.join(DIST, route.replace(/^\//, '') + '.html');
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, out, 'utf-8');
-    console.log(`  ✅ ${path.basename(file)} (${meta.title.length}c title)`);
+    const body = kb ? `, +${kb.toFixed(1)}KB body` : ', head-only';
+    console.log(`  ✅ ${path.basename(file)} (${meta.title.length}c title${body})`);
     count++;
   }
 

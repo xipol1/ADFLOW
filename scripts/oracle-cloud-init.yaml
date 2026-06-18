@@ -1,0 +1,41 @@
+#cloud-config
+# Oracle Cloud (or any Ubuntu) first-boot bootstrap for the Channelad worker.
+#
+# Paste the contents of this file into the "Cloud-init script" / "user_data"
+# box when CREATING the VM (Oracle console: Create instance → Show advanced
+# options → Management → Initialization script). On first boot it installs
+# Docker + the compose plugin, creates 2 GB of swap, and clones the repo — so
+# the ONLY thing left for you after SSHing in is to fill .env and run compose.
+#
+# See docs/DEPLOY_ORACLE_FREE.md for the full flow.
+
+package_update: true
+package_upgrade: false
+packages:
+  - ca-certificates
+  - curl
+  - git
+
+write_files:
+  - path: /home/ubuntu/NEXT_STEPS.txt
+    owner: ubuntu:ubuntu
+    permissions: "0644"
+    content: |
+      Bootstrap done. Finish the deploy:
+        cd ~/ADFLOW
+        cp .env.example .env
+        nano .env                 # paste the SAME secret values you used on Fly
+                                  # + CLOUDFLARE_TUNNEL_TOKEN from the Cloudflare tunnel
+        docker compose up -d --build
+        docker compose logs -f app   # expect: "[scheduler] enabled — 9 jobs"
+      Then: curl https://<your-tunnel-host>/health
+
+runcmd:
+  # Docker Engine + compose plugin
+  - curl -fsSL https://get.docker.com | sh
+  - usermod -aG docker ubuntu
+  - systemctl enable --now docker
+  # 2 GB swap — protects the 1 GB micro from OOM during a telegram-intel run
+  - [ bash, -c, "test -f /swapfile || (fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab)" ]
+  # Clone the repo into the ubuntu user's home
+  - [ bash, -c, "test -d /home/ubuntu/ADFLOW || sudo -u ubuntu git clone https://github.com/xipol1/ADFLOW.git /home/ubuntu/ADFLOW" ]

@@ -34,6 +34,7 @@ const BaileysSession = require('../../models/BaileysSession');
 const WhatsAppAuditLog = require('../../models/WhatsAppAuditLog');
 const Canal = require('../../models/Canal');
 const { asDisplayName, asDisplayText } = require('./displayName');
+const { resolveNewsletterRole } = require('./newsletterRole');
 
 // Pending QR sessions older than this with no successful scan are swept by
 // cleanupStalePendingSessions() — see the wired-up cron in app.js.
@@ -129,6 +130,7 @@ class BaileysSessionManager {
     // verification and the owner JID.
     const userJid = String(sock.user?.id || '');
     const userNum = userJid.split('@')[0].split(':')[0]; // phone, no device/server
+    const userLidNum = String(sock.user?.lid || '').split('@')[0].split(':')[0];
     const jids = Array.from(entry.newsletterJids || []);
 
     for (const jid of jids) {
@@ -136,24 +138,22 @@ class BaileysSessionManager {
         const meta = await sock.newsletterMetadata('jid', jid);
         if (!meta) continue;
 
-        // Role detection: prefer an explicit viewer role if Baileys provides
-        // it, else infer OWNER by matching the newsletter owner JID against
-        // the connected user's number. Anything else stays SUBSCRIBER and is
-        // filtered out (can't claim a channel you don't administer).
-        let role = meta.viewer_metadata?.role || meta.role || null;
-        if (!role && meta.owner) {
-          const ownerNum = String(meta.owner).split('@')[0].split(':')[0];
-          role = (ownerNum && ownerNum === userNum) ? 'OWNER' : 'SUBSCRIBER';
-        }
-        role = role || 'SUBSCRIBER';
+        // The by-JID payload carries the viewer's role in viewer_metadata.role.
+        // Prefer it; only if absent, infer OWNER by matching the newsletter
+        // owner JID against the connected account — checked against BOTH the
+        // phone number and the LID (WhatsApp may expose either). Anything else
+        // stays SUBSCRIBER and is filtered out (can't claim a channel you don't
+        // administer).
+        const tm = meta.thread_metadata || {};
+        const role = resolveNewsletterRole(meta, null, { userNum, userLidNum });
 
         newsletters.push({
           jid: meta.id || jid,
-          name: asDisplayName(meta.name, meta.thread_metadata?.name),
-          description: asDisplayText(meta.description, meta.thread_metadata?.description),
-          subscribers: meta.subscribers || 0,
-          verification: meta.verification || 'UNVERIFIED',
-          inviteCode: meta.invite || '',
+          name: asDisplayName(tm.name, meta.name, meta.thread_metadata?.name),
+          description: asDisplayText(tm.description, meta.description, meta.thread_metadata?.description),
+          subscribers: Number(tm.subscribers_count ?? meta.subscribers ?? meta.subscribers_count ?? 0) || 0,
+          verification: tm.verification || meta.verification || 'UNVERIFIED',
+          inviteCode: tm.invite || meta.invite || '',
           picture: meta.picture?.url || '',
           role,
         });
@@ -318,41 +318,40 @@ class BaileysSessionManager {
     const meta = await sock.newsletterMetadata('invite', code);
     if (!meta) throw new Error('No se encontró ningún canal con ese enlace');
 
-    // TEMP DIAGNOSTIC: dump the raw shape so we map fields precisely instead
-    // of guessing. Fetching by invite returns public metadata only (often
-    // with name as an object and no viewer role), so we also re-query by jid
-    // below to try to obtain the viewer's role.
-    try {
-      console.log(`[baileys][diag] invite meta raw session=${sessionId}: ${JSON.stringify(meta).slice(0, 1000)}`);
-      const jidForRole = meta.id || meta.jid;
-      if (jidForRole && typeof sock.newsletterMetadata === 'function') {
-        const byJid = await sock.newsletterMetadata('jid', jidForRole).catch((e) => ({ _err: e.message }));
-        console.log(`[baileys][diag] byJid meta session=${sessionId}: ${JSON.stringify(byJid).slice(0, 1000)}`);
-      }
-    } catch (e) {
-      console.log('[baileys][diag] dump failed:', e.message);
-    }
+    // Resolving by INVITE returns public metadata with `viewer_metadata: null`,
+    // so the viewer's role is absent and a naive read mislabels OWNERs as
+    // SUBSCRIBERs (the root cause of the ownership beta-freeze). Re-query the
+    // SAME channel by its JID, which DOES carry `viewer_metadata.role`
+    // (OWNER / ADMIN / SUBSCRIBER), and use that payload as the authoritative
+    // source for both the role and the metadata fields.
+    const jid = meta.id || meta.jid;
+    const byJid = jid
+      ? await sock.newsletterMetadata('jid', jid).catch((e) => {
+          console.warn(`[baileys] byJid metadata failed for ${jid}:`, e.message);
+          return null;
+        })
+      : null;
+    const src = byJid || meta;
+    const tm = src.thread_metadata || meta.thread_metadata || {};
 
-    // Determine the viewer's role for this newsletter. This is the auth that
-    // gates linking: only the OWNER/ADMIN of a channel can attach it to a
-    // Channelad canal. Prefer an explicit viewer role, else match owner JID
-    // against the connected user's number.
+    // Determine the viewer's role. Prefer the explicit viewer role from the
+    // by-JID payload; only if absent, fall back to matching the owner JID
+    // against the connected account — checked against BOTH the phone number
+    // and the LID, since WhatsApp may expose the owner by either identity
+    // (the LID-vs-phone mismatch that previously broke this).
     const userNum = String(sock.user?.id || '').split('@')[0].split(':')[0];
-    let role = meta.viewer_metadata?.role || meta.role || null;
-    if (!role && meta.owner) {
-      const ownerNum = String(meta.owner).split('@')[0].split(':')[0];
-      role = (ownerNum && ownerNum === userNum) ? 'OWNER' : 'SUBSCRIBER';
-    }
-    role = role || 'SUBSCRIBER';
+    const userLidNum = String(sock.user?.lid || '').split('@')[0].split(':')[0];
+    const role = resolveNewsletterRole(src, meta, { userNum, userLidNum });
+    const ownerJid = src.owner || meta.owner;
 
     const newsletter = {
-      jid: meta.id,
-      name: asDisplayName(meta.name, meta.thread_metadata?.name),
-      description: asDisplayText(meta.description, meta.thread_metadata?.description),
-      subscribers: meta.subscribers || meta.subscribers_count || 0,
-      verification: meta.verification || 'UNVERIFIED',
-      inviteCode: meta.invite || code,
-      picture: meta.picture?.url || '',
+      jid: src.id || meta.id,
+      name: asDisplayName(tm.name, meta.name, meta.thread_metadata?.name),
+      description: asDisplayText(tm.description, meta.description, meta.thread_metadata?.description),
+      subscribers: Number(tm.subscribers_count ?? src.subscribers ?? meta.subscribers ?? meta.subscribers_count ?? 0) || 0,
+      verification: tm.verification || src.verification || meta.verification || 'UNVERIFIED',
+      inviteCode: tm.invite || meta.invite || code,
+      picture: src.picture?.url || meta.picture?.url || '',
       role,
     };
 
@@ -375,7 +374,7 @@ class BaileysSessionManager {
       data: { jid: newsletter.jid, name: newsletter.name, subscribers: newsletter.subscribers, role, administered },
     });
 
-    console.log(`[baileys] getNewsletterMetadataByInvite session=${sessionId}: name="${newsletter.name}" role=${role} administered=${administered} subs=${newsletter.subscribers} | owner=${meta.owner || '?'} userJid=${sock.user?.id || '?'} viewerRole=${meta.viewer_metadata?.role || '?'}`);
+    console.log(`[baileys] getNewsletterMetadataByInvite session=${sessionId}: name="${newsletter.name}" role=${role} administered=${administered} subs=${newsletter.subscribers} | byJidRole=${byJid?.viewer_metadata?.role || '?'} inviteRole=${meta.viewer_metadata?.role || '?'} owner=${ownerJid || '?'} userNum=${userNum} userLid=${userLidNum}`);
 
     return { newsletter, administered };
   }

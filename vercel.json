@@ -105,7 +105,20 @@
       "has": [{ "type": "host", "value": "www.channelad.io" }],
       "destination": "https://channelad.io/:path*",
       "permanent": true
-    }
+    },
+    { "source": "/blog/channelad-vs-collaborator", "destination": "/para-anunciantes", "permanent": true },
+    { "source": "/blog/whop-vs-channelad-monetizacion-comunidad", "destination": "/para-canales", "permanent": true },
+    { "source": "/blog/youtube-brandconnect-vs-channelad", "destination": "/para-anunciantes", "permanent": true },
+    { "source": "/blog/reddit-ads-vs-comunidades-cerradas", "destination": "/blog/publicidad-comunidades-vs-redes-sociales", "permanent": true },
+    { "source": "/blog/tiktok-creator-marketplace-alternatives", "destination": "/para-canales", "permanent": true },
+    { "source": "/blog/channelad-vs-combot", "destination": "/blog/plataformas-publicidad-telegram", "permanent": true },
+    { "source": "/blog/tgstat-vs-channelad", "destination": "/blog/plataformas-publicidad-telegram", "permanent": true },
+    { "source": "/blog/telemetr-vs-channelad", "destination": "/blog/plataformas-publicidad-telegram", "permanent": true },
+    { "source": "/blog/admixer-telegram-vs-channelad", "destination": "/blog/plataformas-publicidad-telegram", "permanent": true },
+    { "source": "/blog/adsgram-vs-channelad-telegram-ads", "destination": "/blog/plataformas-publicidad-telegram", "permanent": true },
+    { "source": "/blog/aitarget-one-alternatives", "destination": "/blog/plataformas-publicidad-telegram", "permanent": true },
+    { "source": "/blog/beehiiv-ads-vs-channelad", "destination": "/blog/publicidad-newsletters-espana-guia", "permanent": true },
+    { "source": "/blog/substack-vs-channelad-newsletter-ads", "destination": "/blog/publicidad-newsletters-espana-guia", "permanent": true }
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.js" },
@@ -120,6 +133,7 @@
     { "source": "/para-anunciantes", "destination": "/para-anunciantes.html" },
     { "source": "/para-canales", "destination": "/para-canales.html" },
     { "source": "/en/for-creators", "destination": "/en/for-creators.html" },
+    { "source": "/en/for-advertisers", "destination": "/en/for-advertisers.html" },
     { "source": "/marketplace", "destination": "/marketplace.html" },
     { "source": "/explore", "destination": "/explore.html" },
     { "source": "/rankings", "destination": "/rankings.html" },

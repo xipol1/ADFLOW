@@ -16,6 +16,8 @@
     "legal:build": "node scripts/legal-build.js",
     "prerender": "node scripts/prerender-routes.js",
     "snapshot:home": "npm run frontend:build && node scripts/snapshot-home.js",
+    "snapshot:routes": "npm run frontend:build && node scripts/snapshot-routes.js",
+    "snapshot:all": "npm run frontend:build && node scripts/snapshot-home.js && node scripts/snapshot-routes.js",
     "build": "npm run images:build && npm run blog:build && npm run legal:build && npm run frontend:build && npm run prerender",
     "build:full": "npm run build && npm start",
     "migrate:roles": "node scripts/migrate-roles.js",

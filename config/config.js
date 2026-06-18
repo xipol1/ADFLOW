@@ -114,7 +114,10 @@ module.exports = {
       name: (process.env.EMAIL_FROM_NAME || 'ChannelAd').trim(),
       address: (process.env.EMAIL_FROM_ADDRESS || '').trim()
     },
-    support: (process.env.SUPPORT_EMAIL || '').trim()
+    support: (process.env.SUPPORT_EMAIL || '').trim(),
+    // Internal address that gets a heads-up email on every new user signup.
+    // Override via ADMIN_NOTIFY_EMAIL; defaults to the team inbox.
+    adminNotify: (process.env.ADMIN_NOTIFY_EMAIL || 'contact@channelad.io').trim()
   },
   demo: {
     enabled: toBool(process.env.DEMO_MODE, false),

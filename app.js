@@ -59,6 +59,7 @@ try { _routes['./routes/founderWaitlist']     = require('./routes/founderWaitlis
 try { _routes['./routes/founders']            = require('./routes/founders');            } catch (e) { _routes['./routes/founders']            = e; }
 try { _routes['./routes/calculator']          = require('./routes/calculator');          } catch (e) { _routes['./routes/calculator']          = e; }
 try { _routes['./routes/features']            = require('./routes/features');            } catch (e) { _routes['./routes/features']            = e; }
+try { _routes['./routes/affiliateTrack']      = require('./routes/affiliateTrack');      } catch (e) { _routes['./routes/affiliateTrack']      = e; }
 
 // Pre-load for Vercel nft tracer (require only, don't execute swagger-jsdoc at top level)
 let _swaggerPathsJson;
@@ -111,6 +112,19 @@ const _isAllowedOrigin = (origin) => {
 
 app.use(helmet({ crossOriginEmbedderPolicy: false }));
 app.set('trust proxy', 1);
+
+// ── Public affiliate click beacon ─────────────────────────────────────────────
+// Mounted BEFORE the restrictive global CORS so neutral-brand affiliate bridge
+// pages (hosted on their own domains, intentionally NOT in the CORS allowlist)
+// can fire write-only outbound-click beacons. It is write-only, carries no
+// credentials and returns no body → safe to accept from any origin.
+{
+  const affiliateTrack = _routes['./routes/affiliateTrack'];
+  if (affiliateTrack && !(affiliateTrack instanceof Error)) {
+    app.use('/api/track', cors({ origin: true, credentials: false }), affiliateTrack);
+  }
+}
+
 app.use(cors({
   origin: (origin, cb) => {
     if (_isAllowedOrigin(origin)) return cb(null, true);

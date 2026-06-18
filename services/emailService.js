@@ -127,10 +127,18 @@ class EmailService {
       const preheader = preheaderMatch ? preheaderMatch[1] : '';
       html = html.replace(/{{PREHEADER}}/g, preheader);
 
-      // Replace user-provided variables
+      // Replace user-provided variables. Values are HTML-escaped because some
+      // (ad copy, advertiser/user display names) are attacker-controlled and
+      // would otherwise allow stored→email HTML injection. Only the per-variable
+      // values are escaped — the trusted {{CONTENT}} layout slot (merged above)
+      // and template-authored entities like &euro; are never passed through here,
+      // so nothing gets double-encoded. The replacer is a function so '$' runs
+      // in user content (e.g. "$&", "$1") are inserted literally rather than
+      // interpreted as String.replace substitution patterns.
       for (const [key, value] of Object.entries(variables)) {
         const regex = new RegExp(`{{${key}}}`, 'g');
-        html = html.replace(regex, String(value ?? ''));
+        const safeValue = this._escapeHtml(value);
+        html = html.replace(regex, () => safeValue);
       }
 
       // Replace global app variables
@@ -180,7 +188,11 @@ class EmailService {
 
       for (const [variable, valor] of Object.entries(variables)) {
         const regex = new RegExp(`{{${variable}}}`, 'g');
-        contenido = contenido.replace(regex, String(valor));
+        // HTML-escape per-variable values here too: this legacy loader is the
+        // fallback path of renderTemplate(), and must not reopen the
+        // stored→email injection hole when it runs.
+        const safeValor = this._escapeHtml(valor);
+        contenido = contenido.replace(regex, () => safeValor);
       }
 
       contenido = contenido.replace(/{{APP_NAME}}/g, config.app.nombre);
@@ -595,6 +607,77 @@ class EmailService {
     });
   }
 
+  // ─── Internal team notifications ──────────────────────────────────
+
+  /**
+   * Heads-up to the team: a new user just registered. Sent to
+   * config.email.adminNotify (contact@channelad.io by default) on every
+   * signup — both email/password (registro) and Google (googleLogin).
+   *
+   * Best-effort: callers wrap this in try/catch so a failed or unconfigured
+   * notification never blocks the actual registration.
+   */
+  async enviarAvisoNuevoRegistro(user, meta = {}) {
+    const to = (config.email.adminNotify || '').trim();
+    if (!to) return { exito: false, skipped: true };
+
+    const appName = config.app.nombre || 'Channelad';
+    const rolLabel = user.rol === 'creator'
+      ? (user.tipoPerfil === 'agencia' ? 'Creator (agencia)' : 'Creator')
+      : 'Advertiser';
+    const fuente = meta.source === 'google' ? 'Google' : 'Email / contraseña';
+
+    const flags = [];
+    if (meta.founderApplied) flags.push('Candidato a Fundador (bot token)');
+    if (meta.referralApplied) flags.push('Vino por código de referido');
+
+    const rows = [
+      ['Email', user.email],
+      ['Nombre', user.nombre || '—'],
+      ['Rol', rolLabel],
+      ['Alta vía', fuente],
+      ['Fecha', this._formatDateTime(new Date())],
+    ];
+    if (flags.length) rows.push(['Notas', flags.join(' · ')]);
+
+    const rowsHtml = rows.map(([k, v]) =>
+      `<tr>
+        <td style="padding:8px 16px;color:#86868b;font-size:13px;white-space:nowrap;border-bottom:1px solid #f0f0f5;">${this._escapeHtml(k)}</td>
+        <td style="padding:8px 16px;color:#1d1d1f;font-size:14px;font-weight:600;border-bottom:1px solid #f0f0f5;">${this._escapeHtml(v)}</td>
+      </tr>`
+    ).join('');
+
+    const dashboardUrl = `${config.frontend.url || 'https://channelad.io'}/dashboard`;
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"><title>Nuevo registro en ${appName}</title></head>
+<body style="margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Inter,sans-serif;color:#1d1d1f;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f5f5f7;padding:32px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="560" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+        <tr><td style="padding:32px 32px 16px 32px;">
+          <p style="margin:0 0 4px 0;font-size:13px;color:#7C3AED;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Nuevo registro</p>
+          <h1 style="margin:0;font-size:22px;font-weight:700;color:#1d1d1f;">Alta de usuario en ${appName}</h1>
+        </td></tr>
+        <tr><td style="padding:8px 16px 24px 16px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">${rowsHtml}</table>
+        </td></tr>
+        <tr><td style="padding:0 32px 32px 32px;">
+          <a href="${dashboardUrl}" target="_blank" style="display:inline-block;padding:12px 24px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px;background:#7C3AED;">Abrir panel</a>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+    return this.enviarEmail({
+      para: to,
+      asunto: `Nuevo registro en ${appName}: ${user.email} (${rolLabel})`,
+      html,
+    });
+  }
+
   // ─── Helpers ───────────────────────────────────────────────���──────
 
   // ─── Email 3: Profile reminder ─────────────────────────────────────
@@ -696,6 +779,22 @@ class EmailService {
     return this.enviarEmail({ para: user.email, asunto: subject, html });
   }
 
+  /**
+   * Escape a value for safe interpolation into an HTML email body. Guards
+   * against stored→email HTML injection from advertiser/user-controlled fields
+   * (ad copy, display names, dispute reasons). Escapes the five HTML-significant
+   * characters; URLs and numbers pass through unchanged except for `&` (which is
+   * correctly encoded as `&amp;` inside both text and href attributes).
+   */
+  _escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   _formatPrice(amount) {
     if (amount == null) return '0.00';
     return Number(amount).toLocaleString('en-US', {
@@ -712,6 +811,19 @@ class EmailService {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
+    });
+  }
+
+  _formatDateTime(date) {
+    const d = date ? new Date(date) : new Date();
+    if (isNaN(d.getTime())) return String(date);
+    return d.toLocaleString('es-ES', {
+      timeZone: 'Europe/Madrid',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   }
 }
