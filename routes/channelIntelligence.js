@@ -25,18 +25,23 @@ const { buildChannelIntelligence } = require('../services/channelIntelligenceSer
 
 const router = express.Router();
 
-// Hourly cap per IP: 100 requests / hour.
+// Hourly cap per IP: 1000 requests / hour. This is a PUBLIC read endpoint hit
+// on every channel-detail view and cached for 1h at the CDN, so the origin
+// mostly sees cache-misses; a tight cap (was 100/hr) made normal browsing —
+// and any cache-invalidation wave (new/refreshed channels) — trip into 429s,
+// which the SPA rendered as "Canal no encontrado".
 const hourlyLimiter = limitarIntentos({
   windowMs: 60 * 60 * 1000,
-  max: 100,
-  message: { success: false, message: 'Rate limit alcanzado: 100 req/hora' },
+  max: 1000,
+  message: { success: false, message: 'Rate limit alcanzado: 1000 req/hora' },
 });
 
-// Burst control per IP: 10 requests / 10 seconds. Runs BEFORE the hourly
-// limit so sustained abuse hits the faster limiter first.
+// Burst control per IP: 60 requests / 10 seconds (was 10). Runs BEFORE the
+// hourly limit so sustained abuse hits the faster limiter first, while leaving
+// ample headroom for a real visitor opening several channels in a row.
 const burstLimiter = limitarIntentos({
   windowMs: 10 * 1000,
-  max: 10,
+  max: 60,
   message: { success: false, message: 'Demasiadas solicitudes simultáneas' },
 });
 
