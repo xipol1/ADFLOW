@@ -143,9 +143,23 @@ export default function ChannelExplorerPage() {
         } catch { if (!cancelled) setState('error'); return }
       }
 
+      // Retry transient failures (rate-limit 429 / 5xx / network blip) before
+      // giving up — a brief 429 on the public intelligence endpoint must NOT
+      // render as a permanent "Canal no encontrado". A genuine 404 is returned
+      // immediately without retrying.
+      const fetchIntel = async (cid, attempts = 3) => {
+        for (let i = 0; i < attempts; i++) {
+          const res = await apiService.getChannelIntelligence(cid)
+          if (res?.success) return res
+          const transient = res?.status === 429 || res?.status >= 500 || res?.status == null
+          if (!transient || i === attempts - 1) return res
+          await new Promise((r) => setTimeout(r, 600 * (i + 1)))
+        }
+      }
+
       try {
         const [intelRes, snapRes] = await Promise.all([
-          apiService.getChannelIntelligence(channelId),
+          fetchIntel(channelId),
           apiService.getChannelSnapshots(channelId, days).catch(() => ({ success: false })),
         ])
         if (cancelled) return
