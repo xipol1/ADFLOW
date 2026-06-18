@@ -8,6 +8,10 @@ process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh
 
 const request = require('supertest');
 const app = require('../app');
+const legalConsent = require('../services/legalConsent');
+const consentsFor = (role) => legalConsent
+  .requiredDocsForRole(role === 'creator' ? 'creator' : 'advertiser')
+  .map((d) => ({ slug: d.slug, version: d.version }));
 
 describe('Security fixes — anti-regression', () => {
   const uniqueId = Date.now();
@@ -18,9 +22,14 @@ describe('Security fixes — anti-regression', () => {
   let tokenA;
   let tokenB;
   let userAId;
+  const setupTrace = [];
 
   const registerAndLogin = async (email, role = 'advertiser') => {
-    const reg = await request(app).post('/api/auth/registro').send({ email, password, nombre: 'Sec ' + email, role });
+    // nombre must pass the registro validator (letters and spaces only) —
+    // embedding the email here once made every registration 400 and the
+    // whole suite pass vacuously through the `if (!tokenA) return` guards.
+    const reg = await request(app).post('/api/auth/registro').send({ email, password, nombre: 'Sec Tester', role, consents: consentsFor(role) });
+    setupTrace.push(`registro ${email} → ${reg.status}${reg.status >= 400 ? ' ' + JSON.stringify(reg.body) : ''}`);
     if (reg.status === 503) return { token: null, id: null };
     // Email verification is required for write ops — patch the user to verified
     // directly via Mongoose so we don't need to extract the verification token.
@@ -30,6 +39,7 @@ describe('Security fixes — anti-regression', () => {
       await Usuario.findOneAndUpdate({ email }, { emailVerificado: true });
     } catch (e) { /* if DB not available, login will 503 anyway */ }
     const login = await request(app).post('/api/auth/login').send({ email, password });
+    setupTrace.push(`login ${email} → ${login.status}${!login.body?.token ? ' (no token)' : ''}`);
     if (login.status === 503 || !login.body?.token) return { token: null, id: null };
     return { token: login.body.token, id: login.body.user?.id || login.body.user?._id };
   };
@@ -39,6 +49,25 @@ describe('Security fixes — anti-regression', () => {
     const b = await registerAndLogin(userBEmail);
     tokenA = a.token; userAId = a.id;
     tokenB = b.token;
+  });
+
+  // ─── Setup canary ──────────────────────────────────────────────────────────
+  // Every test below early-returns when tokens are missing, so a broken setup
+  // (validator change, new required registro field, consent doc bump…) would
+  // make the entire suite pass without asserting anything. This test turns
+  // that silent skip into a loud failure.
+  describe('Setup canary', () => {
+    test('both users registered and logged in (tokens + userAId present)', () => {
+      if (!tokenA || !tokenB || !userAId) {
+        throw new Error(
+          'Auth setup failed — the rest of this suite would pass vacuously.\n' +
+          setupTrace.join('\n')
+        );
+      }
+      expect(tokenA).toBeTruthy();
+      expect(tokenB).toBeTruthy();
+      expect(userAId).toBeTruthy();
+    });
   });
 
   // ─── P0-A · withdraw balance check ────────────────────────────────────────

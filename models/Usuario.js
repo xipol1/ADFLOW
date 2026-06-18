@@ -11,6 +11,24 @@ const SesionSchema = new mongoose.Schema(
   { _id: false }
 );
 
+// Evidencia de aceptación clickwrap de un documento legal (RGPD art. 7: hay
+// que poder demostrar el consentimiento). Es un historial INMUTABLE: cada
+// aceptación se añade como una entrada nueva, nunca se sobrescribe. La versión
+// y el hash provienen del manifest legal (config/legalManifest.json), de modo
+// que si un documento cambia (nuevo hash → nueva versión) la aceptación
+// anterior deja de cubrir la versión vigente y el gate vuelve a pedirla.
+const ConsentimientoSchema = new mongoose.Schema(
+  {
+    slug: { type: String, required: true },       // 'terminos-condiciones'
+    version: { type: String, required: true },    // versión del manifest
+    hash: { type: String, required: true },       // sha256 del HTML aceptado
+    aceptadoEn: { type: Date, default: Date.now },
+    ip: { type: String, default: '' },
+    userAgent: { type: String, default: '' },
+  },
+  { _id: false }
+);
+
 // Datos fiscales para emisión legal de facturas (España + UE).
 // Los campos requeridos para emitir factura legal son:
 // razonSocial, nif, direccion, cp, ciudad, pais. `completado` se calcula
@@ -69,6 +87,12 @@ const UsuarioSchema = new mongoose.Schema(
     emailVerificado: { type: Boolean, default: false },
     activo: { type: Boolean, default: true },
     sesiones: { type: [SesionSchema], default: [] },
+
+    // Historial de aceptaciones de documentos legales (clickwrap). Ver
+    // ConsentimientoSchema. `requiresTermsAcceptance` NO se almacena: se deriva
+    // comparando estas entradas con el conjunto requerido para el rol del
+    // usuario a la versión vigente del manifest (services/legalConsent.js).
+    consentimientos: { type: [ConsentimientoSchema], default: [] },
     ultimaActividad: { type: Date, default: null },
     emailVerificationToken: { type: String, default: null },
     emailVerificationExpires: { type: Date, default: null },

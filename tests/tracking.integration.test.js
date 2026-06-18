@@ -3,6 +3,10 @@ process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh
 
 const request = require('supertest');
 const app = require('../app');
+const legalConsent = require('../services/legalConsent');
+const consentsFor = (role) => legalConsent
+  .requiredDocsForRole(role === 'creator' ? 'creator' : 'advertiser')
+  .map((d) => ({ slug: d.slug, version: d.version }));
 
 describe('Tracking integration — /api/tracking', () => {
   const uniqueId = Date.now();
@@ -17,7 +21,7 @@ describe('Tracking integration — /api/tracking', () => {
     // Register + login creator (register no longer returns tokens)
     const creRes = await request(app)
       .post('/api/auth/registro')
-      .send({ email: creatorEmail, password, nombre: 'Track Creator', role: 'creator' });
+      .send({ email: creatorEmail, password, nombre: 'Track Creator', role: 'creator', consents: consentsFor('creator') });
     if (creRes.status === 503) return;
     const creLogin = await request(app)
       .post('/api/auth/login')

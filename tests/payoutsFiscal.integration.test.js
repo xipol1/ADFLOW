@@ -3,6 +3,7 @@ process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh
 
 const request = require('supertest');
 const app = require('../app');
+const legalConsent = require('../services/legalConsent');
 
 // Tests for the fiscal-data middleware on money-movement payouts routes.
 // Skips gracefully when no database is available (CI without Mongo).
@@ -10,12 +11,13 @@ describe('Fiscal data — payouts routes', () => {
   const uniqueId = Date.now();
   const email = `payout-fiscal-${uniqueId}@test.com`;
   const password = 'TestPass123';
+  const consents = legalConsent.requiredDocsForRole('creator').map((d) => ({ slug: d.slug, version: d.version }));
   let token;
 
   beforeAll(async () => {
     const res = await request(app)
       .post('/api/auth/registro')
-      .send({ email, password, nombre: 'Payout Fiscal Test', role: 'creator' });
+      .send({ email, password, nombre: 'Payout Fiscal Test', role: 'creator', consents });
     if (res.status === 503) return; // no DB
 
     // Mark email as verified so requests reach the fiscal middleware

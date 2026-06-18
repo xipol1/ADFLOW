@@ -3,6 +3,7 @@ process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh
 
 const request = require('supertest');
 const app = require('../../app');
+const legalConsent = require('../../services/legalConsent');
 
 const TEST_USER_CREATOR = {
   email: `test-creator-${Date.now()}@test.com`,
@@ -21,7 +22,11 @@ const TEST_USER_ADVERTISER = {
 async function createTestUser(userData) {
   // Registration no longer issues auth tokens (email verification required),
   // so the helper now performs an immediate login to keep callers working.
-  const regRes = await request(app).post('/api/auth/registro').send(userData);
+  // It also enforces clickwrap acceptance of the role's required legal docs, so
+  // include the consents for the effective role (default: advertiser).
+  const effectiveRole = userData.role === 'creator' ? 'creator' : 'advertiser';
+  const consents = legalConsent.requiredDocsForRole(effectiveRole).map((d) => ({ slug: d.slug, version: d.version }));
+  const regRes = await request(app).post('/api/auth/registro').send({ ...userData, consents });
   if (regRes.status !== 201) {
     return { user: regRes.body.user, token: undefined, refreshToken: undefined };
   }

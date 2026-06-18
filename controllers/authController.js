@@ -5,6 +5,7 @@ const config = require('../config/config');
 const database = require('../config/database');
 const logger = require('../lib/logger');
 const authAudit = require('../lib/authAudit');
+const legalConsent = require('../services/legalConsent');
 
 const env = process.env.NODE_ENV || 'development';
 const isDev = env !== 'production';
@@ -64,6 +65,10 @@ const buildUserResponse = (usuario) => {
     nombre: usuario?.nombre,
     apellido: usuario?.apellido,
     emailVerificado: usuario?.emailVerificado,
+    // Derived (never stored): true when a legal document required for this
+    // user's role has no accepted entry at the manifest's current version.
+    // Drives the TermsAcceptanceGate for legacy / Google-OAuth accounts.
+    requiresTermsAcceptance: legalConsent.requiresAcceptance(usuario),
     // fullAccess is kept as an alias for betaAccess so existing frontend
     // consumers (FullAccessOnly wrapper, isFullAccess) continue to work.
     fullAccess: betaAccess,
@@ -258,6 +263,27 @@ const registro = async (req, res) => {
       tipoPerfil = ['individual', 'agencia'].includes(requested) ? requested : 'individual';
     }
 
+    // ── Clickwrap legal acceptance (RGPD art. 7) ──
+    // The client sends `consents: [{slug, version}]` for every box it checked.
+    // We reject the registration unless it covers ALL documents required for
+    // this role at the current manifest version (no pre-checked boxes — the
+    // box must have been actively ticked for the slug to appear here).
+    const consentCheck = legalConsent.validateConsentPayload(rol, req.body?.consents);
+    if (!consentCheck.ok) {
+      authAudit.record('register.failed', req, {
+        email,
+        metadata: { reason: 'missing_consent', missing: consentCheck.missing },
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Debes aceptar los documentos legales requeridos para continuar.',
+        missingConsents: consentCheck.missing,
+      });
+    }
+    // Build the evidence entries server-side from the manifest (version + hash
+    // are NOT trusted from the client) stamped with this request's IP + UA.
+    const consentimientos = legalConsent.buildConsentEntries(rol, req);
+
     // Generate email verification token
     const crypto = require('crypto');
     const verificationToken = crypto.randomBytes(32).toString('hex');
@@ -271,6 +297,7 @@ const registro = async (req, res) => {
       emailVerificado: false,
       emailVerificationToken: verificationToken,
       emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
+      consentimientos,
     };
 
     // ── Bot token validation (founder *candidate*, not founder yet) ──
@@ -382,6 +409,12 @@ const registro = async (req, res) => {
       userId: user._id,
       email: user.email,
       metadata: { rol: user.rol, tipoPerfil: user.tipoPerfil, founderApplied, referralApplied, emailSent },
+    });
+    // Secondary, immutable evidence trail of the clickwrap acceptance.
+    authAudit.record('consent.accepted', req, {
+      userId: user._id,
+      email: user.email,
+      metadata: { context: 'register', docs: consentimientos.map((c) => `${c.slug}@${c.version}`) },
     });
 
     // Do NOT issue auth tokens here. The user must verify their email first;
@@ -1008,9 +1041,48 @@ const googleLogin = async (req, res) => {
   }
 };
 
+/**
+ * POST /api/auth/accept-terms (autenticado)
+ *
+ * Registra los consentimientos legales requeridos para el rol del usuario
+ * actual a la versión vigente. Lo usa el TermsAcceptanceGate para las cuentas
+ * que nunca pasaron por el clickwrap del registro (creadas antes del rollout o
+ * vía Google OAuth) y para el reconsentimiento tras cambiar un documento.
+ */
+const aceptarTerminos = async (req, res) => {
+  try {
+    if (!database.estaConectado()) await database.conectar();
+    const user = await Usuario.findById(req.usuario.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    }
+    // El cliente envía los consents que aceptó; exigimos que cubran todo el
+    // conjunto requerido a la versión actual (igual que en el registro).
+    const check = legalConsent.validateConsentPayload(user.rol, req.body?.consents);
+    if (!check.ok) {
+      return res.status(400).json({
+        success: false,
+        message: 'Debes aceptar todos los documentos requeridos.',
+        missingConsents: check.missing,
+      });
+    }
+    await legalConsent.recordConsents(user, req);
+    authAudit.record('consent.accepted', req, {
+      userId: user._id,
+      email: user.email,
+      metadata: { context: 'gate' },
+    });
+    return res.json({ success: true, user: buildUserResponse(user) });
+  } catch (error) {
+    logErr('auth.accept_terms.failed', error);
+    return res.status(500).json({ success: false, message: 'Error interno del servidor' });
+  }
+};
+
 module.exports = {
   login,
   registro,
+  aceptarTerminos,
   verificarToken,
   refreshToken,
   verificarEmail,

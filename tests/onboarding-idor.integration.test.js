@@ -18,6 +18,7 @@ process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh
 const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../app');
+const legalConsent = require('../services/legalConsent');
 
 describe('Onboarding IDOR — ownership guards', () => {
   const uniqueId = Date.now();
@@ -32,8 +33,13 @@ describe('Onboarding IDOR — ownership guards', () => {
   let canalAId; // canal owned by user A — the IDOR target
 
   const registerAndLogin = async (email) => {
-    // nombre must match /^[a-zA-Z...\s]+$/ — no digits or symbols, or registro 400s
-    const reg = await request(app).post('/api/auth/registro').send({ email, password, nombre: 'Onboarding Tester', role: 'creator' });
+    // nombre must match /^[a-zA-Z...\s]+$/ — no digits or symbols, or registro 400s.
+    // Registration now enforces clickwrap acceptance of the role's required legal
+    // documents, so send the creator consents at the current manifest version.
+    const consents = legalConsent
+      .requiredDocsForRole('creator')
+      .map((d) => ({ slug: d.slug, version: d.version }));
+    const reg = await request(app).post('/api/auth/registro').send({ email, password, nombre: 'Onboarding Tester', role: 'creator', consents });
     if (reg.status === 503) return { token: null, id: null };
     try {
       const Usuario = mongoose.models.Usuario || require('../models/Usuario');
