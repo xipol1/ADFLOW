@@ -29,9 +29,13 @@ Adflow-1.0-clone/
 Adflow Gestion/
 plataforma-*/
 
-# Tests and docs are not needed at runtime
+# Tests not needed at runtime. docs/ is excluded EXCEPT docs/legal/, which
+# scripts/legal-build.js reads at build time (docs/legal/*.html → public/legal/
+# + the legal manifest). Stripping it makes `npm run build` exit 1 at the
+# legal:build step — that broke the #117 production deploy. Keep docs/legal/.
 tests/
-docs/
+docs/*
+!docs/legal/
 AUDIT.md
 
 # Local user uploads (production should use object storage)
