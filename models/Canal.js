@@ -32,6 +32,10 @@ const CanalSchema = new mongoose.Schema(
     identificadores: {
       chatId: { type: String, default: '' },
       serverId: { type: String, default: '' },
+      // Discord: target TEXT channel (within serverId) where ads are published.
+      // Set at verification (auto-picked) and changeable from the wizard. The
+      // delivery path (lib/platformConnectors.publishAdToChannel) reads this.
+      channelId: { type: String, default: '' },
       phoneNumber: { type: String, default: '' },
       provider: { type: String, default: '' },       // newsletter provider (mailchimp/beehiiv/substack)
       linkedinUrn: { type: String, default: '' },     // urn:li:person:xxx or urn:li:organization:xxx
@@ -131,6 +135,9 @@ const CanalSchema = new mongoose.Schema(
         guildId: String,
         isPresent: { type: Boolean, default: false },
         permissions: mongoose.Schema.Types.Mixed,
+        // Display name of the target publish channel (id lives in
+        // identificadores.channelId). Set at verification, shown in the UI.
+        publishChannelName: String,
         verificadoEn: Date,
       },
       instagram: {

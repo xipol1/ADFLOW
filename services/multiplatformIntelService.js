@@ -82,9 +82,33 @@ async function fetchWaChannelsFinderUpdates() {
 }
 
 /**
- * Score and snapshot a single canal. Pure DB operations (no network scraping).
+ * Pull REAL guild metrics for an onboarded Discord channel via the bot API.
+ *
+ * Reads the guildId from the authoritative `botConfig.discord.guildId` (set at
+ * verification), falling back to `identificadores.serverId`. Returns the full
+ * fetchGuildMetrics object, or null when the channel has no verified bot/guild
+ * (e.g. discovered-but-not-onboarded) so the caller can fall back to scraping.
+ * Throws on API errors (bot kicked, rate-limited) — the caller catches and
+ * keeps the previous count rather than aborting the whole sync.
  */
-async function scoreAndSnapshot(canal, newFollowers) {
+async function fetchDiscordApiMetrics(canal) {
+  const DiscordBot = require('../integraciones/discord');
+  const guildId = canal.botConfig?.discord?.guildId || canal.identificadores?.serverId || null;
+  if (!guildId) return null;
+  const botToken = canal.botConfig?.discord?.botToken || process.env.DISCORD_BOT_TOKEN;
+  if (!botToken) return null;
+
+  const bot = new DiscordBot(botToken);
+  return bot.fetchGuildMetrics(guildId);
+}
+
+/**
+ * Score and snapshot a single canal. Pure DB operations (no network scraping).
+ *
+ * `extra` is merged into the Canal $set so callers can persist richer fields
+ * (e.g. `estadisticas.metricasRed` from the Discord API) alongside the score.
+ */
+async function scoreAndSnapshot(canal, newFollowers, extra = {}) {
   const Canal = require('../models/Canal');
   const CanalScoreSnapshot = require('../models/CanalScoreSnapshot');
   const { calcularCAS } = require('./channelScoringV2');
@@ -121,6 +145,7 @@ async function scoreAndSnapshot(canal, newFollowers) {
     'antifraude.ratioCTF_CAF': scores.ratioCTF_CAF,
     'antifraude.flags': scores.flags,
     'antifraude.ultimaRevision': new Date(),
+    ...extra,
   };
 
   await Canal.updateOne({ _id: canal._id }, { $set: updateData });
@@ -207,6 +232,7 @@ async function syncAllMultiplatformChannels() {
   const errors = [];
   let processed = 0;
   let updated = 0;
+  let apiRefreshed = 0;
 
   // ── Phase 1: Re-scrape for fresh counts ────────────────────────────
   console.log('[MultiplatformIntel] Phase 1: refreshing metrics from scrapers...');
@@ -232,6 +258,7 @@ async function syncAllMultiplatformChannels() {
     try {
       const name = (canal.nombreCanal || '').toLowerCase().trim();
       let newFollowers = null;
+      let extra = {};
 
       if (canal.plataforma === 'whatsapp') {
         // Try matching by name against both sources
@@ -242,13 +269,30 @@ async function syncAllMultiplatformChannels() {
           newFollowers = waChannelsFinder.get(slug) || null;
         }
       } else if (canal.plataforma === 'discord') {
-        newFollowers = igruposDC.get(name) || null;
+        // Onboarded channels (verified bot + guildId): pull REAL metrics from
+        // the Discord API instead of the fragile iGrupos name-match. Persist
+        // the full guild snapshot (online/boost/etc.) in estadisticas.metricasRed.
+        try {
+          const metrics = await fetchDiscordApiMetrics(canal);
+          if (metrics && metrics.seguidores != null) {
+            newFollowers = metrics.seguidores;
+            extra = { 'estadisticas.metricasRed': metrics };
+            apiRefreshed++;
+          }
+        } catch (err) {
+          // Bot kicked / rate-limited: log and fall back to the prior count.
+          errors.push(`${canal._id} (${canal.nombreCanal}) discord API: ${err.message}`);
+        }
+        // Fallback for discovered-but-not-onboarded channels (no bot/guild).
+        if (newFollowers == null) {
+          newFollowers = igruposDC.get(name) || null;
+        }
       }
 
       // If we got fresh data, use it. Otherwise keep existing count.
       const followers = newFollowers || canal.estadisticas?.seguidores || 0;
 
-      await scoreAndSnapshot(canal, followers);
+      await scoreAndSnapshot(canal, followers, extra);
       processed++;
 
       if (newFollowers && newFollowers !== canal.estadisticas?.seguidores) {
@@ -263,16 +307,18 @@ async function syncAllMultiplatformChannels() {
 
   const duration_ms = Date.now() - start;
   console.log(
-    `[MultiplatformIntel] Done: ${processed} processed, ${updated} metrics updated, ${errors.length} errors, ${duration_ms}ms`,
+    `[MultiplatformIntel] Done: ${processed} processed, ${updated} metrics updated, ` +
+    `${apiRefreshed} via Discord API, ${errors.length} errors, ${duration_ms}ms`,
   );
 
-  return { processed, updated, errors, duration_ms };
+  return { processed, updated, apiRefreshed, errors, duration_ms };
 }
 
 module.exports = {
   syncAllMultiplatformChannels,
   createInitialSnapshots,
   scoreAndSnapshot,
+  fetchDiscordApiMetrics,
   fetchIgruposUpdates,
   fetchWaChannelsFinderUpdates,
 };

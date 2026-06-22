@@ -166,13 +166,41 @@ function TelegramVerify({ canalId, channelName, onDone }) {
 }
 
 // ─── Discord verifier ─────────────────────────────────────────────────────
-function DiscordVerify({ canalId, onDone }) {
-  const [guildId, setGuildId] = useState('')
-  const [inviteUrl, setInviteUrl] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [focused, setFocused] = useState(null)
+// base64url(JWT payload) → objeto. Solo para MOSTRAR la lista de servidores; la
+// confianza la pone el backend al re-verificar la firma del token.
+function decodeJwtPayload(token) {
+  try {
+    const part = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const json = decodeURIComponent(
+      atob(part).split('').map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0')).join('')
+    )
+    return JSON.parse(json)
+  } catch { return null }
+}
 
+const DISCORD_ERRORS = {
+  discord_denied: 'Cancelaste la autorización. Vuelve a intentarlo cuando quieras.',
+  discord_no_bot: 'No encontramos ningún servidor donde seas administrador y el bot esté instalado. Instala el bot primero y vuelve a verificar.',
+  discord_state_expired: 'La sesión de verificación caducó. Vuelve a empezar.',
+  discord_state_invalid: 'No pudimos validar la verificación. Vuelve a intentarlo.',
+  discord_not_configured: 'La verificación de Discord no está disponible ahora mismo. Contacta con soporte.',
+  discord_failed: 'No se pudo completar la verificación con Discord. Vuelve a intentarlo.',
+}
+
+function DiscordVerify({ canalId, onDone }) {
+  const [inviteUrl, setInviteUrl] = useState('')
+  const [ownershipToken, setOwnershipToken] = useState('')
+  const [guilds, setGuilds] = useState([])
+  const [selectedGuild, setSelectedGuild] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [authLoading, setAuthLoading] = useState(false)
+  const [error, setError] = useState('')
+  // Fase 3: elegir el canal de texto donde se publican los anuncios.
+  const [pubStage, setPubStage] = useState(false)
+  const [pubChannels, setPubChannels] = useState([])
+  const [selectedPub, setSelectedPub] = useState('')
+
+  // Carga la URL de invitación del bot para el paso de instalación.
   useEffect(() => {
     let cancelled = false
     apiService.onboardingDiscordInstructions('').then(res => {
@@ -181,34 +209,187 @@ function DiscordVerify({ canalId, onDone }) {
     return () => { cancelled = true }
   }, [])
 
+  // Al volver del OAuth de Discord: lee el token de propiedad (o el error) de la URL.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const cbError = params.get('error')
+    const token = params.get('discord_owner')
+    if (cbError) {
+      const reason = params.get('reason')
+      setError(reason === 'not_admin'
+        ? 'Tu cuenta de Discord no es administradora de ningún servidor. Inicia sesión con la cuenta correcta.'
+        : (DISCORD_ERRORS[cbError] || 'No se pudo verificar el servidor.'))
+    }
+    if (token) {
+      const payload = decodeJwtPayload(token)
+      const list = Array.isArray(payload?.guilds) ? payload.guilds : []
+      setOwnershipToken(token)
+      setGuilds(list)
+      if (list.length === 1) setSelectedGuild(list[0].id)
+    }
+    // Limpia la query para que un refresco no reprocese un token caducado.
+    if (cbError || token) {
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [])
+
+  const startOAuth = async () => {
+    setError('')
+    setAuthLoading(true)
+    try {
+      const res = await apiService.onboardingDiscordAuthUrl(canalId)
+      if (res?.success && res.authUrl) {
+        window.location.href = res.authUrl
+        return
+      }
+      setError(res?.error || 'No se pudo iniciar la verificación con Discord')
+    } catch (e) {
+      setError(e.message || 'Error de conexión')
+    }
+    setAuthLoading(false)
+  }
+
   const handleVerify = async () => {
-    const id = guildId.trim()
-    if (!id) { setError('Introduce el ID del servidor'); return }
+    if (!selectedGuild) { setError('Elige un servidor'); return }
     setError('')
     setLoading(true)
     try {
-      const res = await apiService.onboardingDiscordVerify(id, canalId)
-      if (res?.success) onDone(res)
-      else setError(res?.error || res?.instruccion || 'No se pudo verificar el servidor')
+      const res = await apiService.onboardingDiscordVerify(selectedGuild, canalId, ownershipToken)
+      if (res?.success) {
+        // Si el servidor tiene varios canales de texto, deja elegir dónde
+        // publicar; si no, el backend ya fijó el único/por defecto.
+        const channels = Array.isArray(res.canalesDisponibles) ? res.canalesDisponibles : []
+        if (channels.length > 1) {
+          setPubChannels(channels)
+          setSelectedPub(res.canalPublicacion?.id || channels[0].id)
+          setPubStage(true)
+          setLoading(false)
+          return
+        }
+        onDone(res)
+        return
+      }
+      setError(res?.error || res?.instruccion || 'No se pudo verificar el servidor')
     } catch (e) {
       setError(e.message || 'Error de conexión')
     }
     setLoading(false)
   }
 
+  const confirmPublishChannel = async () => {
+    if (!selectedPub) { setError('Elige un canal'); return }
+    setError('')
+    setLoading(true)
+    try {
+      await apiService.onboardingDiscordSetPublishChannel(canalId, selectedPub)
+      onDone({ success: true })
+    } catch (e) {
+      setError(e.message || 'No se pudo guardar el canal de publicación')
+      setLoading(false)
+    }
+  }
+
+  // ── Paso 3: elegir el canal de texto donde se publican los anuncios ──
+  if (pubStage) {
+    return (
+      <div>
+        <Heading
+          title="¿Dónde publicamos los anuncios?"
+          subtitle="Elige el canal de texto de tu servidor donde se publicarán las campañas"
+        />
+        <ErrorBanner message={error} />
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
+          {pubChannels.map(c => {
+            const active = selectedPub === c.id
+            return (
+              <button
+                key={c.id}
+                onClick={() => setSelectedPub(c.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+                  width: '100%', textAlign: 'left', boxSizing: 'border-box',
+                  background: active ? AG(0.1) : 'var(--surface)',
+                  border: `1.5px solid ${active ? A : 'var(--border)'}`,
+                  borderRadius: '12px', padding: '14px 16px', cursor: 'pointer',
+                  fontFamily: F, transition: 'all .15s',
+                }}
+              >
+                <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)' }}>#{c.name}</span>
+                {active && <CheckCircle size={18} style={{ color: A }} />}
+              </button>
+            )
+          })}
+        </div>
+
+        <PrimaryButton onClick={confirmPublishChannel} disabled={!selectedPub} loading={loading}>
+          Confirmar y activar <ArrowRight size={16} />
+        </PrimaryButton>
+      </div>
+    )
+  }
+
+  // ── Paso 2: selector de servidor (tras volver del OAuth) ──
+  if (ownershipToken && guilds.length > 0) {
+    return (
+      <div>
+        <Heading
+          title="Elige tu servidor"
+          subtitle="Eres administrador de estos servidores y el bot ya está instalado en ellos"
+        />
+        <ErrorBanner message={error} />
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
+          {guilds.map(g => {
+            const active = selectedGuild === g.id
+            return (
+              <button
+                key={g.id}
+                onClick={() => setSelectedGuild(g.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+                  width: '100%', textAlign: 'left', boxSizing: 'border-box',
+                  background: active ? AG(0.1) : 'var(--surface)',
+                  border: `1.5px solid ${active ? A : 'var(--border)'}`,
+                  borderRadius: '12px', padding: '14px 16px', cursor: 'pointer',
+                  fontFamily: F, transition: 'all .15s',
+                }}
+              >
+                <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)' }}>{g.name}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {g.memberCount != null && (
+                    <span style={{ fontSize: '13px', color: 'var(--muted)' }}>
+                      {g.memberCount.toLocaleString('es-ES')} miembros
+                    </span>
+                  )}
+                  {active && <CheckCircle size={18} style={{ color: A }} />}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        <PrimaryButton onClick={handleVerify} disabled={!selectedGuild} loading={loading}>
+          Activar servidor <ArrowRight size={16} />
+        </PrimaryButton>
+      </div>
+    )
+  }
+
+  // ── Paso 1: instalar bot + iniciar OAuth de propiedad ──
   return (
     <div>
       <Heading
         title="Verifica tu servidor de Discord"
-        subtitle="Instala nuestro bot en tu servidor para activar el canal"
+        subtitle="Instala el bot y confirma con Discord que eres su administrador"
       />
       <ErrorBanner message={error} />
 
       <InstructionList steps={[
-        'Pulsa "Instalar bot" abajo para añadirlo a tu servidor',
+        'Pulsa "Instalar bot" para añadirlo a tu servidor',
         'Selecciona tu servidor en Discord y autoriza los permisos',
-        'Copia el ID de tu servidor (Ajustes → Avanzado → Modo desarrollador)',
-        'Pega el ID aquí y pulsa "Verificar"',
+        'Vuelve aquí y pulsa "Verificar propiedad con Discord"',
+        'Elige el servidor y actívalo',
       ]} />
 
       {inviteUrl && (
@@ -218,7 +399,7 @@ function DiscordVerify({ canalId, onDone }) {
           rel="noopener noreferrer"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            width: '100%', padding: '12px', marginBottom: '20px', boxSizing: 'border-box',
+            width: '100%', padding: '12px', marginBottom: '16px', boxSizing: 'border-box',
             background: '#5865f215', border: '1px solid #5865f230',
             borderRadius: '12px', textDecoration: 'none',
             fontSize: '14px', fontWeight: 600, color: '#5865f2', fontFamily: F,
@@ -228,18 +409,8 @@ function DiscordVerify({ canalId, onDone }) {
         </a>
       )}
 
-      <TextInput
-        label="ID del servidor"
-        value={guildId}
-        onChange={setGuildId}
-        placeholder="123456789012345678"
-        name="guildId"
-        focused={focused}
-        setFocused={setFocused}
-      />
-
-      <PrimaryButton onClick={handleVerify} disabled={!guildId.trim()} loading={loading}>
-        Verificar servidor <ArrowRight size={16} />
+      <PrimaryButton onClick={startOAuth} disabled={authLoading} loading={authLoading}>
+        Verificar propiedad con Discord <ArrowRight size={16} />
       </PrimaryButton>
     </div>
   )

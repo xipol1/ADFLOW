@@ -75,7 +75,10 @@ function classifyError(msg) {
   // Match either order: "token expired" OR "invalid token". Both ?= lookaheads
   // must hit somewhere in the string.
   if (/(token|oauth)/.test(m) && /(expired|invalid|revoked|denied|unauthorized|401)/.test(m)) return 'TOKEN_REVOKED';
-  if (/(not\s+admin|no\s+admin|kicked|removed|forbidden|403)/.test(m)) return 'ADMIN_LOST';
+  // Includes the Spanish bot-kick / lost-permission strings from Discord &
+  // Telegram verifyBotAccess (e.g. "el bot no es miembro del servidor",
+  // "no tiene permiso", "no se pudo acceder al servidor").
+  if (/(not\s+admin|no\s+admin|kicked|removed|forbidden|403|not a member|no es miembro|no tiene permiso|no se pudo acceder|en el servidor)/.test(m)) return 'ADMIN_LOST';
   if (/(rate.?limit|429)/.test(m)) return 'RATE_LIMITED';
   if (/(network|timeout|econn|enotfound|5\d{2})/.test(m)) return 'PLATFORM_DOWN';
   return 'VERIFY_FAILED';

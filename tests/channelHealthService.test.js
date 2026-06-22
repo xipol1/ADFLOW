@@ -56,6 +56,13 @@ describe('classifyError', () => {
     expect(classifyError('403 Forbidden')).toBe('ADMIN_LOST');
   });
 
+  test('detects Discord bot-kick / lost-permission (Spanish) as admin loss', () => {
+    expect(classifyError('El bot no es miembro del servidor.')).toBe('ADMIN_LOST');
+    expect(classifyError('El bot no tiene permiso VIEW_CHANNEL en el servidor.')).toBe('ADMIN_LOST');
+    expect(classifyError('El bot no está en el servidor')).toBe('ADMIN_LOST');
+    expect(classifyError('No se pudo acceder al servidor')).toBe('ADMIN_LOST');
+  });
+
   test('detects rate limiting', () => {
     expect(classifyError('Rate limit exceeded')).toBe('RATE_LIMITED');
     expect(classifyError('429 Too Many Requests')).toBe('RATE_LIMITED');

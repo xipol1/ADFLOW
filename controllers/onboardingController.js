@@ -5,6 +5,13 @@ const WhatsAppAPI = require('../integraciones/whatsapp');
 const Canal = require('../models/Canal');
 const WhatsAppVerification = require('../models/WhatsAppVerification');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const config = require('../config/config');
+
+// Audiencia propia para el token de prueba de propiedad de Discord. Distinta
+// de la audiencia de los JWT de sesión (`config.jwt.audience`) para que un
+// token de propiedad NO pueda colarse como Bearer de autenticación ni viceversa.
+const DISCORD_OWNERSHIP_AUDIENCE = 'discord-ownership';
 
 /**
  * OnboardingController
@@ -167,48 +174,254 @@ class OnboardingController {
     }
   }
 
+  // Paso 2a: genera la URL OAuth2 (`identify guilds`) para probar que el
+  // usuario controla el servidor. `state` lleva firmado el canalId + userId
+  // para que el callback sepa a quién y a qué canal pertenece la prueba.
+  async discordGetAuthUrl(req, res) {
+    try {
+      const { canalId, purpose } = req.query;
+      const clientId = config.discord.clientId;
+      const backend = process.env.BACKEND_URL || '';
+
+      if (!clientId) return res.status(500).json({ success: false, error: 'DISCORD_CLIENT_ID no configurado' });
+      if (!backend) return res.status(500).json({ success: false, error: 'BACKEND_URL no configurado' });
+
+      const redirectUri = `${backend}${config.discord.oauthCallbackPath}`;
+      const state = Buffer.from(JSON.stringify({
+        canalId: canalId || '',
+        userId: req.usuario?.id || '',
+        // 'claim' makes the callback return to the public /claim/:id page instead
+        // of the onboarding wizard; the verify step itself is identical.
+        purpose: purpose === 'claim' ? 'claim' : 'onboarding',
+        nonce: crypto.randomBytes(16).toString('hex'),
+        ts: Date.now(),
+      })).toString('base64url');
+
+      const authUrl = DiscordBot.generateOAuthUrl({ clientId, redirectUri, state });
+
+      res.json({
+        success: true,
+        authUrl,
+        instrucciones: {
+          pasos: [
+            'Instala primero nuestro bot en tu servidor',
+            'Pulsa "Verificar propiedad con Discord"',
+            'Inicia sesión y autoriza el acceso de solo lectura a tus servidores',
+            'Elige el servidor que quieres activar',
+          ],
+          scopesNecesarios: ['identify', 'guilds'],
+          nota: 'Solo leemos la lista de tus servidores para confirmar que eres administrador. No accedemos a tus mensajes privados.',
+          tiempoEstimado: '1 minuto',
+        },
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  }
+
+  // Paso 2b: Discord redirige aquí tras autorizar. Validamos el state, canjeamos
+  // el code, listamos los guilds del usuario y nos quedamos con los que: (a) el
+  // usuario es owner/admin Y (b) nuestro bot está presente con permisos. Con ese
+  // conjunto emitimos un JWT de propiedad firmado (15 min) y volvemos al wizard.
+  // Ruta PÚBLICA: la confianza vive en la firma del state y del token, no en auth.
+  async discordCallback(req, res) {
+    const frontend = process.env.FRONTEND_URL || '';
+    // Default to the onboarding wizard; the claim flow overrides this to the
+    // public claim page once we read `purpose` from the signed state. `fail`
+    // closes over the variable, so reassigning it before any fail() is honoured.
+    let verifyPath = '/onboarding/verify';
+    const fail = (reason) => res.redirect(`${frontend}${verifyPath}?error=${encodeURIComponent(reason)}`);
+
+    let canalId = '';
+    let userId = '';
+    try {
+      if (req.query?.state) {
+        const parsed = JSON.parse(Buffer.from(req.query.state, 'base64url').toString());
+        canalId = parsed?.canalId || '';
+        userId = parsed?.userId || '';
+        if (parsed?.purpose === 'claim' && canalId) verifyPath = `/claim/${canalId}`;
+        // El state caduca a los 15 min para acotar la ventana de replay.
+        if (!parsed?.ts || Date.now() - parsed.ts > 15 * 60 * 1000) return fail('discord_state_expired');
+      }
+    } catch (_) {
+      return fail('discord_state_invalid');
+    }
+
+    try {
+      const { code, error } = req.query;
+      if (error) return fail('discord_denied');
+      if (!code || !userId) return fail('discord_state_invalid');
+
+      const clientId = config.discord.clientId;
+      const clientSecret = config.discord.clientSecret;
+      const botToken = config.discord.botToken;
+      const backend = process.env.BACKEND_URL || '';
+      if (!clientId || !clientSecret || !botToken || !backend) return fail('discord_not_configured');
+
+      const redirectUri = `${backend}${config.discord.oauthCallbackPath}`;
+      const tokenRes = await DiscordBot.exchangeOAuthCode({ clientId, clientSecret, code, redirectUri });
+      const userGuilds = await DiscordBot.getUserGuilds(tokenRes.access_token);
+
+      // Filtra a los servidores que el usuario controla (owner/admin), acotado
+      // para no martillear la API si pertenece a cientos de servidores.
+      const controlled = userGuilds.filter((g) => DiscordBot.userControlsGuild(g)).slice(0, 10);
+
+      // De esos, quédate con los que el bot ya está dentro y puede publicar.
+      const bot = new DiscordBot(botToken);
+      const eligible = [];
+      for (const g of controlled) {
+        const access = await bot.verifyBotAccess(g.id).catch(() => ({ valid: false }));
+        if (access.valid) {
+          eligible.push({ id: g.id, name: g.name, memberCount: access.guild?.memberCount || null });
+        }
+      }
+
+      if (eligible.length === 0) {
+        // El usuario es admin de algún servidor pero el bot no está en ninguno
+        // (o le faltan permisos): le mandamos a instalar el bot primero.
+        return res.redirect(`${frontend}${verifyPath}?error=discord_no_bot${controlled.length === 0 ? '&reason=not_admin' : ''}`);
+      }
+
+      // Token de propiedad firmado: prueba intransferible de que ESTE usuario
+      // controla ESTOS guilds. discordVerify lo exige y lo re-valida.
+      const ownershipToken = jwt.sign(
+        { uid: userId, guilds: eligible },
+        config.jwt.secret,
+        { expiresIn: '15m', issuer: config.jwt.issuer, audience: DISCORD_OWNERSHIP_AUDIENCE, algorithm: 'HS256' },
+      );
+
+      const params = new URLSearchParams({ discord_owner: ownershipToken });
+      if (canalId) params.set('canalId', canalId);
+      return res.redirect(`${frontend}${verifyPath}?${params.toString()}`);
+    } catch (err) {
+      console.error('Error en Discord callback:', err.message);
+      return fail('discord_failed');
+    }
+  }
+
+  // Paso 3: activa el canal. Exige el token de propiedad emitido por el callback
+  // y comprueba (1) que el token es de este usuario, (2) que el guildId está
+  // entre los servidores que probó controlar, (3) que el canal le pertenece
+  // (cierra el IDOR), y (4) re-verifica el acceso del bot antes de sellar.
   async discordVerify(req, res) {
     try {
-      const { guildId, canalId } = req.body;
-      const botToken = process.env.DISCORD_BOT_TOKEN;
+      const { guildId, canalId, ownershipToken } = req.body;
+      const botToken = config.discord.botToken;
 
       if (!guildId || !botToken) {
         return res.status(400).json({ success: false, error: 'guildId requerido' });
       }
+      if (!canalId) {
+        return res.status(400).json({ success: false, error: 'canalId requerido' });
+      }
+      if (!ownershipToken) {
+        return res.status(400).json({ success: false, error: 'Falta la prueba de propiedad. Vuelve a verificar con Discord.' });
+      }
 
+      // 1) Verifica el token de propiedad (firma + caducidad + audiencia propia).
+      let proof;
+      try {
+        proof = jwt.verify(ownershipToken, config.jwt.secret, {
+          issuer: config.jwt.issuer,
+          audience: DISCORD_OWNERSHIP_AUDIENCE,
+          algorithms: ['HS256'],
+        });
+      } catch (_) {
+        return res.status(401).json({ success: false, error: 'Prueba de propiedad inválida o caducada. Vuelve a verificar con Discord.' });
+      }
+
+      // 2) El token debe ser de este usuario y cubrir este guild.
+      const requesterId = String(req.usuario?.id || '');
+      if (!requesterId || String(proof.uid) !== requesterId) {
+        return res.status(403).json({ success: false, error: 'La prueba de propiedad no corresponde a tu cuenta.' });
+      }
+      const provenGuildIds = Array.isArray(proof.guilds) ? proof.guilds.map((g) => String(g.id)) : [];
+      if (!provenGuildIds.includes(String(guildId))) {
+        return res.status(403).json({ success: false, error: 'No has demostrado ser administrador de ese servidor.' });
+      }
+
+      // 3) Authorization. Two valid cases — both already gated by the proven
+      //    guild ownership checked above (token + owner/admin + bot present):
+      //    (a) Onboarding: the canal already belongs to this user.
+      //    (b) Claim: the canal is an UNCLAIMED scraped placeholder → this user
+      //        takes it over. The IDOR fix is preserved: a canal owned by, or
+      //        already claimed by, someone else is never touchable.
+      const canal = await Canal.findById(canalId).select('propietario plataforma claimed claimedBy nombreCanal');
+      if (!canal) {
+        return res.status(404).json({ success: false, error: 'Canal no encontrado' });
+      }
+      if (canal.plataforma !== 'discord') {
+        return res.status(400).json({ success: false, error: 'Este canal no es de Discord' });
+      }
+      if (canal.claimed && String(canal.claimedBy) !== requesterId) {
+        return res.status(409).json({ success: false, error: 'Este canal ya ha sido reclamado por otra cuenta' });
+      }
+      if (!canal.claimed && canal.propietario && String(canal.propietario) !== requesterId) {
+        return res.status(403).json({ success: false, error: 'No tienes permiso sobre este canal' });
+      }
+      // Claim = unowned + unclaimed scraped listing being taken over now.
+      const isClaim = !canal.claimed && !canal.propietario;
+
+      // 4) Re-verifica el acceso del bot (defensa en profundidad) y trae métricas.
       const bot = new DiscordBot(botToken);
-
       const access = await bot.verifyBotAccess(guildId);
-      if (!access.valid && !access.isPresent) {
+      if (!access.valid) {
         return res.status(403).json({
           success: false,
-          error: 'El bot no está en el servidor',
-          instruccion: 'Instala el bot usando el link de invitación que te hemos enviado',
+          error: access.error || 'El bot no tiene acceso al servidor',
+          instruccion: 'Reinstala el bot con permisos de ver canales y enviar mensajes.',
         });
       }
 
       const guildMetrics = await bot.fetchGuildMetrics(guildId);
+      const tier = access.canReadHistory ? 'oro' : 'plata';
+
+      // Pick a default text channel so ads have a valid publish target from the
+      // start (publishAdToChannel reads identificadores.channelId). The user can
+      // change it via POST /discord/canal-publicacion. Non-fatal if it fails.
+      let publishChannels = [];
+      let publishChannel = null;
+      try {
+        publishChannels = await bot.getPublishableChannels(guildId);
+        publishChannel = DiscordBot.pickDefaultPublishChannel(publishChannels);
+      } catch (_) { /* keep activation even if channel listing fails */ }
 
       const updateData = {
+        'identificadores.serverId': String(guildId),
         'botConfig.discord.botToken': botToken,
-        'botConfig.discord.guildId': guildId,
+        'botConfig.discord.guildId': String(guildId),
         'botConfig.discord.isPresent': true,
         'botConfig.discord.permissions': access,
         'botConfig.discord.verificadoEn': new Date(),
         'estadisticas.seguidores': guildMetrics.seguidores,
         'estadisticas.metricasRed': guildMetrics,
         'estadisticas.ultimaActualizacion': new Date(),
-        'nivelVerificacion': access.canReadHistory ? 'oro' : 'plata',
+        nivelVerificacion: tier,
+        // Propiedad probada por OAuth + bot presente → confianza alta.
+        verificado: true,
+        'verificacion.tipoAcceso': 'admin_directo',
+        'verificacion.confianzaScore': 90,
         estado: 'activo',
       };
-
-      if (canalId) {
-        await Canal.findByIdAndUpdate(canalId, { $set: updateData });
+      if (publishChannel) {
+        updateData['identificadores.channelId'] = String(publishChannel.id);
+        updateData['botConfig.discord.publishChannelName'] = publishChannel.name;
       }
+      // Claiming an unclaimed scraped listing: seal ownership now and adopt the
+      // real guild name over the scraped placeholder.
+      if (isClaim) {
+        updateData.claimed = true;
+        updateData.claimedBy = requesterId;
+        updateData.claimedAt = new Date();
+        updateData.propietario = requesterId;
+        if (guildMetrics?.nombre) updateData.nombreCanal = guildMetrics.nombre;
+      }
+
+      await Canal.findByIdAndUpdate(canalId, { $set: updateData });
 
       res.json({
         success: true,
-        tier: access.canReadHistory ? 'oro' : 'plata',
+        tier,
         datos: {
           nombre: guildMetrics.nombre,
           seguidores: guildMetrics.seguidores,
@@ -218,7 +431,57 @@ class OnboardingController {
           puedeVerCanales: access.canViewChannels,
           puedeLeerHistorial: access.canReadHistory,
         },
-        mensaje: 'Servidor Discord verificado. ChannelAd tiene acceso a las métricas del servidor.',
+        // Target de publicación: el elegido por defecto + la lista para cambiarlo.
+        canalPublicacion: publishChannel ? { id: publishChannel.id, name: publishChannel.name } : null,
+        canalesDisponibles: publishChannels.map((c) => ({ id: c.id, name: c.name })),
+        mensaje: 'Servidor Discord verificado. Eres administrador confirmado y el bot ya tiene acceso.',
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  }
+
+  // Cambia el canal de texto donde se publican los anuncios. Valida (1) que el
+  // canal es del usuario (IDOR), y (2) que el channelId pertenece de verdad al
+  // guild verificado y es publicable — no se puede apuntar a un canal ajeno.
+  async discordSetPublishChannel(req, res) {
+    try {
+      const { canalId, channelId } = req.body;
+      const botToken = config.discord.botToken;
+      if (!canalId || !channelId) {
+        return res.status(400).json({ success: false, error: 'canalId y channelId requeridos' });
+      }
+
+      const canal = await Canal.findById(canalId).select('propietario plataforma botConfig.discord.guildId identificadores.serverId');
+      if (!canal) return res.status(404).json({ success: false, error: 'Canal no encontrado' });
+      if (String(canal.propietario) !== String(req.usuario?.id || '')) {
+        return res.status(403).json({ success: false, error: 'No tienes permiso sobre este canal' });
+      }
+
+      const guildId = canal.botConfig?.discord?.guildId || canal.identificadores?.serverId;
+      if (!guildId || !botToken) {
+        return res.status(400).json({ success: false, error: 'El canal de Discord no está verificado todavía' });
+      }
+
+      // El channelId debe pertenecer al guild verificado y ser publicable.
+      const bot = new DiscordBot(botToken);
+      const channels = await bot.getPublishableChannels(guildId);
+      const target = channels.find((c) => String(c.id) === String(channelId));
+      if (!target) {
+        return res.status(400).json({ success: false, error: 'Ese canal no pertenece a tu servidor o no es publicable' });
+      }
+
+      await Canal.findByIdAndUpdate(canalId, {
+        $set: {
+          'identificadores.channelId': String(target.id),
+          'botConfig.discord.publishChannelName': target.name,
+        },
+      });
+
+      res.json({
+        success: true,
+        canalPublicacion: { id: target.id, name: target.name },
+        mensaje: `Los anuncios se publicarán en #${target.name}.`,
       });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
