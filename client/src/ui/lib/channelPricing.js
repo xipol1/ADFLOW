@@ -1,28 +1,30 @@
 // ─── Channelad — Unified Channel Pricing ────────────────────────────────────
-// Single source of truth for every calculator on the public site.
-// Replaces the duplicate CPM tables and formulas that used to live inside
-// the landing earnings calculator and the blog post CalculadoraPrecios.jsx.
+// Single source of truth for every CREATOR-side calculator on the public site.
 //
-// All consumers go through `computeChannelPricing()`. The data tables
-// (NICHES, PLATFORMS, FORMATS) are exported so the UI can render pickers
-// directly without re-declaring them.
+// ⚠️  MIRROR of lib/channelPricingCore.js (repo root, CommonJS). The Vite client
+//     app can't import that file, so the pricing FORMULAS and CONSTANTS are
+//     duplicated here. They are locked together by REFERENCE_VECTORS in
+//     tests/channelPricing.test.js — if this copy drifts from the core, the test
+//     fails. Change both (and the advertiser mirror in advertiserReach.js) in the
+//     same commit.
+//
+// The data tables (NICHES, PLATFORMS, FORMATS) are exported so the UI can render
+// pickers directly. All price math goes through computeChannelPricing().
 
 import { PUBLIC_COMMISSION_MULTIPLIER } from '../theme/stats'
 
 // ── Plataformas ─────────────────────────────────────────────────────────────
-// `mult` ajusta el CPM base por la calidad de impresión típica de cada
-// plataforma (WhatsApp = open rate 80-90%, Discord = engagement alto pero
-// audiencia más fragmentada, etc.).
+// `mult` ajusta el CPM por la calidad de impresión típica de cada plataforma.
+// `reachBase` / `reachFloor` definen la curva de alcance (ver reachRate()).
 export const PLATFORMS = [
-  { id: 'telegram',   label: 'Telegram',   color: '#2aabee', mult: 1.0  },
-  { id: 'whatsapp',   label: 'WhatsApp',   color: '#25d366', mult: 1.05 },
-  { id: 'discord',    label: 'Discord',    color: '#5865f2', mult: 0.95 },
-  { id: 'newsletter', label: 'Newsletter', color: '#8b5cf6', mult: 1.10 },
+  { id: 'telegram',   label: 'Telegram',   color: '#2aabee', mult: 1.0,  reachBase: 0.45, reachFloor: 0.18 },
+  { id: 'whatsapp',   label: 'WhatsApp',   color: '#25d366', mult: 1.1,  reachBase: 0.72, reachFloor: 0.24 },
+  { id: 'discord',    label: 'Discord',    color: '#5865f2', mult: 0.95, reachBase: 0.55, reachFloor: 0.15 },
+  { id: 'newsletter', label: 'Newsletter', color: '#8b5cf6', mult: 1.2,  reachBase: 0.40, reachFloor: 0.18 },
 ]
 
 // ── Nichos ──────────────────────────────────────────────────────────────────
-// Lista canónica fusionada de las dos tablas previas. El `mult` aplica sobre
-// el CPM base (12 €) — es el premium/discount típico del nicho frente al
+// `mult` aplica sobre el CPM base — premium/discount del nicho frente al
 // promedio del marketplace.
 export const NICHES = [
   { id: 'finanzas',        label: 'Finanzas / Inversiones',  mult: 1.5  },
@@ -51,22 +53,42 @@ export const FORMATS = [
   { id: 'pack10',   label: 'Paquete 10 posts',   mult: 10, discount: 0.25, description: '−25% por volumen, anunciantes recurrentes.' },
 ]
 
-// CPM base del marketplace (mediana real para canales medianos).
-// El CPM efectivo se calcula como: BASE_CPM · platform.mult · niche.mult · engagementBoost.
-export const BASE_CPM = 12
+// ── Constantes del modelo (MIRROR de lib/channelPricingCore.js) ──────────────
+// CPM base: € que cobra el CREADOR por 1.000 impresiones reales, para un canal
+// baseline (nicho ×1.0, sin escala, engagement medio). El anunciante paga esto
+// × comisión. Por debajo del CPM de Meta/Google (~12 €) para que la comparativa
+// "más barato que paid media" se sostenga.
+export const BASE_CPM = 5
 
-// Tasa de impresión por publicación — fracción de la audiencia que ve un post
-// típico (Telegram 30-45%, WhatsApp 75-90%, Discord 60-80%). Usamos 60% como
-// promedio conservador para el reach mostrado.
-export const REACH_RATE = 0.6
+// Curva de alcance: rate(f) = floor + (base-floor)·(PIVOT/max(f,PIVOT))^DECAY.
+// Sustituye al antiguo 0,6 plano — ahora varía por plataforma y decae con el
+// tamaño (los canales grandes alcanzan a un % menor de su audiencia por post).
+export const REACH_PIVOT = 3000
+export const REACH_DECAY = 0.12
+
+// Taper de escala: descuento de CPM por volumen → precio sublineal en seguidores.
+// factor(reach) = SCALE_FLOOR + (1-SCALE_FLOOR)·(RPIVOT/max(reach,RPIVOT))^SCALE_DECAY
+export const SCALE_RPIVOT = 8000
+export const SCALE_DECAY = 0.10
+export const SCALE_FLOOR = 0.45
+
+export function reachRate(platformId, followers) {
+  const p = findPlatform(platformId)
+  const f = Math.max(0, Number(followers) || 0)
+  if (f <= REACH_PIVOT) return p.reachBase
+  const decay = Math.pow(REACH_PIVOT / f, REACH_DECAY)
+  return p.reachFloor + (p.reachBase - p.reachFloor) * decay
+}
+
+export function scaleTaper(reachPerPost) {
+  const r = Math.max(0, Number(reachPerPost) || 0)
+  if (r <= SCALE_RPIVOT) return 1
+  return SCALE_FLOOR + (1 - SCALE_FLOOR) * Math.pow(SCALE_RPIVOT / r, SCALE_DECAY)
+}
 
 // ── Engagement boost ────────────────────────────────────────────────────────
-// `reactionsPerPost / followers` da la engagement rate. La industria considera:
-//   < 0.5%  → engagement bajo (−15% precio)
-//   0.5-2%  → normal (sin ajuste)
-//   2-5%    → bueno (+10%)
-//   > 5%    → excelente (+25%)
-// Si el usuario no provee reactionsPerPost (== 0 o null), no se aplica boost.
+// `reactionsPerPost / followers` da la engagement rate:
+//   < 0.5%  → bajo (−15%) · 0.5-2% → normal · 2-5% → bueno (+10%) · > 5% → +25%
 export function engagementBoost(followers, reactionsPerPost) {
   if (!reactionsPerPost || !followers || followers <= 0) return 1
   const rate = reactionsPerPost / followers
@@ -91,28 +113,14 @@ export const findNiche    = (id) => NICHES.find((n) => n.id === id) || NICHES[3]
 export const findFormat   = (id) => FORMATS.find((f) => f.id === id) || FORMATS[0]
 
 // ── Núcleo: cálculo de precios ──────────────────────────────────────────────
-// Devuelve todos los outputs que los calculadores del sitio necesitan, en una
-// sola pasada. Los consumidores eligen qué mostrar según la `variant`.
+// Devuelve todos los outputs que los calculadores del sitio necesitan.
 //
-// Inputs:
-//   followers          — número de seguidores activos del canal
-//   reactionsPerPost   — reacciones medias por publicación (0 si se ignora)
-//   postsPerMonth      — publicaciones patrocinadas que el creador planea/mes
-//   platform           — id de PLATFORMS
-//   niche              — id de NICHES
-//   format             — id de FORMATS (formato "destacado" del output)
-//
-// Outputs:
-//   effectiveCpm           — CPM ajustado a la combinación específica
-//   reachPerPost           — impresiones esperadas por publicación
-//   pricePerFormat[]       — precio recomendado para cada formato (6 entradas)
-//   featuredFormatPrice    — precio del formato seleccionado (atajo de UI)
-//   creatorPerPost         — lo que cobra el creador por un post estándar
-//   advertiserPaysPerPost  — lo que paga el anunciante (creator + 20%)
-//   monthlyEarnings        — creatorPerPost · postsPerMonth
-//   yearlyEarnings         — monthlyEarnings · 12
-//   engagement             — { boost, label, rate }
-//   comparisons            — { adsense, patreon, networks } (solo para landing)
+// Inputs:  followers, reactionsPerPost, postsPerMonth, platform, niche, format
+// Outputs (claves estables — varios componentes dependen de ellas):
+//   effectiveCpm · reachPerPost · pricePerFormat[] · featuredFormatPrice ·
+//   featuredFormatLabel · creatorPerPost · advertiserPaysPerPost ·
+//   monthlyEarnings · yearlyEarnings · engagement{boost,label,rate} ·
+//   comparisons{adsense,patreon,networks}
 export function computeChannelPricing({
   followers = 0,
   reactionsPerPost = 0,
@@ -127,8 +135,14 @@ export function computeChannelPricing({
   const boost = engagementBoost(followers, reactionsPerPost)
   const engRate = followers > 0 ? reactionsPerPost / followers : 0
 
-  const effectiveCpm = BASE_CPM * p.mult * n.mult * boost
-  const reachPerPost = Math.round(followers * REACH_RATE)
+  // Alcance: % decreciente por tamaño y plataforma.
+  const rate = reachRate(p.id, followers)
+  const reachPerPost = Math.round((Number(followers) || 0) * rate)
+
+  // CPM efectivo: base · plataforma · nicho · engagement · taper de escala.
+  const taper = scaleTaper(reachPerPost)
+  const effectiveCpm = BASE_CPM * p.mult * n.mult * boost * taper
+
   const creatorPerPost = (reachPerPost / 1000) * effectiveCpm
   const advertiserPaysPerPost = creatorPerPost * PUBLIC_COMMISSION_MULTIPLIER
 
