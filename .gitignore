@@ -101,3 +101,7 @@ scripts/create_burn_slide.py
 
 # ── Project local settings ────────────────────────────────────────────────────
 settings.local.json
+
+# ── Outreach lists (generated from scraped data, change daily — never commit) ──
+outreach/lists/*
+!outreach/lists/.gitkeep
