@@ -447,11 +447,20 @@ DEMO_MODE, DEMO_PASSWORD
 | Schedule (UTC)  | Endpoint                           | Que hace |
 |-----------------|------------------------------------|----------|
 | `0 3 * * *`     | `/api/oauth/meta/cron-refresh`     | Refresca tokens Meta que expiran en <7d |
+| `15 3 * * *`    | `/api/oauth/channels/cron-health`  | Health check de canales conectados |
 | `0 3 * * *`     | `/api/admin/scoring/run`           | Recalcula CAS de todos los canales |
 | `30 3 * * *`    | `/api/admin/metrics/capture`       | Snapshot diario de metricas de campana |
-| `30 2 * * *`    | `/api/jobs/telegram-intel`         | Scraping diario de Telegram |
-| `0 4 * * *`     | `/api/jobs/multiplatform-intel`    | Scraping diario multiplataforma |
-| `0 5 * * 1`     | `/api/jobs/tgstat-discover`        | Discovery semanal via tgstat |
+| `15 4 * * *`    | `/api/jobs/swaps-maintenance`      | Mantenimiento de swaps/cross-promo |
+| `30 4 * * *`    | `/api/jobs/auth-cleanup`           | Limpieza de cuentas no verificadas |
+| `45 4 * * *`    | `/api/jobs/campaign-settlement`    | Liquidacion automatica de campanas |
+
+> Los jobs pesados de discovery/intel (`telegram-intel`, `multiplatform-intel`,
+> `tgstat-discover`) **ya no corren en Vercel** — morian por el limite de 60 s.
+> Se ejecutan gratis en **GitHub Actions** (`.github/workflows/discovery-jobs.yml`)
+> con `node scripts/run-job.js <tipo>`, usando las mismas funciones del scheduler
+> (`lib/jobScheduler.js`) y el mismo lock por `JobLog`. Secrets necesarios en el
+> repo: `MONGODB_URI`, `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, `TELEGRAM_SESSION`
+> (y `ENCRYPTION_KEY` si aplica).
 
 ### Health check
 - `GET /health` o `GET /api/health`
