@@ -414,7 +414,7 @@ export default function ChannelCalculator({
           <WizardSlider
             label="Suscriptores activos"
             value={followers}
-            min={500} max={500000} step={500}
+            min={500} max={2000000} step={500}
             onChange={setFollowers}
             formatValue={fmtFollowers}
             accent={accent}
