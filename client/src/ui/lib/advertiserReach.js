@@ -45,10 +45,12 @@ const PLATFORM_BEHAVIOR = {
   mixto:      { ctr: 0.30, eng: 0.38 },
 }
 
-// Paid media baseline (Meta/Google promedio) para mostrar el ahorro vs
-// publicidad tradicional.
-const PAID_MEDIA_CPM = 12    // EUR — CPM que paga el anunciante en Meta/Google
-const PAID_MEDIA_CTR = 0.012 // 1.2% CTR — promedio histórico Meta/Google display
+// NOTA: aquí NO se compara con Meta/Google por CPM. Una deep-research (2026-06)
+// con fuentes confirmó que el CPM real de Meta en España es ~€2,5-8 (centro
+// ~€5-6,5), no los 12 € que asumíamos — al nivel del CPM efectivo de Channelad,
+// y por debajo en nichos premium. Por tanto un claim de "ahorro vs Meta" no es
+// defendible. El valor de los canales es cualitativo (audiencia opt-in de nicho,
+// confianza/endoso del creador, open/CTR altos, sin fatiga de feed), no precio.
 
 /**
  * computeAdvertiserReach({ pricePerPost, postsPlanned, platform, niche })
@@ -61,8 +63,7 @@ const PAID_MEDIA_CTR = 0.012 // 1.2% CTR — promedio histórico Meta/Google dis
  *
  * Returns (claves estables — AdvertiserResultCard depende de ellas):
  *   reachPerPost · reachTotal · clicksPerPost · clicksTotal · engagedTotal ·
- *   totalBudget · cpcEffective · reachDeltaPct · clicksDeltaPct ·
- *   paidEquivalent{reach,clicks}
+ *   totalBudget · cpcEffective
  */
 export function computeAdvertiserReach({
   pricePerPost = 100,
@@ -93,12 +94,6 @@ export function computeAdvertiserReach({
   const totalBudget = pricePerPost * postsPlanned
   const cpcEffective = clicksTotal > 0 ? totalBudget / clicksTotal : 0
 
-  // Comparativa contra paid media al mismo budget total.
-  const paidReach  = (totalBudget / PAID_MEDIA_CPM) * 1000
-  const paidClicks = paidReach * PAID_MEDIA_CTR
-  const reachDeltaPct  = paidReach  > 0 ? ((reachTotal  / paidReach)  - 1) * 100 : 0
-  const clicksDeltaPct = paidClicks > 0 ? ((clicksTotal / paidClicks) - 1) * 100 : 0
-
   return {
     reachPerPost,
     reachTotal,
@@ -107,10 +102,7 @@ export function computeAdvertiserReach({
     engagedTotal,
     totalBudget,
     cpcEffective,
-    reachDeltaPct,
-    clicksDeltaPct,
-    paidEquivalent: { reach: paidReach, clicks: paidClicks },
   }
 }
 
-export { PLATFORM_CPM_MULT, NICHE_CPM_MULT, PLATFORM_BEHAVIOR, PAID_MEDIA_CPM, PAID_MEDIA_CTR }
+export { PLATFORM_CPM_MULT, NICHE_CPM_MULT, PLATFORM_BEHAVIOR }

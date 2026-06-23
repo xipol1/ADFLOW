@@ -19,7 +19,7 @@ Here's how Channelad and Meta Ads actually compare on cost, performance and the 
 ## The Short Answer: Channelad vs Meta Ads
 
 - **Meta Ads** wins on raw scale, targeting sophistication, automated optimization and attribution. If you need to spend $50k/month and have the system find buyers, nothing matches it.
-- **Channelad** wins on cost efficiency, engagement quality and incremental reach. Closed-channel placements (WhatsApp, Telegram, Discord, Instagram broadcast channels) deliver far lower effective CPMs and dramatically higher open and click rates — at smaller scale.
+- **Channelad** wins on engagement quality, audience trust and incremental reach. Closed-channel placements (WhatsApp, Telegram, Discord, Instagram broadcast channels) run at a CPM comparable to Meta's — not cheaper — but with dramatically higher open and click rates and a pre-qualified, opt-in audience, at smaller scale.
 - They are **not mutually exclusive.** The strongest setup in 2026 is Meta for scale plus Channelad for efficient, incremental reach Meta can't price well.
 - If Meta is your only channel and CPMs are eating your margin, Channelad is the most realistic place to test a **Meta Ads alternative** without rebuilding your funnel.
 
@@ -32,7 +32,7 @@ For most advertisers the question isn't "which one." It's "what share of budget 
 | Criterion | Meta Ads | Channelad |
 |---|---|---|
 | Reach & scale | Billions of users, near-unlimited scale | Niche channels, smaller but focused |
-| Effective CPM (2026) | High and rising, competitive niches hurt most | Substantially lower in most niches |
+| Effective CPM (2026) | ~€5-7 in Spain, higher in competitive niches | Comparable CPM — the edge is cost per engaged view, not a lower CPM |
 | Open / view rate | Feed impressions, banner blindness | 60-90% channel view rates |
 | Click-through rate | ~0.5-2% typical | ~8-20% in well-matched channels |
 | Targeting | Sophisticated, but degraded by signal loss | Channel-level: niche, language, country |
@@ -89,9 +89,9 @@ The trade-off is honest: Channelad won't auto-optimize or absorb unlimited budge
 
 This is the part advertisers actually want, so here's what I see in my own campaigns (treat as directional, not gospel — your niche and geo move these a lot).
 
-On **Meta Ads**, in competitive ecommerce niches, effective CPMs in 2026 run high and link CTR typically sits around 0.5-2%. You can win — but the margin for creative and targeting error is thin.
+On **Meta Ads**, the real CPM in Spain in 2026 sits around €5-7 (lower across LATAM), higher in competitive niches, and link CTR typically runs 0.5-2%. It's cheaper per impression than people assume — but the margin for creative and targeting error is thin.
 
-On **Channelad** closed-channel placements, the effective CPM in most niches comes in well below Meta, and link CTR in a well-matched channel runs 8-20%. A €40-120 placement in the right channel can outperform a far larger Meta spend on cost per click — *for that slice of audience.*
+On **Channelad** closed-channel placements, the effective CPM is broadly **comparable** to Meta's — not dramatically lower. The edge is elsewhere: link CTR in a well-matched channel runs 8-20%, so a €40-120 placement can beat a larger Meta spend on **cost per engaged click** — *for that slice of audience.*
 
 The catch: that slice is finite. You can't scale a single channel infinitely. Channelad's advantage is **cost per engaged action**, not total volume. Which is exactly why the smart play is layering, not switching.
 

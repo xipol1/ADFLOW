@@ -64,15 +64,15 @@ Sé que quieres números. Yo también los quería cuando empecé a investigar es
 
 | Canal | CPM medio | CTR medio | Conversión | Confianza |
 |---|---|---|---|---|
-| Instagram Ads | 8-14€ | 0,8-1,5% | 1,2-2,5% | Baja |
+| Instagram Ads | 5-8€ | 0,8-1,5% | 1,2-2,5% | Baja |
 | TikTok Ads | 5-10€ | 1,0-2,0% | 0,8-1,8% | Baja |
 | Telegram | 2-5€ | 3,5-6,0% | 3,0-5,5% | Alta |
 | Discord | 1-4€ | 4,0-8,0% | 3,5-7,0% | Muy alta |
 | WhatsApp | 3-7€ | 5,0-9,0% | 4,0-8,0% | Muy alta |
 
-Mira la columna de conversión. Instagram y TikTok se mueven en el rango del 1-2%. Las comunidades están en el 3-8%. Y el CPM en comunidades es entre un 50% y un 75% más barato. ¿Qué significa eso en la práctica? Que con el mismo presupuesto obtienes más impresiones de mayor calidad con mayor tasa de conversión. Es matemática pura.
+Mira la columna de conversión. Instagram y TikTok se mueven en el rango del 1-2%. Las comunidades están en el 3-8%. El CPM es comparable al de Meta (no más barato), pero la conversión es 3-4x superior. ¿Qué significa eso en la práctica? Que con el mismo presupuesto obtienes impresiones de mucha más calidad y mayor tasa de conversión.
 
-Ahora, un matiz importante. Estos números son para nichos concretos. Si vendes un producto masivo tipo Coca-Cola, las comunidades no te van a dar el volumen que necesitas. Pero si vendes software, cursos, productos digitales, suplementos, servicios B2B o cualquier cosa dirigida a un público específico, el CPM en comunidades vs Instagram no tiene color. Y el CPC tampoco. Estamos hablando de CPCs de 0,10-0,30€ en comunidades frente a 0,50-1,50€ en Meta Ads.
+Ahora, un matiz importante. Estos números son para nichos concretos. Si vendes un producto masivo tipo Coca-Cola, las comunidades no te van a dar el volumen que necesitas. Pero si vendes software, cursos, productos digitales, suplementos, servicios B2B o cualquier cosa dirigida a un público específico, el CPM en comunidades es similar al de Instagram, pero el CPC no tiene color: por el engagement mucho más alto, hablamos de CPCs de 0,10-0,30€ en comunidades frente a 0,50-1,50€ en Meta Ads.
 
 Otro dato que me voló la cabeza: el coste por adquisición. En mis campañas de comunidades, el CPA medio ha sido de 4,20€. En Instagram Ads, para los mismos productos, el CPA medio fue de 18,50€. Casi 4,5 veces más caro. Y no estoy hablando de campañas mal optimizadas en Instagram. Estoy hablando de campañas con audiencias lookalike, creatividades testeadas y presupuestos razonables.
 

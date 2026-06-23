@@ -308,7 +308,7 @@ export default function ComunidadesVsRedes() {
           <tbody>
             <tr>
               <td style={styles.td}>Instagram Ads</td>
-              <td style={styles.td}>8-14€</td>
+              <td style={styles.td}>5-8€</td>
               <td style={styles.td}>0,8-1,5%</td>
               <td style={styles.td}>1,2-2,5%</td>
               <td style={styles.td}>Baja</td>
@@ -347,17 +347,17 @@ export default function ComunidadesVsRedes() {
 
       <p style={styles.p}>
         Mira la columna de conversión. Instagram y TikTok se mueven en el rango del 1-2%.
-        Las comunidades están en el 3-8%. Y el CPM en comunidades es entre un 50% y un 75%
-        más barato. ¿Qué significa eso en la práctica? Que con el mismo presupuesto obtienes
-        más impresiones de mayor calidad con mayor tasa de conversión. Es matemática pura.
+        Las comunidades están en el 3-8%. El CPM es comparable al de Meta (no más barato),
+        pero la conversión es 3-4x superior. ¿Qué significa eso en la práctica? Que con el mismo
+        presupuesto obtienes impresiones de mucha más calidad y mayor tasa de conversión.
       </p>
       <p style={styles.p}>
         Ahora, un matiz importante. Estos números son para nichos concretos. Si vendes un
         producto masivo tipo Coca-Cola, las comunidades no te van a dar el volumen que necesitas.
         Pero si vendes software, cursos, productos digitales, suplementos, servicios B2B o
-        cualquier cosa dirigida a un público específico, el CPM en comunidades vs Instagram
-        no tiene color. Y el CPC tampoco. Estamos hablando de CPCs de 0,10-0,30€ en
-        comunidades frente a 0,50-1,50€ en Meta Ads.
+        cualquier cosa dirigida a un público específico, el CPM en comunidades es similar al de
+        Instagram, pero el CPC no tiene color: por el engagement mucho más alto, hablamos de CPCs
+        de 0,10-0,30€ en comunidades frente a 0,50-1,50€ en Meta Ads.
       </p>
       <p style={styles.p}>
         Otro dato que me voló la cabeza: el coste por adquisición. En mis campañas de

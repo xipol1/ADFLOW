@@ -14,7 +14,7 @@ Si tu marca sigue gastando el 100% del presupuesto en Instagram y TikTok, estas 
 
 Este articulo es una guia practica para marcas y anunciantes que quieren anunciarse en servidores de Discord. Voy a cubrir los formatos disponibles, los precios reales del mercado hispanohablante, como encontrar servidores relevantes sin que te estafen, y por que Discord deberia ser parte de tu media mix en 2026.
 
-La mayoria de agencias de marketing ni siquiera mencionan Discord en sus propuestas. Y eso es una oportunidad enorme para las marcas que se mueven rapido: poca competencia, audiencias hipersegmentadas y costes por impresion que todavia son una fraccion de lo que cuesta Meta Ads.
+La mayoria de agencias de marketing ni siquiera mencionan Discord en sus propuestas. Y eso es una oportunidad enorme para las marcas que se mueven rapido: poca competencia, audiencias hipersegmentadas y un coste por impacto cualificado muy competitivo (el CPM no es mas barato que el de Meta, pero el contacto es de mucha mas calidad).
 
 ## Por que Discord es diferente a cualquier otra plataforma publicitaria
 
@@ -32,7 +32,7 @@ Segunda, la atencion es activa. Los miembros de un servidor leen los mensajes po
 
 Tercera, los nichos dificiles de alcanzar estan en Discord. Comunidades de gaming, desarrollo de software, criptomonedas, DAOs, esports, anime, modding, hardware... Muchas de estas audiencias apenas existen en Instagram o TikTok como comunidad organizada. Discord es su habitat natural. Si tu producto va dirigido a gamers, desarrolladores, traders de cripto o Gen Z tech-savvy, Discord no es una opcion: es una obligacion.
 
-Un dato que me sorprendio cuando empece a analizar campanas en Discord: el coste por conversion (CPA) en servidores de gaming y tech es entre un 40% y un 60% menor que en Meta Ads para productos digitales como SaaS, apps y suscripciones. La razon es simple: menos competencia publicitaria y mayor intencion de compra en comunidades nicho.
+Un patron que veo al analizar campanas en Discord: el coste por conversion (CPA) en servidores de gaming y tech suele salir mas bajo que en Meta Ads para productos digitales como SaaS, apps y suscripciones. No porque el CPM sea mas barato — es comparable al de Meta —, sino por la mayor intencion de compra y la menor competencia publicitaria en comunidades nicho.
 
 ## Formatos de publicidad en servidores de Discord
 

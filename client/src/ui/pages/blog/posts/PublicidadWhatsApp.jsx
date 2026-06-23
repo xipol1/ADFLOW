@@ -340,7 +340,7 @@ export default function PublicidadWhatsApp() {
 
       <p style={styles.p}>
         ¿Te parece caro? Hagamos la comparación con otros canales. El CPM medio en Instagram Ads en
-        España ronda los 8-12€, pero con un alcance real del 3-5% y un CTR del 0,5-1%. El CPM en
+        España ronda los 5-8€, pero con un alcance real del 3-5% y un CTR del 0,5-1%. El CPM en
         WhatsApp es más alto en términos absolutos, pero el <span style={styles.highlight}>engagement
         real</span> es brutalmente superior. Si calculas el coste por lead cualificado, WhatsApp gana
         casi siempre en nichos locales y verticales.

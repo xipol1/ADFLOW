@@ -56,8 +56,9 @@ export const FORMATS = [
 // ── Constantes del modelo (MIRROR de lib/channelPricingCore.js) ──────────────
 // CPM base: € que cobra el CREADOR por 1.000 impresiones reales, para un canal
 // baseline (nicho ×1.0, sin escala, engagement medio). El anunciante paga esto
-// × comisión. Por debajo del CPM de Meta/Google (~12 €) para que la comparativa
-// "más barato que paid media" se sostenga.
+// × comisión. OJO: no usar para afirmar "más barato que Meta" — el CPM real de
+// Meta en España es ~€5-6,5 (no 12 €), al nivel del nuestro. La ventaja de los
+// canales es cualitativa (audiencia opt-in, confianza, open/CTR), no el precio.
 export const BASE_CPM = 5
 
 // Curva de alcance: rate(f) = floor + (base-floor)·(PIVOT/max(f,PIVOT))^DECAY.
