@@ -1,86 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  <url>
-    <loc>https://channelad.io/blog/youtube-brandconnect-vs-channelad</loc>
-    <lastmod>2026-06-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://channelad.io/blog/crear-canal-difusion-instagram-paso-paso</loc>
-    <lastmod>2026-06-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://channelad.io/blog/substack-vs-channelad-newsletter-ads</loc>
-    <lastmod>2026-06-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://channelad.io/blog/monetizar-newsletter-substack-vs-propia</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://channelad.io/blog/beehiiv-ads-vs-channelad</loc>
-    <lastmod>2026-06-12</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://channelad.io/blog/publicidad-newsletters-espana-guia</loc>
-    <lastmod>2026-06-10</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://channelad.io/blog/aitarget-one-alternatives</loc>
-    <lastmod>2026-06-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://channelad.io/blog/how-to-monetize-discord-server</loc>
-    <lastmod>2026-06-06</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="es" href="https://channelad.io/blog/como-monetizar-servidor-discord"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://channelad.io/blog/how-to-monetize-discord-server"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://channelad.io/blog/como-monetizar-servidor-discord"/>
-  </url>
-  <url>
-    <loc>https://channelad.io/blog/how-to-monetize-telegram-channel</loc>
-    <lastmod>2026-06-06</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="es" href="https://channelad.io/blog/como-monetizar-canal-telegram"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://channelad.io/blog/how-to-monetize-telegram-channel"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://channelad.io/blog/como-monetizar-canal-telegram"/>
-  </url>
-  <url>
-    <loc>https://channelad.io/blog/how-to-monetize-whatsapp-channel</loc>
-    <lastmod>2026-06-06</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="es" href="https://channelad.io/blog/como-monetizar-canal-whatsapp"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://channelad.io/blog/how-to-monetize-whatsapp-channel"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://channelad.io/blog/como-monetizar-canal-whatsapp"/>
-  </url>
-  <url>
-    <loc>https://channelad.io/blog/monetizar-canal-whatsapp-finanzas</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://channelad.io/blog/tgstat-vs-channelad</loc>
-    <lastmod>2026-06-03</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://channelad.io/blog/media-kit-canal-whatsapp</loc>
     <lastmod>2026-06-01</lastmod>
@@ -161,12 +80,9 @@
   </url>
   <url>
     <loc>https://channelad.io/blog/como-monetizar-canal-telegram</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-05-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="es" href="https://channelad.io/blog/como-monetizar-canal-telegram"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://channelad.io/blog/how-to-monetize-telegram-channel"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://channelad.io/blog/como-monetizar-canal-telegram"/>
   </url>
   <url>
     <loc>https://channelad.io/blog/discord-vs-telegram-anunciantes</loc>
@@ -245,9 +161,6 @@
     <lastmod>2026-04-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="es" href="https://channelad.io/blog/como-monetizar-canal-whatsapp"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://channelad.io/blog/how-to-monetize-whatsapp-channel"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://channelad.io/blog/como-monetizar-canal-whatsapp"/>
   </url>
   <url>
     <loc>https://channelad.io/blog/crear-canal-telegram-monetizar</loc>
@@ -278,13 +191,10 @@
     <lastmod>2026-04-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="es" href="https://channelad.io/blog/como-monetizar-servidor-discord"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://channelad.io/blog/how-to-monetize-discord-server"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://channelad.io/blog/como-monetizar-servidor-discord"/>
   </url>
   <url>
     <loc>https://channelad.io/blog/cuanto-paga-telegram-por-canal</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-04-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
