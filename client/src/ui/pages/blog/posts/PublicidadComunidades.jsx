@@ -26,8 +26,9 @@ export default function PublicidadComunidades() {
       <p style={pStyle}>
         Cada vez mas marcas estan moviendo parte de sus presupuestos publicitarios a comunidades de Telegram,
         WhatsApp y Discord. No es que las plataformas tradicionales como Meta Ads y Google Ads hayan
-        dejado de funcionar, sino porque segun datos del mercado, el coste por
-        conversion real en comunidades es consistentemente un 40-60% menor.
+        dejado de funcionar — su CPM real en España (~5-8 EUR) es competitivo. Lo que cambia es la calidad
+        del contacto: en una comunidad de nicho el mensaje llega a una audiencia opt-in y con el endoso del
+        admin, asi que el coste por conversion cualificada suele salir mas favorable.
       </p>
       <p style={pStyle}>
         Esta guia es para el responsable de marketing que quiere entender como funciona este canal,
@@ -65,7 +66,7 @@ export default function PublicidadComunidades() {
           <tbody>
             <tr><td style={tdFirstStyle}>Engagement medio</td><td style={tdStyle}>30-90%</td><td style={tdStyle}>1-5%</td></tr>
             <tr><td style={tdFirstStyle}>Confianza del usuario</td><td style={tdStyle}>Alta (recomendacion del admin)</td><td style={tdStyle}>Baja (anuncio interrumptivo)</td></tr>
-            <tr><td style={tdFirstStyle}>CPM efectivo</td><td style={tdStyle}>3-12 EUR</td><td style={tdStyle}>8-25 EUR</td></tr>
+            <tr><td style={tdFirstStyle}>CPM efectivo</td><td style={tdStyle}>3-12 EUR</td><td style={tdStyle}>~5-8 EUR (España)</td></tr>
             <tr><td style={tdFirstStyle}>Segmentacion</td><td style={tdStyle}>Por nicho (muy precisa)</td><td style={tdStyle}>Algoritmica (variable)</td></tr>
             <tr><td style={tdFirstStyle}>Ad blockers</td><td style={tdStyle}>No aplica</td><td style={tdStyle}>30%+ de usuarios</td></tr>
             <tr><td style={tdFirstStyle}>Formato del anuncio</td><td style={tdStyle}>Nativo (mensaje)</td><td style={tdStyle}>Banner/video (intrusivo)</td></tr>
@@ -166,7 +167,8 @@ export default function PublicidadComunidades() {
       <p style={pStyle}>
         Usa enlaces con UTM para trackear cada campana, crea landing pages dedicadas, asigna codigos de
         descuento unicos por canal, y compara el CPA (coste por adquisicion) con tus canales habituales
-        (Meta Ads, Google Ads). El CPA en comunidades suele ser 30-50% menor.
+        (Meta Ads, Google Ads). Cuando el canal encaja bien con tu nicho, el CPA suele salir mas bajo
+        — no por un CPM mas barato (es similar al de Meta), sino por el mayor engagement y la confianza.
       </p>
 
       <h3 style={h3Style}>Que plataforma de comunidades elegir para mi marca?</h3>
@@ -176,11 +178,12 @@ export default function PublicidadComunidades() {
         Si tienes presupuesto, combina las tres con una <Link to="/blog/telegram-vs-whatsapp-vs-discord-publicidad" style={linkStyle}>estrategia multi-plataforma</Link>.
       </p>
 
-      <h3 style={h3Style}>Por que el CPM en comunidades es mas bajo que en Meta Ads?</h3>
+      <h3 style={h3Style}>El CPM en comunidades, es mas barato que en Meta Ads?</h3>
       <p style={pStyle}>
-        El CPM efectivo en comunidades (3-12 EUR) es menor que en Meta Ads (8-25 EUR) porque el inventario
-        publicitario en comunidades aun esta inmaduro y la competencia de anunciantes es menor. La diferencia
-        clave: el engagement real es 10-30x superior, asi que el CPA termina siendo aun mas favorable.
+        No realmente: el CPM efectivo en comunidades (3-12 EUR) es comparable al CPM real de Meta en España
+        (~5-8 EUR). Donde se gana es en la calidad del impacto: el engagement real es 10-30x superior y el
+        mensaje llega con la confianza del admin, asi que el CPA por conversion cualificada termina siendo
+        mas favorable aunque el coste por impresion sea parecido.
       </p>
 
       <h3 style={h3Style}>Es necesario un marketplace para comprar publicidad en comunidades?</h3>

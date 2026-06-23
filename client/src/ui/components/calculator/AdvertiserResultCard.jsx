@@ -13,6 +13,15 @@ function fmtEur(n) {
   return Math.round(n).toLocaleString('es-ES') + ' €'
 }
 
+// Ventaja real de los canales frente a Meta — cualitativa, no de precio (el CPM
+// es comparable). Ver nota en lib/advertiserReach.js.
+const VALUE_POINTS = [
+  { title: 'Audiencia opt-in de nicho', body: 'Gente que eligió suscribirse al tema, no interrumpida en un feed.' },
+  { title: 'Endoso del creador', body: 'Tu mensaje llega con la credibilidad de quien la audiencia ya lee a diario.' },
+  { title: 'Open y CTR muy superiores', body: 'Tasas de lectura del 60-90% y clics muy por encima del feed.' },
+  { title: 'Sin fatiga publicitaria', body: 'Un único post en un canal de confianza, no impresiones repetidas que ya se ignoran.' },
+]
+
 // ─── AdvertiserResultCard ───────────────────────────────────────────────────
 // Vista del Step 4 cuando role=advertiser. El anunciante introduce un
 // precio por publicación + número de publicaciones; mostramos:
@@ -99,7 +108,9 @@ export default function AdvertiserResultCard({
         />
       </div>
 
-      {/* Comparativa vs paid media tradicional */}
+      {/* Por qué un canal, no (solo) Meta — valor cualitativo, no precio.
+          El CPM de Meta (~€5-6,5 en España) está al nivel del de los canales, así
+          que la ventaja real no es ser más barato, sino la calidad del contacto. */}
       <div style={{
         background: 'var(--surface)',
         border: '1px solid var(--border)',
@@ -113,23 +124,26 @@ export default function AdvertiserResultCard({
             fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
             letterSpacing: '0.1em', color: 'var(--muted)',
           }}>
-            Frente al mismo budget en Meta / Google Ads
+            Por qué un canal, no (solo) Meta
           </span>
         </div>
-        <ComparisonBar
-          label="Channelad"
-          value={r.reachTotal}
-          baseline={r.reachTotal}
-          accent={accent}
-          sub={`+${Math.round(r.reachDeltaPct)}% más alcance · CPC ${fmtEur(r.cpcEffective)}`}
-        />
-        <ComparisonBar
-          label="Meta / Google Ads"
-          value={r.paidEquivalent.reach}
-          baseline={r.reachTotal}
-          accent="rgba(99,102,241,0.55)"
-          sub={`Mismo budget compraría ${fmtNum(r.paidEquivalent.reach)} impresiones genéricas`}
-        />
+        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 12 }}>
+          {VALUE_POINTS.map((v) => (
+            <li key={v.title} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+              <span style={{
+                marginTop: 2, color: accent, fontWeight: 700, fontSize: 13, lineHeight: 1.4,
+              }}>✓</span>
+              <span style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.5 }}>
+                <strong style={{ fontWeight: 600 }}>{v.title}.</strong>{' '}
+                <span style={{ color: 'var(--muted)' }}>{v.body}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p style={{ fontSize: 11.5, color: 'var(--muted)', margin: '14px 0 0', lineHeight: 1.5 }}>
+          Meta gana en escala, segmentación y atribución. Los canales ganan en confianza
+          e intención — y a un CPM comparable, no es el sitio donde competir por precio.
+        </p>
       </div>
 
       <a
@@ -184,40 +198,3 @@ function MiniStat({ icon: Icon, label, value, sub, accent }) {
   )
 }
 
-function ComparisonBar({ label, value, baseline, sub, accent }) {
-  const pct = Math.max(2, Math.min(100, (value / baseline) * 100))
-  return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{
-        display: 'flex', justifyContent: 'space-between',
-        alignItems: 'baseline', marginBottom: 6,
-      }}>
-        <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 600 }}>{label}</span>
-        <span style={{
-          fontFamily: FONT_DISPLAY, fontSize: 14, fontWeight: 700,
-          color: 'var(--text)', fontVariantNumeric: 'tabular-nums',
-        }}>
-          {fmtNum(value)}
-          <span style={{ fontWeight: 500, color: 'var(--muted)', fontSize: 12 }}> impresiones</span>
-        </span>
-      </div>
-      <div style={{
-        position: 'relative', height: 8, background: 'var(--bg2)',
-        borderRadius: 999, overflow: 'hidden',
-      }}>
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          style={{
-            position: 'absolute', top: 0, left: 0, height: '100%',
-            background: accent, borderRadius: 999,
-          }}
-        />
-      </div>
-      {sub && (
-        <p style={{ fontSize: 11.5, color: 'var(--muted)', margin: '6px 0 0' }}>{sub}</p>
-      )}
-    </div>
-  )
-}

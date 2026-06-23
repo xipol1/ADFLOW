@@ -437,7 +437,7 @@ export default function ComparativaPlataformas() {
         <li style={liStyle}><span style={strongStyle}>Define tu audiencia</span> y elige la plataforma que mejor se ajuste segun las recomendaciones anteriores.</li>
         <li style={liStyle}><span style={strongStyle}>Busca canales relevantes</span> en tu nicho. Puedes hacerlo manualmente o usar{' '}<Link to="/marketplace" style={linkStyle}>Channelad</Link> que agrega canales verificados con metricas auditadas.</li>
         <li style={liStyle}><span style={strongStyle}>Empieza con un piloto pequeno:</span> 2-3 canales, 100-300 EUR de presupuesto, y un objetivo medible (clics, registros, ventas).</li>
-        <li style={liStyle}><span style={strongStyle}>Mide resultados</span> de forma rigurosa y compara el CPA con tus otros canales. Segun datos del mercado, el CPA en comunidades suele ser un 30-50% inferior al de Meta Ads para tech y B2B.</li>
+        <li style={liStyle}><span style={strongStyle}>Mide resultados</span> de forma rigurosa y compara el CPA con tus otros canales. En tech y B2B el CPA en comunidades suele salir por debajo del de Meta Ads — no por un CPM mas barato (es comparable), sino por la mayor intencion de la audiencia.</li>
       </ol>
       <p style={pStyle}>
         Para entender los numeros en detalle, lee nuestra{' '}

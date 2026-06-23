@@ -31,7 +31,7 @@ export default function ChanneladVsMetaAds() {
       <h2 style={h2Style}>The Short Answer: Channelad vs Meta Ads</h2>
       <ul style={ulStyle}>
         <li style={liStyle}><span style={strongStyle}>Meta Ads</span> wins on raw scale, targeting sophistication, automated optimization and attribution. If you need to spend $50k/month and have the system find buyers, nothing matches it.</li>
-        <li style={liStyle}><span style={strongStyle}>Channelad</span> wins on cost efficiency, engagement quality and incremental reach. Closed-channel placements (WhatsApp, Telegram, Discord, Instagram broadcast channels) deliver far lower effective CPMs and dramatically higher open and click rates — at smaller scale.</li>
+        <li style={liStyle}><span style={strongStyle}>Channelad</span> wins on engagement quality, audience trust and incremental reach. Closed-channel placements (WhatsApp, Telegram, Discord, Instagram broadcast channels) run at a CPM comparable to Meta's — not cheaper — but with dramatically higher open and click rates and a pre-qualified, opt-in audience, at smaller scale.</li>
         <li style={liStyle}>They are <span style={strongStyle}>not mutually exclusive.</span> The strongest setup in 2026 is Meta for scale plus Channelad for efficient, incremental reach Meta can't price well.</li>
         <li style={liStyle}>If Meta is your only channel and CPMs are eating your margin, Channelad is the most realistic place to test a <span style={strongStyle}>Meta Ads alternative</span> without rebuilding your funnel.</li>
       </ul>
@@ -61,8 +61,8 @@ export default function ChanneladVsMetaAds() {
             </tr>
             <tr>
               <td style={tdStyle}>Effective CPM (2026)</td>
-              <td style={tdStyle}>High and rising, competitive niches hurt most</td>
-              <td style={tdStyle}>Substantially lower in most niches</td>
+              <td style={tdStyle}>~€5-7 in Spain, higher in competitive niches</td>
+              <td style={tdStyle}>Comparable CPM — the edge is cost per engaged view, not a lower CPM</td>
             </tr>
             <tr>
               <td style={tdStyle}>Open / view rate</td>
@@ -184,15 +184,15 @@ export default function ChanneladVsMetaAds() {
         directional, not gospel — your niche and geo move these a lot).
       </p>
       <p style={pStyle}>
-        On <span style={strongStyle}>Meta Ads</span>, in competitive ecommerce niches, effective CPMs in
-        2026 run high and link CTR typically sits around 0.5-2%. You can win — but the margin for creative
-        and targeting error is thin.
+        On <span style={strongStyle}>Meta Ads</span>, the real CPM in Spain in 2026 sits around €5-7
+        (lower across LATAM), higher in competitive niches, and link CTR typically runs 0.5-2%. It's cheaper
+        per impression than people assume — but the margin for creative and targeting error is thin.
       </p>
       <p style={pStyle}>
-        On <span style={strongStyle}>Channelad</span> closed-channel placements, the effective CPM in most
-        niches comes in well below Meta, and link CTR in a well-matched channel runs 8-20%. A €40-120
-        placement in the right channel can outperform a far larger Meta spend on cost per click — for that
-        slice of audience.
+        On <span style={strongStyle}>Channelad</span> closed-channel placements, the effective CPM is
+        broadly <span style={strongStyle}>comparable</span> to Meta's — not dramatically lower. The edge is
+        elsewhere: link CTR in a well-matched channel runs 8-20%, so a €40-120 placement can beat a larger
+        Meta spend on <span style={strongStyle}>cost per engaged click</span> — for that slice of audience.
       </p>
       <p style={pStyle}>
         The catch: that slice is finite. You can't scale a single channel infinitely. Channelad's advantage

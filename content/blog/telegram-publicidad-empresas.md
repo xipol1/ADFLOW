@@ -29,7 +29,7 @@ Esta guía es para responsables de marketing, fundadores y equipos de growth que
 
 Tres datos del mercado europeo en 2026 explican por qué Telegram dejó de ser un canal experimental para entrar en los planes de medios serios:
 
-- **CPM 30-60% inferior** al de Meta Ads en nichos B2B equivalentes (finanzas, tech, marketing).
+- **CPM comparable al de Meta Ads** (no más barato: Meta ronda ~5-8 € en España), pero con audiencia pre-cualificada por nicho y CTR muy superior, así que el coste por clic cualificado suele salir por debajo en nichos B2B (finanzas, tech, marketing).
 - **Audiencias auto-segmentadas por nicho**: cuando publicas en un canal de "Inversión value", todos los suscriptores ya filtraron interés. No hay desperdicio de impresiones.
 - **Sin saturación publicitaria**: el ratio sano de un canal es 1 patrocinado cada 7-10 posts orgánicos. En LinkedIn, el feed lleva publicidad cada 4 posts. La fatiga del usuario es menor.
 

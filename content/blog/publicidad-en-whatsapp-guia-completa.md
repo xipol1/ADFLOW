@@ -79,7 +79,7 @@ Aquí va lo importante. Los precios de la publicidad en WhatsApp en España var�
 | 5.000 - 10.000 miembros | 200€ - 450€ | 20€ - 45€ |
 | Canal 10.000+ suscriptores | 350€ - 800€ | 15€ - 35€ |
 
-¿Te parece caro? Hagamos la comparación con otros canales. El CPM medio en Instagram Ads en España ronda los 8-12€, pero con un alcance real del 3-5% y un CTR del 0,5-1%. El CPM en WhatsApp es más alto en términos absolutos, pero el **engagement real** es brutalmente superior. Si calculas el coste por lead cualificado, WhatsApp gana casi siempre en nichos locales y verticales.
+¿Te parece caro? Hagamos la comparación con otros canales. El CPM medio en Instagram Ads en España ronda los 5-8€, pero con un alcance real del 3-5% y un CTR del 0,5-1%. El CPM en WhatsApp es más alto en términos absolutos, pero el **engagement real** es brutalmente superior. Si calculas el coste por lead cualificado, WhatsApp gana casi siempre en nichos locales y verticales.
 
 En mi experiencia, el sweet spot está en grupos de 1.000 a 3.000 miembros con un nicho bien definido. Pagas entre 60€ y 150€ y consigues una audiencia que realmente lee tu mensaje. Los grupos más grandes a veces pierden calidad: más miembros inactivos, más ruido, menos atención. Prefiero hacer tres campañas en grupos de 2.000 personas que una en un canal de 15.000. El retorno es consistentemente mejor.
 
