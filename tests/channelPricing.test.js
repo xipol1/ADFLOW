@@ -96,10 +96,10 @@ const REFERENCE_VECTORS = [
     reachPerPost: 3360, effectiveCpm: 6.0, creatorPerPost: 20.16 },
   // mid crypto Telegram
   { in: { followers: 25000, platform: 'telegram', niche: 'cripto' },
-    reachPerPost: 9734, effectiveCpm: 6.43, creatorPerPost: 62.6 },
+    reachPerPost: 9734, effectiveCpm: 7.67, creatorPerPost: 74.6 },
   // huge WhatsApp cooking (lifestyle) — the channel that used to quote 12.928 €
   { in: { followers: 1900000, platform: 'whatsapp', niche: 'lifestyle' },
-    reachPerPost: 876532, effectiveCpm: 3.93, creatorPerPost: 3444 },
+    reachPerPost: 876532, effectiveCpm: 4.76, creatorPerPost: 4175 },
 ];
 
 describe('computePostPricing — reference vectors', () => {

@@ -26,13 +26,13 @@ const BASE_CPM = 5
 
 // Multiplicador de CPM por plataforma. MIRROR de PLATFORM_CPM_MULT del core,
 // más 'mixto' (promedio) para campañas multi-plataforma.
-const PLATFORM_CPM_MULT = { telegram: 1.0, whatsapp: 1.1, discord: 0.95, newsletter: 1.2, mixto: 1.0 }
+const PLATFORM_CPM_MULT = { telegram: 1.0, whatsapp: 1.5, discord: 0.75, newsletter: 2.0, mixto: 1.1 }
 
 // Multiplicador de CPM por nicho. MIRROR de NICHE_CPM_MULT del core.
 const NICHE_CPM_MULT = {
-  finanzas: 1.5, b2bsaas: 1.4, cripto: 1.3, tech: 1.2, educacion: 1.1,
-  marketing: 1.1, ecommerce: 1.0, fitness: 0.95, lifestyle: 0.9,
-  gaming: 0.85, noticias: 0.75, entretenimiento: 0.65,
+  finanzas: 1.5, b2bsaas: 1.45, cripto: 1.55, tech: 1.2, educacion: 1.0,
+  marketing: 1.0, ecommerce: 0.9, fitness: 0.85, lifestyle: 0.8,
+  gaming: 0.6, noticias: 0.55, entretenimiento: 0.5,
 }
 
 // CTR / engagement medianos por plataforma (datos de comportamiento, separados

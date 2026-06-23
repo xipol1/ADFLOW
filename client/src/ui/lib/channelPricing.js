@@ -18,9 +18,9 @@ import { PUBLIC_COMMISSION_MULTIPLIER } from '../theme/stats'
 // `reachBase` / `reachFloor` definen la curva de alcance (ver reachRate()).
 export const PLATFORMS = [
   { id: 'telegram',   label: 'Telegram',   color: '#2aabee', mult: 1.0,  reachBase: 0.45, reachFloor: 0.18 },
-  { id: 'whatsapp',   label: 'WhatsApp',   color: '#25d366', mult: 1.1,  reachBase: 0.72, reachFloor: 0.24 },
-  { id: 'discord',    label: 'Discord',    color: '#5865f2', mult: 0.95, reachBase: 0.55, reachFloor: 0.15 },
-  { id: 'newsletter', label: 'Newsletter', color: '#8b5cf6', mult: 1.2,  reachBase: 0.40, reachFloor: 0.18 },
+  { id: 'whatsapp',   label: 'WhatsApp',   color: '#25d366', mult: 1.5,  reachBase: 0.72, reachFloor: 0.24 },
+  { id: 'discord',    label: 'Discord',    color: '#5865f2', mult: 0.75, reachBase: 0.55, reachFloor: 0.15 },
+  { id: 'newsletter', label: 'Newsletter', color: '#8b5cf6', mult: 2.0,  reachBase: 0.40, reachFloor: 0.18 },
 ]
 
 // ── Nichos ──────────────────────────────────────────────────────────────────
@@ -28,17 +28,17 @@ export const PLATFORMS = [
 // promedio del marketplace.
 export const NICHES = [
   { id: 'finanzas',        label: 'Finanzas / Inversiones',  mult: 1.5  },
-  { id: 'b2bsaas',         label: 'B2B SaaS',                 mult: 1.4  },
-  { id: 'cripto',          label: 'Cripto / Trading',         mult: 1.3  },
+  { id: 'b2bsaas',         label: 'B2B SaaS',                 mult: 1.45 },
+  { id: 'cripto',          label: 'Cripto / Trading',         mult: 1.55 },
   { id: 'tech',            label: 'Tecnología / Software',    mult: 1.2  },
-  { id: 'educacion',       label: 'Educación',                mult: 1.1  },
-  { id: 'marketing',       label: 'Marketing / Negocios',     mult: 1.1  },
-  { id: 'ecommerce',       label: 'E-commerce',               mult: 1.0  },
-  { id: 'fitness',         label: 'Fitness / Salud',          mult: 0.95 },
-  { id: 'lifestyle',       label: 'Lifestyle / Moda',         mult: 0.9  },
-  { id: 'gaming',          label: 'Gaming',                   mult: 0.85 },
-  { id: 'noticias',        label: 'Noticias / Actualidad',    mult: 0.75 },
-  { id: 'entretenimiento', label: 'Entretenimiento / Memes',  mult: 0.65 },
+  { id: 'educacion',       label: 'Educación',                mult: 1.0  },
+  { id: 'marketing',       label: 'Marketing / Negocios',     mult: 1.0  },
+  { id: 'ecommerce',       label: 'E-commerce',               mult: 0.9  },
+  { id: 'fitness',         label: 'Fitness / Salud',          mult: 0.85 },
+  { id: 'lifestyle',       label: 'Lifestyle / Moda',         mult: 0.8  },
+  { id: 'gaming',          label: 'Gaming',                   mult: 0.6  },
+  { id: 'noticias',        label: 'Noticias / Actualidad',    mult: 0.55 },
+  { id: 'entretenimiento', label: 'Entretenimiento / Memes',  mult: 0.5  },
 ]
 
 // ── Formatos publicitarios ──────────────────────────────────────────────────
