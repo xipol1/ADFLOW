@@ -66,7 +66,7 @@ Despues de analizar mas de 50 campanas en canales de habla hispana, estos son lo
 | 20.000 - 50.000 | 80 - 200 EUR | 1.5 - 4 EUR | 8 - 15% |
 | 50.000+ | 200 - 500 EUR | 1 - 3 EUR | 5 - 12% |
 
-Para poner esto en perspectiva: el CPM medio en Instagram Ads en Espana ronda los 6-12 euros, y en Google Ads puede superar los 15 euros para nichos competitivos. Telegram ofrece CPMs significativamente mas bajos con engagement considerablemente mas alto.
+Para poner esto en perspectiva: el CPM medio en Instagram Ads en Espana ronda los 5-8 euros, y en Google Ads el coste por clic puede dispararse en nichos competitivos. Telegram juega en una linea de CPM similar, pero con un engagement considerablemente mas alto y una audiencia ya pre-cualificada por nicho — ahi esta la ventaja, no en un CPM mas barato.
 
 ## Como encontrar canales para anunciarte
 

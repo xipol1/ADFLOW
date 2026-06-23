@@ -22,7 +22,7 @@ La diferencia con la publicidad tradicional en redes sociales es enorme. En Inst
 
 Tres factores explican por que este canal esta creciendo tan rapido en 2026:
 
-- La saturacion publicitaria en redes sociales ha disparado los CPM. Donde antes pagabas 3 EUR por mil impresiones en Instagram, ahora pagas 8-12 EUR, y la calidad de esas impresiones ha bajado.
+- La saturacion publicitaria en redes sociales ha subido los CPM. Donde antes pagabas ~3 EUR por mil impresiones en Instagram, ahora rondas los 5-8 EUR, y la calidad de esas impresiones (atencion real, no scroll) ha bajado.
 - La migracion de audiencias hacia plataformas de mensajeria. El usuario medio pasa mas tiempo en Telegram y WhatsApp que en cualquier red social clasica.
 - La confianza como moneda de conversion. Cuando el admin de un canal que sigues desde hace meses recomienda un producto, la conversion es entre 3x y 5x superior a un anuncio programatico.
 

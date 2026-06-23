@@ -217,8 +217,8 @@ export default function ComoAnunciarseTelegram() {
       <h3 style={h3Style}>Cuanto cuesta empezar a anunciarse en Telegram?</h3>
       <p style={pStyle}>
         Con 200-300 EUR puedes lanzar una primera campana minima viable en 2-3 canales pequenos. Para
-        resultados estadisticamente fiables, planifica 800-1.500 EUR en 4-6 semanas. Telegram tiene un
-        coste de entrada mucho mas bajo que Google Ads o Meta Ads.
+        resultados estadisticamente fiables, planifica 800-1.500 EUR en 4-6 semanas. Telegram te permite
+        empezar con poco y medir canal a canal antes de escalar.
       </p>
 
       <h3 style={h3Style}>Es legal anunciarse en Telegram en Espana?</h3>
@@ -232,8 +232,9 @@ export default function ComoAnunciarseTelegram() {
       <h3 style={h3Style}>Cual es el CPM medio en Telegram en 2026?</h3>
       <p style={pStyle}>
         Varia mucho por nicho. Generalista: 1,5-3 EUR. Tecnologia o marketing: 4-8 EUR. Finanzas e
-        inversiones: 5-10 EUR. Cripto: 6-12 EUR. En todos los casos sigue siendo significativamente mas
-        barato que el CPM medio en Instagram Ads (6-15 EUR).
+        inversiones: 5-10 EUR. Cripto: 6-12 EUR. Es una linea de CPM similar a la de Instagram Ads en
+        Espana (~5-8 EUR); la ventaja de Telegram no esta en el CPM sino en el mayor engagement y la
+        audiencia ya segmentada por nicho.
       </p>
 
       <h3 style={h3Style}>Puedo usar Telegram Ads (oficial) desde Espana sin invertir 2 millones?</h3>

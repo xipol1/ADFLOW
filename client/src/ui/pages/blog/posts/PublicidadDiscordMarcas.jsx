@@ -118,7 +118,8 @@ export default function PublicidadDiscordMarcas() {
       <p style={pStyle}>
         La mayoria de agencias de marketing ni siquiera mencionan Discord en sus propuestas. Y eso
         es una oportunidad enorme para las marcas que se mueven rapido: poca competencia, audiencias
-        hipersegmentadas y costes por impresion que todavia son una fraccion de lo que cuesta Meta Ads.
+        hipersegmentadas y un coste por impacto cualificado muy competitivo (el CPM no es mas barato
+        que el de Meta, pero el contacto es de mucha mas calidad).
       </p>
 
       <img
@@ -154,9 +155,10 @@ export default function PublicidadDiscordMarcas() {
         <li style={liStyle}><span style={strongStyle}>Nichos exclusivos.</span> Comunidades de gaming, desarrollo de software, cripto, DAOs, esports, anime y hardware apenas existen como comunidad organizada en Instagram. Discord es su habitat natural.</li>
       </ul>
       <p style={pStyle}>
-        Un dato clave: el coste por conversion (CPA) en servidores de gaming y tech es entre un 40%
-        y un 60% menor que en Meta Ads para productos digitales como SaaS, apps y suscripciones. La
-        razon es simple: menos competencia publicitaria y mayor intencion de compra en comunidades nicho.
+        Un patron clave: el coste por conversion (CPA) en servidores de gaming y tech suele salir mas
+        bajo que en Meta Ads para productos digitales como SaaS, apps y suscripciones. No porque el CPM
+        sea mas barato — es comparable al de Meta —, sino por la mayor intencion de compra y la menor
+        competencia publicitaria en comunidades nicho.
       </p>
 
       {/* ─── Section 2: Formatos ─── */}
