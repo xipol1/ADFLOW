@@ -6,12 +6,12 @@
 import { PLATFORM_BRAND } from '../../../theme/tokens'
 
 export const CATALOG_CHANNELS = [
-  { id: '042', platform: 'telegram',   tier: 'A', score: 82, niche: 'Tecnología', region: 'ES',    subs: '18.3K', cpm: '6–8 €' },
-  { id: '018', platform: 'whatsapp',   tier: 'S', score: 91, niche: 'Finanzas',   region: 'ES',    subs: '24.7K', cpm: '12–15 €' },
-  { id: '103', platform: 'telegram',   tier: 'A', score: 78, niche: 'Marketing',  region: 'MX',    subs: '12.1K', cpm: '5–7 €' },
+  { id: '042', platform: 'telegram',   tier: 'A', score: 82, niche: 'Tecnología', region: 'ES',    subs: '18.3K', cpm: '5–7 €' },
+  { id: '018', platform: 'whatsapp',   tier: 'S', score: 91, niche: 'Finanzas',   region: 'ES',    subs: '24.7K', cpm: '10–13 €' },
+  { id: '103', platform: 'telegram',   tier: 'A', score: 78, niche: 'Marketing',  region: 'MX',    subs: '12.1K', cpm: '4–6 €' },
   { id: '211', platform: 'discord',    tier: 'B', score: 64, niche: 'Gaming',     region: 'ES',    subs: '8.9K',  cpm: '2–3 €' },
-  { id: '057', platform: 'newsletter', tier: 'A', score: 85, niche: 'B2B SaaS',   region: 'ES',    subs: '6.4K',  cpm: '16–20 €' },
-  { id: '009', platform: 'telegram',   tier: 'S', score: 94, niche: 'Crypto',     region: 'LATAM', subs: '41.2K', cpm: '8–11 €' },
+  { id: '057', platform: 'newsletter', tier: 'A', score: 85, niche: 'B2B SaaS',   region: 'ES',    subs: '6.4K',  cpm: '13–16 €' },
+  { id: '009', platform: 'telegram',   tier: 'S', score: 94, niche: 'Crypto',     region: 'LATAM', subs: '41.2K', cpm: '7–9 €' },
 ]
 
 // Map platform key → { color, label } using the project's PLATFORM_BRAND

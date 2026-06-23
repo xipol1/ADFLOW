@@ -53,9 +53,9 @@ const MIN_BUDGET_EUR = '30'
 // Floating mini channel cards for the hero visual composition.
 // Synthetic anonymized data — same convention as the Section 5 demo.
 const HERO_FLOATING_CARDS = [
-  { id: '009', platform: 'telegram',   tier: 'S', score: 94, niche: 'Crypto',   region: 'LATAM', subs: '41.2K', cpm: '€8,97' },
-  { id: '018', platform: 'whatsapp',   tier: 'S', score: 91, niche: 'Finanzas', region: 'ES',    subs: '24.7K', cpm: '€13,04' },
-  { id: '021', platform: 'telegram',   tier: 'A', score: 87, niche: 'B2B SaaS', region: 'ES',    subs: '18.3K', cpm: '€8,70', isNew: true },
+  { id: '009', platform: 'telegram',   tier: 'S', score: 94, niche: 'Crypto',   region: 'LATAM', subs: '41.2K', cpm: '€7,5' },
+  { id: '018', platform: 'whatsapp',   tier: 'S', score: 91, niche: 'Finanzas', region: 'ES',    subs: '24.7K', cpm: '€10,9' },
+  { id: '021', platform: 'telegram',   tier: 'A', score: 87, niche: 'B2B SaaS', region: 'ES',    subs: '18.3K', cpm: '€7,3', isNew: true },
 ]
 
 // Words rotating in the hero H1 highlight pill.
