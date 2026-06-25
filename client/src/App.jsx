@@ -9,10 +9,18 @@ import { ToastProvider } from './components/ui/Toast'
 import PlanGateProvider from './ui/components/PlanGateProvider'
 import TermsAcceptanceGate from './ui/components/TermsAcceptanceGate'
 import CookieBanner from './ui/components/CookieBanner'
+import { registerCalculatorTools } from './ui/lib/webmcp'
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
 
 export default function App() {
+  // WebMCP (navegación agéntica): expone la calculadora de tarifas como tool
+  // invocable por agentes de IA / navegadores agénticos. No-op silencioso si el
+  // navegador no soporta navigator.modelContext.
+  useEffect(() => {
+    registerCalculatorTools()
+  }, [])
+
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
     // In dev, never run a service worker — it caches stale bundles and
