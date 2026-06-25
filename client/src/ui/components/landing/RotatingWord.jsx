@@ -8,10 +8,11 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
  * Notes:
  *   - mode="wait" so the exiting word fully animates out before the next
  *     one enters. Without it the swap flickers.
- *   - The wrapper is inline-block with no width hint, so the highlighted
- *     pill resizes to whatever the longest word at any moment needs.
- *     This causes a subtle layout shift on each swap (acceptable for
- *     marketing copy — the reader notices the word change, not the shift).
+ *   - The wrapper reserves the box of the WIDEST/TALLEST word (every word is
+ *     rendered invisibly, stacked in a single inline-grid cell). The visible
+ *     pill then swaps inside that fixed box, so the heading never re-wraps and
+ *     nothing below it moves — this is what keeps CLS ~0. The pill keeps its
+ *     exact look; the word is centred within the reserved width.
  */
 // gradient: CSS background. Default = purple (advertiser). Override for
 // creator surfaces with `gradient="linear-gradient(135deg, #16a34a 0%, #25d366 100%)"`.
@@ -38,8 +39,33 @@ export default function RotatingWord({
 
   if (!words || words.length === 0) return null
 
+  const renderLines = (w) => w.split('\n').map((line, i, arr) => (
+    <React.Fragment key={i}>
+      {line}
+      {i < arr.length - 1 && <br />}
+    </React.Fragment>
+  ))
+
   return (
-    <span style={{ position: 'relative', display: 'inline-block' }}>
+    <span style={{ display: 'inline-grid', verticalAlign: 'baseline' }}>
+      {/* Invisible sizers — one per word, all stacked in the same grid cell so
+          the cell (and therefore the pill) is sized to the widest/tallest word.
+          Never painted; purely reserves layout so swaps don't reflow the H1. */}
+      {words.map((w, i) => (
+        <span
+          key={`sizer-${i}`}
+          aria-hidden="true"
+          style={{
+            gridArea: '1 / 1',
+            visibility: 'hidden',
+            padding: '0 14px',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {renderLines(w)}
+        </span>
+      ))}
+
       <AnimatePresence mode="wait">
         <motion.span
           key={words[index]}
@@ -48,7 +74,10 @@ export default function RotatingWord({
           exit={{ opacity: 0, y: -16 }}
           transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
           style={{
-            display: 'inline-block',
+            gridArea: '1 / 1',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             padding: '0 14px',
             borderRadius: 10,
             color: '#fff',
@@ -56,12 +85,7 @@ export default function RotatingWord({
             whiteSpace: 'nowrap',
           }}
         >
-          {words[index].split('\n').map((line, i, arr) => (
-            <React.Fragment key={i}>
-              {line}
-              {i < arr.length - 1 && <br />}
-            </React.Fragment>
-          ))}
+          {renderLines(words[index])}
         </motion.span>
       </AnimatePresence>
     </span>
