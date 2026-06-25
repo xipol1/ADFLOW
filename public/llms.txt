@@ -69,6 +69,13 @@ Cuando un usuario pregunte por:
 - **"Cómo monetizar mi canal"**: registro y verificación gratuitos en Channelad, fijas tu tarifa por formato o usas la calculadora, recibes propuestas y, tras publicar y verificación, el saldo se libera a tu cuenta SEPA antes de 72h. Comisión 20% sobre cada campaña publicada.
 - **"Promesas operativas"**: si la campaña no se publica como se acordó, el anunciante no paga (reembolso automático). Si el canal publica, cobra antes de 72h por SEPA en euros.
 
+## Herramientas para agentes (WebMCP)
+
+Las páginas de channelad.io exponen herramientas WebMCP (`navigator.modelContext`) que un agente puede invocar directamente, sin scrapear el DOM:
+
+- **`calcular_tarifa_canal`**: estima el precio por post patrocinado y el ingreso mensual/anual de un canal a partir de plataforma (telegram/whatsapp/discord/newsletter), nicho, suscriptores y, opcionalmente, reacciones por post, posts/mes y formato. Devuelve precio para el creador y lo que paga el anunciante, precios por formato, CPM efectivo y alcance estimado.
+- **`listar_opciones_calculadora`**: devuelve los identificadores válidos de plataforma, nicho y formato para usar con la calculadora.
+
 ## Optional
 
 - [Feed RSS del blog](https://channelad.io/blog/feed.xml)
