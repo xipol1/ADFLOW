@@ -58,8 +58,11 @@ const HERO_FLOATING_CARDS = [
   { id: '021', platform: 'telegram',   tier: 'A', score: 87, niche: 'B2B SaaS', region: 'ES',    subs: '18.3K', cpm: '€7,3', isNew: true },
 ]
 
-// Words rotating in the hero H1 highlight pill.
-const HERO_ROTATING_WORDS = ['Telegram', 'WhatsApp', 'Discord', 'newsletters']
+// Words rotating in the hero H1 highlight pill. Kept to the three platforms of
+// similar rendered width — "newsletters" was ~77px wider than the others and,
+// being the last word before the line break, its swap re-wrapped the H1 and
+// shifted the hero below it (CLS). Dropping it stabilises the heading's layout.
+const HERO_ROTATING_WORDS = ['Telegram', 'WhatsApp', 'Discord']
 
 /* ─── Sección 2 — Trust bar entries ──────────────────────────────────── */
 const TRUST_PLATFORMS = [
