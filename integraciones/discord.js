@@ -2,6 +2,8 @@ const axios = require('axios');
 
 const DISCORD_API = 'https://discord.com/api/v10';
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 class DiscordBot {
   constructor(botToken) {
     this.token = String(botToken || '').trim();
@@ -43,7 +45,13 @@ class DiscordBot {
   async verifyBotAccessNew(guildId) {
     try {
       const guild = await this.getGuild(guildId, true);
-      const botMember = await this._req('GET', `/guilds/${guildId}/members/@me`);
+      // The bot's own guild member must be fetched by its REAL user id.
+      // `/guilds/{id}/members/@me` is rejected by Discord (Invalid Form Body
+      // 50035 — `@me` is not a valid snowflake here), and the alternative
+      // `/users/@me/guilds/{id}/member` refuses bots (code 20001). Resolve the
+      // bot's user id once (cached on the instance) and use it explicitly.
+      if (!this._botUserId) this._botUserId = (await this.getBotInfo()).id;
+      const botMember = await this._req('GET', `/guilds/${guildId}/members/${this._botUserId}`);
 
       const botRoleIds = new Set(botMember.roles);
       const guildRoles = await this._req('GET', `/guilds/${guildId}/roles`);
@@ -141,6 +149,138 @@ class DiscordBot {
       vanityUrl: guild.vanity_url_code || null,
       iconHash: guild.icon || null,
       timestamp: new Date(),
+    };
+  }
+
+  // ─── Censo de miembros y muestreo de actividad (autenticidad) ──────────────
+  //
+  // Alimentan el lector de autenticidad (% bots estimado, ráfagas de alta,
+  // engagement real). fetchAllMembers REQUIERE el privileged intent
+  // GUILD_MEMBERS activado en el Developer Portal — sin él, /guilds/{id}/members
+  // devuelve 403. sampleRecentActivity solo lee metadata (autor + timestamp),
+  // así que NO necesita el intent Message Content.
+
+  /** Snowflake → fecha de creación de la cuenta (epoch Discord 2015-01-01). */
+  static snowflakeToDate(id) {
+    try {
+      return new Date(Number((BigInt(id) >> BigInt(22)) + BigInt(1420070400000)));
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * GET con reintentos: respeta el 429 (`retry_after`) de Discord y reintenta
+   * los 5xx transitorios con backoff exponencial. Lanza un error envuelto
+   * (mismo formato que _req) al agotar los reintentos.
+   */
+  async _getWithRetry(path, { retries = 4 } = {}) {
+    if (!this.token) throw new Error('DISCORD_BOT_TOKEN no configurado');
+    let attempt = 0;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      try {
+        const res = await axios({
+          method: 'GET',
+          url: `${DISCORD_API}${path}`,
+          headers: this.headers,
+          timeout: this.timeout,
+        });
+        return res.data;
+      } catch (err) {
+        const status = err.response?.status;
+        const retryable = status === 429 || (status >= 500 && status <= 599);
+        if (retryable && attempt < retries) {
+          const ra = Number(
+            err.response?.data?.retry_after ?? err.response?.headers?.['retry-after'],
+          );
+          const waitMs = Number.isFinite(ra) && ra > 0
+            ? Math.ceil(ra * 1000) + 250
+            : Math.min(8000, 500 * 2 ** attempt);
+          await sleep(waitMs);
+          attempt += 1;
+          continue;
+        }
+        const msg = err.response?.data?.message || err.message;
+        const code = err.response?.data?.code;
+        throw new Error(`Discord [GET ${path}]: ${msg}${code ? ` (code ${code})` : ''}`);
+      }
+    }
+  }
+
+  /**
+   * Censo completo de miembros del guild, paginando /guilds/{id}/members.
+   * Discord ordena por user.id ascendente; avanzamos el cursor `after` al id
+   * máximo de cada página. Cap defensivo en maxPages (→ truncated + log; regla
+   * "no silent caps"). Requiere el intent GUILD_MEMBERS.
+   */
+  async fetchAllMembers(guildId, { maxPages = 60, pageSize = 1000 } = {}) {
+    const limit = Math.min(1000, Math.max(1, pageSize));
+    const members = [];
+    let after = '0';
+    let pages = 0;
+    let truncated = false;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      if (pages >= maxPages) { truncated = true; break; }
+      const batch = await this._getWithRetry(
+        `/guilds/${guildId}/members?limit=${limit}&after=${after}`,
+      );
+      if (!Array.isArray(batch) || batch.length === 0) break;
+      members.push(...batch);
+      pages += 1;
+      if (batch.length < limit) break;
+      after = batch.reduce(
+        (mx, m) => (m?.user?.id && BigInt(m.user.id) > BigInt(mx) ? m.user.id : mx),
+        after,
+      );
+    }
+    if (truncated) {
+      console.warn(
+        `[Discord] member census truncated at ${members.length} (maxPages=${maxPages}) for guild ${guildId}`,
+      );
+    }
+    return { members, fetched: members.length, truncated };
+  }
+
+  /**
+   * Muestrea mensajes recientes de los canales de texto publicables para medir
+   * engagement real y distribución de actividad. Solo lee metadata (autor +
+   * timestamp); el contenido no se usa → no hace falta Message Content.
+   * Devuelve eventos crudos; el cálculo (autores únicos, Gini, vitalidad) vive
+   * en discordAuthenticityService (función pura).
+   */
+  async sampleRecentActivity(guildId, { perChannel = 100, windowDays = 14, maxChannels = 10 } = {}) {
+    const channels = await this.getPublishableChannels(guildId).catch(() => []);
+    const targets = channels.slice(0, maxChannels);
+    const cutoff = Date.now() - windowDays * 24 * 60 * 60 * 1000;
+    const limit = Math.min(100, Math.max(1, perChannel));
+    const events = [];
+    let channelsScanned = 0;
+    for (const ch of targets) {
+      const msgs = await this._getWithRetry(
+        `/channels/${ch.id}/messages?limit=${limit}`,
+      ).catch(() => null);
+      if (!Array.isArray(msgs)) continue; // sin permiso de lectura en ese canal, etc.
+      channelsScanned += 1;
+      for (const m of msgs) {
+        const ts = m?.timestamp ? new Date(m.timestamp).getTime() : NaN;
+        if (!Number.isFinite(ts) || ts < cutoff) continue;
+        events.push({
+          authorId: m.author?.id || null,
+          isBot: !!m.author?.bot,
+          timestamp: ts,
+          channelId: ch.id,
+        });
+      }
+    }
+    return {
+      events,
+      messages: events.length,
+      channelsScanned,
+      channelsAvailable: channels.length,
+      truncated: channels.length > targets.length,
+      windowDays,
     };
   }
 

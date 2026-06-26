@@ -103,17 +103,42 @@ async function fetchDiscordApiMetrics(canal) {
 }
 
 /**
+ * Run the member-authenticity reader for an onboarded Discord channel.
+ *
+ * Returns the report from discordAuthenticityService.analyzeGuild, or null when
+ * the channel has no verified bot/guild. Throws on API errors (GUILD_MEMBERS
+ * intent off → 403, bot kicked, rate-limited) so the caller can log + fall back
+ * to scoring without the authenticity signal.
+ */
+async function fetchDiscordAuthenticity(canal) {
+  const DiscordBot = require('../integraciones/discord');
+  const { analyzeGuild } = require('./discordAuthenticityService');
+  const guildId = canal.botConfig?.discord?.guildId || canal.identificadores?.serverId || null;
+  if (!guildId) return null;
+  const botToken = canal.botConfig?.discord?.botToken || process.env.DISCORD_BOT_TOKEN;
+  if (!botToken) return null;
+
+  const bot = new DiscordBot(botToken);
+  return analyzeGuild(bot, guildId);
+}
+
+/**
  * Score and snapshot a single canal. Pure DB operations (no network scraping).
  *
  * `extra` is merged into the Canal $set so callers can persist richer fields
  * (e.g. `estadisticas.metricasRed` from the Discord API) alongside the score.
  */
-async function scoreAndSnapshot(canal, newFollowers, extra = {}) {
+async function scoreAndSnapshot(canal, newFollowers, extra = {}, opts = {}) {
   const Canal = require('../models/Canal');
   const CanalScoreSnapshot = require('../models/CanalScoreSnapshot');
   const { calcularCAS } = require('./channelScoringV2');
 
   const seguidores = newFollowers ?? canal.estadisticas?.seguidores ?? 0;
+
+  // Discord member-authenticity report (passed by the caller) or whatever is
+  // already on the canal. Fed into the scoring engine so the bot_farm penalty
+  // uses the measured signal, and persisted on the Canal + snapshot below.
+  const autenticidad = opts.autenticidad || canal.autenticidad || null;
 
   // Build enriched canal for the scoring engine
   const enrichedCanal = {
@@ -126,6 +151,7 @@ async function scoreAndSnapshot(canal, newFollowers, extra = {}) {
     verificacion: canal.verificacion || { tipoAcceso: 'declarado' },
     antifraude: canal.antifraude || { flags: [] },
     crawler: canal.crawler || {},
+    ...(autenticidad ? { autenticidad } : {}),
   };
 
   const scores = calcularCAS(enrichedCanal, [], canal.categoria || 'otros');
@@ -145,6 +171,7 @@ async function scoreAndSnapshot(canal, newFollowers, extra = {}) {
     'antifraude.ratioCTF_CAF': scores.ratioCTF_CAF,
     'antifraude.flags': scores.flags,
     'antifraude.ultimaRevision': new Date(),
+    ...(autenticidad ? { autenticidad } : {}),
     ...extra,
   };
 
@@ -168,6 +195,7 @@ async function scoreAndSnapshot(canal, newFollowers, extra = {}) {
     seguidores,
     nicho: canal.categoria || 'otros',
     plataforma: canal.plataforma,
+    ...(opts.discordIntel ? { discordIntel: opts.discordIntel } : {}),
     version: ENGINE_VERSION,
   });
 
@@ -259,6 +287,8 @@ async function syncAllMultiplatformChannels() {
       const name = (canal.nombreCanal || '').toLowerCase().trim();
       let newFollowers = null;
       let extra = {};
+      let autenticidad = null;
+      let discordIntel = null;
 
       if (canal.plataforma === 'whatsapp') {
         // Try matching by name against both sources
@@ -283,6 +313,19 @@ async function syncAllMultiplatformChannels() {
           // Bot kicked / rate-limited: log and fall back to the prior count.
           errors.push(`${canal._id} (${canal.nombreCanal}) discord API: ${err.message}`);
         }
+        // Member-authenticity reader (census + activity). Independent of the
+        // metrics fetch: a failure here (GUILD_MEMBERS intent off, bot kicked)
+        // must not block scoring — log and continue with no authenticity signal.
+        try {
+          const report = await fetchDiscordAuthenticity(canal);
+          if (report) {
+            const { toCanalAutenticidad, toSnapshotIntel } = require('./discordAuthenticityService');
+            autenticidad = toCanalAutenticidad(report);
+            discordIntel = toSnapshotIntel(report);
+          }
+        } catch (err) {
+          errors.push(`${canal._id} (${canal.nombreCanal}) discord authenticity: ${err.message}`);
+        }
         // Fallback for discovered-but-not-onboarded channels (no bot/guild).
         if (newFollowers == null) {
           newFollowers = igruposDC.get(name) || null;
@@ -292,7 +335,7 @@ async function syncAllMultiplatformChannels() {
       // If we got fresh data, use it. Otherwise keep existing count.
       const followers = newFollowers || canal.estadisticas?.seguidores || 0;
 
-      await scoreAndSnapshot(canal, followers, extra);
+      await scoreAndSnapshot(canal, followers, extra, { autenticidad, discordIntel });
       processed++;
 
       if (newFollowers && newFollowers !== canal.estadisticas?.seguidores) {

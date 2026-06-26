@@ -220,6 +220,25 @@ const CanalSchema = new mongoose.Schema(
       ultimaRevision: { type: Date, default: null },
     },
 
+    // ── Member-authenticity reader (Discord census + activity) ──────────────
+    // Populated by discordAuthenticityService via the daily multiplatform sync
+    // for Discord channels with the bot present + GUILD_MEMBERS intent. Empty
+    // for every other platform. pctBotsEstimado is a heuristic suspicion index
+    // (0-100, higher = more suspicious), NOT a literal bot census. The scoring
+    // engine (channelScoringV2) reads pctBotsEstimado to drive the bot_farm
+    // penalty — it supersedes the ratioCTF_CAF proxy when present.
+    autenticidad: {
+      pctBotsEstimado:   { type: Number, default: null },
+      authenticityScore: { type: Number, default: null },
+      presenceRatio:     { type: Number, default: null },
+      engagementRate:    { type: Number, default: null },
+      giniActividad:     { type: Number, default: null },
+      censusSize:        { type: Number, default: null },
+      censusTruncated:   { type: Boolean, default: null },
+      flags:             { type: [String], default: [] },
+      ultimaLectura:     { type: Date, default: null },
+    },
+
     // ── Public crawler data (WhatsApp channels, Telegram public channels) ──
     crawler: {
       ultimoPostNum: { type: Number, default: null },   // latest post number on the public URL
