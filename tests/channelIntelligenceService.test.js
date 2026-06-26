@@ -109,7 +109,13 @@ describe('buildChannelIntelligence — end-to-end shape and privacy', () => {
           nivel: 'GOLD',
           antifraude: {
             ratioCTF_CAF: 1.08,
-            flags: ['datos_no_verificados', 'bot_farm_sospechoso'],
+            flags: ['datos_no_verificados', 'bot_farm_sospechoso', 'altas_en_rafaga'],
+          },
+          autenticidad: {
+            authenticityScore: 88,
+            pctBotsEstimado: 12,
+            joinBurstScore: 0.04,
+            flags: ['altas_en_rafaga'],
           },
           verificacion: { confianzaScore: 85 },
         }),
@@ -159,6 +165,47 @@ describe('buildChannelIntelligence — end-to-end shape and privacy', () => {
     expect(data.scores.flags).toContain('datos_no_verificados');
     expect(data.scores.flags).not.toContain('bot_farm_sospechoso');
     expect(data.scores.flags).not.toContain('engagement_bajo');
+    // Reader-specific flags are internal too — never public.
+    expect(data.scores.flags).not.toContain('altas_en_rafaga');
+  });
+
+  test('exposes the positive authenticityScore but NOT the raw breakdown', async () => {
+    const data = await service.buildChannelIntelligence('canal-1');
+    // Public positive aggregate is exposed.
+    expect(data.scores.authenticityScore).toBe(88);
+    // The raw suspicion breakdown stays admin-only — must not leak anywhere.
+    const json = JSON.stringify(data);
+    expect(json).not.toMatch(/pctBotsEstimado/);
+    expect(json).not.toMatch(/joinBurstScore/);
+  });
+
+  test('authenticityScore is null when the reader has not measured the channel', async () => {
+    jest.resetModules();
+    jest.doMock('../lib/ensureDb', () => ({ ensureDb: jest.fn().mockResolvedValue(true) }));
+    jest.doMock('../models/Canal', () => ({
+      findOne: jest.fn(() => ({
+        lean: async () => ({
+          _id: 'canal-2',
+          plataforma: 'telegram',
+          categoria: 'crypto',
+          estado: 'activo',
+          CAS: 60,
+          estadisticas: { seguidores: 5000 },
+          antifraude: { flags: [] },
+          verificacion: {},
+        }),
+      })),
+    }));
+    jest.doMock('../models/Campaign', () => ({
+      exists: jest.fn().mockResolvedValue(null),
+      countDocuments: jest.fn().mockResolvedValue(0),
+    }));
+    jest.doMock('../models/CanalScoreSnapshot', () => ({
+      find: jest.fn(() => ({ sort: () => ({ limit: () => ({ select: () => ({ lean: async () => [] }) }) }) })),
+    }));
+    const svc = require('../services/channelIntelligenceService');
+    const data = await svc.buildChannelIntelligence('canal-2');
+    expect(data.scores.authenticityScore).toBeNull();
   });
 
   test('does not expose owner identity, contact info, or advertiser history', async () => {

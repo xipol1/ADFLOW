@@ -41,12 +41,12 @@ function scoreColor(v) {
 }
 
 const SCORE_DESCRIPTIONS = {
-  CAF: 'Mide la autenticidad de la audiencia. Detecta seguidores bot o comprados comparando engagement vs suscriptores.',
-  CTF: 'Evalua la credibilidad del contenido historico. Canales verificados con historial consistente puntuan mas alto.',
-  CER: 'Ratio real de visualizaciones sobre suscriptores. Un canal con 10K subs y 8K views/post tiene CER superior a uno con 100K subs y 5K views/post.',
-  CVS: 'Tendencia de crecimiento. Compara views de los ultimos 10 posts vs los 10 anteriores.',
-  CAS: 'Frecuencia y consistencia de publicacion. Posts/semana y regularidad temporal.',
-  CAP: 'Calidad del perfil de audiencia basado en metricas de interaccion y retencion.',
+  CAF: 'Volumen y alcance bruto: tramos de suscriptores y ratio de visualizaciones. No juzga calidad por si solo.',
+  CTF: 'Senales de confianza verificadas: tipo de acceso (admin/OAuth), ausencia de flags y coherencia del CTR con el nicho.',
+  CER: 'Ratio real de visualizaciones sobre suscriptores, percentilado contra la media del nicho. Mas views por sub = mejor CER.',
+  CVS: 'Trayectoria temporal: crecimiento de suscriptores y regularidad de publicacion a lo largo del tiempo.',
+  CAS: 'Score compuesto final (0-100): pondera las cinco dimensiones. Es el numero de cabecera.',
+  CAP: 'Rendimiento real en campanas pasadas (CTR, cancelaciones, retrasos). La unica senal que no se puede falsear.',
 }
 
 const CATEGORY_COLORS = {
@@ -192,7 +192,7 @@ export default function ChannelExplorerPage() {
   // ── DATA ───────────────────────────────────────────────────
   const { canal, scores, historial, benchmark, campanias } = data
   const { nombre, plataforma, nicho, seguidores, descripcion } = canal || {}
-  const { CAS, CAF, CTF, CER, CVS, CAP, nivel, CPMDinamico, ratioCTF_CAF, confianzaScore, flags = [] } = scores || {}
+  const { CAS, CAF, CTF, CER, CVS, CAP, nivel, CPMDinamico, ratioCTF_CAF, confianzaScore, flags = [], authenticityScore } = scores || {}
 
   const catColor = CATEGORY_COLORS[(nicho || '').toLowerCase()] || CATEGORY_COLORS.default
   const disponible = Boolean(campanias?.disponible)
@@ -291,6 +291,26 @@ export default function ChannelExplorerPage() {
             <ScoreBar label="CAP" value={CAP} description={SCORE_DESCRIPTIONS.CAP} />
           </div>
         </div>
+
+        {/* ── SECTION 3b: AUDIENCE AUTHENTICITY (Discord reader) ─ */}
+        {/* Public positive aggregate only. The breakdown (pctBotsEstimado,
+            join-burst) and fraud flags are admin-only by design. */}
+        {authenticityScore != null && (
+          <div className="rounded-xl p-5 sm:p-6 mb-4" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Autenticidad de audiencia</h2>
+                <p className="text-[11px] mt-1 leading-relaxed" style={{ color: 'var(--muted2)' }}>
+                  Miembros reales frente a bots y cuentas falsas: edad de cuenta, altas en rafaga y actividad distribuida. Verificado por ChannelAd.
+                </p>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <span className="text-3xl sm:text-4xl font-medium" style={{ color: scoreColor(authenticityScore), fontFamily: 'var(--font-mono)' }}>{Math.round(authenticityScore)}</span>
+                <span className="block text-xs font-semibold mt-0.5" style={{ color: scoreColor(authenticityScore) }}>{scoreLabel(authenticityScore)}</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── SECTION 4: EVOLUTION CHART ───────────────────────── */}
         <div className="rounded-xl p-5 sm:p-6 mb-4" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
