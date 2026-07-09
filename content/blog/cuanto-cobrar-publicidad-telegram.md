@@ -1,9 +1,9 @@
 ---
-title: "Cuánto cobrar por publicidad en Telegram 2026: CPM real"
-description: "Cuánto cobrar por un post patrocinado en tu canal de Telegram 2026: fórmula + tabla de CPM por nicho. Datos reales de España, de 2€ a 12€ por mil vistas."
+title: "Precio publicidad Telegram 2026: fórmula y CPM por nicho"
+description: "Fórmula exacta para poner precio a un post patrocinado en tu canal de Telegram 2026. Tabla de CPMs por nicho: finanzas, cripto, tech y gaming."
 slug: "cuanto-cobrar-publicidad-telegram"
 date: "2026-04-09"
-dateModified: "2026-06-14"
+dateModified: "2026-04-15"
 howto: "true"
 category: "Monetizacion"
 readTime: "12 min"
