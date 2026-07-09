@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidad - Rafa Ferrer Castells</title>
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #050505;
+            --bg-card: #111113;
+            --bg-card-alt: #18181b;
+            --text: #f5f5f7;
+            --text-muted: #a1a1aa;
+            --accent: #8b5cf6;
+            --accent-dim: rgba(139, 92, 246, 0.15);
+            --border: #27272a;
+            --radius: 12px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 60px 24px 100px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 56px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header .brand {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .header .subtitle {
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+
+        /* TOC */
+        .toc {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 32px;
+            margin-bottom: 48px;
+        }
+
+        .toc h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .toc ol {
+            list-style: none;
+            counter-reset: toc-counter;
+        }
+
+        .toc ol li {
+            counter-increment: toc-counter;
+            margin-bottom: 8px;
+        }
+
+        .toc ol li a {
+            color: var(--text);
+            text-decoration: none;
+            font-size: 15px;
+            transition: color 0.2s;
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .toc ol li a::before {
+            content: counter(toc-counter, decimal-leading-zero);
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 13px;
+            min-width: 22px;
+        }
+
+        .toc ol li a:hover {
+            color: var(--accent);
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .section-number {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        h2.section-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        p {
+            margin-bottom: 14px;
+            color: var(--text-muted);
+        }
+
+        p strong {
+            color: var(--text);
+        }
+
+        ul, ol {
+            margin-bottom: 14px;
+            padding-left: 24px;
+        }
+
+        li {
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        li strong {
+            color: var(--text);
+        }
+
+        /* Info cards */
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            margin-bottom: 16px;
+        }
+
+        .info-card.accent {
+            border-left: 3px solid var(--accent);
+        }
+
+        .info-card p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Table */
+        .table-wrapper {
+            overflow-x: auto;
+            margin-bottom: 16px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        thead th {
+            background: var(--bg-card-alt);
+            text-align: left;
+            padding: 12px 16px;
+            font-weight: 600;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-muted);
+            vertical-align: top;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: var(--accent-dim);
+        }
+
+        /* Links */
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        a:hover {
+            opacity: 0.8;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .footer p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            background: var(--accent-dim);
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .container {
+                padding: 40px 16px 60px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            h2.section-title {
+                font-size: 20px;
+            }
+
+            .toc {
+                padding: 20px;
+            }
+
+            table {
+                font-size: 13px;
+            }
+
+            thead th, tbody td {
+                padding: 10px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="brand">Channelad</div>
+            <h1>Política de Privacidad</h1>
+            <p class="subtitle">Última actualización: 31 de marzo de 2026</p>
+        </header>
+
+        <!-- Indice -->
+        <nav class="toc">
+            <h2>Índice</h2>
+            <ol>
+                <li><a href="#responsable">Responsable del tratamiento</a></li>
+                <li><a href="#datos">Datos que recopilamos</a></li>
+                <li><a href="#finalidades">Finalidades del tratamiento</a></li>
+                <li><a href="#destinatarios">Destinatarios de los datos</a></li>
+                <li><a href="#transferencias">Transferencias internacionales</a></li>
+                <li><a href="#conservacion">Plazos de conservación</a></li>
+                <li><a href="#derechos">Derechos del interesado</a></li>
+                <li><a href="#seguridad">Medidas de seguridad</a></li>
+                <li><a href="#menores">Menores de edad</a></li>
+                <li><a href="#modificaciones">Modificaciones de esta política</a></li>
+            </ol>
+        </nav>
+
+        <!-- 1. Responsable del tratamiento -->
+        <section class="section" id="responsable">
+            <span class="section-number">01</span>
+            <h2 class="section-title">Responsable del tratamiento</h2>
+
+            <div class="info-card accent">
+                <p><strong>Nombre y apellidos (titular):</strong> Rafa Ferrer Castells</p>
+                <p><strong>DNI / NIF:</strong> 49232216A</p>
+                <p><strong>Domicilio:</strong> Ptda. Tapidad Marraix, 204, Finestrat (Alicante)</p>
+                <p><strong>Correo electrónico de contacto:</strong> <a href="mailto:contact@channelad.io">contact@channelad.io</a></p>
+                <p><strong>Delegado de Protección de Datos (DPO):</strong> No designado. Conforme al artículo 37 del RGPD, no resulta preceptiva su designación dada la naturaleza y escala del tratamiento. Para cualquier cuestión de protección de datos: contact@channelad.io</p>
+            </div>
+
+            <p>Rafa Ferrer Castells (en adelante, <strong>"Channelad"</strong> o <strong>"nosotros"</strong>) es la entidad responsable del tratamiento de los datos personales recabados a través de la plataforma accesible en <strong>channelad.io</strong> y sus subdominios (en adelante, la <strong>"Plataforma"</strong>).</p>
+            <p>Channelad opera un marketplace publicitario que conecta a anunciantes con creadores de contenido en plataformas como Telegram, WhatsApp, Discord, Instagram, Facebook y Newsletter.</p>
+        </section>
+
+        <!-- 2. Datos que recopilamos -->
+        <section class="section" id="datos">
+            <span class="section-number">02</span>
+            <h2 class="section-title">Datos que recopilamos</h2>
+
+            <p>En función de su relación con la Plataforma, podremos tratar las siguientes categorías de datos personales:</p>
+
+            <h3>2.1. Datos de registro</h3>
+            <ul>
+                <li>Nombre completo</li>
+                <li>Dirección de correo electrónico</li>
+                <li>Contraseña (almacenada exclusivamente como hash mediante bcrypt; nunca en texto plano)</li>
+                <li>Rol en la plataforma (anunciante o creador de contenido)</li>
+            </ul>
+
+            <h3>2.2. Datos de perfil</h3>
+            <ul>
+                <li>Nombre de empresa u organización</li>
+                <li>Sector de actividad</li>
+                <li>Descripción del negocio o perfil creador</li>
+            </ul>
+
+            <h3>2.3. Datos de canales (creadores de contenido)</h3>
+            <ul>
+                <li>Plataforma del canal (Telegram, WhatsApp, Discord, Instagram, Facebook, Newsletter)</li>
+                <li>Nombre del canal</li>
+                <li>URL del canal</li>
+                <li>Credenciales de API (almacenadas con cifrado AES-256)</li>
+                <li>Estadísticas del canal (suscriptores, alcance, engagement)</li>
+            </ul>
+
+            <h3>2.4. Datos de campañas publicitarias</h3>
+            <ul>
+                <li>Contenido publicitario (textos, imágenes, enlaces)</li>
+                <li>Presupuesto asignado</li>
+                <li>Fechas de inicio y finalización</li>
+                <li>Estado de la campaña</li>
+                <li>Métricas de rendimiento</li>
+            </ul>
+
+            <h3>2.5. Datos financieros</h3>
+            <p>Los pagos se procesan íntegramente a través de <strong>Stripe, Inc.</strong> Channelad <strong>no almacena</strong> datos de tarjetas de crédito o débito en sus servidores. Stripe actúa como encargado del tratamiento independiente respecto de los datos de pago. Puede consultar su política de privacidad en <a href="https://stripe.com/privacy" target="_blank" rel="noopener">stripe.com/privacy</a>.</p>
+            <p>Únicamente conservamos identificadores de transacción, importes y estados de pago necesarios para la gestión contable y la resolución de incidencias.</p>
+
+            <h3>2.6. Datos de tracking y analítica</h3>
+            <ul>
+                <li>Dirección IP (anonimizada mediante truncamiento del último octeto)</li>
+                <li>Tipo de dispositivo</li>
+                <li>Navegador y versión</li>
+                <li>Sistema operativo</li>
+                <li>País de origen (geolocalización a nivel de país)</li>
+                <li>Parámetros UTM de campañas</li>
+            </ul>
+
+            <h3>2.7. Datos de navegación y cookies</h3>
+            <ul>
+                <li>Cookies técnicas estrictamente necesarias para el funcionamiento de la Plataforma</li>
+                <li>Preferencias de usuario (idioma, tema visual, configuración de panel)</li>
+            </ul>
+            <p>Para más información, consulte nuestra Política de Cookies.</p>
+
+            <h3>2.8. Datos de comunicaciones</h3>
+            <ul>
+                <li>Mensajes intercambiados en el contexto de campañas (entre anunciantes y creadores)</li>
+                <li>Contenido de disputas y reclamaciones</li>
+                <li>Comunicaciones con el equipo de soporte</li>
+            </ul>
+        </section>
+
+        <!-- 3. Finalidades del tratamiento -->
+        <section class="section" id="finalidades">
+            <span class="section-number">03</span>
+            <h2 class="section-title">Finalidades del tratamiento</h2>
+
+            <p>Tratamos sus datos personales para las siguientes finalidades, indicando en cada caso la base jurídica que legitima el tratamiento conforme al artículo 6 del Reglamento (UE) 2016/679 (RGPD):</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Finalidad</th>
+                            <th>Base jurídica</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Gestión de la cuenta de usuario y prestación del servicio de marketplace publicitario</td>
+                            <td><span class="badge">Ejecución de contrato</span> Art. 6.1.b) RGPD</td>
+                        </tr>
+                        <tr>
+                            <td>Procesamiento de pagos, comisiones y facturación</td>
+                            <td><span class="badge">Ejecución de contrato</span> Art. 6.1.b) RGPD</td>
+                        </tr>
+                        <tr>
+                            <td>Verificación de canales de creadores y seguimiento del rendimiento de campañas</td>
+                            <td><span class="badge">Interés legítimo</span> Art. 6.1.f) RGPD</td>
+                        </tr>
+                        <tr>
+                            <td>Prevención del fraude, detección de actividades sospechosas y seguridad de la Plataforma</td>
+                            <td><span class="badge">Interés legítimo</span> Art. 6.1.f) RGPD</td>
+                        </tr>
+                        <tr>
+                            <td>Comunicaciones operativas del servicio (notificaciones de campaña, alertas de estado, confirmaciones)</td>
+                            <td><span class="badge">Ejecución de contrato</span> Art. 6.1.b) RGPD</td>
+                        </tr>
+                        <tr>
+                            <td>Comunicaciones comerciales y promocionales sobre productos o servicios de Channelad</td>
+                            <td><span class="badge">Consentimiento</span> Art. 6.1.a) RGPD</td>
+                        </tr>
+                        <tr>
+                            <td>Cumplimiento de obligaciones legales, fiscales y contables</td>
+                            <td><span class="badge">Obligación legal</span> Art. 6.1.c) RGPD</td>
+                        </tr>
+                        <tr>
+                            <td>Mejora del servicio mediante analítica agregada y anonimizada</td>
+                            <td><span class="badge">Interés legítimo</span> Art. 6.1.f) RGPD</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p>Cuando la base jurídica sea el <strong>consentimiento</strong>, usted podrá revocarlo en cualquier momento sin que ello afecte a la licitud del tratamiento basado en el consentimiento previo a su retirada. Puede gestionar sus preferencias de comunicaciones comerciales desde la configuración de su cuenta o mediante el enlace de baja incluido en cada comunicación.</p>
+            <p>Cuando la base jurídica sea el <strong>interés legítimo</strong>, hemos realizado la correspondiente ponderación para garantizar que dicho interés no prevalece sobre sus derechos y libertades fundamentales. Puede solicitar información detallada sobre dichas evaluaciones de ponderación contactándonos en <a href="mailto:contact@channelad.io">contact@channelad.io</a>.</p>
+        </section>
+
+        <!-- 4. Destinatarios de los datos -->
+        <section class="section" id="destinatarios">
+            <span class="section-number">04</span>
+            <h2 class="section-title">Destinatarios de los datos</h2>
+
+            <p>Sus datos personales podrán ser comunicados a los siguientes destinatarios, en calidad de encargados del tratamiento o terceros, según corresponda:</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Destinatario</th>
+                            <th>Finalidad</th>
+                            <th>Ubicación</th>
+                            <th>Garantías</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Stripe, Inc.</strong></td>
+                            <td>Procesamiento de pagos y gestión de cobros</td>
+                            <td>Estados Unidos</td>
+                            <td>Data Privacy Framework (DPF) / Cláusulas Contractuales Tipo (SCCs)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>MongoDB, Inc.</strong> (Atlas)</td>
+                            <td>Almacenamiento de base de datos</td>
+                            <td>Unión Europea (Frankfurt / Irlanda)</td>
+                            <td>Datos almacenados en la UE; contrato de encargado del tratamiento</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Vercel, Inc.</strong></td>
+                            <td>Alojamiento web y despliegue de la Plataforma</td>
+                            <td>Estados Unidos / CDN global</td>
+                            <td>Cláusulas Contractuales Tipo (SCCs)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Twilio Inc.</strong> (SendGrid)</td>
+                            <td>Envío de correos electrónicos transaccionales y comerciales</td>
+                            <td>Estados Unidos</td>
+                            <td>Cláusulas Contractuales Tipo (SCCs)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Plataformas de canales</strong> (Telegram, Discord, Meta Platforms, etc.)</td>
+                            <td>Integración de canales y publicación de campañas</td>
+                            <td>Variable</td>
+                            <td>Solo se comparten los datos estrictamente necesarios para la integración técnica</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p>Asimismo, podremos comunicar sus datos a <strong>autoridades públicas</strong> (Agencia Tributaria, juzgados, Fuerzas y Cuerpos de Seguridad del Estado) cuando así sea requerido por la legislación aplicable o en virtud de una resolución judicial o administrativa.</p>
+            <p>Channelad no vende, alquila ni cede sus datos personales a terceros con fines comerciales ajenos a los descritos en esta política.</p>
+        </section>
+
+        <!-- 5. Transferencias internacionales -->
+        <section class="section" id="transferencias">
+            <span class="section-number">05</span>
+            <h2 class="section-title">Transferencias internacionales de datos</h2>
+
+            <p>Algunos de los proveedores mencionados en la sección anterior se encuentran ubicados fuera del Espacio Económico Europeo (EEE), principalmente en Estados Unidos. Para garantizar un nivel adecuado de protección de sus datos personales, hemos adoptado las siguientes garantías conforme a los artículos 46 y 49 del RGPD:</p>
+
+            <ul>
+                <li><strong>Cláusulas Contractuales Tipo (SCCs):</strong> Aprobadas por la Comisión Europea mediante Decisión de Ejecución (UE) 2021/914, suscritas con Stripe, Vercel y SendGrid (Twilio). Estas cláusulas garantizan que sus datos reciben un nivel de protección equivalente al exigido en la UE.</li>
+                <li><strong>EU-U.S. Data Privacy Framework (DPF):</strong> Stripe está certificado bajo el Marco de Privacidad de Datos UE-EE.UU., reconocido como mecanismo de adecuación por la Comisión Europea mediante Decisión de Ejecución de 10 de julio de 2023.</li>
+                <li><strong>Almacenamiento en la UE:</strong> Nuestra base de datos principal (MongoDB Atlas) está alojada en centros de datos de la Unión Europea (regiones de Frankfurt e Irlanda), por lo que los datos almacenados en ella no son objeto de transferencia internacional.</li>
+            </ul>
+
+            <p>Puede solicitar una copia de las Cláusulas Contractuales Tipo suscritas con nuestros proveedores escribiendo a <a href="mailto:contact@channelad.io">contact@channelad.io</a>.</p>
+        </section>
+
+        <!-- 6. Plazos de conservacion -->
+        <section class="section" id="conservacion">
+            <span class="section-number">06</span>
+            <h2 class="section-title">Plazos de conservación</h2>
+
+            <p>Conservaremos sus datos personales durante el tiempo estrictamente necesario para cumplir con las finalidades para las que fueron recabados y, posteriormente, durante los plazos legales aplicables:</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Categoría de datos</th>
+                            <th>Plazo de conservación</th>
+                            <th>Justificación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Datos de cuenta y perfil</td>
+                            <td>Mientras la cuenta permanezca activa + 5 años tras la baja</td>
+                            <td>Obligaciones fiscales y tributarias (Ley General Tributaria)</td>
+                        </tr>
+                        <tr>
+                            <td>Datos de transacciones y facturación</td>
+                            <td>6 años desde la fecha de la transacción</td>
+                            <td>Obligaciones contables (Código de Comercio, art. 30)</td>
+                        </tr>
+                        <tr>
+                            <td>Datos de tracking y analítica</td>
+                            <td>24 meses desde su recopilación</td>
+                            <td>Mejora del servicio y analítica agregada</td>
+                        </tr>
+                        <tr>
+                            <td>Datos de disputas y reclamaciones</td>
+                            <td>3 años desde la resolución de la disputa</td>
+                            <td>Prescripción de acciones por responsabilidad contractual (art. 1964 CC)</td>
+                        </tr>
+                        <tr>
+                            <td>Logs de seguridad</td>
+                            <td>12 meses</td>
+                            <td>Detección de incidentes y cumplimiento normativo</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p>Transcurridos los plazos indicados, los datos serán eliminados de forma segura o anonimizados de manera irreversible para su uso con fines estadísticos.</p>
+        </section>
+
+        <!-- 7. Derechos del interesado -->
+        <section class="section" id="derechos">
+            <span class="section-number">07</span>
+            <h2 class="section-title">Derechos del interesado</h2>
+
+            <p>De conformidad con el RGPD y la Ley Orgánica 3/2018, de 5 de diciembre, de Protección de Datos Personales y garantía de los derechos digitales (LOPD-GDD), usted tiene reconocidos los siguientes derechos:</p>
+
+            <ul>
+                <li><strong>Derecho de acceso</strong> (art. 15 RGPD): Obtener confirmación de si estamos tratando sus datos y, en su caso, acceder a los mismos y a la información prevista en dicho artículo.</li>
+                <li><strong>Derecho de rectificación</strong> (art. 16 RGPD): Solicitar la corrección de datos inexactos o el completamiento de datos incompletos.</li>
+                <li><strong>Derecho de supresión</strong> (art. 17 RGPD): Solicitar la eliminación de sus datos cuando, entre otros motivos, ya no sean necesarios para la finalidad para la que fueron recogidos.</li>
+                <li><strong>Derecho de oposición</strong> (art. 21 RGPD): Oponerse al tratamiento de sus datos en determinadas circunstancias, incluido el tratamiento con fines de marketing directo.</li>
+                <li><strong>Derecho a la portabilidad</strong> (art. 20 RGPD): Recibir los datos que nos haya facilitado en un formato estructurado, de uso común y lectura mecánica, y transmitirlos a otro responsable.</li>
+                <li><strong>Derecho a la limitación del tratamiento</strong> (art. 18 RGPD): Solicitar la limitación del tratamiento de sus datos en los supuestos previstos legalmente.</li>
+            </ul>
+
+            <div class="info-card accent">
+                <h3>Cómo ejercer sus derechos</h3>
+                <p>Puede ejercer cualquiera de los derechos anteriores enviando una solicitud a <a href="mailto:contact@channelad.io">contact@channelad.io</a>, indicando:</p>
+                <ul>
+                    <li>Su nombre completo y dirección de correo electrónico asociada a su cuenta.</li>
+                    <li>El derecho que desea ejercer.</li>
+                    <li>Una copia de su documento de identidad (DNI, pasaporte o documento equivalente) para verificar su identidad.</li>
+                </ul>
+                <p>Responderemos a su solicitud en el plazo máximo de <strong>un mes</strong> desde su recepción, prorrogable por dos meses adicionales en caso de solicitudes especialmente complejas o numerosas, previo aviso motivado.</p>
+            </div>
+
+            <p>Si considera que el tratamiento de sus datos personales vulnera la normativa vigente, tiene derecho a presentar una reclamación ante la <strong>Agencia Española de Protección de Datos (AEPD)</strong>:</p>
+            <div class="info-card">
+                <p><strong>Agencia Española de Protección de Datos</strong></p>
+                <p>C/ Jorge Juan, 6 - 28001 Madrid</p>
+                <p>Sitio web: <a href="https://www.aepd.es" target="_blank" rel="noopener">www.aepd.es</a></p>
+                <p>Teléfono: 901 100 099 / 912 663 517</p>
+            </div>
+        </section>
+
+        <!-- 8. Medidas de seguridad -->
+        <section class="section" id="seguridad">
+            <span class="section-number">08</span>
+            <h2 class="section-title">Medidas de seguridad</h2>
+
+            <p>Channelad ha implementado medidas técnicas y organizativas apropiadas para garantizar un nivel de seguridad adecuado al riesgo del tratamiento, conforme al artículo 32 del RGPD. Entre estas medidas se incluyen:</p>
+
+            <ul>
+                <li><strong>Cifrado en tránsito:</strong> Todas las comunicaciones entre su navegador y nuestros servidores se realizan mediante protocolo TLS/HTTPS, garantizando la confidencialidad e integridad de los datos transmitidos.</li>
+                <li><strong>Cifrado en reposo:</strong> Las credenciales de API y otros datos sensibles se almacenan cifrados con el algoritmo AES-256.</li>
+                <li><strong>Hashing de contraseñas:</strong> Las contraseñas de usuario se almacenan exclusivamente como hashes generados mediante bcrypt con salt aleatorio, lo que impide su recuperación en texto plano incluso en caso de acceso no autorizado a la base de datos.</li>
+                <li><strong>Rate limiting y protección DDoS:</strong> Mecanismos de limitación de peticiones y protección frente a ataques de denegación de servicio distribuido.</li>
+                <li><strong>Control de acceso basado en roles (RBAC):</strong> Los accesos a datos y funcionalidades están segmentados en función del rol del usuario (anunciante, creador, administrador), aplicando el principio de mínimo privilegio.</li>
+                <li><strong>Autenticación mediante tokens JWT:</strong> Sistema de autenticación basado en JSON Web Tokens con expiración configurable.</li>
+                <li><strong>Auditorías periódicas:</strong> Revisiones regulares de seguridad y evaluaciones de vulnerabilidades para identificar y corregir posibles riesgos.</li>
+                <li><strong>Copias de seguridad:</strong> Procedimientos de backup automatizados con cifrado para garantizar la recuperación de datos ante incidentes.</li>
+            </ul>
+
+            <p>En caso de producirse una brecha de seguridad que afecte a sus datos personales, Channelad notificará a la Agencia Española de Protección de Datos en un plazo máximo de 72 horas y, cuando la brecha entrañe un alto riesgo para sus derechos y libertades, le comunicaremos directamente la incidencia sin dilación indebida, conforme a los artículos 33 y 34 del RGPD.</p>
+        </section>
+
+        <!-- 9. Menores -->
+        <section class="section" id="menores">
+            <span class="section-number">09</span>
+            <h2 class="section-title">Menores de edad</h2>
+
+            <p>La Plataforma de Channelad y sus servicios están dirigidos exclusivamente a personas mayores de <strong>18 años</strong>. No recabamos deliberadamente datos personales de menores de edad.</p>
+            <p>Si tenemos conocimiento de que hemos recopilado datos de un menor de 18 años sin el consentimiento verificable de su progenitor o tutor legal, procederemos a eliminar dicha información de nuestros sistemas a la mayor brevedad posible.</p>
+            <p>Si usted es progenitor o tutor legal y tiene conocimiento de que un menor a su cargo ha proporcionado datos personales a través de nuestra Plataforma, le rogamos que se ponga en contacto con nosotros en <a href="mailto:contact@channelad.io">contact@channelad.io</a> para que podamos adoptar las medidas oportunas.</p>
+        </section>
+
+        <!-- 10. Modificaciones -->
+        <section class="section" id="modificaciones">
+            <span class="section-number">10</span>
+            <h2 class="section-title">Modificaciones de esta política</h2>
+
+            <p>Channelad se reserva el derecho a modificar la presente Política de Privacidad en cualquier momento para adaptarla a novedades legislativas, criterios jurisprudenciales, prácticas del sector o cambios en nuestros servicios.</p>
+            <p>En caso de modificaciones sustanciales que afecten al tratamiento de sus datos personales, le notificaremos con un <strong>preaviso mínimo de 30 días</strong> mediante:</p>
+            <ul>
+                <li>Correo electrónico a la dirección asociada a su cuenta.</li>
+                <li>Aviso destacado en la Plataforma al iniciar sesión.</li>
+            </ul>
+            <p>Se considerarán modificaciones sustanciales, entre otras, los cambios en las finalidades del tratamiento, la incorporación de nuevos destinatarios de datos o la alteración de los plazos de conservación.</p>
+            <p>Le recomendamos revisar periódicamente esta página para mantenerse informado sobre cómo protegemos sus datos. La fecha de la última actualización se indica en la cabecera de este documento.</p>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2026 Rafa Ferrer Castells Todos los derechos reservados.</p>
+            <p style="margin-top: 8px;">Para cualquier consulta relacionada con la protección de sus datos, contacte con nosotros en <a href="mailto:contact@channelad.io">contact@channelad.io</a>.</p>
+        </footer>
+
+    </div>
+</body>
+</html>

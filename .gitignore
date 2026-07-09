@@ -105,3 +105,6 @@ settings.local.json
 # ── Outreach lists (generated from scraped data, change daily — never commit) ──
 outreach/lists/*
 !outreach/lists/.gitkeep
+
+# graphify knowledge graph (generated, local)
+graphify-out/

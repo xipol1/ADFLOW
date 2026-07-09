@@ -1,0 +1,150 @@
+{
+  "usuario": "chomon@gmail.com",
+  "usuarioId": "69fb554bf1a8d882983c089a",
+  "report": [
+    {
+      "action": "create",
+      "jid": "120363195676344310@newsletter",
+      "nombre": "Recetas Freidora de Aire - airfryer",
+      "subs": 1935250,
+      "cat": "Airfryer",
+      "idioma": "es",
+      "id": "6a22ba5a4d9c242b7b0673a5"
+    },
+    {
+      "action": "create",
+      "jid": "120363417172015395@newsletter",
+      "nombre": "1001 Recetas  con Freidora de Aire",
+      "subs": 677911,
+      "cat": "Airfryer",
+      "idioma": "es",
+      "id": "6a22ba5a4d9c242b7b0673aa"
+    },
+    {
+      "action": "create",
+      "jid": "120363194920095258@newsletter",
+      "nombre": "Recetas para Thermomix",
+      "subs": 148248,
+      "cat": "Thermomix",
+      "idioma": "es",
+      "id": "6a22ba5b4d9c242b7b0673ae"
+    },
+    {
+      "action": "create",
+      "jid": "120363191095255264@newsletter",
+      "nombre": "Recetas de DIETA con Thermomix",
+      "subs": 25811,
+      "cat": "Thermomix",
+      "idioma": "es",
+      "id": "6a22ba5b4d9c242b7b0673b2"
+    },
+    {
+      "action": "create",
+      "jid": "120363174254884800@newsletter",
+      "nombre": "Postres con Thermomix",
+      "subs": 24204,
+      "cat": "Thermomix",
+      "idioma": "es",
+      "id": "6a22ba5b4d9c242b7b0673b5"
+    },
+    {
+      "action": "create",
+      "jid": "120363226635986254@newsletter",
+      "nombre": "Recetas de Dieta y saludables",
+      "subs": 105393,
+      "cat": "General",
+      "idioma": "es",
+      "id": "6a22ba5b4d9c242b7b0673b8"
+    },
+    {
+      "action": "create",
+      "jid": "120363409964088809@newsletter",
+      "nombre": "Deco Ideas para casa",
+      "subs": 10706,
+      "cat": "General",
+      "idioma": "es",
+      "id": "6a22ba5c4d9c242b7b0673bb"
+    },
+    {
+      "action": "create",
+      "jid": "120363195908196684@newsletter",
+      "nombre": "Rezepte für Heißluftfritteusen",
+      "subs": 1328770,
+      "cat": "Airfryer",
+      "idioma": "de",
+      "id": "6a22ba5c4d9c242b7b0673be"
+    },
+    {
+      "action": "create",
+      "jid": "120363404124457141@newsletter",
+      "nombre": "Heißluftfritteusen - Rezepte",
+      "subs": 304788,
+      "cat": "Airfryer",
+      "idioma": "de",
+      "id": "6a22ba5c4d9c242b7b0673c1"
+    },
+    {
+      "action": "create",
+      "jid": "120363422305190039@newsletter",
+      "nombre": "Heißluftfritteuse : 1001 Rezepte ",
+      "subs": 51358,
+      "cat": "Airfryer",
+      "idioma": "de",
+      "id": "6a22ba5d4d9c242b7b0673c4"
+    },
+    {
+      "action": "create",
+      "jid": "120363185310036052@newsletter",
+      "nombre": "Thermomix Rezepte",
+      "subs": 553838,
+      "cat": "Thermomix",
+      "idioma": "de",
+      "id": "6a22ba5d4d9c242b7b0673c7"
+    },
+    {
+      "action": "create",
+      "jid": "120363420861226892@newsletter",
+      "nombre": "Desserts mit Thermomix",
+      "subs": 8824,
+      "cat": "Thermomix",
+      "idioma": "de",
+      "id": "6a22ba5d4d9c242b7b0673ca"
+    },
+    {
+      "action": "create",
+      "jid": "120363427702432458@newsletter",
+      "nombre": "Diätrezepte mit Thermomix",
+      "subs": 7820,
+      "cat": "Thermomix",
+      "idioma": "de",
+      "id": "6a22ba5d4d9c242b7b0673cd"
+    },
+    {
+      "action": "create",
+      "jid": "120363422608513240@newsletter",
+      "nombre": "Diät- und gesunde Rezepte",
+      "subs": 115683,
+      "cat": "General",
+      "idioma": "de",
+      "id": "6a22ba5e4d9c242b7b0673d0"
+    },
+    {
+      "action": "create",
+      "jid": "120363404796572860@newsletter",
+      "nombre": "Rezepte: einfach und unglaublich",
+      "subs": 3993,
+      "cat": "General",
+      "idioma": "de",
+      "id": "6a22ba5e4d9c242b7b0673d3"
+    },
+    {
+      "action": "create",
+      "jid": "120363426701380312@newsletter",
+      "nombre": "Deko-Ideen fürs Zuhause",
+      "subs": 6882,
+      "cat": "General",
+      "idioma": "de",
+      "id": "6a22ba5e4d9c242b7b0673d6"
+    }
+  ]
+}

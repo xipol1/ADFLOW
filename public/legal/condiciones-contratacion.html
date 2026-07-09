@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Condiciones de Contratación - Channelad</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: #050505;
+      color: #f5f5f7;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      line-height: 1.7;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #8b5cf6;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      border-bottom: 2px solid #8b5cf6;
+      padding-bottom: 0.75rem;
+    }
+    h2 {
+      color: #8b5cf6;
+      font-size: 1.35rem;
+      margin-top: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+    h3 {
+      color: #a78bfa;
+      font-size: 1.1rem;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    p, li {
+      color: #d1d1d6;
+      margin-bottom: 0.75rem;
+    }
+    ul, ol {
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    li { margin-bottom: 0.4rem; }
+    a { color: #8b5cf6; text-decoration: underline; }
+    a:hover { color: #a78bfa; }
+    .meta {
+      color: #71717a;
+      font-size: 0.9rem;
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid #2a2a2e;
+    }
+    .highlight {
+      background-color: #1a1a1e;
+      border-left: 3px solid #8b5cf6;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      border-radius: 0 6px 6px 0;
+    }
+    .step-list {
+      counter-reset: step;
+      list-style: none;
+      padding-left: 0;
+    }
+    .step-list > li {
+      counter-increment: step;
+      padding-left: 2rem;
+      position: relative;
+      margin-bottom: 0.75rem;
+    }
+    .step-list > li::before {
+      content: counter(step, lower-alpha) ")";
+      position: absolute;
+      left: 0;
+      color: #8b5cf6;
+      font-weight: 600;
+    }
+    .fill-in {
+      background: #2d1b69;
+      border: 1px dashed #8b5cf6;
+      padding: 2px 8px;
+      border-radius: 4px;
+      color: #c4b5fd;
+      font-weight: 600;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+    }
+    th, td {
+      border: 1px solid #2a2a2e;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    th {
+      background-color: #1a1a1e;
+      color: #8b5cf6;
+      font-weight: 600;
+    }
+    td { color: #d1d1d6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <h1>Condiciones de Contratación del Marketplace</h1>
+    <p>Las presentes Condiciones de Contratación regulan la relación contractual entre los usuarios de la plataforma <strong>Channelad</strong>, titularidad de <strong>Rafa Ferrer Castells</strong> (DNI/NIF: 49232216A, domicilio en Ptda. Tapidad Marraix, 204, Finestrat (Alicante), correo electrónico: <a href="mailto:contact@channelad.io">contact@channelad.io</a>), en lo que respecta a la contratación de servicios publicitarios a través del marketplace. La aceptación de estas condiciones es requisito indispensable para operar en la plataforma como anunciante o creador de contenido.</p>
+
+    <!-- 1 -->
+    <h2>1. Ámbito de aplicación</h2>
+    <p>Las presentes condiciones regulan la contratación de servicios publicitarios entre Anunciantes y Creadores de contenido a través de la plataforma Channelad, que actúa como intermediario tecnológico facilitando la conexión, contratación, pago y verificación de las campañas publicitarias.</p>
+    <p>Channelad no es parte del contrato publicitario entre Anunciante y Creador, sino que facilita los medios tecnológicos y el sistema de pagos para que dicha relación se materialice de forma segura y transparente.</p>
+
+    <!-- 2 -->
+    <h2>2. Información precontractual (art. 98.2 LGDCU)</h2>
+    <p>De conformidad con el artículo 98.2 del Real Decreto Legislativo 1/2007 (LGDCU), antes de que el Anunciante quede vinculado por la contratación, Channelad le facilitará de forma clara y comprensible la siguiente información precontractual:</p>
+    <ul>
+      <li><strong>Características principales del servicio:</strong> Descripción del canal seleccionado, tipo de campaña publicitaria, plataforma de publicación, audiencia declarada del canal y plazo estimado de publicación.</li>
+      <li><strong>Precio total:</strong> Importe total de la campaña, desglosando el precio base (tarifa del Creador), la comisión de marketplace de Channelad (20%, a cargo del Anunciante) y el IVA aplicable (21%), de conformidad con la sección 3 de estas condiciones.</li>
+      <li><strong>Duración del contrato:</strong> Plazo de ejecución de la campaña, incluyendo el periodo de verificación.</li>
+      <li><strong>Condiciones de pago:</strong> Pago íntegro y previo mediante Stripe, con retención de fondos en custodia (escrow) hasta la verificación de la campaña.</li>
+      <li><strong>Derecho de desistimiento:</strong> Información sobre la existencia o inaplicabilidad del derecho de desistimiento conforme a la sección 13 de estas condiciones.</li>
+    </ul>
+    <p>Esta información se presentará al Anunciante en un resumen de pedido antes de la confirmación definitiva de la contratación.</p>
+
+    <!-- 3 -->
+    <h2>3. Proceso de contratación</h2>
+    <p>La contratación de una campaña publicitaria a través de Channelad sigue el siguiente procedimiento:</p>
+    <ol class="step-list">
+      <li>El Anunciante explora el marketplace de canales disponibles, pudiendo filtrar por categoría, plataforma, audiencia, precio y valoraciones.</li>
+      <li>El Anunciante selecciona un canal y configura la campaña publicitaria, incluyendo el contenido a publicitar, el presupuesto asignado y las fechas deseadas de publicación.</li>
+      <li>Se muestra al Anunciante un resumen precontractual con las características del servicio, el precio total desglosado (precio base + comisión + IVA) y las condiciones de ejecución, de conformidad con el artículo 98.2 de la LGDCU.</li>
+      <li>El Anunciante realiza el pago del importe total de la campaña a través del sistema de pago seguro proporcionado por Stripe (checkout).</li>
+      <li>Los fondos abonados se retienen en un sistema de custodia (escrow) gestionado a través de Stripe Connect, sin ser transferidos al Creador hasta la verificación de la campaña.</li>
+      <li>El Creador recibe una notificación de la nueva campaña y debe proceder a la publicación del contenido publicitario en su canal dentro del plazo establecido (24 horas como estándar, salvo acuerdo distinto).</li>
+      <li>El sistema de Channelad verifica la correcta publicación de la campaña mediante un enlace de seguimiento (tracking link), requiriendo un mínimo de 3 clics únicos en un periodo de 48 horas como prueba de publicación efectiva (véase sección 12 para los detalles de verificación).</li>
+      <li>Una vez verificada la publicación, la campaña se marca como <strong>COMPLETED</strong> (completada).</li>
+      <li>Los fondos retenidos en escrow se liberan y se transfiere al Creador el cien por cien (100%) de su tarifa; la comisión de marketplace la abona el Anunciante de forma adicional (on-top).</li>
+    </ol>
+
+    <!-- 3bis -->
+    <h3>3.1 Confirmación por correo electrónico (art. 98.7 LGDCU)</h3>
+    <p>De conformidad con el artículo 98.7 de la LGDCU, Channelad enviará al Anunciante, en un plazo máximo de 24 horas desde la formalización del pedido, una confirmación por correo electrónico en soporte duradero que incluirá: las condiciones de contratación aceptadas, el resumen del pedido con las características del servicio contratado, el precio total desglosado (incluido IVA), el método de pago utilizado, la información sobre el derecho de desistimiento (o su inaplicabilidad), y los datos de contacto de Channelad para reclamaciones.</p>
+
+    <!-- 4 -->
+    <h2>4. Precios, comisiones e IVA</h2>
+    <ul>
+      <li><strong>Fijación de precios:</strong> Los precios de los servicios publicitarios son fijados libremente por cada Creador en su perfil de canal. Channelad no interviene en la determinación de los precios, que quedan a la autonomía de la voluntad de las partes.</li>
+      <li><strong>Comisión de Channelad:</strong> Channelad retiene una comisión del <strong>10%</strong> sobre el precio base de la campaña (antes de IVA), en concepto de intermediación, gestión de pagos, verificación y soporte de la plataforma.</li>
+      <li><strong>Precio en marketplace:</strong> El precio que se muestra al Anunciante incluye la comisión de marketplace de Channelad (20%, on-top). El Creador percibe el cien por cien (100%) de su tarifa publicada.</li>
+      <li><strong>IVA:</strong> Los precios mostrados en el marketplace se entienden <strong>sin IVA (IVA no incluido)</strong>. En todo caso, el IVA aplicable será el tipo general vigente del <strong>21%</strong>, conforme a la Ley 37/1992, de 28 de diciembre, del Impuesto sobre el Valor Añadido. En la pantalla de resumen del pedido y en la factura se desglosará siempre: precio base, comisión de Channelad, IVA y precio total.</li>
+      <li><strong>Divisa:</strong> Todos los precios se expresan y abonan en euros (EUR).</li>
+    </ul>
+
+    <!-- 5 -->
+    <h2>5. Forma de pago</h2>
+    <p>El pago de las campañas publicitarias se realiza de forma previa y obligatoria a través de la pasarela de pago <strong>Stripe</strong>, que admite los siguientes métodos: tarjetas de crédito, tarjetas de débito y otros métodos de pago habilitados por Stripe en cada momento.</p>
+    <p>No se iniciará ninguna campaña hasta que se confirme la recepción efectiva del pago. El comprobante del pago estará disponible en el panel de control del Anunciante.</p>
+    <p>Stripe procesa los pagos conforme a sus propias condiciones de servicio y política de privacidad. Rafa Ferrer Castells no almacena datos de tarjetas de pago en sus servidores.</p>
+
+    <!-- 6 -->
+    <h2>6. Sistema de custodia (escrow)</h2>
+    <div class="highlight">
+      <p>Channelad implementa un sistema de custodia de fondos para garantizar la seguridad de las transacciones entre Anunciantes y Creadores. Los fondos son retenidos y gestionados a través de <strong>Stripe Connect</strong>, una entidad de pago regulada y autorizada, lo que proporciona las siguientes garantías:</p>
+    </div>
+    <ul>
+      <li><strong>Entidad regulada:</strong> Stripe opera como entidad de pago regulada (Electronic Money Institution, EMI) supervisada por autoridades financieras competentes. Los fondos en custodia no forman parte del patrimonio de Channelad, sino que son gestionados por Stripe conforme a la normativa de servicios de pago aplicable.</li>
+      <li><strong>Protección frente a insolvencia:</strong> Los fondos retenidos en Stripe Connect están protegidos como fondos de clientes (client funds) conforme a la Directiva (UE) 2015/2366 (PSD2) y la normativa nacional de transposición. En caso de insolvencia de Channelad, dichos fondos no formarían parte de la masa concursal, al estar segregados y custodiados por Stripe.</li>
+      <li><strong>Retención:</strong> Los fondos abonados por el Anunciante se retienen en custodia desde el momento del pago hasta la verificación satisfactoria de la campaña.</li>
+      <li><strong>Liberación automática:</strong> Una vez que el sistema de seguimiento verifica la correcta publicación de la campaña (mínimo 3 clics únicos en 48 horas), los fondos se liberan automáticamente y se transfiere al Creador el 100% de su tarifa, sin deducción de comisión (la comisión de marketplace la abona el Anunciante de forma adicional).</li>
+      <li><strong>Liberación manual:</strong> En caso de disputa entre las partes, el equipo de administración de Channelad procederá a la revisión del caso y realizará la liberación manual de los fondos conforme a la resolución adoptada.</li>
+      <li><strong>Plazo máximo de retención:</strong> Los fondos no podrán permanecer retenidos en escrow durante un periodo superior a <strong>30 días naturales</strong> desde la resolución de la disputa o desde la verificación de la campaña. Transcurrido dicho plazo, se procederá a la liberación automática conforme a la resolución adoptada o, en su defecto, a la devolución al Anunciante.</li>
+      <li><strong>Cese de operaciones de Channelad:</strong> En el supuesto de que Channelad cese en su actividad o se disuelva, los fondos retenidos en Stripe Connect se liberarán conforme a las siguientes reglas: (i) las campañas pendientes de verificación se cancelarán y los fondos se devolverán íntegramente a los Anunciantes; (ii) las campañas ya verificadas pendientes de pago se liquidarán a favor de los Creadores; (iii) las campañas en disputa se resolverán conforme al estado de ejecución acreditado, priorizando la devolución al Anunciante en caso de duda razonable. Channelad comunicará a todos los usuarios afectados con un preaviso mínimo de <strong>30 días</strong>.</li>
+    </ul>
+
+    <!-- 7 -->
+    <h2>7. Obligaciones del Anunciante</h2>
+    <p>El Anunciante se compromete a:</p>
+    <ul>
+      <li>Proporcionar contenido publicitario legal, veraz, actualizado y que no induzca a error o confusión en los consumidores o usuarios.</li>
+      <li>Respetar los derechos de propiedad intelectual e industrial de terceros en todo el material publicitario proporcionado.</li>
+      <li>No proporcionar contenido ilícito, difamatorio, discriminatorio, violento, pornográfico, engañoso o que pueda resultar perjudicial para los usuarios, el Creador o la reputación de la plataforma.</li>
+      <li>Cumplir con la normativa aplicable en materia de publicidad, incluida la Ley General de Publicidad (Ley 34/1988) y la Ley de Competencia Desleal (Ley 3/1991).</li>
+      <li>Realizar el pago íntegro y previo a la publicación de la campaña.</li>
+      <li>Facilitar la información necesaria para la correcta ejecución de la campaña.</li>
+    </ul>
+
+    <!-- 8 -->
+    <h2>8. Obligaciones del Creador</h2>
+    <p>El Creador se compromete a:</p>
+    <ul>
+      <li>Registrar únicamente canales reales de los que sea titular legítimo, habiendo superado el proceso de verificación de propiedad establecido por Channelad.</li>
+      <li>Publicar el contenido publicitario del Anunciante en el plazo acordado (24 horas como estándar, salvo pacto en contrario).</li>
+      <li>No modificar, alterar ni eliminar el contenido publicitario antes de que finalice el periodo de campaña pactado, salvo autorización expresa del Anunciante o instrucción de Channelad.</li>
+      <li>Mantener las estadísticas y métricas de su canal actualizadas y veraces, sin inflar artificialmente datos de audiencia, suscriptores o interacciones.</li>
+      <li>Comunicar cualquier incidencia que pueda afectar a la ejecución de la campaña de forma diligente y en el menor plazo posible.</li>
+    </ul>
+
+    <!-- 9 -->
+    <h2>9. Sistema de disputas</h2>
+    <p>Channelad dispone de un sistema de resolución de disputas para los conflictos que puedan surgir entre Anunciantes y Creadores en relación con las campañas contratadas:</p>
+
+    <h3>9.1 Apertura de disputa</h3>
+    <p>Cualquiera de las partes (Anunciante o Creador) puede abrir una disputa a través de su panel de control en la plataforma.</p>
+
+    <h3>9.2 Plazo</h3>
+    <p>La disputa deberá abrirse dentro de los <strong>7 días naturales</strong> siguientes a la finalización o expiración de la campaña. Transcurrido dicho plazo sin que se haya abierto disputa, se entenderá que ambas partes están conformes con el resultado de la campaña.</p>
+
+    <h3>9.3 Procedimiento</h3>
+    <ol>
+      <li><strong>Comunicación entre las partes:</strong> Se habilitará un canal de comunicación dentro de la plataforma para que las partes intenten resolver la discrepancia de forma directa.</li>
+      <li><strong>Mediación por Channelad:</strong> Si las partes no alcanzan un acuerdo, el equipo de administración de Channelad actuará como mediador, revisando las evidencias aportadas por ambas partes (capturas de pantalla, estadísticas de clics, registros de la plataforma, etc.).</li>
+      <li><strong>Resolución:</strong> Channelad emitirá una resolución motivada en un plazo máximo de <strong>3 días laborables</strong> desde la asunción de la mediación.</li>
+    </ol>
+
+    <h3>9.4 Posibles resoluciones</h3>
+    <ul>
+      <li><strong>Reembolso total:</strong> Devolución íntegra del importe al Anunciante, cuando se acredite incumplimiento grave por parte del Creador.</li>
+      <li><strong>Reembolso parcial:</strong> Devolución parcial del importe, cuando se acredite un cumplimiento defectuoso o parcial de la campaña.</li>
+      <li><strong>No procede reembolso:</strong> Los fondos se liberan al Creador, cuando se acredite el correcto cumplimiento de la campaña o la reclamación resulte infundada.</li>
+    </ul>
+    <p>La resolución de Channelad tiene carácter de mediación y no priva a las partes de ejercitar las acciones legales que estimen oportunas ante los Juzgados y Tribunales competentes.</p>
+
+    <!-- 10 -->
+    <h2>10. Cancelaciones y reembolsos</h2>
+    <ul>
+      <li><strong>Antes de la publicación:</strong> Si el Anunciante cancela la campaña antes de que el Creador haya procedido a la publicación del contenido, se procederá al reembolso total del importe abonado.</li>
+      <li><strong>Durante la campaña:</strong> Si la campaña se encuentra en curso (contenido ya publicado), la posibilidad de cancelación y el importe del reembolso se determinarán en función del estado de ejecución de la campaña y las evidencias disponibles, conforme al procedimiento de disputas establecido en la cláusula 9.</li>
+      <li><strong>Campaña expirada sin publicación:</strong> Si el Creador no publica el contenido dentro del plazo acordado y la campaña expira, se procederá al reembolso automático e íntegro del importe al Anunciante, sin necesidad de abrir disputa.</li>
+    </ul>
+
+    <h3>10.1 Plazo y forma de reembolso (art. 76 LGDCU)</h3>
+    <p>De conformidad con el artículo 76 de la LGDCU, cuando proceda el reembolso al Anunciante, Channelad lo efectuará en un plazo máximo de <strong>14 días naturales</strong> desde la fecha en que se determine la procedencia del reembolso (ya sea por cancelación, disputa resuelta a favor del Anunciante, o expiración de la campaña sin publicación).</p>
+    <p>El reembolso se realizará utilizando el <strong>mismo medio de pago</strong> empleado por el Anunciante para la transacción inicial, de conformidad con el artículo 76.2 de la LGDCU, salvo que el Anunciante haya dispuesto expresamente lo contrario y siempre que no le suponga coste adicional alguno.</p>
+
+    <!-- 11 -->
+    <h2>11. Sistema de valoraciones</h2>
+    <p>Channelad dispone de un sistema de valoraciones y reseñas para fomentar la transparencia y la confianza entre los usuarios de la plataforma:</p>
+
+    <h3>11.1 Categorías de valoración</h3>
+    <p>Tras la finalización de una campaña, el Anunciante podrá valorar al Creador en las siguientes cinco categorías:</p>
+    <ol>
+      <li><strong>Comunicación:</strong> Calidad y fluidez de la comunicación durante la campaña.</li>
+      <li><strong>Entrega:</strong> Cumplimiento de los plazos de publicación acordados.</li>
+      <li><strong>Profesionalidad:</strong> Calidad del servicio y trato profesional.</li>
+      <li><strong>Capacidad de respuesta:</strong> Velocidad y eficacia en la atención de consultas o incidencias.</li>
+      <li><strong>Valor:</strong> Relación calidad-precio del servicio prestado.</li>
+    </ol>
+
+    <h3>11.2 Puntuación</h3>
+    <p>Cada categoría se puntúa en una escala de <strong>1 a 5</strong>, siendo 1 la puntuación más baja y 5 la más alta. La puntuación global del Creador se calcula como la media de todas las valoraciones recibidas.</p>
+
+    <h3>11.3 Derecho de respuesta</h3>
+    <p>El Creador tiene derecho a responder públicamente a cualquier valoración recibida, aportando su versión de los hechos o las aclaraciones que considere pertinentes.</p>
+
+    <h3>11.4 Moderación</h3>
+    <p>Las valoraciones están sujetas a moderación por parte de Channelad. Cualquier usuario puede reportar una valoración que considere falsa, difamatoria, ofensiva o que no se corresponda con una experiencia real. Channelad se reserva el derecho de eliminar valoraciones que incumplan las normas de uso de la plataforma.</p>
+
+    <!-- 12 -->
+    <h2>12. Verificación de canales y campañas</h2>
+
+    <h3>12.1 Prueba de propiedad</h3>
+    <p>Para registrar un canal en la plataforma, el Creador deberá superar un proceso de verificación de propiedad que consiste en la publicación de un enlace de prueba proporcionado por Channelad en el canal indicado. Dicho enlace deberá recibir un mínimo de <strong>3 clics únicos en un periodo de 48 horas</strong> para acreditar que el Creador tiene control efectivo sobre el canal.</p>
+
+    <h3>12.2 Definición de clic único</h3>
+    <p>A los efectos de las presentes condiciones, se entiende por <strong>clic único</strong> cada acceso al enlace de seguimiento procedente de una combinación distinta de dirección IP y agente de usuario (user agent) del navegador. Accesos múltiples desde la misma combinación IP + user agent dentro del periodo de verificación se contabilizarán como un único clic.</p>
+
+    <h3>12.3 Proporcionalidad del umbral de verificación</h3>
+    <div class="highlight">
+      <p>El umbral mínimo de 3 clics únicos en 48 horas es el estándar base de la plataforma. No obstante, dicho <strong>umbral mínimo podrá ajustarse proporcionalmente en función de la audiencia declarada del Canal</strong>, de forma que canales con mayor audiencia declarada podrán estar sujetos a umbrales de verificación superiores, garantizando así la proporcionalidad y credibilidad de la verificación.</p>
+    </div>
+
+    <h3>12.4 Métodos adicionales de verificación</h3>
+    <p>Además del sistema automático de clics únicos, Channelad podrá aceptar los siguientes métodos complementarios de verificación de la publicación efectiva de una campaña:</p>
+    <ul>
+      <li><strong>Capturas de pantalla:</strong> El Creador podrá aportar capturas de pantalla fechadas que acrediten la publicación del contenido publicitario en su canal.</li>
+      <li><strong>Analíticas de la plataforma:</strong> Datos de analítica proporcionados por la plataforma donde se publique el contenido (YouTube Analytics, Instagram Insights, etc.), que acrediten la publicación y el alcance del contenido.</li>
+      <li><strong>Otros medios:</strong> Cualquier otro medio de prueba razonable que Channelad considere suficiente para acreditar la publicación efectiva.</li>
+    </ul>
+
+    <h3>12.5 Verificación de métricas</h3>
+    <p>Channelad podrá verificar las métricas declaradas por el Creador (número de suscriptores, audiencia media, tasa de interacción, etc.) mediante los medios técnicos a su disposición. Las discrepancias significativas entre las métricas declaradas y las reales podrán dar lugar a la suspensión o cancelación del canal en la plataforma.</p>
+
+    <h3>12.6 Suspensión de canales</h3>
+    <p>Channelad se reserva el derecho de suspender o eliminar cualquier canal que no haya superado el proceso de verificación, que presente métricas fraudulentas, o que incumpla las presentes condiciones o las normas de uso de la plataforma. La suspensión será notificada al Creador, quien podrá presentar las alegaciones que estime oportunas.</p>
+
+    <!-- 13 -->
+    <h2>13. Derecho de desistimiento</h2>
+
+    <h3>13.1 Regla general</h3>
+    <p>De conformidad con los artículos 102 y siguientes del Real Decreto Legislativo 1/2007 (LGDCU), el consumidor y usuario tiene derecho a desistir del contrato durante un periodo de <strong>14 días naturales</strong> sin necesidad de indicar el motivo y sin incurrir en penalización alguna.</p>
+
+    <h3>13.2 Excepción aplicable: servicios completamente ejecutados</h3>
+    <div class="highlight">
+      <p>De conformidad con el artículo 103.a) de la LGDCU, el derecho de desistimiento <strong>no será aplicable</strong> a la prestación de servicios una vez que el servicio haya sido completamente ejecutado, <strong>siempre que</strong> la ejecución haya comenzado con el previo consentimiento expreso del consumidor y con el reconocimiento por su parte de que es consciente de que, una vez que el contrato haya sido completamente ejecutado por el empresario, habrá perdido su derecho de desistimiento.</p>
+    </div>
+
+    <h3>13.3 Consentimiento expreso previo</h3>
+    <p>Para que la excepción del artículo 103.a) de la LGDCU resulte aplicable, Channelad requerirá al Anunciante, durante el proceso de contratación y antes de la confirmación del pedido, que marque una casilla de consentimiento expreso con el siguiente texto (o equivalente):</p>
+    <div class="highlight">
+      <p><em>&laquo;Solicito y consiento expresamente que la ejecución del servicio contratado comience antes de que transcurra el plazo de desistimiento de 14 días naturales. Soy consciente de que, una vez que el servicio haya sido completamente ejecutado (campaña publicada y verificada), perder&eacute; mi derecho de desistimiento.&raquo;</em></p>
+    </div>
+    <p>Si el Anunciante no marca dicha casilla, la ejecución del servicio no comenzará hasta transcurrido el plazo de 14 días naturales de desistimiento, salvo que el Anunciante preste su consentimiento con posterioridad.</p>
+
+    <h3>13.4 Desistimiento antes de la ejecución completa</h3>
+    <p>Si el Anunciante ha consentido el inicio de la ejecución del servicio pero este no ha sido completamente ejecutado (es decir, la campaña aún no ha sido publicada ni verificada), el Anunciante conserva su derecho de desistimiento. En tal caso, deberá abonar un importe proporcional a la parte del servicio ya prestada, conforme al artículo 108 de la LGDCU.</p>
+
+    <h3>13.5 Formulario de desistimiento</h3>
+    <p>El Anunciante podrá ejercer su derecho de desistimiento mediante la siguiente declaración, conforme al modelo del Anexo B del RDL 1/2007:</p>
+    <div class="highlight">
+      <p><strong>Modelo de formulario de desistimiento</strong></p>
+      <p>A la atención de Rafa Ferrer Castells, correo electrónico: <a href="mailto:contact@channelad.io">contact@channelad.io</a>:</p>
+      <p>Por la presente le comunico que desisto del contrato de prestación del siguiente servicio: [descripción de la campaña contratada]</p>
+      <p>Pedido con fecha: [fecha del pedido]</p>
+      <p>Nombre del consumidor: [nombre]</p>
+      <p>Dirección del consumidor: [dirección]</p>
+      <p>Fecha: [fecha]</p>
+      <p>Firma (solo si se presenta en papel): [firma]</p>
+    </div>
+    <p>El desistimiento podrá ejercerse a través del panel de control de la plataforma, por correo electrónico a <a href="mailto:contact@channelad.io">contact@channelad.io</a>, o por cualquier otro medio que permita dejar constancia de su declaración inequívoca de desistir del contrato.</p>
+
+    <!-- 14 -->
+    <h2>14. Legislación aplicable y jurisdicción</h2>
+    <p>Las presentes Condiciones de Contratación se rigen e interpretan de conformidad con la legislación española vigente.</p>
+    <p>Para los usuarios que ostenten la condición de <strong>consumidores y usuarios</strong> conforme al Real Decreto Legislativo 1/2007 (LGDCU), serán competentes los Juzgados y Tribunales del domicilio del consumidor o usuario, de conformidad con el artículo 90.2 de la LGDCU y el artículo 52.3 de la Ley de Enjuiciamiento Civil, sin que quepa renuncia anticipada a dicho fuero.</p>
+    <p>Para los usuarios que actúen en calidad de <strong>profesionales o empresarios</strong>, las partes se someten a la jurisdicción de los Juzgados y Tribunales de la ciudad de <strong>Benidorm (Alicante)</strong>.</p>
+
+    <!-- 15 -->
+    <h2>15. Resolución extrajudicial de conflictos</h2>
+
+    <h3>15.1 Sistema Arbitral de Consumo</h3>
+    <p>De conformidad con el Real Decreto 231/2008, de 15 de febrero, por el que se regula el Sistema Arbitral de Consumo, se informa al usuario de que Channelad no se adhiere actualmente al Sistema Arbitral de Consumo, mecanismo extrajudicial de resolución de conflictos que permite resolver de forma gratuita, rápida y vinculante las reclamaciones de los consumidores y usuarios.</p>
+    <p>Independientemente de lo anterior, el usuario podrá presentar reclamaciones ante las Juntas Arbitrales de Consumo de su localidad o Comunidad Autónoma.</p>
+
+    <h3>15.2 Plataforma ODR</h3>
+    <p>De conformidad con el Reglamento (UE) 524/2013 del Parlamento Europeo y del Consejo, se informa al usuario de la existencia de la plataforma de resolución de litigios en línea (ODR) de la Comisión Europea, que puede utilizarse para resolver extrajudicialmente los conflictos derivados de contratos celebrados en línea. Se puede acceder a la plataforma ODR a través del siguiente enlace: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">https://ec.europa.eu/consumers/odr</a>.</p>
+    <p>La dirección de correo electrónico de Channelad a efectos de la plataforma ODR es: <a href="mailto:contact@channelad.io">contact@channelad.io</a>.</p>
+
+    <div class="meta">
+      <p><strong>Última actualización:</strong> 31 de marzo de 2026</p>
+      <p><strong>Titular:</strong> Rafa Ferrer Castells &mdash; <a href="mailto:contact@channelad.io">contact@channelad.io</a></p>
+    </div>
+
+  </div>
+</body>
+</html>

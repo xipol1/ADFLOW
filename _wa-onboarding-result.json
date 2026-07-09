@@ -1,0 +1,1319 @@
+{
+  "connectedAs": {
+    "number": "34674709388",
+    "name": "rafafe",
+    "jid": "34674709388:75@s.whatsapp.net"
+  },
+  "newsletterJidsSeen": 0,
+  "newslettersResolved": [],
+  "newslettersAdministered": [],
+  "invite": {
+    "jid": "120363426046114710@newsletter",
+    "name": "La Terreta Cream",
+    "subscribers": 0,
+    "verification": "UNVERIFIED",
+    "role": "OWNER",
+    "administered": true
+  },
+  "groups": [
+    {
+      "jid": "34659162131-1517852411@g.us",
+      "name": "Club buceo la vila",
+      "participantsCount": 765,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo"
+      ]
+    },
+    {
+      "jid": "120363029092580720@g.us",
+      "name": "C4E - Chain4Economy",
+      "participantsCount": 624,
+      "isAdmin": false,
+      "isAnnounce": true,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Grupo solo-anuncios — conviértelo en Canal (Newsletter)"
+      ]
+    },
+    {
+      "jid": "120363040439306312@g.us",
+      "name": "C4E - GENERAL",
+      "participantsCount": 595,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo"
+      ]
+    },
+    {
+      "jid": "120363153465117452@g.us",
+      "name": "C4E.club I EVENTOS",
+      "participantsCount": 131,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 131 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363401044375128@g.us",
+      "name": "24h FRONTÓ VALENCIÀ IBI 2025",
+      "participantsCount": 33,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 33 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363190575468997@g.us",
+      "name": "C.P.V. FINESTRAT 2025",
+      "participantsCount": 32,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 32 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363233358155724@g.us",
+      "name": "CPV FINESTRAT",
+      "participantsCount": 32,
+      "isAdmin": false,
+      "isAnnounce": true,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 32 miembros — mínimo 200",
+        "Grupo solo-anuncios — conviértelo en Canal (Newsletter)"
+      ]
+    },
+    {
+      "jid": "120363030312405658@g.us",
+      "name": "Influapp community",
+      "participantsCount": 31,
+      "isAdmin": false,
+      "isAnnounce": true,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 31 miembros — mínimo 200",
+        "Grupo solo-anuncios — conviértelo en Canal (Newsletter)"
+      ]
+    },
+    {
+      "jid": "34659906652-1633965624@g.us",
+      "name": "[General] Pilota Finestrat",
+      "participantsCount": 26,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 26 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363401798076029@g.us",
+      "name": "Cumple Kaixon i Galleta 19 jul.",
+      "participantsCount": 22,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 22 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363219047398012@g.us",
+      "name": "Entrenos Dimecres Carrer Artificial Benidorm",
+      "participantsCount": 21,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 21 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363323186741539@g.us",
+      "name": "Cobofest vol.2 🎉🎉🎉",
+      "participantsCount": 19,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 19 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363178981140832@g.us",
+      "name": "Sábado sabadete",
+      "participantsCount": 19,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 19 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363177922875897@g.us",
+      "name": "Regalo Dejandrito",
+      "participantsCount": 19,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 19 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34686105518-1404168711@g.us",
+      "name": "Finestrarres🖕🏾💥🍁",
+      "participantsCount": 17,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 17 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363203188209452@g.us",
+      "name": "Dissabte batalla",
+      "participantsCount": 16,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 16 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363400470413337@g.us",
+      "name": "Ohalalla la maison du patron 😁",
+      "participantsCount": 15,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 15 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363403929273121@g.us",
+      "name": "MC donals, aquí tú eres el King ",
+      "participantsCount": 15,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 15 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363159945826298@g.us",
+      "name": "C.D.A.A.Piratillas (r)🥂🍄🌎",
+      "participantsCount": 15,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 15 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363366165989621@g.us",
+      "name": "Karting🏎️💨Finestrat",
+      "participantsCount": 15,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 15 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363305021336144@g.us",
+      "name": "Batuxi fest 2024",
+      "participantsCount": 15,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 15 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34644303511-1443091419@g.us",
+      "name": "2 Forestales 🌲🌳🐇🐗🐻🐥🐞",
+      "participantsCount": 14,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 14 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363405862977514@g.us",
+      "name": "Acampada Alcoy del 5 al 7 de Abril",
+      "participantsCount": 14,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 14 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34660891054-1631563502@g.us",
+      "name": "THE REAL ROW 🦞🐥🌊🏝",
+      "participantsCount": 13,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 13 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363041712815670@g.us",
+      "name": "EL BAK 2025",
+      "participantsCount": 13,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 13 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363409078917618@g.us",
+      "name": "Amigo invisible",
+      "participantsCount": 13,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 13 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34691194825-1531952910@g.us",
+      "name": "Caseteo viernes 20 🙃🙃",
+      "participantsCount": 12,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 12 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363157862391322@g.us",
+      "name": "Marraix Sound Fest",
+      "participantsCount": 12,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 12 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363246107466590@g.us",
+      "name": "COMISSIÓ 2024",
+      "participantsCount": 12,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 12 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363421210420695@g.us",
+      "name": "I Edició Torneig Raspall Tots Sants",
+      "participantsCount": 11,
+      "isAdmin": false,
+      "isAnnounce": true,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 11 miembros — mínimo 200",
+        "Grupo solo-anuncios — conviértelo en Canal (Newsletter)"
+      ]
+    },
+    {
+      "jid": "120363386899112543@g.us",
+      "name": "Anniv Julien",
+      "participantsCount": 11,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 11 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363419858339461@g.us",
+      "name": "El BEK",
+      "participantsCount": 11,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 11 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34686105518-1532265578@g.us",
+      "name": "El bak 2k18",
+      "participantsCount": 10,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 10 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363190397509956@g.us",
+      "name": "Regalo cobito",
+      "participantsCount": 10,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 10 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363314882023883@g.us",
+      "name": "38 berges ? ÇA S’ASPERGE ! 24h de bringue sinon rien… 🥳🔥🚀",
+      "participantsCount": 10,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 10 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363353540062506@g.us",
+      "name": "Regalo Cobo",
+      "participantsCount": 10,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 10 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363180877421270@g.us",
+      "name": "🏟️⚽La Fonteta Fantasy⚽🏟️",
+      "participantsCount": 10,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 10 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363162173740538@g.us",
+      "name": "🏴‍☠️ C.E. Piratillas",
+      "participantsCount": 10,
+      "isAdmin": false,
+      "isAnnounce": true,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 10 miembros — mínimo 200",
+        "Grupo solo-anuncios — conviértelo en Canal (Newsletter)"
+      ]
+    },
+    {
+      "jid": "120363170037160001@g.us",
+      "name": "💥💀💥CoboFest 14/15 Octubre 💥💀💥",
+      "participantsCount": 10,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 10 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363401248171404@g.us",
+      "name": "Cable ski 2025",
+      "participantsCount": 10,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 10 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363387207642285@g.us",
+      "name": "Voyage surprise anniv Matthieu",
+      "participantsCount": 9,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 9 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363406223529976@g.us",
+      "name": "NOCHEVIEJA 25/26 🎉",
+      "participantsCount": 9,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 9 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363231511551953@g.us",
+      "name": "Benamaurel 28-01 ",
+      "participantsCount": 9,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 9 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34625198907-1518459686@g.us",
+      "name": "El bak 2018 si o no",
+      "participantsCount": 9,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 9 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363140476550103@g.us",
+      "name": "Finestrat de las tentaciones ",
+      "participantsCount": 9,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 9 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363030129623682@g.us",
+      "name": "Ferreria Crew",
+      "participantsCount": 9,
+      "isAdmin": false,
+      "isAnnounce": true,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 9 miembros — mínimo 200",
+        "Grupo solo-anuncios — conviértelo en Canal (Newsletter)"
+      ]
+    },
+    {
+      "jid": "120363024761336438@g.us",
+      "name": "Col•lectiu Ferreria",
+      "participantsCount": 8,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 8 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363421030063457@g.us",
+      "name": "Organització",
+      "participantsCount": 8,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 8 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363423110402219@g.us",
+      "name": "Curtes B",
+      "participantsCount": 8,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 8 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363068189833934@g.us",
+      "name": "Si esto ya no es la B que es ?",
+      "participantsCount": 8,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 8 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363165784941656@g.us",
+      "name": "Cumple Marieta(2) 12 agost😂",
+      "participantsCount": 8,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 8 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363423359273061@g.us",
+      "name": "Palma C 2026",
+      "participantsCount": 8,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 8 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363219507176075@g.us",
+      "name": "Davensi - Communication ",
+      "participantsCount": 8,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 8 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363420085433636@g.us",
+      "name": "[Perxa] Finestrat C",
+      "participantsCount": 8,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 8 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363399077692861@g.us",
+      "name": "02/04 petits soirée entre vieux 🤫🤫🎉",
+      "participantsCount": 8,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 8 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363021403944716@g.us",
+      "name": "Regal Jaume",
+      "participantsCount": 7,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 7 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363418722528911@g.us",
+      "name": "2a PERXA",
+      "participantsCount": 7,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 7 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363316767332619@g.us",
+      "name": "Soirée jeudi 25 juillet",
+      "participantsCount": 7,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 7 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363161800606515@g.us",
+      "name": "Ohalala ",
+      "participantsCount": 7,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 7 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363314823071545@g.us",
+      "name": "Invier(ano)☃️",
+      "participantsCount": 7,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 7 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363402753609818@g.us",
+      "name": "Torneig Tots Sants",
+      "participantsCount": 7,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 7 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34659906652-1542238038@g.us",
+      "name": "GtA iN tHe NiGhT",
+      "participantsCount": 6,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 6 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363232434443066@g.us",
+      "name": "2a LLARGUES",
+      "participantsCount": 6,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 6 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34680287188-1537641544@g.us",
+      "name": "Cap d'any",
+      "participantsCount": 6,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 6 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34600079171-1636200488@g.us",
+      "name": "Camino pa' la ruina",
+      "participantsCount": 6,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 6 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363303010921305@g.us",
+      "name": "Padre De Azúcar ",
+      "participantsCount": 6,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 6 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363183758149676@g.us",
+      "name": "Bored Vape Co.💨",
+      "participantsCount": 6,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 6 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363401866197545@g.us",
+      "name": "La mano negra",
+      "participantsCount": 6,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 6 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363045869485732@g.us",
+      "name": "C4E - Chain4Economy",
+      "participantsCount": 5,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 5 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34679043846-1509048146@g.us",
+      "name": "⚽🏃🏻",
+      "participantsCount": 5,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 5 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363403975577231@g.us",
+      "name": "Paella",
+      "participantsCount": 5,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 5 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34674709388-1369471480@g.us",
+      "name": "herman@s",
+      "participantsCount": 5,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 5 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363402264868804@g.us",
+      "name": "Adelanteeeee",
+      "participantsCount": 5,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 5 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34625198907-1532651027@g.us",
+      "name": "Playa 🏖",
+      "participantsCount": 5,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 5 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34671003031-1527243075@g.us",
+      "name": "Mi cumple",
+      "participantsCount": 5,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 5 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363167576267200@g.us",
+      "name": "Lliga escacs",
+      "participantsCount": 5,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 5 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34625198907-1579186281@g.us",
+      "name": "CumpleMarsu-Miguel dia 18",
+      "participantsCount": 5,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 5 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363195746150053@g.us",
+      "name": "Y tú, cómo mueves los pies?",
+      "participantsCount": 5,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 5 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34608367944-1529172623@g.us",
+      "name": "San Juan 23",
+      "participantsCount": 5,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 5 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363422415485332@g.us",
+      "name": "Metralletes",
+      "participantsCount": 5,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 5 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34640228038-1461947383@g.us",
+      "name": "Los Ferrer Castells👨‍👩‍👧‍👦",
+      "participantsCount": 5,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 5 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363419542811627@g.us",
+      "name": "24h Ibi",
+      "participantsCount": 5,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 5 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363247695831024@g.us",
+      "name": "Alba.",
+      "participantsCount": 5,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 5 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363181254757613@g.us",
+      "name": "ALBA",
+      "participantsCount": 4,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 4 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363262418800019@g.us",
+      "name": "Aclarar sudadera",
+      "participantsCount": 4,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 4 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34655481640-1549548274@g.us",
+      "name": "Jero love you",
+      "participantsCount": 4,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 4 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363191942425322@g.us",
+      "name": "Findeeeeeanio",
+      "participantsCount": 4,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 4 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34634712640-1380825208@g.us",
+      "name": "Castristas por el 🌎 (r)",
+      "participantsCount": 4,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 4 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363160972809196@g.us",
+      "name": "ViñaPop 2024",
+      "participantsCount": 4,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 4 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363421301380878@g.us",
+      "name": "Granada",
+      "participantsCount": 4,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 4 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363424128829980@g.us",
+      "name": "Francia",
+      "participantsCount": 4,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 4 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363170525859084@g.us",
+      "name": "X",
+      "participantsCount": 4,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 4 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363236563628721@g.us",
+      "name": "CPV FINESTRAT",
+      "participantsCount": 3,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 3 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363027534940521@g.us",
+      "name": "Pádel Canal",
+      "participantsCount": 3,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 3 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34665448446-1538426116@g.us",
+      "name": "BBQ",
+      "participantsCount": 3,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 3 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34659906652-1528545855@g.us",
+      "name": "Poke",
+      "participantsCount": 3,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 3 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34659906652-1518566285@g.us",
+      "name": "( F-K ) FinesKush👽",
+      "participantsCount": 3,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 3 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363152528630767@g.us",
+      "name": "desafio pilota sella",
+      "participantsCount": 3,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 3 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363402612080264@g.us",
+      "name": "Logística i Voluntaris",
+      "participantsCount": 2,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 2 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34625198907-1526490275@g.us",
+      "name": "Fifa 😉",
+      "participantsCount": 2,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 2 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363042708937735@g.us",
+      "name": "IMPORTANT THINGS",
+      "participantsCount": 2,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 2 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363021908661366@g.us",
+      "name": "Viajesitos🗺️",
+      "participantsCount": 2,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 2 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363419216674133@g.us",
+      "name": "Patrocinadors",
+      "participantsCount": 2,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 2 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363046845687420@g.us",
+      "name": "Ferreria Crew",
+      "participantsCount": 1,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 1 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363031816045368@g.us",
+      "name": "Influapp community",
+      "participantsCount": 1,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 1 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363403677831658@g.us",
+      "name": "Podenkos 2025",
+      "participantsCount": 1,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 1 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "34674709388-1583857323@g.us",
+      "name": "Ma",
+      "participantsCount": 1,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 1 miembros — mínimo 200"
+      ]
+    },
+    {
+      "jid": "120363421148138657@g.us",
+      "name": "I Edició Torneig Raspall Tots Sants",
+      "participantsCount": 1,
+      "isAdmin": false,
+      "isAnnounce": false,
+      "apto": false,
+      "aptoReasons": [
+        "No eres administrador del grupo",
+        "Tiene 1 miembros — mínimo 200"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Política de Cookies - Channelad</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: #050505;
+      color: #f5f5f7;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      line-height: 1.7;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #8b5cf6;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      border-bottom: 2px solid #8b5cf6;
+      padding-bottom: 0.75rem;
+    }
+    h2 {
+      color: #8b5cf6;
+      font-size: 1.35rem;
+      margin-top: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+    h3 {
+      color: #a78bfa;
+      font-size: 1.1rem;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    p, li {
+      color: #d1d1d6;
+      margin-bottom: 0.75rem;
+    }
+    ul, ol {
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    li { margin-bottom: 0.4rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+    }
+    th, td {
+      border: 1px solid #2a2a2e;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    th {
+      background-color: #1a1a1e;
+      color: #8b5cf6;
+      font-weight: 600;
+    }
+    td { color: #d1d1d6; }
+    tr:nth-child(even) td { background-color: #0e0e10; }
+    a { color: #8b5cf6; text-decoration: underline; }
+    a:hover { color: #a78bfa; }
+    .meta {
+      color: #71717a;
+      font-size: 0.9rem;
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid #2a2a2e;
+    }
+    .highlight {
+      background-color: #1a1a1e;
+      border-left: 3px solid #8b5cf6;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      border-radius: 0 6px 6px 0;
+    }
+    .fill-in {
+      background: #2d1b69;
+      border: 1px dashed #8b5cf6;
+      padding: 2px 8px;
+      border-radius: 4px;
+      color: #c4b5fd;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <h1>Política de Cookies y Tecnologías de Almacenamiento</h1>
+    <p>En cumplimiento de lo dispuesto en el artículo 22.2 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE), y del Reglamento (UE) 2016/679 del Parlamento Europeo y del Consejo, de 27 de abril de 2016, relativo a la protección de las personas físicas en lo que respecta al tratamiento de datos personales (RGPD), <strong>Rafa Ferrer Castells</strong> le informa sobre su política de cookies y tecnologías de almacenamiento local en el presente sitio web.</p>
+
+    <h2>1. Qué son las cookies y las tecnologías de almacenamiento local</h2>
+    <p>Las cookies son pequeños archivos de texto que los sitios web almacenan en el dispositivo del usuario (ordenador, teléfono móvil, tableta) cuando este los visita. Las cookies permiten al sitio web recordar las acciones y preferencias del usuario durante un periodo de tiempo determinado, de modo que no tenga que volver a configurarlos cada vez que regrese al sitio o navegue entre sus páginas.</p>
+    <p>Las cookies pueden ser de sesión (se eliminan al cerrar el navegador) o persistentes (permanecen almacenadas durante un periodo definido o hasta que el usuario las elimine manualmente).</p>
+    <p>Además de las cookies HTTP tradicionales, los navegadores modernos disponen de otros mecanismos de almacenamiento local, como <strong>localStorage</strong>, que permite a las aplicaciones web almacenar pares clave-valor en el dispositivo del usuario de forma persistente. A diferencia de las cookies HTTP, los datos almacenados en localStorage no se envían automáticamente al servidor con cada solicitud, pero permanecen en el dispositivo hasta que la aplicación o el usuario los eliminen expresamente.</p>
+
+    <div class="highlight">
+      <p><strong>Nota legal:</strong> El artículo 22.2 de la LSSI-CE se aplica a <strong>todos los mecanismos de almacenamiento y recuperación de datos</strong> en el equipo terminal del usuario, incluyendo cookies HTTP, localStorage, sessionStorage, IndexedDB y tecnologías similares. Por tanto, las obligaciones de información y consentimiento se extienden a todas las tecnologías de almacenamiento utilizadas por Channelad.</p>
+    </div>
+
+    <h2>2. Tecnologías de almacenamiento local y cookies utilizadas por Channelad</h2>
+
+    <h3>2.1 Almacenamiento local del navegador (localStorage)</h3>
+    <p>Channelad utiliza la tecnología <strong>localStorage</strong> del navegador para almacenar determinados datos necesarios para el funcionamiento de la plataforma. Los datos almacenados en localStorage son accesibles únicamente por scripts del mismo origen (same-origin policy) y no caducan automáticamente; la aplicación gestiona su ciclo de vida (creación, actualización y eliminación).</p>
+    <p>A continuación se detallan los elementos almacenados en localStorage:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Clave</th>
+          <th>Finalidad</th>
+          <th>Duración efectiva</th>
+          <th>Datos almacenados</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>token</code></td>
+          <td>Token JWT de autenticación del usuario. Permite mantener la sesión iniciada de forma segura.</td>
+          <td>Gestionado por la aplicación; se elimina al cerrar sesión o al expirar el JWT (24 horas desde su emisión).</td>
+          <td>Cadena de texto (JSON Web Token) que contiene el identificador del usuario, rol y fecha de expiración, firmado digitalmente.</td>
+        </tr>
+        <tr>
+          <td><code>refreshToken</code></td>
+          <td>Token de refresco para renovar la sesión sin necesidad de volver a introducir las credenciales.</td>
+          <td>Gestionado por la aplicación; se elimina al cerrar sesión o al expirar (7 días desde su emisión).</td>
+          <td>Cadena de texto (token opaco o JWT) utilizada exclusivamente para solicitar un nuevo token de acceso.</td>
+        </tr>
+        <tr>
+          <td><code>user</code></td>
+          <td>Almacena información básica del perfil del usuario autenticado para la correcta representación de la interfaz.</td>
+          <td>Gestionado por la aplicación; se elimina al cerrar sesión.</td>
+          <td>Objeto JSON que puede contener: identificador del usuario, nombre, dirección de correo electrónico y rol. <strong>Nota:</strong> Este elemento puede contener datos de carácter personal (nombre, email) y es accesible para cualquier script ejecutado en el mismo origen.</td>
+        </tr>
+        <tr>
+          <td><code>theme</code></td>
+          <td>Almacena la preferencia de tema visual (claro/oscuro) seleccionada por el usuario.</td>
+          <td>Indefinida; persiste hasta que el usuario cambie la preferencia o borre los datos del navegador.</td>
+          <td>Cadena de texto con el valor del tema seleccionado (por ejemplo, "dark" o "light").</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="highlight">
+      <p><strong>Nota de seguridad:</strong> Los tokens de autenticación (<code>token</code> y <code>refreshToken</code>) se almacenan actualmente en localStorage por razones de arquitectura de la aplicación (SPA - Single Page Application). No obstante, Channelad tiene previsto migrar el almacenamiento de tokens de autenticación a cookies HTTP con atributo <code>httpOnly</code> y <code>Secure</code> en futuras versiones, con el fin de reducir el riesgo de exposición ante ataques de tipo XSS (Cross-Site Scripting). Dichas cookies no serían accesibles por JavaScript del lado del cliente, proporcionando una capa adicional de protección.</p>
+    </div>
+
+    <p>Los elementos <code>token</code>, <code>refreshToken</code> y <code>user</code> se consideran estrictamente necesarios para la prestación del servicio expresamente solicitado por el usuario (inicio de sesión y uso de la plataforma), por lo que se amparan en la excepción de consentimiento prevista en el artículo 22.2 de la LSSI-CE. El elemento <code>theme</code> almacena únicamente una preferencia visual sin datos personales.</p>
+
+    <h3>2.2 Cookies HTTP</h3>
+    <p>Channelad no instala cookies HTTP propias de forma directa. Sin embargo, determinados servicios de terceros integrados en la plataforma pueden instalar cookies HTTP en el dispositivo del usuario.</p>
+
+    <h4 style="color: #a78bfa; font-size: 1rem; margin-top: 1.25rem; margin-bottom: 0.5rem;">Cookies de Stripe (procesamiento de pagos)</h4>
+    <p>El servicio de procesamiento de pagos <strong>Stripe, Inc.</strong> puede instalar las siguientes cookies en el dispositivo del usuario cuando este interactúa con el formulario de pago:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Cookie</th>
+          <th>Finalidad</th>
+          <th>Duración</th>
+          <th>Tipo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>__stripe_mid</code></td>
+          <td>Identificador único de dispositivo utilizado por Stripe para la prevención del fraude y la detección de actividades sospechosas en las transacciones de pago.</td>
+          <td>1 año</td>
+          <td>Persistente / Tercero (Stripe)</td>
+        </tr>
+        <tr>
+          <td><code>__stripe_sid</code></td>
+          <td>Identificador de sesión utilizado por Stripe para correlacionar las acciones del usuario durante una sesión de pago y aplicar mecanismos de seguridad (SCA/PSD2).</td>
+          <td>30 minutos</td>
+          <td>Sesión / Tercero (Stripe)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Stripe procesa estos datos conforme a su propia política de privacidad y cookies: <a href="https://stripe.com/es/privacy" target="_blank" rel="noopener noreferrer">stripe.com/es/privacy</a>. Channelad no controla las cookies instaladas por Stripe.</p>
+
+    <h3>2.3 Cookies analíticas</h3>
+    <p>En caso de implementarse herramientas de analítica web, Channelad utilizará cookies analíticas con datos completamente anonimizados, de modo que no sea posible identificar al usuario. Estas cookies permiten cuantificar el número de visitantes y analizar estadísticamente el uso que hacen de la plataforma, con el fin de mejorar la oferta de productos y servicios.</p>
+    <p>La instalación de cookies analíticas requerirá su consentimiento previo a través del banner de consentimiento.</p>
+
+    <h3>2.4 Cookies publicitarias</h3>
+    <div class="highlight">
+      <p><strong>Channelad no utiliza cookies publicitarias propias.</strong> El sistema de seguimiento de campañas publicitarias opera íntegramente del lado del servidor (server-side) mediante enlaces de seguimiento (<code>/t/:code</code>), sin instalar cookies de rastreo publicitario en el dispositivo del usuario.</p>
+    </div>
+
+    <h2>3. Base legal para el uso de tecnologías de almacenamiento</h2>
+    <ul>
+      <li><strong>localStorage técnico y necesario (token, refreshToken, user, theme):</strong> Interés legítimo del prestador del servicio y excepción de consentimiento prevista en el artículo 22.2 de la LSSI-CE, al ser estrictamente necesarios para la prestación del servicio expresamente solicitado por el usuario.</li>
+      <li><strong>Cookies de Stripe (prevención del fraude):</strong> Interés legítimo del prestador del servicio de pagos para la prevención del fraude y el cumplimiento de la normativa PSD2/SCA, amparado en la excepción del artículo 22.2 de la LSSI-CE por ser necesarias para completar la transacción de pago solicitada por el usuario.</li>
+      <li><strong>Cookies analíticas y no esenciales (en caso de implementación futura):</strong> Consentimiento expreso del usuario, otorgado a través del banner de consentimiento, de conformidad con el artículo 22.2 de la LSSI-CE y el artículo 6.1.a) del RGPD.</li>
+    </ul>
+
+    <h2>4. Banner de consentimiento</h2>
+    <p>Al acceder por primera vez a Channelad, se mostrará un banner informativo de cookies y tecnologías de almacenamiento que permitirá al usuario:</p>
+    <ul>
+      <li><strong>Aceptar todas</strong> las cookies y tecnologías de almacenamiento no esenciales.</li>
+      <li><strong>Rechazar todas</strong> las cookies y tecnologías no esenciales (se utilizarán únicamente las tecnologías técnicas necesarias para el funcionamiento de la plataforma). Este botón se presentará con la misma prominencia, tamaño y visibilidad que el botón de aceptación, de conformidad con las directrices de la Agencia Española de Protección de Datos (AEPD) de 2023 sobre el uso de cookies.</li>
+      <li><strong>Configurar preferencias</strong>, seleccionando las categorías de tecnologías que desea autorizar.</li>
+    </ul>
+    <div class="highlight">
+      <p><strong>Requisito AEPD 2023:</strong> De conformidad con la Guía sobre el uso de las cookies de la AEPD (actualizada en 2023), el botón &laquo;Rechazar todas&raquo; debe ofrecerse en la primera capa del banner de consentimiento con el mismo nivel de prominencia, visibilidad y facilidad de uso que el botón &laquo;Aceptar todas&raquo;. No es admisible relegar la opción de rechazo a una segunda capa de configuración.</p>
+    </div>
+    <p>El usuario podrá modificar sus preferencias en cualquier momento accediendo al enlace de configuración de cookies disponible en el pie de página del sitio web.</p>
+
+    <h2>5. Cómo gestionar y desactivar cookies y almacenamiento local</h2>
+    <p>Además del panel de preferencias de Channelad, el usuario puede configurar su navegador para aceptar, rechazar o eliminar cookies y datos de almacenamiento local. A continuación se facilitan instrucciones para los navegadores más habituales:</p>
+
+    <ul>
+      <li><strong>Google Chrome:</strong> Configuración &rarr; Privacidad y seguridad &rarr; Cookies y otros datos de sitios. <a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer">Más información</a></li>
+      <li><strong>Mozilla Firefox:</strong> Opciones &rarr; Privacidad y seguridad &rarr; Cookies y datos del sitio. <a href="https://support.mozilla.org/es/kb/cookies-informacion-que-los-sitios-web-guardan-en-" target="_blank" rel="noopener noreferrer">Más información</a></li>
+      <li><strong>Safari:</strong> Preferencias &rarr; Privacidad &rarr; Gestionar datos de sitios web. <a href="https://support.apple.com/es-es/guide/safari/sfri11471/mac" target="_blank" rel="noopener noreferrer">Más información</a></li>
+      <li><strong>Microsoft Edge:</strong> Configuración &rarr; Privacidad, búsqueda y servicios &rarr; Cookies y permisos del sitio. <a href="https://support.microsoft.com/es-es/microsoft-edge/eliminar-cookies-en-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" target="_blank" rel="noopener noreferrer">Más información</a></li>
+    </ul>
+    <p>Para eliminar los datos de localStorage de un sitio concreto, el usuario puede acceder a las herramientas de desarrollo del navegador (generalmente mediante la tecla F12) y navegar a la sección de almacenamiento (Application &rarr; Local Storage en Chrome/Edge, o Storage en Firefox).</p>
+
+    <div class="highlight">
+      <p><strong>Aviso:</strong> La eliminación de los datos de almacenamiento local (localStorage) provocará el cierre de la sesión del usuario y la pérdida de preferencias de tema, requiriendo un nuevo inicio de sesión. La desactivación de las cookies de terceros puede afectar al correcto funcionamiento del sistema de pagos.</p>
+    </div>
+
+    <h2>6. Actualizaciones de esta política</h2>
+    <p>Channelad se reserva el derecho de modificar la presente Política de Cookies y Tecnologías de Almacenamiento en cualquier momento para adaptarla a novedades legislativas, jurisprudenciales o de práctica empresarial. Cualquier modificación será publicada en esta página y, en caso de cambios sustanciales, se informará al usuario mediante el banner de consentimiento.</p>
+
+    <div class="meta">
+      <p><strong>Última actualización:</strong> 31 de marzo de 2026</p>
+      <p><strong>Titular:</strong> Rafa Ferrer Castells &mdash; contact@channelad.io</p>
+    </div>
+
+  </div>
+</body>
+</html>

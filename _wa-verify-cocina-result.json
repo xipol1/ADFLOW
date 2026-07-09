@@ -1,0 +1,119 @@
+{
+  "usuario": "chomon@gmail.com",
+  "applied": false,
+  "channeladNumber": "+34674709388",
+  "out": [
+    {
+      "status": "pending",
+      "jid": "120363195676344310@newsletter",
+      "nombre": "Recetas Freidora de Aire - airfryer",
+      "role": "guest",
+      "err": null
+    },
+    {
+      "status": "pending",
+      "jid": "120363417172015395@newsletter",
+      "nombre": "1001 Recetas  con Freidora de Aire",
+      "role": "guest",
+      "err": null
+    },
+    {
+      "status": "pending",
+      "jid": "120363194920095258@newsletter",
+      "nombre": "Recetas para Thermomix",
+      "role": "guest",
+      "err": null
+    },
+    {
+      "status": "pending",
+      "jid": "120363191095255264@newsletter",
+      "nombre": "Recetas de DIETA con Thermomix",
+      "role": "guest",
+      "err": null
+    },
+    {
+      "status": "pending",
+      "jid": "120363174254884800@newsletter",
+      "nombre": "Postres con Thermomix",
+      "role": "guest",
+      "err": null
+    },
+    {
+      "status": "pending",
+      "jid": "120363226635986254@newsletter",
+      "nombre": "Recetas de Dieta y saludables",
+      "role": "guest",
+      "err": null
+    },
+    {
+      "status": "pending",
+      "jid": "120363409964088809@newsletter",
+      "nombre": "Deco Ideas para casa",
+      "role": "guest",
+      "err": null
+    },
+    {
+      "status": "pending",
+      "jid": "120363195908196684@newsletter",
+      "nombre": "Rezepte für Heißluftfritteusen",
+      "role": "guest",
+      "err": null
+    },
+    {
+      "status": "pending",
+      "jid": "120363404124457141@newsletter",
+      "nombre": "Heißluftfritteusen - Rezepte",
+      "role": "guest",
+      "err": null
+    },
+    {
+      "status": "pending",
+      "jid": "120363422305190039@newsletter",
+      "nombre": "Heißluftfritteuse : 1001 Rezepte",
+      "role": "guest",
+      "err": null
+    },
+    {
+      "status": "pending",
+      "jid": "120363185310036052@newsletter",
+      "nombre": "Thermomix Rezepte",
+      "role": "guest",
+      "err": null
+    },
+    {
+      "status": "pending",
+      "jid": "120363420861226892@newsletter",
+      "nombre": "Desserts mit Thermomix",
+      "role": "guest",
+      "err": null
+    },
+    {
+      "status": "pending",
+      "jid": "120363427702432458@newsletter",
+      "nombre": "Diätrezepte mit Thermomix",
+      "role": "guest",
+      "err": null
+    },
+    {
+      "status": "pending",
+      "jid": "120363422608513240@newsletter",
+      "nombre": "Diät- und gesunde Rezepte",
+      "role": "guest",
+      "err": null
+    },
+    {
+      "status": "pending",
+      "jid": "120363404796572860@newsletter",
+      "nombre": "Rezepte: einfach und unglaublich",
+      "role": "guest",
+      "err": null
+    },
+    {
+      "status": "pending",
+      "jid": "120363426701380312@newsletter",
+      "nombre": "Deko-Ideen fürs Zuhause",
+      "role": "guest",
+      "err": null
+    }
+  ]
+}

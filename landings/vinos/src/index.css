@@ -1,0 +1,152 @@
+/* French luxury type: Cormorant Garamond (display) + EB Garamond (story body)
+   + Inter (system/UI). Self-hosted (no third-party request → no extra consent). */
+@import '@fontsource-variable/cormorant-garamond/wght.css';
+@import '@fontsource-variable/cormorant-garamond/wght-italic.css';
+@import '@fontsource-variable/eb-garamond/wght.css';
+@import '@fontsource-variable/eb-garamond/wght-italic.css';
+@import '@fontsource-variable/inter/wght.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tokens as SPACE-SEPARATED RGB CHANNELS so Tailwind's /opacity modifier works
+   (rgb(var(--x) / <alpha-value>)). Reference raw with rgb(var(--x)). */
+:root {
+  --bg: 22 8 16;          /* #160810 château nocturne */
+  --surface: 35 18 26;    /* #23121a */
+  --surface-2: 46 22 32;  /* #2e1620 */
+  --paper: 244 236 221;   /* #f4ecdd ivory */
+  --ivory: 244 236 221;
+  --ink: 243 233 220;     /* #f3e9dc */
+  --ink-soft: 200 180 156;/* #c8b49c champagne */
+  --brand: 110 16 32;     /* #6e1020 sang de boeuf */
+  --brand-deep: 62 9 18;  /* #3e0912 */
+  --accent: 228 201 168;  /* #e4c9a8 */
+  --cta: 199 162 74;      /* #c7a24a gold */
+  --cta-ink: 22 8 16;     /* #160810 */
+  --gold: 199 162 74;
+  --gold-soft: 216 190 134;/* #d8be86 champagne gold */
+  --gold-deep: 154 122 51; /* #9a7a33 aged gold */
+  --star: 217 167 65;      /* #d9a741 */
+  --border: 58 28 37;      /* #3a1c25 */
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    background-color: rgb(var(--bg));
+    color: rgb(var(--ink));
+    font-family: "Inter Variable", Inter, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3 {
+    font-family: "Cormorant Garamond Variable", "Cormorant Garamond", Garamond, Georgia, serif;
+    font-weight: 400; /* French rule: never heavy serif */
+    letter-spacing: -0.01em;
+  }
+  .font-serif-body {
+    font-family: "EB Garamond Variable", "EB Garamond", Garamond, Georgia, serif;
+  }
+  .nums-oldstyle { font-feature-settings: 'onum' 1, 'tnum' 1, 'liga' 1; }
+  :focus-visible {
+    outline: 2px solid rgb(var(--gold-soft));
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  .kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: "Inter Variable", Inter, sans-serif;
+    font-weight: 500;
+    font-size: 0.6875rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgb(var(--gold-soft));
+  }
+  .kicker::before, .kicker::after {
+    content: '';
+    width: 2rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgb(var(--gold-soft)), transparent);
+  }
+  .filet {
+    width: 2.5rem;
+    height: 1px;
+    margin: 1rem auto;
+    background: linear-gradient(90deg, transparent, rgb(var(--gold-soft)), transparent);
+  }
+}
+
+@layer utilities {
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal.in { opacity: 1; transform: none; }
+  .reveal-word {
+    opacity: 0;
+    transform: translateY(34px);
+    filter: blur(5px);
+    transition: opacity 1s ease, transform 1s cubic-bezier(0.22, 1, 0.36, 1), filter 1s ease;
+  }
+  .reveal-word.in { opacity: 1; transform: none; filter: none; }
+  .cta-sweep { position: relative; overflow: hidden; }
+  .cta-sweep::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.28) 50%, transparent 70%);
+    transform: translateX(-120%);
+    transition: transform 0.7s ease;
+  }
+  .cta-sweep:hover::after { transform: translateX(120%); }
+
+  /* Film grain — turns flat photos into cinema frames. */
+  .grain-layer {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: url('/assets/photos/grain.png');
+    background-size: 160px 160px;
+    opacity: 0.08;
+    mix-blend-mode: soft-light;
+  }
+
+  /* Ken Burns — static by default; animates only where supported + motion allowed. */
+  .kenburns { transform: scale(1.04); }
+}
+
+@keyframes kenburns {
+  from { transform: scale(1.02); }
+  to { transform: scale(1.16); }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .kenburns {
+      will-change: transform;
+      animation: kenburns linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
+  }
+}
+
+/* ── Age-gate fail-closed (UNCHANGED legal behaviour) ───────────────────────── */
+#root > .app-shell { display: none; }
+html.age-ok #root > .app-shell { display: block; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .reveal, .reveal-word { opacity: 1 !important; transform: none !important; filter: none !important; }
+  .cta-sweep::after { display: none; }
+}
