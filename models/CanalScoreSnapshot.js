@@ -67,6 +67,22 @@ const CanalScoreSnapshotSchema = new mongoose.Schema(
       verified:                 { type: Boolean, default: null },
     },
 
+    // ── Discord authenticity intel (optional, written by discordAuthenticityService) ──
+    // Member-census + activity-sample signals. All default null so pre-reader
+    // snapshots and non-Discord channels stay valid; filter with `$ne: null`.
+    discordIntel: {
+      pctBotsEstimado:   { type: Number,  default: null },
+      authenticityScore: { type: Number,  default: null },
+      pctCuentasNuevas:  { type: Number,  default: null },
+      joinBurstScore:    { type: Number,  default: null },
+      pctSinAvatar:      { type: Number,  default: null },
+      presenceRatio:     { type: Number,  default: null },
+      engagementRate:    { type: Number,  default: null },
+      giniActividad:     { type: Number,  default: null },
+      censusSize:        { type: Number,  default: null },
+      censusTruncated:   { type: Boolean, default: null },
+    },
+
     // ── LinkedIn intel (optional, written by linkedinSyncService) ──────────
     // Shape depends on the canal type: creator profiles write {type:'creator',…}
     // with aggregate engagement from recent posts; organizations write

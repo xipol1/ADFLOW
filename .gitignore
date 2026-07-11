@@ -111,3 +111,7 @@ public/legal/
 # (WA onboarding helpers, pitch captures, staged channel JSON, bg images, etc.).
 /_*
 scripts/_*
+
+# ── Outreach lists (generated from scraped data, change daily — never commit) ──
+outreach/lists/*
+!outreach/lists/.gitkeep

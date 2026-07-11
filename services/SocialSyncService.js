@@ -120,7 +120,12 @@ class SocialSyncService {
 
   async fetchDiscordChannelMetrics(canal) {
     const botToken = canal.botConfig?.discord?.botToken || process.env.DISCORD_BOT_TOKEN;
-    const guildId = canal.identificadorCanal || canal.identificadores?.guildId;
+    // Authoritative guildId is set at verification under botConfig.discord.guildId
+    // (mirrored to identificadores.serverId). Keep the legacy fields as fallback.
+    const guildId = canal.botConfig?.discord?.guildId
+      || canal.identificadores?.serverId
+      || canal.identificadorCanal
+      || canal.identificadores?.guildId;
     if (!botToken || !guildId) throw new Error('Credenciales Discord incompletas');
 
     const bot = new DiscordAPI(botToken);

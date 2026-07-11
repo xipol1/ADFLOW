@@ -1412,8 +1412,20 @@ class ApiService {
     return this.request('/onboarding/discord/instrucciones', { method: 'POST', body: JSON.stringify({ guildId }) });
   }
 
-  async onboardingDiscordVerify(guildId, canalId) {
-    return this.request('/onboarding/discord/verificar', { method: 'POST', body: JSON.stringify({ guildId, canalId }) });
+  async onboardingDiscordAuthUrl(canalId, purpose) {
+    const params = new URLSearchParams();
+    if (canalId) params.set('canalId', canalId);
+    if (purpose) params.set('purpose', purpose);
+    const qs = params.toString();
+    return this.request(`/onboarding/discord/auth-url${qs ? `?${qs}` : ''}`);
+  }
+
+  async onboardingDiscordVerify(guildId, canalId, ownershipToken) {
+    return this.request('/onboarding/discord/verificar', { method: 'POST', body: JSON.stringify({ guildId, canalId, ownershipToken }) });
+  }
+
+  async onboardingDiscordSetPublishChannel(canalId, channelId) {
+    return this.request('/onboarding/discord/canal-publicacion', { method: 'POST', body: JSON.stringify({ canalId, channelId }) });
   }
 
   async onboardingInstagramAuthUrl(canalId, source) {
