@@ -181,6 +181,15 @@ module.exports = {
       'rw_organization_admin',
     ].join(','),
   },
+  discord: {
+    botToken: process.env.DISCORD_BOT_TOKEN || '',
+    clientId: process.env.DISCORD_CLIENT_ID || '',
+    clientSecret: process.env.DISCORD_CLIENT_SECRET || '',
+    // Where Discord redirects after the user authorizes the `identify guilds`
+    // scope. Must be registered verbatim in the Discord Developer Portal
+    // (Application → OAuth2 → Redirects). Built from BACKEND_URL at call time.
+    oauthCallbackPath: '/api/onboarding/discord/callback',
+  },
   encryption: {
     key: process.env.ENCRYPTION_KEY || '',
   },

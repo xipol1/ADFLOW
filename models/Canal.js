@@ -32,6 +32,10 @@ const CanalSchema = new mongoose.Schema(
     identificadores: {
       chatId: { type: String, default: '' },
       serverId: { type: String, default: '' },
+      // Discord: target TEXT channel (within serverId) where ads are published.
+      // Set at verification (auto-picked) and changeable from the wizard. The
+      // delivery path (lib/platformConnectors.publishAdToChannel) reads this.
+      channelId: { type: String, default: '' },
       phoneNumber: { type: String, default: '' },
       provider: { type: String, default: '' },       // newsletter provider (mailchimp/beehiiv/substack)
       linkedinUrn: { type: String, default: '' },     // urn:li:person:xxx or urn:li:organization:xxx
@@ -131,6 +135,9 @@ const CanalSchema = new mongoose.Schema(
         guildId: String,
         isPresent: { type: Boolean, default: false },
         permissions: mongoose.Schema.Types.Mixed,
+        // Display name of the target publish channel (id lives in
+        // identificadores.channelId). Set at verification, shown in the UI.
+        publishChannelName: String,
         verificadoEn: Date,
       },
       instagram: {
@@ -211,6 +218,25 @@ const CanalSchema = new mongoose.Schema(
       ratioCTF_CAF: { type: Number, default: null },
       flags: { type: [String], default: [] },
       ultimaRevision: { type: Date, default: null },
+    },
+
+    // ── Member-authenticity reader (Discord census + activity) ──────────────
+    // Populated by discordAuthenticityService via the daily multiplatform sync
+    // for Discord channels with the bot present + GUILD_MEMBERS intent. Empty
+    // for every other platform. pctBotsEstimado is a heuristic suspicion index
+    // (0-100, higher = more suspicious), NOT a literal bot census. The scoring
+    // engine (channelScoringV2) reads pctBotsEstimado to drive the bot_farm
+    // penalty — it supersedes the ratioCTF_CAF proxy when present.
+    autenticidad: {
+      pctBotsEstimado:   { type: Number, default: null },
+      authenticityScore: { type: Number, default: null },
+      presenceRatio:     { type: Number, default: null },
+      engagementRate:    { type: Number, default: null },
+      giniActividad:     { type: Number, default: null },
+      censusSize:        { type: Number, default: null },
+      censusTruncated:   { type: Boolean, default: null },
+      flags:             { type: [String], default: [] },
+      ultimaLectura:     { type: Date, default: null },
     },
 
     // ── Public crawler data (WhatsApp channels, Telegram public channels) ──

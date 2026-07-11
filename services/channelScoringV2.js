@@ -344,14 +344,40 @@ function calcularCAS(canal, campanasCompletadas = [], nicho) {
   const flags = [];
   let casAdjusted = CAS_raw;
 
-  // Mutually exclusive: the <0.5 penalty is strictly stronger than <0.6.
-  if (CAF > 0 && ratioCTF_CAF < 0.5) {
+  // Measured member-authenticity signal from the Discord census reader
+  // (discordAuthenticityService). pctBotsEstimado is a 0-100 suspicion index
+  // (higher = more suspicious). When present it is AUTHORITATIVE and supersedes
+  // the ratioCTF_CAF proxy below. We must distinguish "absent" (null/undefined)
+  // from a measured 0 — finiteOr would coerce null→0, so check explicitly.
+  const rawPct = canal?.autenticidad?.pctBotsEstimado;
+  const pctBots = (rawPct === null || rawPct === undefined || !Number.isFinite(+rawPct))
+    ? null
+    : +rawPct;
+
+  if (pctBots !== null) {
+    // Measured signal: a real census beats the proxy. Slightly stronger haircut.
+    if (pctBots >= 50) {
+      casAdjusted -= 15;
+      flags.push('bot_farm_sospechoso');
+    } else if (pctBots >= 30) {
+      casAdjusted -= 8;
+      flags.push('engagement_bajo');
+    }
+  } else if (CAF > 0 && ratioCTF_CAF < 0.5) {
+    // Proxy fallback (no measured authenticity available).
+    // Mutually exclusive: the <0.5 penalty is strictly stronger than <0.6.
     casAdjusted -= 10;
     flags.push('bot_farm_sospechoso');
   } else if (CAF > 0 && ratioCTF_CAF < 0.6) {
     casAdjusted -= 7;
     flags.push('engagement_bajo');
   }
+
+  // Surface the reader's specific signals (altas_en_rafaga, cuentas_nuevas_masivas,
+  // actividad_concentrada) on the same flags array so the existing antifraude UI
+  // picks them up without a new field.
+  const authFlags = Array.isArray(canal?.autenticidad?.flags) ? canal.autenticidad.flags : [];
+  for (const f of authFlags) if (!flags.includes(f)) flags.push(f);
 
   // confianzaScore adds a metadata flag but does NOT subtract from CAS.
   const confianzaScore = calcularConfianzaScore(canal, campanas, nichoResolved);

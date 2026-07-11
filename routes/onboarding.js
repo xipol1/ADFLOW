@@ -20,7 +20,12 @@ router.post('/telegram/verificar',     authenticate, requiereEmailVerificado, (r
 
 // ─── Discord ────────────────────────────────────────────────────────────────
 router.post('/discord/instrucciones',  authenticate, (req, res) => onboarding.discordGetInstructions(req, res));
+router.get('/discord/auth-url',         authenticate, requiereEmailVerificado, (req, res) => onboarding.discordGetAuthUrl(req, res));
+// Público: Discord redirige aquí tras el OAuth. La confianza vive en el state
+// firmado y en el JWT de propiedad que emite, no en el header de auth.
+router.get('/discord/callback',         (req, res) => onboarding.discordCallback(req, res));
 router.post('/discord/verificar',      authenticate, requiereEmailVerificado, (req, res) => onboarding.discordVerify(req, res));
+router.post('/discord/canal-publicacion', authenticate, requiereEmailVerificado, (req, res) => onboarding.discordSetPublishChannel(req, res));
 
 // ─── Instagram ──────────────────────────────────────────────────────────────
 router.get('/instagram/auth-url',      authenticate, requiereEmailVerificado, (req, res) => onboarding.instagramGetAuthUrl(req, res));

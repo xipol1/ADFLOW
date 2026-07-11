@@ -5,7 +5,7 @@
     <link>https://channelad.io/blog</link>
     <description>Guias, estrategias y comparativas sobre publicidad en comunidades de WhatsApp, Telegram y Discord. Por Rafa Ferrer, CEO de Channelad.</description>
     <language>es</language>
-    <lastBuildDate>Thu, 09 Jul 2026 17:12:01 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 11 Jul 2026 16:41:39 GMT</lastBuildDate>
     <managingEditor>rafa@channelad.io (Rafa Ferrer)</managingEditor>
     <webMaster>rafa@channelad.io (Rafa Ferrer)</webMaster>
     <atom:link href="https://channelad.io/blog/feed.xml" rel="self" type="application/rss+xml"/>
@@ -14,6 +14,15 @@
       <title>Channelad Blog</title>
       <link>https://channelad.io/blog</link>
     </image>
+    <item>
+      <title><![CDATA[AdMixer Telegram vs Channelad: programmatic vs marketplace]]></title>
+      <link>https://channelad.io/blog/admixer-telegram-vs-channelad</link>
+      <guid isPermaLink="true">https://channelad.io/blog/admixer-telegram-vs-channelad</guid>
+      <pubDate>Fri, 10 Jul 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[AdMixer hace programmatic en Telegram Mini Apps. Channelad es marketplace transparente con escrow. Comparativa honesta de modelos, precios y casos de uso.]]></description>
+      <author>rafa@channelad.io (Rafa Ferrer)</author>
+      <category>Comparativas</category>
+    </item>
     <item>
       <title><![CDATA[Monetizar canal WhatsApp de salud y fitness 2026]]></title>
       <link>https://channelad.io/blog/monetizar-canal-whatsapp-salud-fitness</link>

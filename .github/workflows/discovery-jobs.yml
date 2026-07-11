@@ -1,0 +1,102 @@
+name: Discovery & Intel Jobs
+
+# Runs the heavy channel-discovery / metric-refresh jobs that can't finish
+# inside Vercel's 60s serverless cap. These used to be Vercel Crons (removed
+# from vercel.json) and were meant to move to the always-on Fly worker, which
+# is currently suspended. GitHub Actions is the free stand-in: same job
+# functions as lib/jobScheduler.js, same JobLog lock, no timeout.
+#
+# Schedules are UTC and match the old vercel.json crons exactly:
+#   30 2 * * *  → telegram-intel       (daily, MTProto seed + metric refresh)
+#   0  4 * * *  → multiplatform-intel  (daily, re-scrape WA/Discord metrics)
+#   0  5 * * 1  → tgstat-discover      (weekly Mondays, new-channel discovery)
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   MONGODB_URI        — Atlas connection string (same as prod)
+#   ENCRYPTION_KEY     — only needed if a job writes encrypted credentials
+#   TELEGRAM_API_ID    — for telegram-intel / tgstat-discover (MTProto)
+#   TELEGRAM_API_HASH  — idem
+#   TELEGRAM_SESSION   — GramJS StringSession for the scraper account
+#
+# NOTE: GitHub disables scheduled workflows after 60 days of repo inactivity.
+# A push or a manual run re-enables them.
+
+on:
+  schedule:
+    - cron: '30 2 * * *'   # telegram-intel (daily)
+    - cron: '0 4 * * *'    # multiplatform-intel (daily)
+    - cron: '0 5 * * 1'    # tgstat-discover (weekly, Mondays)
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Job to run manually'
+        required: true
+        type: choice
+        default: telegram-intel
+        options:
+          - telegram-intel
+          - multiplatform-intel
+          - tgstat-discover
+      force:
+        description: 'Bypass the dedup window (run even if one completed recently)'
+        type: boolean
+        default: true
+
+# Never let two of these heavy jobs overlap on the runner. The JobLog lock
+# also guards at the DB level, but this avoids burning runner minutes.
+concurrency:
+  group: discovery-jobs
+  cancel-in-progress: false
+
+jobs:
+  run:
+    name: Run discovery / intel job
+    runs-on: ubuntu-latest
+    # telegram-intel is the long pole (~22 min over 500+ channels at the MTProto
+    # rate limit). 45 leaves headroom without hanging forever on a stuck run.
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        # Scrapers use axios/cheerio and Telegram uses GramJS — none of these
+        # jobs drive a browser, so skip the Chromium download (faster, no flake).
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Pick job + force flag
+        id: pick
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "job=${{ github.event.inputs.job }}" >> "$GITHUB_OUTPUT"
+            if [ "${{ github.event.inputs.force }}" = "true" ]; then
+              echo "force=--force" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            case "${{ github.event.schedule }}" in
+              "30 2 * * *") echo "job=telegram-intel" >> "$GITHUB_OUTPUT" ;;
+              "0 4 * * *")  echo "job=multiplatform-intel" >> "$GITHUB_OUTPUT" ;;
+              "0 5 * * 1")  echo "job=tgstat-discover" >> "$GITHUB_OUTPUT" ;;
+              *)            echo "job=telegram-intel" >> "$GITHUB_OUTPUT" ;;
+            esac
+          fi
+
+      - name: Run ${{ steps.pick.outputs.job }}
+        env:
+          NODE_ENV: production
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
+          TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
+          TELEGRAM_SESSION: ${{ secrets.TELEGRAM_SESSION }}
+        run: node scripts/run-job.js "${{ steps.pick.outputs.job }}" ${{ steps.pick.outputs.force }}

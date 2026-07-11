@@ -2,6 +2,8 @@ const axios = require('axios');
 
 const DISCORD_API = 'https://discord.com/api/v10';
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 class DiscordBot {
   constructor(botToken) {
     this.token = String(botToken || '').trim();
@@ -43,7 +45,13 @@ class DiscordBot {
   async verifyBotAccessNew(guildId) {
     try {
       const guild = await this.getGuild(guildId, true);
-      const botMember = await this._req('GET', `/guilds/${guildId}/members/@me`);
+      // The bot's own guild member must be fetched by its REAL user id.
+      // `/guilds/{id}/members/@me` is rejected by Discord (Invalid Form Body
+      // 50035 — `@me` is not a valid snowflake here), and the alternative
+      // `/users/@me/guilds/{id}/member` refuses bots (code 20001). Resolve the
+      // bot's user id once (cached on the instance) and use it explicitly.
+      if (!this._botUserId) this._botUserId = (await this.getBotInfo()).id;
+      const botMember = await this._req('GET', `/guilds/${guildId}/members/${this._botUserId}`);
 
       const botRoleIds = new Set(botMember.roles);
       const guildRoles = await this._req('GET', `/guilds/${guildId}/roles`);
@@ -86,6 +94,29 @@ class DiscordBot {
     return this._req('GET', `/guilds/${guildId}/channels`);
   }
 
+  // Text (0) + announcement (5) channels where an ad embed can be posted,
+  // normalized + sorted by Discord's display position. Forum/voice/category
+  // channels are excluded (publishAd posts a plain message+embed).
+  async getPublishableChannels(guildId) {
+    const channels = await this.getGuildChannels(guildId);
+    return (Array.isArray(channels) ? channels : [])
+      .filter((c) => c.type === 0 || c.type === 5)
+      .map((c) => ({ id: c.id, name: c.name, type: c.type, position: c.position ?? 0 }))
+      .sort((a, b) => a.position - b.position);
+  }
+
+  // Heuristic default publish target from a getPublishableChannels() list:
+  // prefer an announcements/promo channel, then #general, else the top channel.
+  static pickDefaultPublishChannel(channels) {
+    if (!Array.isArray(channels) || channels.length === 0) return null;
+    const byName = (re) => channels.find((c) => re.test(String(c.name || '')));
+    return (
+      byName(/anuncio|announc|promo|publi|novedad/i) ||
+      byName(/general|principal|main|chat/i) ||
+      channels[0]
+    );
+  }
+
   async getGuildRoles(guildId) {
     return this._req('GET', `/guilds/${guildId}/roles`);
   }
@@ -118,6 +149,138 @@ class DiscordBot {
       vanityUrl: guild.vanity_url_code || null,
       iconHash: guild.icon || null,
       timestamp: new Date(),
+    };
+  }
+
+  // ─── Censo de miembros y muestreo de actividad (autenticidad) ──────────────
+  //
+  // Alimentan el lector de autenticidad (% bots estimado, ráfagas de alta,
+  // engagement real). fetchAllMembers REQUIERE el privileged intent
+  // GUILD_MEMBERS activado en el Developer Portal — sin él, /guilds/{id}/members
+  // devuelve 403. sampleRecentActivity solo lee metadata (autor + timestamp),
+  // así que NO necesita el intent Message Content.
+
+  /** Snowflake → fecha de creación de la cuenta (epoch Discord 2015-01-01). */
+  static snowflakeToDate(id) {
+    try {
+      return new Date(Number((BigInt(id) >> BigInt(22)) + BigInt(1420070400000)));
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * GET con reintentos: respeta el 429 (`retry_after`) de Discord y reintenta
+   * los 5xx transitorios con backoff exponencial. Lanza un error envuelto
+   * (mismo formato que _req) al agotar los reintentos.
+   */
+  async _getWithRetry(path, { retries = 4 } = {}) {
+    if (!this.token) throw new Error('DISCORD_BOT_TOKEN no configurado');
+    let attempt = 0;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      try {
+        const res = await axios({
+          method: 'GET',
+          url: `${DISCORD_API}${path}`,
+          headers: this.headers,
+          timeout: this.timeout,
+        });
+        return res.data;
+      } catch (err) {
+        const status = err.response?.status;
+        const retryable = status === 429 || (status >= 500 && status <= 599);
+        if (retryable && attempt < retries) {
+          const ra = Number(
+            err.response?.data?.retry_after ?? err.response?.headers?.['retry-after'],
+          );
+          const waitMs = Number.isFinite(ra) && ra > 0
+            ? Math.ceil(ra * 1000) + 250
+            : Math.min(8000, 500 * 2 ** attempt);
+          await sleep(waitMs);
+          attempt += 1;
+          continue;
+        }
+        const msg = err.response?.data?.message || err.message;
+        const code = err.response?.data?.code;
+        throw new Error(`Discord [GET ${path}]: ${msg}${code ? ` (code ${code})` : ''}`);
+      }
+    }
+  }
+
+  /**
+   * Censo completo de miembros del guild, paginando /guilds/{id}/members.
+   * Discord ordena por user.id ascendente; avanzamos el cursor `after` al id
+   * máximo de cada página. Cap defensivo en maxPages (→ truncated + log; regla
+   * "no silent caps"). Requiere el intent GUILD_MEMBERS.
+   */
+  async fetchAllMembers(guildId, { maxPages = 60, pageSize = 1000 } = {}) {
+    const limit = Math.min(1000, Math.max(1, pageSize));
+    const members = [];
+    let after = '0';
+    let pages = 0;
+    let truncated = false;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      if (pages >= maxPages) { truncated = true; break; }
+      const batch = await this._getWithRetry(
+        `/guilds/${guildId}/members?limit=${limit}&after=${after}`,
+      );
+      if (!Array.isArray(batch) || batch.length === 0) break;
+      members.push(...batch);
+      pages += 1;
+      if (batch.length < limit) break;
+      after = batch.reduce(
+        (mx, m) => (m?.user?.id && BigInt(m.user.id) > BigInt(mx) ? m.user.id : mx),
+        after,
+      );
+    }
+    if (truncated) {
+      console.warn(
+        `[Discord] member census truncated at ${members.length} (maxPages=${maxPages}) for guild ${guildId}`,
+      );
+    }
+    return { members, fetched: members.length, truncated };
+  }
+
+  /**
+   * Muestrea mensajes recientes de los canales de texto publicables para medir
+   * engagement real y distribución de actividad. Solo lee metadata (autor +
+   * timestamp); el contenido no se usa → no hace falta Message Content.
+   * Devuelve eventos crudos; el cálculo (autores únicos, Gini, vitalidad) vive
+   * en discordAuthenticityService (función pura).
+   */
+  async sampleRecentActivity(guildId, { perChannel = 100, windowDays = 14, maxChannels = 10 } = {}) {
+    const channels = await this.getPublishableChannels(guildId).catch(() => []);
+    const targets = channels.slice(0, maxChannels);
+    const cutoff = Date.now() - windowDays * 24 * 60 * 60 * 1000;
+    const limit = Math.min(100, Math.max(1, perChannel));
+    const events = [];
+    let channelsScanned = 0;
+    for (const ch of targets) {
+      const msgs = await this._getWithRetry(
+        `/channels/${ch.id}/messages?limit=${limit}`,
+      ).catch(() => null);
+      if (!Array.isArray(msgs)) continue; // sin permiso de lectura en ese canal, etc.
+      channelsScanned += 1;
+      for (const m of msgs) {
+        const ts = m?.timestamp ? new Date(m.timestamp).getTime() : NaN;
+        if (!Number.isFinite(ts) || ts < cutoff) continue;
+        events.push({
+          authorId: m.author?.id || null,
+          isBot: !!m.author?.bot,
+          timestamp: ts,
+          channelId: ch.id,
+        });
+      }
+    }
+    return {
+      events,
+      messages: events.length,
+      channelsScanned,
+      channelsAvailable: channels.length,
+      truncated: channels.length > targets.length,
+      windowDays,
     };
   }
 
@@ -186,6 +349,86 @@ class DiscordBot {
     const permissions = 338688;
     const scopes = encodeURIComponent('bot applications.commands');
     return `https://discord.com/api/oauth2/authorize?client_id=${clientId}&permissions=${permissions}&scope=${scopes}`;
+  }
+
+  // ─── OAuth2 de usuario (prueba de propiedad del servidor) ────────────────────
+  //
+  // El invite del bot demuestra que ALGUIEN con "Gestionar servidor" añadió el
+  // bot, pero no quién. Para activar un canal necesitamos probar que es ESTE
+  // usuario quien controla el guild. Lo hacemos con el flujo OAuth2 `identify
+  // guilds`: tras autorizar, listamos sus guilds (`GET /users/@me/guilds`) y
+  // comprobamos que es owner o admin del que está reclamando.
+
+  // Bits de permiso a nivel de usuario que consideramos "control del servidor".
+  static get OWNER_PERMS() {
+    const ADMINISTRATOR = BigInt(1) << BigInt(3);
+    const MANAGE_GUILD = BigInt(1) << BigInt(5);
+    return { ADMINISTRATOR, MANAGE_GUILD, mask: ADMINISTRATOR | MANAGE_GUILD };
+  }
+
+  /**
+   * URL de autorización OAuth2 con scope `identify guilds` (solo lectura;
+   * no concede al bot ningún permiso adicional).
+   */
+  static generateOAuthUrl({ clientId, redirectUri, state }) {
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: 'identify guilds',
+      // `consent` fuerza la pantalla de autorización aunque ya la concediera
+      // antes, evitando reusar silenciosamente un grant de otra sesión.
+      prompt: 'consent',
+    });
+    if (state) params.set('state', state);
+    return `https://discord.com/api/oauth2/authorize?${params.toString()}`;
+  }
+
+  /** Intercambia el `code` del callback por un access_token de usuario. */
+  static async exchangeOAuthCode({ clientId, clientSecret, code, redirectUri }) {
+    const body = new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: redirectUri,
+    });
+    try {
+      const res = await axios.post(`${DISCORD_API}/oauth2/token`, body.toString(), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        timeout: 10000,
+      });
+      return res.data; // { access_token, token_type, scope, ... }
+    } catch (err) {
+      const msg = err.response?.data?.error_description || err.response?.data?.error || err.message;
+      throw new Error(`Discord OAuth token: ${msg}`);
+    }
+  }
+
+  /** Lista los guilds del usuario autenticado (requiere un user access_token). */
+  static async getUserGuilds(accessToken) {
+    try {
+      const res = await axios.get(`${DISCORD_API}/users/@me/guilds`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        timeout: 10000,
+      });
+      return Array.isArray(res.data) ? res.data : [];
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message;
+      throw new Error(`Discord OAuth guilds: ${msg}`);
+    }
+  }
+
+  /** Devuelve true si el usuario es owner o admin del guild (objeto de getUserGuilds). */
+  static userControlsGuild(guild) {
+    if (!guild) return false;
+    if (guild.owner === true) return true;
+    try {
+      const perms = BigInt(guild.permissions || '0');
+      return (perms & DiscordBot.OWNER_PERMS.mask) !== BigInt(0);
+    } catch {
+      return false;
+    }
   }
 
   static parseGatewayEvent(eventType, eventData) {

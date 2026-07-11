@@ -187,6 +187,13 @@ async function buildChannelIntelligence(canalId) {
       ratioCTF_CAF: canal.antifraude?.ratioCTF_CAF ?? null,
       confianzaScore: canal.verificacion?.confianzaScore ?? 0,
       flags: filterPublicFlags(canal.antifraude?.flags),
+      // Public audience-authenticity score (0-100, higher = cleaner), from the
+      // Discord census reader. Only this positive aggregate is exposed — the raw
+      // breakdown (pctBotsEstimado, join-burst, %new accounts) and the reader's
+      // fraud flags stay admin-only (see PUBLIC_FLAG_WHITELIST), so bad actors
+      // can't see which signal to game. Null when the reader hasn't measured the
+      // channel (non-Discord, or census not yet run / GUILD_MEMBERS intent off).
+      authenticityScore: canal.autenticidad?.authenticityScore ?? null,
     },
     historial,
     benchmark,

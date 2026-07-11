@@ -220,6 +220,15 @@ const connectDiscord = async (req, res, next) => {
     const guildName = verification.guild?.name || name || '';
     const memberCount = verification.guild?.memberCount || 0;
 
+    // Pick a default text channel so ads have a valid publish target (the
+    // delivery path reads identificadores.channelId). Non-fatal if it fails.
+    let publishChannelId = '';
+    try {
+      const channels = await discord.getPublishableChannels(serverId);
+      const target = DiscordAPI.pickDefaultPublishChannel(channels);
+      if (target) publishChannelId = String(target.id);
+    } catch (_) { /* keep connection even if channel listing fails */ }
+
     // Discord: bot membership is enforced by getGuild (403 otherwise) AND
     // verifyBotAccess now requires VIEW_CHANNEL + SEND_MESSAGES — confianza
     // is on par with the Telegram bot-admin path.
@@ -227,7 +236,7 @@ const connectDiscord = async (req, res, next) => {
       nombreCanal: guildName,
       categoria: category || '',
       estadisticas: { seguidores: memberCount },
-      identificadores: { serverId },
+      identificadores: { serverId, channelId: publishChannelId },
       credenciales: { botToken, tokenType: 'manual' },
     }, { verificado: true, tipoAcceso: 'admin_directo', confianzaScore: 80 });
 
