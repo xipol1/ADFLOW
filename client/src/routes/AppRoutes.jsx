@@ -108,6 +108,7 @@ const CreatorToolsPage = lazyWithRetry(() => import('../ui/pages/dashboard/creat
 const CreatorActivityPage = lazyWithRetry(() => import('../ui/pages/dashboard/creator/CreatorActivityPage'))
 const CreatorBillingPage = lazyWithRetry(() => import('../ui/pages/dashboard/creator/CreatorBillingPage'))
 const CreatorSwapsPage = lazyWithRetry(() => import('../ui/pages/dashboard/creator/CreatorSwapsPage'))
+const CreatorLinksPage = lazyWithRetry(() => import('../ui/pages/dashboard/creator/CreatorLinksPage'))
 const LinkWhatsAppPage = lazyWithRetry(() => import('../ui/pages/dashboard/creator/LinkWhatsAppPage'))
 const WhatsAppAuditLogPage = lazyWithRetry(() => import('../ui/pages/dashboard/creator/WhatsAppAuditLogPage'))
 const VerifyWhatsAppAdminPage = lazyWithRetry(() => import('../ui/pages/dashboard/creator/VerifyWhatsAppAdminPage'))
@@ -335,6 +336,7 @@ export default function AppRoutes() {
           <Route path="activity" element={<FullAccessOnly feature="Actividad"><CreatorActivityPage /></FullAccessOnly>} />
           <Route path="billing"  element={<FullAccessOnly feature="Billing"><CreatorBillingPage /></FullAccessOnly>} />
           <Route path="swaps"    element={<FullAccessOnly feature="Colaboraciones"><CreatorSwapsPage /></FullAccessOnly>} />
+          <Route path="links"    element={<CreatorLinksPage />} />
           <Route path="referrals" element={<CreatorReferralsPage />} />
           <Route path="disputes" element={<FullAccessOnly feature="Disputas"><DisputesPage /></FullAccessOnly>} />
           <Route path="notifications" element={<NotificationsPage />} />
