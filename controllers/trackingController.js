@@ -35,6 +35,13 @@ const validateTargetUrl = (raw) => {
 const BASE_URL = process.env.FRONTEND_URL
   || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
 
+// Domain-format codes are stored as "go/<host>/<path>" and served by the
+// /go/* mount (app.js), so their public URL is origin/go/... — NOT /t/go/...
+// (a slash inside :code never matches the /t/:code route). Short and custom
+// codes both resolve through /t/:code.
+const buildTrackingUrl = (origin, code) =>
+  code && code.startsWith('go/') ? `${origin}/${code}` : `${origin}/t/${code}`;
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // CREATE TRACKING LINK — POST /api/tracking/links
 // Creates a short trackable URL for any destination
@@ -338,7 +345,7 @@ const getLinkAnalytics = async (req, res, next) => {
       data: {
         id: link._id,
         code: link.code,
-        trackingUrl: `${origin}/t/${link.code}`,
+        trackingUrl: buildTrackingUrl(origin, link.code),
         targetUrl: link.targetUrl,
         type: link.type,
         stats: link.stats,
@@ -377,6 +384,7 @@ const getMyLinks = async (req, res, next) => {
 
     const links = await TrackingLink.find(filter)
       .select('code targetUrl type stats verification campaign channel active createdAt')
+      .populate('channel', 'nombreCanal plataforma')
       .sort({ createdAt: -1 })
       .limit(100)
       .lean();
@@ -387,7 +395,7 @@ const getMyLinks = async (req, res, next) => {
       success: true,
       data: links.map(l => ({
         ...l,
-        trackingUrl: `${origin}/t/${l.code}`,
+        trackingUrl: buildTrackingUrl(origin, l.code),
       })),
     });
   } catch (error) { next(error); }

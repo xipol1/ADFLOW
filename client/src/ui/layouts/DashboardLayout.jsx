@@ -14,6 +14,7 @@ import {
   Activity, Filter, Bookmark, Layers, FlaskConical,
   Rocket, Hash, PieChart, GitCompare, User as UserIcon, MessageSquare,
   Compass, Building2, Wrench, Receipt, Sparkles, BellRing, Repeat, Trophy, CreditCard, Award,
+  Link2,
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../services/api'
@@ -101,6 +102,7 @@ const ROLE_CONFIG = {
       ]},
       { group: 'Monetizar', items: [
         { path: '/earnings',  icon: Wallet,          label: 'Ganancias',         fullOnly: true },
+        { path: '/links',     icon: Link2,           label: 'Mis enlaces'        },
         { path: '/pricing',   icon: DollarSign,      label: 'Optimizar precios', fullOnly: true },
         { path: '/billing',   icon: Receipt,         label: 'Facturación',       fullOnly: true },
       ]},
