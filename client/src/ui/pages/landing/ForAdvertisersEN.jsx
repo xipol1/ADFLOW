@@ -69,7 +69,7 @@ export default function ForAdvertisersEN() {
             Channel<span style={{ color: PURPLE }}>ad</span>
           </Link>
           <nav style={{ display: 'flex', alignItems: 'center', gap: 20, fontSize: 14 }}>
-            <Link to="/blog/best-whatsapp-advertising-platforms" style={{ color: MUTED, textDecoration: 'none' }}>Guides</Link>
+            <a href="/blog/best-whatsapp-advertising-platforms" style={{ color: MUTED, textDecoration: 'none' }}>Guides</a>
             <a href="/para-anunciantes" style={{ color: MUTED, textDecoration: 'none' }} hrefLang="es">ES</a>
             <Link to="/marketplace" style={{ ...btnPrimary, padding: '9px 18px', fontSize: 14 }}>Browse channels</Link>
           </nav>
@@ -180,7 +180,7 @@ export default function ForAdvertisersEN() {
           <span>© 2026 Channelad</span>
           <span style={{ display: 'flex', gap: 18 }}>
             <a href="/para-anunciantes" hrefLang="es" style={{ color: MUTED, textDecoration: 'none' }}>Español</a>
-            <Link to="/blog/best-whatsapp-advertising-platforms" style={{ color: MUTED, textDecoration: 'none' }}>Guides</Link>
+            <a href="/blog/best-whatsapp-advertising-platforms" style={{ color: MUTED, textDecoration: 'none' }}>Guides</a>
             <Link to="/marketplace" style={{ color: PURPLE, textDecoration: 'none', fontWeight: 600 }}>Browse channels</Link>
           </span>
         </div>
