@@ -18,7 +18,7 @@ En esta guía te doy la fórmula exacta, los CPMs reales por nicho en España, t
 ## Índice de contenidos
 
 - [Por qué WhatsApp cobra más que Telegram](#por-que-whatsapp-cobra-mas-que-telegram-y-menos-que-lo-que-deberia)
-- [La fórmula: suscriptores activos × CPM / 1.000](#la-formula-suscriptores-activos-x-cpm-1-000)
+- [La fórmula: suscriptores activos × CPM / 1.000](#la-formula-suscriptores-activos--cpm--1000)
 - [Tabla de CPMs por nicho (WhatsApp 2026)](#tabla-de-cpms-por-nicho-en-espana-whatsapp-2026)
 - [Multiplicadores por formato](#multiplicadores-por-formato)
 - [Tres ejemplos reales con números](#tres-ejemplos-reales-con-numeros)

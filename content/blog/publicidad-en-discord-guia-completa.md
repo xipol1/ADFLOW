@@ -18,7 +18,7 @@ Todo lo que he aprendido gastando más de 3.000 € en anuncios en servidores de
 - [Los formatos de anuncios en Discord que realmente funcionan](#los-formatos-de-anuncios-en-discord-que-realmente-funcionan)
 - [Cuánto cuesta anunciarse en servidores de Discord en 2026](#cuanto-cuesta-anunciarse-en-servidores-de-discord-en-2026)
 - [Cómo encontrar servidores verificados para tu marca](#como-encontrar-servidores-verificados-para-tu-marca-sin-perder-dinero)
-- [Mi experiencia comprando publicidad en comunidades de Discord](#mi-experiencia-comprando-publicidad-en-comunidades-de-discord)
+- [Mi experiencia comprando publicidad en comunidades de Discord](#mi-experiencia-comprando-publicidad-en-comunidades-de-discord-en-espana)
 - [Errores que he visto (y cometido) en campañas de Discord](#errores-que-he-visto-y-cometido-en-campanas-de-discord)
 - [Discord vs Telegram vs Instagram: dónde rinde más tu presupuesto](#discord-vs-telegram-vs-instagram-donde-rinde-mas-tu-presupuesto-publicitario)
 - [Por qué la promoción en servidores de Discord será el canal estrella en 2027](#por-que-la-promocion-en-servidores-de-discord-sera-el-canal-estrella-en-2027)
