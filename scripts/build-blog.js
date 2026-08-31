@@ -16,6 +16,14 @@ const ROOT = path.resolve(__dirname, '..');
 const CONTENT_DIR = path.join(ROOT, 'content', 'blog');
 const OUTPUT_DIR = path.join(ROOT, 'public', 'blog');
 const TEMPLATE_PATH = path.join(CONTENT_DIR, '_template.html');
+// Consent Mode v2 + GTM, shared verbatim with the SPA shell (vite.config.js
+// injects the same file). The blog shipped with no analytics at all until
+// August 2026 — every organic pageview was invisible — so this is deliberately
+// the same bytes on both surfaces rather than a second copy to keep in sync.
+// The banner is blog-only: static pages have no React CookieBanner, so without
+// it a visitor landing from Google could never move off consent "denied".
+const ANALYTICS_TAG = fs.readFileSync(path.join(ROOT, 'config', 'analytics-tag.html'), 'utf-8');
+const CONSENT_BANNER = fs.readFileSync(path.join(ROOT, 'config', 'analytics-consent-banner.html'), 'utf-8');
 const SITEMAP_PATH = path.join(ROOT, 'public', 'sitemap.xml');
 const DOMAIN = 'https://channelad.io';
 
@@ -700,7 +708,11 @@ function build() {
       .replace(/{{faq_schema}}/g, faqSchema)
       .replace(/{{howto_schema}}/g, howtoSchema)
       .replace(/{{ogLocale}}/g, ogLocale)
-      .replace(/{{wordCount}}/g, String(wordCount));
+      .replace(/{{wordCount}}/g, String(wordCount))
+      // Function replacements: the snippets are raw HTML, so a literal `$&` or
+      // `$1` in them must not be treated as a substitution pattern.
+      .replace(/{{analytics}}/g, () => ANALYTICS_TAG)
+      .replace(/{{consentBanner}}/g, () => CONSENT_BANNER);
 
     // Skip static HTML for posts that need SPA (interactive components)
     if (meta.spaOnly === 'true') {
@@ -946,6 +958,7 @@ function build() {
       .filter-btn { padding: 6px 12px; font-size: 12px; }
     }
   </style>
+  ${ANALYTICS_TAG}
 </head>
 <body>
   <svg class="grain"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
@@ -994,6 +1007,7 @@ function build() {
       <a href="/soporte" style="color:#7C3AED;text-decoration:none">Soporte</a>
     </span>
   </footer>
+  ${CONSENT_BANNER}
 </body>
 </html>`;
 

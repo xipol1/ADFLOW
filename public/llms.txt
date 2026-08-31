@@ -31,7 +31,7 @@ Diferenciales frente a Telega.in y Collaborator: cobertura de WhatsApp, Telegram
 - [Blog](https://channelad.io/blog): índice completo de guías y casos de estudio.
 
 <!-- blog:auto:start -->
-## Blog (52 guías, actualizado 2026-08-25)
+## Blog (52 guías, actualizado 2026-08-31)
 
 ### Guías
 

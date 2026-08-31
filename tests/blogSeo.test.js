@@ -119,3 +119,55 @@ describe('blog: sitemap and feed match the built posts', () => {
     expect((feed.match(/<item>/g) || []).length).toBe(expected.length);
   });
 });
+
+// The blog shipped for months with no analytics tag whatsoever: scripts/build-blog.js
+// grew its own <head> independently of client/index.html, so every /blog/* pageview —
+// the entire organic surface — was invisible in GA4, and nothing failed. Both the tag
+// and its consent gate are now injected from config/, and these lock that in.
+describe('blog: analytics tag is present and consent-gated', () => {
+  const analyticsTag = fs.readFileSync(path.join(ROOT, 'config', 'analytics-tag.html'), 'utf-8');
+  const pages = [...postFiles, 'index.html'];
+
+  it('loads Google Tag Manager on every built page', () => {
+    const missing = pages.filter(f => !read(f).includes('googletagmanager.com/gtm.js?id=GTM-5D2RGMVJ'));
+    expect(missing).toEqual([]);
+  });
+
+  it('sets Consent Mode v2 defaults to denied before loading any Google tag', () => {
+    for (const f of pages) {
+      const html = read(f);
+      const defaultAt = html.indexOf("gtag('consent', 'default'");
+      const gtmAt = html.indexOf('googletagmanager.com/gtm.js');
+      expect(defaultAt).toBeGreaterThan(-1);
+      // Ordering, not mere presence: defaults that run after the loader do nothing.
+      expect(defaultAt).toBeLessThan(gtmAt);
+      for (const signal of ['ad_storage', 'analytics_storage', 'ad_user_data', 'ad_personalization']) {
+        expect(html).toMatch(new RegExp(`${signal}: 'denied'`));
+      }
+    }
+  });
+
+  it('gives static pages a way to consent, since they have no React banner', () => {
+    const missing = pages.filter(f => !read(f).includes('id="cc-banner"'));
+    expect(missing).toEqual([]);
+  });
+
+  it('never loads Ahrefs without analytics consent', () => {
+    for (const f of pages) {
+      const html = read(f);
+      // The only mention of the script URL must be inside the gated loader.
+      expect((html.match(/analytics\.ahrefs\.com/g) || []).length).toBe(1);
+      expect(html).toContain('window.__channeladLoadAhrefs = function');
+    }
+  });
+
+  it('injects config/analytics-tag.html verbatim, so the SPA cannot drift from the blog', () => {
+    const drifted = pages.filter(f => !read(f).includes(analyticsTag.trim()));
+    expect(drifted).toEqual([]);
+  });
+
+  it('leaves no unreplaced template placeholder in the output', () => {
+    const leftover = pages.filter(f => /{{\s*(analytics|consentBanner)\s*}}/.test(read(f)));
+    expect(leftover).toEqual([]);
+  });
+});
