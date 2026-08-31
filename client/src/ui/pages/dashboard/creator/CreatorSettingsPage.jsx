@@ -62,7 +62,7 @@ const Inp = ({ label, type = 'text', value, onChange, placeholder, hint, error, 
 }
 
 // ── Toggle ───────────────────────────────────────────────────────────────────
-const Toggle = ({ label, desc, on, onChange }) => {
+const Toggle = ({ label, desc, on, onChange, disabled }) => {
   const descId = useState(() => `toggle-desc-${Math.random().toString(36).slice(2, 9)}`)[0]
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
@@ -76,6 +76,7 @@ const Toggle = ({ label, desc, on, onChange }) => {
         aria-checked={!!on}
         aria-label={label}
         aria-describedby={desc ? descId : undefined}
+        disabled={disabled}
         onClick={() => onChange?.(!on)}
         onKeyDown={(e) => {
           if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onChange?.(!on) }
@@ -239,9 +240,42 @@ export default function CreatorSettingsPage() {
   // ── Notification prefs ──
   const [notifs, setNotifs] = useState({
     nuevaSolicitud: true, solicitudAprobada: true, pagoRecibido: true,
-    retiroProcesado: true, recordatorio: true, novedades: false,
+    retiroProcesado: true, recordatorio: true,
   })
   const tn = (k) => setNotifs(p => ({ ...p, [k]: !p[k] }))
+
+  // ── Consentimiento de emails comerciales ──
+  // Vive en su propio endpoint (/api/comunicaciones) y NO en
+  // preferenciasNotificacion: es otra base legal (consentimiento, art. 6.1.a
+  // RGPD) y necesita quedar registrado con fecha, texto e IP. Por eso se
+  // guarda al instante al pulsar, no con el botón "Guardar" de la pestaña.
+  const [marketingOptIn, setMarketingOptIn] = useState(false)
+  const [savingMarketing, setSavingMarketing] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    apiService.getCommunicationPreferences()
+      .then((r) => { if (!cancelled) setMarketingOptIn(r?.preferencias?.marketingOptIn === true) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  const toggleMarketing = async (next) => {
+    setSavingMarketing(true)
+    const previo = marketingOptIn
+    setMarketingOptIn(next)
+    try {
+      const res = await apiService.updateCommunicationPreferences(next)
+      if (!res?.success) throw new Error(res?.message)
+      setMarketingOptIn(res.preferencias?.marketingOptIn === true)
+      setToast({ type: 'success', text: next ? 'Suscrito a novedades' : 'Baja registrada' })
+    } catch {
+      setMarketingOptIn(previo)
+      setToast({ type: 'error', text: 'No se pudo guardar la preferencia' })
+    } finally {
+      setSavingMarketing(false)
+    }
+  }
 
   // ── Security form ──
   const [security, setSecurity] = useState({ actual: '', nueva: '', confirmar: '' })
@@ -502,7 +536,13 @@ export default function CreatorSettingsPage() {
           <Toggle label="Pago recibido" desc="Aviso cuando recibes un ingreso en tu cuenta" on={notifs.pagoRecibido} onChange={() => tn('pagoRecibido')} />
           <Toggle label="Retiro procesado" desc="Confirmación cuando tu retiro se ha procesado" on={notifs.retiroProcesado} onChange={() => tn('retiroProcesado')} />
           <Toggle label="Recordatorio de respuesta" desc="Aviso si llevas más de 24h sin responder a una solicitud" on={notifs.recordatorio} onChange={() => tn('recordatorio')} />
-          <Toggle label="Novedades de ChannelAd" desc="Actualizaciones y nuevas funcionalidades de la plataforma" on={notifs.novedades} onChange={() => tn('novedades')} />
+          <Toggle
+            label="Novedades de Channelad"
+            desc="Novedades de producto, funcionalidades nuevas y consejos. Opcional; se guarda al momento y puedes darte de baja cuando quieras."
+            on={marketingOptIn}
+            onChange={toggleMarketing}
+            disabled={savingMarketing}
+          />
         </Card>
       )}
 

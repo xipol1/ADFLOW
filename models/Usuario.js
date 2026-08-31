@@ -33,6 +33,29 @@ const ConsentimientoSchema = new mongoose.Schema(
 // Los campos requeridos para emitir factura legal son:
 // razonSocial, nif, direccion, cp, ciudad, pais. `completado` se calcula
 // automáticamente en el pre-save hook cuando todos están presentes.
+// Consentimiento de comunicaciones COMERCIALES (art. 6.1.a RGPD + art. 21 LSSI).
+// Deliberadamente separado de `consentimientos` (clickwrap legal, que es
+// obligatorio y va por ejecución de contrato): el marketing es OPCIONAL, se
+// presta con casilla NO premarcada y se puede retirar en cualquier momento con
+// la misma facilidad con la que se dio (art. 7.3 RGPD).
+//
+// Historial INMUTABLE de altas y bajas: cada acción se añade como entrada
+// nueva con el texto literal que vio el usuario, la fecha, la IP y el UA. Eso
+// es la prueba que exige el art. 7.1 RGPD si alguien reclama.
+const ComunicacionEventoSchema = new mongoose.Schema(
+  {
+    accion: { type: String, required: true, enum: ['opt_in', 'opt_out'] },
+    // 'registro' | 'preferencias' | 'email_baja' | 'admin'
+    origen: { type: String, default: 'preferencias' },
+    texto: { type: String, default: '' },     // texto literal de la casilla
+    version: { type: String, default: '' },   // versión del texto de consentimiento
+    fecha: { type: Date, default: Date.now },
+    ip: { type: String, default: '' },
+    userAgent: { type: String, default: '' },
+  },
+  { _id: false }
+);
+
 const DatosFacturacionSchema = new mongoose.Schema(
   {
     razonSocial: { type: String, default: '', trim: true },
@@ -93,9 +116,36 @@ const UsuarioSchema = new mongoose.Schema(
     // comparando estas entradas con el conjunto requerido para el rol del
     // usuario a la versión vigente del manifest (services/legalConsent.js).
     consentimientos: { type: [ConsentimientoSchema], default: [] },
+
+    // Preferencias de comunicación. `marketingOptIn` es el estado vigente
+    // (fuente única para decidir si se puede enviar un email comercial) y
+    // `historial` la prueba de como se llego a el. Ver services/marketingConsent.js.
+    comunicaciones: {
+      marketingOptIn: { type: Boolean, default: false },
+      marketingOptInAt: { type: Date, default: null },
+      marketingOptOutAt: { type: Date, default: null },
+      historial: { type: [ComunicacionEventoSchema], default: [] },
+
+      // Estado de la pregunta que se le hace UNA vez a las cuentas que se
+      // registraron antes de que existiera la casilla de marketing. `respuesta`
+      // se queda en 'si' o 'no' para siempre: preguntado y contestado, no se
+      // vuelve a molestar. `aplazamientos` cuenta las veces que cerró el
+      // diálogo sin responder — al llegar al tope dejamos de preguntar, porque
+      // insistir sin descanso convierte el consentimiento en acoso.
+      marketingPrompt: {
+        respuesta: { type: String, default: null, enum: [null, 'si', 'no'] },
+        respondidoEn: { type: Date, default: null },
+        aplazamientos: { type: Number, default: 0 },
+      },
+    },
+
     ultimaActividad: { type: Date, default: null },
     emailVerificationToken: { type: String, default: null },
     emailVerificationExpires: { type: Date, default: null },
+    // Recordatorios de verificación ya enviados (email OPERATIVO, no comercial).
+    // Los lleva jobs/verificationReminderJob para no repetirse ni pasar del tope.
+    verificationRemindersSent: { type: Number, default: 0 },
+    lastVerificationReminderAt: { type: Date, default: null },
     pushSubscriptions: [{
       endpoint: String,
       keys: { p256dh: String, auth: String },

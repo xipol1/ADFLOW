@@ -35,6 +35,7 @@ const AuditPage = lazyWithRetry(() => import('../ui/pages/landing/AuditPage'))
 const HerramientasPage = lazyWithRetry(() => import('../ui/pages/landing/HerramientasPage'))
 const PricingPage = lazyWithRetry(() => import('../ui/pages/pricing/PricingPage'))
 const BillingPage = lazyWithRetry(() => import('../ui/pages/account/BillingPage'))
+const CommunicationsPage = lazyWithRetry(() => import('../ui/pages/account/CommunicationsPage'))
 const QueEsChanneladPage = lazyWithRetry(() => import('../ui/pages/landing/QueEsChanneladPage'))
 // The blog is static HTML built by scripts/build-blog.js and served straight by
 // the rewrites in vercel.json — /blog and /blog/<slug> never reach this router.
@@ -236,6 +237,14 @@ export default function AppRoutes() {
             element={
               <ProtectedRoute>
                 <BillingPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="account/comunicaciones"
+            element={
+              <ProtectedRoute>
+                <CommunicationsPage />
               </ProtectedRoute>
             }
           />

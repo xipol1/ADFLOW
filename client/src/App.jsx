@@ -8,6 +8,7 @@ import { NotificationsProvider } from './hooks/useNotifications'
 import { ToastProvider } from './components/ui/Toast'
 import PlanGateProvider from './ui/components/PlanGateProvider'
 import TermsAcceptanceGate from './ui/components/TermsAcceptanceGate'
+import MarketingConsentPrompt from './ui/components/MarketingConsentPrompt'
 import CookieBanner from './ui/components/CookieBanner'
 import { registerCalculatorTools } from './ui/lib/webmcp'
 
@@ -43,6 +44,7 @@ export default function App() {
               <AppRoutes />
               <PlanGateProvider />
               <TermsAcceptanceGate />
+              <MarketingConsentPrompt />
               <CookieBanner />
             </ToastProvider>
           </NotificationsProvider>

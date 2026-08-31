@@ -1,0 +1,106 @@
+<!-- Preheader: Tu cuenta en {{APP_NAME}} sigue sin verificar -->
+<!--
+  Email OPERATIVO (art. 6.1.b RGPD): la persona inició un alta y le pedimos que
+  la complete. Puede explicar qué podrá hacer una vez dentro — eso es contexto
+  del servicio — pero NO puede contener ofertas, descuentos ni promociones. Si
+  se cruza esa línea pasa a ser comunicación comercial y necesita el
+  consentimiento del art. 21 LSSI. Por eso este email no lleva enlace de baja.
+-->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+  <tr>
+    <td style="padding: 40px 40px 20px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center;">
+            <div style="font-size: 48px; line-height: 1; margin-bottom: 16px;">&#9993;</div>
+            <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700; color: #1e293b; line-height: 1.2;">
+              Te queda un paso
+            </h1>
+            <p style="margin: 0 0 12px 0; font-size: 16px; color: #64748b; line-height: 1.5;">
+              Hola <strong style="color: #1e293b;">{{nombre}}</strong>, creaste una cuenta en {{APP_NAME}}{{fechaAltaFrase}} y sigue sin activar porque falta verificar el email.
+            </p>
+            <!-- Frase de contexto opcional: la rellena quien env&iacute;a (p. ej. la
+                 tanda de recuperaci&oacute;n de la ca&iacute;da de SMTP). Vac&iacute;a en los
+                 recordatorios normales del cron. -->
+            <p style="margin: 0; font-size: 16px; color: #64748b; line-height: 1.5;">
+              {{contexto}}
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- CTA Button -->
+  <tr>
+    <td style="padding: 20px 40px 30px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+        <tr>
+          <td style="border-radius: 8px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+            <a href="{{verificationUrl}}" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border: none; border-radius: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 600; line-height: 1; text-decoration: none; padding: 14px 36px; color: #ffffff; display: inline-block;">
+              &#10003; Verificar mi email
+            </a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Fallback link -->
+  <tr>
+    <td style="padding: 0 40px 30px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+        <tr>
+          <td style="padding: 16px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; color: #64748b; line-height: 1.5; text-align: center;">
+            Si el bot&oacute;n no funciona, copia y pega este enlace en tu navegador:
+            <br>
+            <a href="{{verificationUrl}}" style="color: #6366f1; word-break: break-all; font-size: 12px;">{{verificationUrl}}</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Qué desbloquea la verificación (contexto del servicio, no promoción) -->
+  <tr>
+    <td style="padding: 0 40px 30px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+        <tr>
+          <td style="padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #475569; line-height: 1.7;">
+            <strong style="color: #1e293b;">Qu&eacute; puedes hacer con la cuenta de {{rolEtiqueta}} activa:</strong>
+            <br>
+            &#8226; {{punto1}}<br>
+            &#8226; {{punto2}}<br>
+            &#8226; {{punto3}}
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Aviso de caducidad -->
+  <tr>
+    <td style="padding: 0 40px 20px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
+        <tr>
+          <td style="padding: 16px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #92400e; line-height: 1.5;">
+            <strong>&#9888; Registro pendiente:</strong> {{aviso}}
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Nota de seguridad -->
+  <tr>
+    <td style="padding: 0 40px 40px 40px;" class="padding-mobile">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f0fdf4; border-radius: 8px; border-left: 4px solid #22c55e;">
+        <tr>
+          <td style="padding: 16px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #166534; line-height: 1.5;">
+            <strong>&#128274; Nota de seguridad:</strong> Si no creaste esta cuenta, ign&oacute;ralo. Sin verificar el email nadie puede usarla, y la eliminaremos sola.
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

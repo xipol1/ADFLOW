@@ -131,6 +131,19 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Actualiza campos sueltos del usuario en sesión sin recargar la página.
+  // Lo usan los diálogos que cambian una preferencia y necesitan que el resto
+  // de la app vea el nuevo estado al instante (p. ej. MarketingConsentPrompt,
+  // que debe dejar de mostrarse en cuanto se responde).
+  const updateUser = (parcial) => {
+    setUser((prev) => {
+      if (!prev) return prev
+      const siguiente = { ...prev, ...parcial }
+      try { localStorage.setItem('user', JSON.stringify(siguiente)) } catch {}
+      return siguiente
+    })
+  }
+
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('refreshToken')
@@ -164,6 +177,7 @@ export function AuthProvider({ children }) {
       loginWithGoogle,
       register,
       logout,
+      updateUser,
       setAuthFromVerification,
       clearError: () => setError(''),
       isAnunciante: rol === 'anunciante' || rol === 'advertiser',
