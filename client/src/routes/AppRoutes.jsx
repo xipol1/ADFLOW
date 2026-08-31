@@ -17,6 +17,7 @@ const ForgotPasswordPage = lazyWithRetry(() => import('../ui/pages/auth/ForgotPa
 const ResetPasswordPage = lazyWithRetry(() => import('../ui/pages/auth/ResetPasswordPage'))
 
 const DashboardPage = lazyWithRetry(() => import('../ui/pages/dashboard/DashboardPage'))
+const BetaWaitlistPage = lazyWithRetry(() => import('../ui/pages/beta/BetaWaitlistPage'))
 const MarketplacePage = lazyWithRetry(() => import('../ui/pages/marketplace/MarketplacePage'))
 const ChannelExplorerPage = lazyWithRetry(() => import('../ui/pages/channel/ChannelExplorerPage'))
 const NicheIntelligencePage = lazyWithRetry(() => import('../ui/pages/niche/NicheIntelligencePage'))
@@ -117,6 +118,7 @@ const VerifyWhatsAppAdminPage = lazyWithRetry(() => import('../ui/pages/dashboar
 const AdminLayout = lazyWithRetry(() => import('../ui/pages/dashboard/admin/AdminLayout'))
 const AdminOverviewPage = lazyWithRetry(() => import('../ui/pages/dashboard/admin/AdminOverviewPage'))
 const AdminUsersPage = lazyWithRetry(() => import('../ui/pages/dashboard/admin/AdminUsersPage'))
+const AdminWaitlistPage = lazyWithRetry(() => import('../ui/pages/dashboard/admin/AdminWaitlistPage'))
 const AdminChannelsPage = lazyWithRetry(() => import('../ui/pages/dashboard/admin/AdminChannelsPage'))
 const AdminCampaignsPage = lazyWithRetry(() => import('../ui/pages/dashboard/admin/AdminCampaignsPage'))
 const AdminDisputesPage = lazyWithRetry(() => import('../ui/pages/dashboard/admin/AdminDisputesPage'))
@@ -247,6 +249,16 @@ export default function AppRoutes() {
               </ProtectedRoute>
             }
           />
+          {/* Waiting room for signed-in users without betaAccess. Deliberately
+              NOT behind requireBeta — it is where that gate sends people. */}
+          <Route
+            path="beta"
+            element={
+              <ProtectedRoute>
+                <BetaWaitlistPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="admin/candidates"
             element={
@@ -354,6 +366,7 @@ export default function AppRoutes() {
         >
           <Route index          element={<AdminOverviewPage />} />
           <Route path="users"      element={<AdminUsersPage />} />
+          <Route path="waitlist"   element={<AdminWaitlistPage />} />
           <Route path="channels"   element={<AdminChannelsPage />} />
           <Route path="campaigns"  element={<AdminCampaignsPage />} />
           <Route path="disputes"   element={<AdminDisputesPage />} />

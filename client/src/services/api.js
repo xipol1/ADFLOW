@@ -377,6 +377,18 @@ class ApiService {
   async getAdminOverview() {
     return this.request('/admin/dashboard/overview');
   }
+  // ─── Beta programme ───────────────────────────────────────────────
+  async getBetaStatus() {
+    return this.request('/beta/estado');
+  }
+  async joinBetaWaitlist(data) {
+    return this.request('/beta/waitlist', { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } });
+  }
+
+  async getAdminWaitlist(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/admin/dashboard/waitlist${qs ? `?${qs}` : ''}`);
+  }
   async getAdminUsers(params = {}) {
     const qs = new URLSearchParams(params).toString();
     return this.request(`/admin/dashboard/users${qs ? `?${qs}` : ''}`);

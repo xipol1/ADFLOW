@@ -34,8 +34,11 @@ export default function ProtectedRoute({ children, allowedRoles = [], requireBet
 
   const rol = user?.rol || user?.role || ''
   if (allowedRoles.length > 0 && !allowedRoles.includes(rol)) return <Navigate to="/" replace />
+  // Send them to the waiting room, not back to /dashboard. The old target
+  // rendered a banner whose CTAs pointed at routes behind this same gate,
+  // so every click bounced the user straight back here.
   if (requireBeta && !betaAccess) {
-    return <Navigate to="/dashboard" state={{ betaWall: true }} replace />
+    return <Navigate to="/beta" replace />
   }
   return children
 }

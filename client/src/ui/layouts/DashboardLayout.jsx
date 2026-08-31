@@ -14,7 +14,7 @@ import {
   Activity, Filter, Bookmark, Layers, FlaskConical,
   Rocket, Hash, PieChart, GitCompare, User as UserIcon, MessageSquare,
   Compass, Building2, Wrench, Receipt, Sparkles, BellRing, Repeat, Trophy, CreditCard, Award,
-  Link2,
+  Link2, Clock,
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../services/api'
@@ -136,6 +136,7 @@ const ROLE_CONFIG = {
       ]},
       { group: 'Gestión', items: [
         { path: '/users',      icon: Users,           label: 'Usuarios'              },
+        { path: '/waitlist',   icon: Clock,           label: 'Lista de espera'       },
         { path: '/channels',   icon: Radio,           label: 'Canales'               },
         { path: '/campaigns',  icon: Megaphone,       label: 'Campañas'              },
         { path: '/disputes',   icon: ShieldAlert,     label: 'Disputas'              },

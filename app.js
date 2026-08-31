@@ -60,6 +60,7 @@ try { _routes['./routes/founders']            = require('./routes/founders');   
 try { _routes['./routes/calculator']          = require('./routes/calculator');          } catch (e) { _routes['./routes/calculator']          = e; }
 try { _routes['./routes/features']            = require('./routes/features');            } catch (e) { _routes['./routes/features']            = e; }
 try { _routes['./routes/affiliateTrack']      = require('./routes/affiliateTrack');      } catch (e) { _routes['./routes/affiliateTrack']      = e; }
+try { _routes['./routes/beta']                = require('./routes/beta');                } catch (e) { _routes['./routes/beta']                = e; }
 
 // Pre-load for Vercel nft tracer (require only, don't execute swagger-jsdoc at top level)
 let _swaggerPathsJson;
@@ -609,6 +610,7 @@ const enabledRoutes = [
   ['/api/admin/scoring', './routes/adminScoring'],
   ['/api/admin/metrics', './routes/adminMetrics'],
   ['/api/admin/dashboard', './routes/adminDashboard'],
+  ['/api/beta', './routes/beta'],
   ['/api/channels', './routes/channelIntelligence'],
   ['/api/channels', './routes/channelDemographics'],
   ['/api/niche',    './routes/nicheIntelligence'],

@@ -260,6 +260,69 @@ async function notificarCambioBeta({ req, user, concedido, motivo }) {
   }
 }
 
+// ─── Beta waitlist ───────────────────────────────────────────────────────────
+/**
+ * GET /waitlist — the founding waitlist, joined against real accounts.
+ *
+ * The waitlist (FounderRegistration) and the accounts (Usuario) were two
+ * disconnected systems: leads came in and there was no view telling you which
+ * of them had registered, let alone a way to let them in. This joins the two
+ * by email so the queue becomes actionable — `usuarioId` is what the grant
+ * endpoint (PUT /users/:id) needs.
+ */
+router.get('/waitlist', async (req, res) => {
+  try {
+    const ok = await ensureDb();
+    if (!ok) return res.status(503).json({ success: false, message: 'DB unavailable' });
+
+    const Usuario = require('../models/Usuario');
+    const FounderRegistration = require('../models/FounderRegistration');
+    const { page = 1, limit = 50, nicho, soloConCuenta, soloSinAcceso } = req.query;
+
+    const filter = { confirmed: true };
+    if (nicho) filter.nicho = nicho;
+
+    const [rows, total] = await Promise.all([
+      FounderRegistration.find(filter)
+        .sort({ queuePosition: 1, createdAt: 1 })
+        .skip((page - 1) * limit)
+        .limit(Number(limit))
+        .select('email handle platform nicho size queuePosition referralCount confirmedAt createdAt')
+        .lean(),
+      FounderRegistration.countDocuments(filter),
+    ]);
+
+    // One query for the whole page rather than one per row.
+    const cuentas = await Usuario.find({ email: { $in: rows.map((r) => r.email) } })
+      .select('email rol betaAccess emailVerificado')
+      .lean();
+    const porEmail = new Map(cuentas.map((u) => [u.email, u]));
+
+    let data = rows.map((r) => {
+      const cuenta = porEmail.get(r.email) || null;
+      return {
+        ...r,
+        usuarioId: cuenta ? String(cuenta._id) : null,
+        tieneCuenta: Boolean(cuenta),
+        betaAccess: cuenta ? cuenta.betaAccess === true || cuenta.rol === 'admin' : false,
+        emailVerificado: cuenta ? cuenta.emailVerificado === true : false,
+        rol: cuenta ? cuenta.rol : null,
+      };
+    });
+
+    if (soloConCuenta === 'true') data = data.filter((r) => r.tieneCuenta);
+    if (soloSinAcceso === 'true') data = data.filter((r) => !r.betaAccess);
+
+    return res.json({
+      success: true,
+      data,
+      pagination: { page: Number(page), limit: Number(limit), total, totalPages: Math.ceil(total / limit) },
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ─── Channels ────────────────────────────────────────────────────────────────
 router.get('/channels', async (req, res) => {
   try {
