@@ -567,6 +567,46 @@ class EmailService {
     });
   }
 
+  /**
+   * Tell a user their beta access has just been switched on.
+   *
+   * Transactional, not commercial: it is the direct consequence of an action
+   * the user asked for (signing up / joining the waitlist), so it does NOT go
+   * through the marketing-consent guard and is sent regardless of marketingOptIn.
+   *
+   * The body is role-aware because a creator and an advertiser unlock genuinely
+   * different first steps, and a generic "explore the platform" is useless to both.
+   */
+  async enviarAccesoBeta(user) {
+    const esCreador = user?.rol === 'creator';
+    const beneficios = esCreador
+      ? [
+          'Registrar tus canales y verificar su propiedad.',
+          'Publicar tu perfil y tus tarifas para que te encuentren las marcas.',
+          'Recibir propuestas de campa\u00f1a, aceptarlas y cobrar.',
+        ]
+      : [
+          'Explorar el marketplace de canales verificados.',
+          'Lanzar tu primera campa\u00f1a con pago protegido.',
+          'Medir resultados reales con enlaces de seguimiento.',
+        ];
+
+    const html = await this.renderTemplate('acceso-beta-activado', {
+      userName: user?.nombre || (user?.email || '').split('@')[0] || 'hola',
+      appName: config.app.nombre,
+      beneficioUno: beneficios[0],
+      beneficioDos: beneficios[1],
+      beneficioTres: beneficios[2],
+      dashboardUrl: `${config.frontend.url}/dashboard`,
+    });
+
+    return this.enviarEmail({
+      para: user.email,
+      asunto: `Tu acceso a ${config.app.nombre} ya est\u00e1 activo`,
+      html,
+    });
+  }
+
   // ─���─ Referral email methods ────────────��───────────────────────────
 
   /**

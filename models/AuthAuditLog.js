@@ -18,6 +18,8 @@ const AuthAuditLogSchema = new mongoose.Schema(
         'email.verified',
         'password.reset.requested',
         'password.reset.completed',
+        'beta.granted',
+        'beta.revoked',
       ],
       index: true,
     },

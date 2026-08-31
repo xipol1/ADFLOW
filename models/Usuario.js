@@ -131,8 +131,18 @@ const UsuarioSchema = new mongoose.Schema(
 
     // Beta program — gates access to the /advertiser and /creator dashboards.
     // Admins are always beta. Normal users stay false until explicitly flipped
-    // (via admin panel, seed script, or manual DB update).
+    // (via the admin panel or scripts/grant-beta.js).
+    //
+    // NOTE: the flag is `betaAccess`, not `fullAccess`. `fullAccess` is only an
+    // output alias built in authController.buildUserResponse for legacy frontend
+    // consumers — it is NOT a schema field, so writing it is silently dropped by
+    // Mongoose strict mode. Always write `betaAccess`.
     betaAccess: { type: Boolean, default: false, index: true },
+    // Provenance of the beta grant, so we can answer "who let this user in and
+    // why" without digging through the audit collection.
+    betaGrantedAt: { type: Date, default: null },
+    betaGrantedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', default: null },
+    betaGrantReason: { type: String, default: '', maxlength: 300 },
 
     // Google OAuth
     googleId: { type: String, default: null, sparse: true, index: true },

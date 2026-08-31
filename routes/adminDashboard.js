@@ -127,7 +127,10 @@ router.get('/users', async (req, res) => {
 
     const [users, total] = await Promise.all([
       Usuario.find(filter).sort(sort).skip((page - 1) * limit).limit(Number(limit))
-        .select('nombre email rol createdAt emailVerified referralCode').lean(),
+        // Field names must match the schema exactly: `emailVerificado` (not
+        // emailVerified) and `betaAccess` (not fullAccess). Getting these wrong
+        // does not error — the column just renders permanently empty.
+        .select('nombre email rol createdAt emailVerificado activo betaAccess betaGrantedAt referralCode').lean(),
       Usuario.countDocuments(filter),
     ]);
 
@@ -159,23 +162,103 @@ router.get('/users/:id', async (req, res) => {
   }
 });
 
+// Roles an admin may assign. Mirrors the enum in models/Usuario.js — an
+// unknown value would be rejected by Mongoose validation, but rejecting it
+// here gives the caller a useful 400 instead of a 500.
+const ROLES_ASIGNABLES = ['creator', 'advertiser', 'admin'];
+
+/**
+ * PUT /users/:id — update role, active status and beta access.
+ *
+ * Every field written here must exist in models/Usuario.js. Mongoose runs in
+ * strict mode, so a typo'd key is dropped silently and the endpoint still
+ * answers 200 with an unchanged document — which is exactly how `fullAccess`
+ * and `banned` sat here broken. The allow-list below is the guard against
+ * that returning: add a key only after confirming it in the schema.
+ */
 router.put('/users/:id', async (req, res) => {
   try {
     await ensureDb();
     const Usuario = require('../models/Usuario');
-    const { rol, banned, fullAccess } = req.body;
-    const updates = {};
-    if (rol) updates.rol = rol;
-    if (typeof banned === 'boolean') updates.banned = banned;
-    if (typeof fullAccess === 'boolean') updates.fullAccess = fullAccess;
+    const { rol, activo, betaAccess, betaGrantReason } = req.body;
 
-    const user = await Usuario.findByIdAndUpdate(req.params.id, updates, { new: true }).select('-password').lean();
+    const updates = {};
+
+    if (rol !== undefined) {
+      if (!ROLES_ASIGNABLES.includes(rol)) {
+        return res.status(400).json({ success: false, message: `Rol inválido: ${rol}` });
+      }
+      updates.rol = rol;
+    }
+    // `activo` is the schema field. The old code wrote `banned`, which does not
+    // exist, so the ban toggle never did anything either.
+    if (typeof activo === 'boolean') updates.activo = activo;
+
+    if (typeof betaAccess === 'boolean') {
+      updates.betaAccess = betaAccess;
+      if (betaAccess) {
+        updates.betaGrantedAt = new Date();
+        updates.betaGrantedBy = req.usuario?.id || null;
+        updates.betaGrantReason = String(betaGrantReason || '').slice(0, 300);
+      } else {
+        updates.betaGrantedAt = null;
+        updates.betaGrantedBy = null;
+        updates.betaGrantReason = '';
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ success: false, message: 'Nada que actualizar' });
+    }
+
+    // Read the previous flag so we only notify on an actual transition —
+    // re-saving an already-granted user must not re-send the email.
+    const previo = await Usuario.findById(req.params.id).select('betaAccess email nombre rol').lean();
+    if (!previo) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+
+    const user = await Usuario.findByIdAndUpdate(req.params.id, updates, {
+      new: true,
+      runValidators: true,
+    }).select('-password').lean();
     if (!user) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+
+    if (typeof betaAccess === 'boolean' && betaAccess !== previo.betaAccess) {
+      await notificarCambioBeta({ req, user, concedido: betaAccess, motivo: updates.betaGrantReason });
+    }
+
     return res.json({ success: true, data: user });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
 });
+
+/**
+ * Side effects of a beta access transition: audit trail always, welcome email
+ * only on grant. Neither may break the request — an admin flipping the flag
+ * must not get a 500 because SMTP is down (which it was for two months).
+ */
+async function notificarCambioBeta({ req, user, concedido, motivo }) {
+  const authAudit = require('../lib/authAudit');
+  await authAudit.record(concedido ? 'beta.granted' : 'beta.revoked', req, {
+    userId: user._id,
+    email: user.email,
+    metadata: { rol: user.rol, motivo: motivo || '', porAdmin: req.usuario?.id || null },
+  });
+
+  if (!concedido) return;
+
+  try {
+    const emailService = require('../services/emailService');
+    await emailService.enviarAccesoBeta(user);
+  } catch (err) {
+    try {
+      require('../lib/logger').error('admin.beta.email_failed', {
+        userId: String(user._id),
+        msg: err?.message || String(err),
+      });
+    } catch { /* logger unavailable */ }
+  }
+}
 
 // ─── Channels ────────────────────────────────────────────────────────────────
 router.get('/channels', async (req, res) => {
