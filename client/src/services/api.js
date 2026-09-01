@@ -238,6 +238,32 @@ class ApiService {
   }
 
   /**
+   * Preferencias de comunicación — estado del consentimiento de emails
+   * comerciales (art. 6.1.a RGPD). Los emails operativos no se ven afectados.
+   */
+  async getCommunicationPreferences() {
+    return this.request('/comunicaciones/preferencias');
+  }
+
+  async updateCommunicationPreferences(marketingOptIn) {
+    return this.request('/comunicaciones/preferencias', {
+      method: 'PUT',
+      body: JSON.stringify({ marketingOptIn }),
+    });
+  }
+
+  /**
+   * Respuesta al diálogo único de consentimiento comercial.
+   * @param {'si'|'no'|'luego'} respuesta
+   */
+  async answerMarketingPrompt(respuesta) {
+    return this.request('/comunicaciones/decision', {
+      method: 'POST',
+      body: JSON.stringify({ respuesta }),
+    });
+  }
+
+  /**
    * Cerrar sesión
    */
   async logout() {

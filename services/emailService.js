@@ -97,6 +97,20 @@ class EmailService {
       attachments: opciones.adjuntos || []
     };
 
+    // List-Unsubscribe (RFC 2369) + One-Click (RFC 8058). Solo lo ponen los
+    // envíos comerciales, que pasan `urlBaja`. Gmail y Yahoo lo exigen desde
+    // 2024 para remitentes con volumen, y de paso da la vía de retirada "tan
+    // fácil como darlo" del art. 7.3 RGPD sin tener que abrir el email.
+    if (opciones.urlBaja) {
+      opcionesEmail.headers = {
+        ...(opciones.cabeceras || {}),
+        'List-Unsubscribe': `<${opciones.urlBaja}>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      };
+    } else if (opciones.cabeceras) {
+      opcionesEmail.headers = opciones.cabeceras;
+    }
+
     const resultado = await this.transporter.sendMail(opcionesEmail);
     const previewUrl = nodemailer.getTestMessageUrl(resultado);
 
@@ -786,6 +800,139 @@ class EmailService {
    * characters; URLs and numbers pass through unchanged except for `&` (which is
    * correctly encoded as `&amp;` inside both text and href attributes).
    */
+  // ─── Envíos COMERCIALES ───────────────────────────────────────────
+  //
+  // Cualquier email cuyo contenido sea promocional (novedades de producto,
+  // funcionalidades, ofertas, campañas de captación) tiene que salir por aquí
+  // y NO por enviarEmail() directamente. Este método es el único punto donde
+  // se comprueba el consentimiento del art. 6.1.a RGPD / art. 21 LSSI, y el
+  // único que inyecta el pie y las cabeceras de baja.
+  //
+  // Los emails operativos (verificación, contraseña, campañas, disputas,
+  // pagos) NO pasan por aquí: van por ejecución de contrato (art. 6.1.b) y no
+  // llevan enlace de baja.
+  //
+  // Devuelve { enviado: false, motivo } en vez de lanzar cuando el usuario no
+  // ha consentido, para que un job de envío masivo pueda contabilizarlo.
+  async enviarEmailComercial(usuario, { asunto, html, texto } = {}) {
+    const marketingConsent = require('./marketingConsent');
+    const permiso = marketingConsent.puedeRecibirMarketing(usuario);
+    if (!permiso.ok) {
+      return { enviado: false, motivo: permiso.motivo };
+    }
+
+    const urlBaja = marketingConsent.unsubscribeUrl(usuario._id || usuario.id, config.frontend.url);
+    const cuerpo = this._conPieDeBaja(html, urlBaja);
+    const textoPlano = texto
+      ? `${texto}
+
+—
+Para dejar de recibir estos emails: ${urlBaja}`
+      : undefined;
+
+    const resultado = await this.enviarEmail({
+      para: usuario.email,
+      asunto,
+      html: cuerpo,
+      texto: textoPlano,
+      urlBaja,
+    });
+    return { enviado: true, ...resultado };
+  }
+
+  /**
+   * Añade el pie de baja al HTML de un email comercial. Se inserta antes del
+   * cierre de </body> si existe; si no, al final. Idempotente por marcador,
+   * para que no salga dos veces si la plantilla ya lo traía.
+   */
+  _conPieDeBaja(html, urlBaja) {
+    const cuerpo = String(html || '');
+    if (cuerpo.includes('data-channelad-baja')) return cuerpo;
+    const pie = `
+  <div data-channelad-baja="1" style="max-width:560px;margin:0 auto;padding:20px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Inter,sans-serif;font-size:12px;line-height:1.6;color:#8e8e93;text-align:center;">
+    Recibes este email porque diste tu consentimiento para recibir novedades de ${config.app.nombre || 'Channelad'}.<br>
+    <a href="${urlBaja}" style="color:#8e8e93;text-decoration:underline;">Darme de baja en un click</a>
+    &nbsp;·&nbsp;
+    <a href="${(config.frontend.url || '').replace(/\/$/, '')}/account/comunicaciones" style="color:#8e8e93;text-decoration:underline;">Gestionar mis preferencias</a>
+  </div>`;
+    return cuerpo.includes('</body>')
+      ? cuerpo.replace('</body>', `${pie}
+</body>`)
+      : cuerpo + pie;
+  }
+
+  // ─── Recordatorio de verificación (OPERATIVO, no comercial) ────────
+  //
+  // Base legal: ejecución de contrato (art. 6.1.b RGPD) — la persona inició un
+  // alta y le pedimos que la complete. Puede explicar qué podrá hacer una vez
+  // dentro (eso es contexto del servicio), pero NO puede convertirse en una
+  // oferta: sin descuentos, sin promociones, sin "aprovecha ahora". Si se
+  // cruza esa línea deja de ser operativo y necesita consentimiento.
+  //
+  // `intento` (1 o 2) solo cambia el asunto y el aviso de caducidad.
+  async enviarRecordatorioVerificacion(email, nombre, token, {
+    intento = 1,
+    diasParaCaducar = null,
+    fechaAlta = null,
+    contexto = '',
+    rol = 'advertiser',
+  } = {}) {
+    const verificationUrl = `${config.frontend.url}/verificar-email/${token}`;
+    const safeName = String(nombre || '').trim() || email.split('@')[0];
+
+    // Los tres puntos van por rol: hablarle a un anunciante de "conectar tus
+    // canales" no le dice nada, y al revés tampoco.
+    const esCreador = rol === 'creator';
+    const puntos = esCreador
+      ? [
+        'Conectar tus canales de Telegram, WhatsApp o Discord y ver sus métricas verificadas.',
+        'Fijar tu tarifa por post y recibir propuestas de anunciantes verificados.',
+        'Cobrar en euros a tu cuenta, con el importe retenido en escrow hasta que el post se publica.',
+      ]
+      : [
+        'Ver el catálogo de canales verificados con sus métricas y su tarifa por post.',
+        'Calcular el coste de una campaña antes de contratarla.',
+        'Pagar con el importe retenido en escrow: si el post no se publica como se acordó, se te reembolsa.',
+      ];
+    const aviso = diasParaCaducar
+      ? `Si no la verificas, eliminaremos el registro en ${diasParaCaducar} días y el email quedará libre para volver a usarse.`
+      : 'Si no verificas la cuenta, acabaremos eliminando el registro.';
+
+    let html;
+    try {
+      html = await this.renderTemplate('recordatorio-verificacion', {
+        nombre: safeName,
+        verificationUrl,
+        aviso,
+        // Fragmento completo (" el 12 de junio de 2026") en vez de solo la
+        // fecha: si no la conocemos, la frase tiene que seguir leyéndose bien.
+        fechaAltaFrase: fechaAlta ? ` el ${this._formatDate(fechaAlta)}` : '',
+        contexto,
+        rolEtiqueta: esCreador ? 'creador' : 'anunciante',
+        punto1: puntos[0],
+        punto2: puntos[1],
+        punto3: puntos[2],
+      });
+      if (!html || !html.includes(verificationUrl)) {
+        html = this._buildInlineVerificationHtml(safeName, verificationUrl);
+      }
+    } catch (err) {
+      console.warn('enviarRecordatorioVerificacion: template failed, using inline fallback:', err?.message || err);
+      html = this._buildInlineVerificationHtml(safeName, verificationUrl);
+    }
+
+    const asunto = intento >= 2
+      ? `Última oportunidad para verificar tu cuenta en ${config.app.nombre}`
+      : `Te queda un paso: verifica tu cuenta en ${config.app.nombre}`;
+
+    return this.enviarEmail({
+      para: email,
+      asunto,
+      html,
+      texto: `${safeName}, tu cuenta de ${config.app.nombre} sigue sin verificar. Verifícala aquí: ${verificationUrl}. ${aviso}`,
+    });
+  }
+
   _escapeHtml(value) {
     return String(value ?? '')
       .replace(/&/g, '&amp;')
