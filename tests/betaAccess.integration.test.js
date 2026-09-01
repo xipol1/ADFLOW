@@ -36,7 +36,7 @@ describe('Beta access — admin grant flow', () => {
     adminToken = adminLogin.body.token;
 
     const target = await registerVerifiedUser(app, {
-      email: userEmail, password, nombre: 'Beta Target', role: 'creator', withFiscal: false,
+      email: userEmail, password, nombre: 'Beta Target', role: 'creator', withFiscal: false, withBeta: false,
     });
     targetId = target.user.id;
   });

@@ -71,7 +71,7 @@ async function run() {
   let cambiados = 0;
 
   for (const email of opts.emails) {
-    const user = await Usuario.findOne({ email }).select('email nombre rol betaAccess');
+    const user = await Usuario.findOne({ email }).select('email nombre rol betaAccess subscription');
     if (!user) {
       console.log(`  –  ${email}: no existe, saltado`);
       continue;
@@ -86,13 +86,15 @@ async function run() {
       continue;
     }
 
-    user.betaAccess = conceder;
-    user.betaGrantedAt = conceder ? new Date() : null;
-    user.betaGrantedBy = null; // concedido desde CLI, no por un admin concreto
-    user.betaGrantReason = conceder ? String(opts.reason || 'CLI').slice(0, 300) : '';
+    const betaGrant = require('../lib/betaGrant');
+    const updates = conceder
+      ? betaGrant.construirConcesion(user, { grantedBy: null, motivo: opts.reason || 'CLI' })
+      : betaGrant.construirRevocacion(user);
+    Object.assign(user, updates);
     await user.save();
     cambiados += 1;
-    console.log(`  ✓  ${email}: acceso ${conceder ? 'concedido' : 'retirado'}`);
+    const plan = updates.subscription?.plan;
+    console.log(`  ✓  ${email}: acceso ${conceder ? 'concedido' : 'retirado'}${plan ? ` (+ ${plan} de cortesia)` : ''}`);
 
     try {
       const authAudit = require('../lib/authAudit');

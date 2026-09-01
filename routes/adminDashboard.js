@@ -194,27 +194,27 @@ router.put('/users/:id', async (req, res) => {
     // exist, so the ban toggle never did anything either.
     if (typeof activo === 'boolean') updates.activo = activo;
 
+    // Read the target first: the beta grant needs its role and current
+    // subscription to decide the courtesy plan, and the previous flag so we
+    // only notify on an actual transition (re-saving an already-granted user
+    // must not re-send the email).
+    const previo = await Usuario.findById(req.params.id)
+      .select('betaAccess email nombre rol subscription').lean();
+    if (!previo) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+
     if (typeof betaAccess === 'boolean') {
-      updates.betaAccess = betaAccess;
-      if (betaAccess) {
-        updates.betaGrantedAt = new Date();
-        updates.betaGrantedBy = req.usuario?.id || null;
-        updates.betaGrantReason = String(betaGrantReason || '').slice(0, 300);
-      } else {
-        updates.betaGrantedAt = null;
-        updates.betaGrantedBy = null;
-        updates.betaGrantReason = '';
-      }
+      const betaGrant = require('../lib/betaGrant');
+      Object.assign(
+        updates,
+        betaAccess
+          ? betaGrant.construirConcesion(previo, { grantedBy: req.usuario?.id || null, motivo: betaGrantReason })
+          : betaGrant.construirRevocacion(previo)
+      );
     }
 
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ success: false, message: 'Nada que actualizar' });
     }
-
-    // Read the previous flag so we only notify on an actual transition —
-    // re-saving an already-granted user must not re-send the email.
-    const previo = await Usuario.findById(req.params.id).select('betaAccess email nombre rol').lean();
-    if (!previo) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
 
     const user = await Usuario.findByIdAndUpdate(req.params.id, updates, {
       new: true,

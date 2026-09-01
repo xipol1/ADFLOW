@@ -21,7 +21,7 @@ describe('Beta waiting room — /api/beta', () => {
 
   beforeAll(async () => {
     const res = await registerVerifiedUser(app, {
-      email, password, nombre: 'Sala Espera', role: 'creator', withFiscal: false,
+      email, password, nombre: 'Sala Espera', role: 'creator', withFiscal: false, withBeta: false,
     });
     token = res.token;
     userId = res.user.id;
@@ -114,7 +114,7 @@ describe('Beta waitlist — admin bridge', () => {
     adminToken = login.body.token;
 
     const member = await registerVerifiedUser(app, {
-      email: memberEmail, password, nombre: 'WL Member', role: 'creator', withFiscal: false,
+      email: memberEmail, password, nombre: 'WL Member', role: 'creator', withFiscal: false, withBeta: false,
     });
     await request(app)
       .post('/api/beta/waitlist')
