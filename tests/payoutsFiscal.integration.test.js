@@ -23,7 +23,9 @@ describe('Fiscal data — payouts routes', () => {
     // Mark email as verified so requests reach the fiscal middleware
     // instead of being short-circuited by requiereEmailVerificado.
     const Usuario = require('../models/Usuario');
-    await Usuario.updateOne({ email }, { emailVerificado: true });
+    // betaAccess: estos tests comprueban los gates de fiscal/saldo/produccion,
+    // que viven DETRAS del gate de beta (middleware/requiereBeta).
+    await Usuario.updateOne({ email }, { emailVerificado: true, betaAccess: true });
 
     // Re-issue the access token so its embedded emailVerificado=true.
     const AuthService = require('../services/authService');

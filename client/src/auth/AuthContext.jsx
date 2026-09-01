@@ -184,9 +184,6 @@ export function AuthProvider({ children }) {
       isCreador: rol === 'creador' || rol === 'creator',
       isAdmin: rol === 'admin',
       betaAccess,
-      // Legacy alias — kept so existing call sites (FullAccessOnly, etc.)
-      // keep working without churn.
-      isFullAccess: betaAccess,
     }
   }, [token, refreshToken, user, loading, error, isAuthenticated])
 

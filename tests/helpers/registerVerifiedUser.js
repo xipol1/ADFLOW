@@ -12,7 +12,7 @@
 const request = require('supertest');
 const legalConsent = require('../../services/legalConsent');
 
-async function registerVerifiedUser(app, { email, password, nombre, role, withFiscal = true, subscriptionPlan = null } = {}) {
+async function registerVerifiedUser(app, { email, password, nombre, role, withFiscal = true, withBeta = true, subscriptionPlan = null } = {}) {
   // Registration now enforces clickwrap acceptance of the role's required legal
   // documents. Mirror a real signup by sending the consents for the effective
   // role (the controller defaults anything but 'creator' to 'advertiser').
@@ -32,7 +32,11 @@ async function registerVerifiedUser(app, { email, password, nombre, role, withFi
   // Force-verify the user and (optionally) attach minimal fiscal data so
   // requiereDatosFacturacion passes.
   const Usuario = require('../../models/Usuario');
-  const update = { emailVerificado: true };
+  // betaAccess defaults to true for the same reason emailVerificado does: the
+  // money-movement routes are now behind middleware/requiereBeta, and these
+  // tests exercise the flows, not the gate. Pass withBeta:false to test a user
+  // who is deliberately outside the beta.
+  const update = { emailVerificado: true, betaAccess: withBeta };
   if (withFiscal) {
     update.datosFacturacion = {
       razonSocial: 'Test SL',

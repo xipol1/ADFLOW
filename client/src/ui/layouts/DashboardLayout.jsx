@@ -14,7 +14,7 @@ import {
   Activity, Filter, Bookmark, Layers, FlaskConical,
   Rocket, Hash, PieChart, GitCompare, User as UserIcon, MessageSquare,
   Compass, Building2, Wrench, Receipt, Sparkles, BellRing, Repeat, Trophy, CreditCard, Award,
-  Link2,
+  Link2, Clock,
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import apiService from '../../services/api'
@@ -24,6 +24,7 @@ import InboxBell from '../components/InboxBell'
 import GlobalSearchBar from '../components/GlobalSearchBar'
 import EmailVerificationBanner from '../components/EmailVerificationBanner'
 import FiscalDataBanner from '../components/FiscalDataBanner'
+import BetaProBanner from '../components/BetaProBanner'
 import OnboardingWizard, { shouldShowOnboarding, resetOnboarding } from '../components/OnboardingWizard'
 import {
   PURPLE, purpleAlpha, GREEN, greenAlpha,
@@ -38,7 +39,6 @@ const SIDEBAR_COLLAPSED_W = 68
 const HEADER_H = 56
 
 // ─── Role configuration ──────────────────────────────────────────────────────
-// fullOnly: true = only visible for full-access users (demo/admin accounts)
 const ROLE_CONFIG = {
   advertiser: {
     color: PURPLE,
@@ -48,39 +48,39 @@ const ROLE_CONFIG = {
     nav: [
       { group: null, items: [
         { path: '',          icon: LayoutDashboard, label: 'Dashboard',    end: true },
-        { path: '/explore',  icon: Search,          label: 'Explorar',     fullOnly: true },
-        { path: '/autobuy',  icon: Zap,             label: 'Auto-Buy',     fullOnly: true },
+        { path: '/explore',  icon: Search,          label: 'Explorar' },
+        { path: '/autobuy',  icon: Zap,             label: 'Auto-Buy' },
       ]},
       { group: 'Campañas', items: [
-        { path: '/campaigns',          icon: Megaphone, label: 'Mis Campañas',   fullOnly: true },
-        { path: '/campaigns/new',      icon: Plus,      label: 'Nueva Campaña',  fullOnly: true },
-        { path: '/campaigns/bulk',     icon: Rocket,    label: 'Bulk Launcher',  fullOnly: true },
-        { path: '/campaigns/calendar', icon: Calendar,  label: 'Calendario',     fullOnly: true },
+        { path: '/campaigns',          icon: Megaphone, label: 'Mis Campañas' },
+        { path: '/campaigns/new',      icon: Plus,      label: 'Nueva Campaña' },
+        { path: '/campaigns/bulk',     icon: Rocket,    label: 'Bulk Launcher' },
+        { path: '/campaigns/calendar', icon: Calendar,  label: 'Calendario' },
       ]},
       { group: 'Análisis de canales', items: [
-        { path: '/analyze/channel',   icon: BarChart3,    label: 'Analizar canal',    fullOnly: true },
-        { path: '/analyze/compare',   icon: Columns3,     label: 'Comparar canales',  fullOnly: true },
-        { path: '/analyze/lookalike', icon: Target,       label: 'Canales similares', fullOnly: true },
-        { path: '/analyze/audit',     icon: ClipboardList,label: 'Auditoría bulk',    fullOnly: true },
-        { path: '/analyze/watchlist', icon: Bookmark,     label: 'Watchlist',         fullOnly: true },
-        { path: '/analyze/overlap',   icon: Layers,       label: 'Audiencias',        fullOnly: true },
-        { path: '/analyze/audience',  icon: PieChart,     label: 'Insights audiencia',fullOnly: true },
-        { path: '/analyze/niches',    icon: Map,          label: 'Heatmap de nichos', fullOnly: true },
-        { path: '/analyze/topics',    icon: Hash,         label: 'Topic Research',    fullOnly: true },
+        { path: '/analyze/channel',   icon: BarChart3,    label: 'Analizar canal' },
+        { path: '/analyze/compare',   icon: Columns3,     label: 'Comparar canales' },
+        { path: '/analyze/lookalike', icon: Target,       label: 'Canales similares' },
+        { path: '/analyze/audit',     icon: ClipboardList,label: 'Auditoría bulk' },
+        { path: '/analyze/watchlist', icon: Bookmark,     label: 'Watchlist' },
+        { path: '/analyze/overlap',   icon: Layers,       label: 'Audiencias' },
+        { path: '/analyze/audience',  icon: PieChart,     label: 'Insights audiencia' },
+        { path: '/analyze/niches',    icon: Map,          label: 'Heatmap de nichos' },
+        { path: '/analyze/topics',    icon: Hash,         label: 'Topic Research' },
       ]},
       { group: 'Análisis de rendimiento', items: [
-        { path: '/analyze/ad',        icon: Megaphone,    label: 'Analizar anuncio',  fullOnly: true },
-        { path: '/analyze/abtest',    icon: FlaskConical, label: 'A/B Test Lab',      fullOnly: true },
-        { path: '/analyze/realtime',  icon: Activity,     label: 'Tiempo real',       fullOnly: true },
-        { path: '/analyze/funnel',    icon: Filter,       label: 'Funnel',            fullOnly: true },
-        { path: '/analyze/cohorts',   icon: Users,        label: 'Cohortes',          fullOnly: true },
-        { path: '/analyze/forecast',  icon: Calculator,   label: 'Forecaster ROI',    fullOnly: true },
-        { path: '/analyze/reports',   icon: LayoutDashboard, label: 'Report Studio',  fullOnly: true },
+        { path: '/analyze/ad',        icon: Megaphone,    label: 'Analizar anuncio' },
+        { path: '/analyze/abtest',    icon: FlaskConical, label: 'A/B Test Lab' },
+        { path: '/analyze/realtime',  icon: Activity,     label: 'Tiempo real' },
+        { path: '/analyze/funnel',    icon: Filter,       label: 'Funnel' },
+        { path: '/analyze/cohorts',   icon: Users,        label: 'Cohortes' },
+        { path: '/analyze/forecast',  icon: Calculator,   label: 'Forecaster ROI' },
+        { path: '/analyze/reports',   icon: LayoutDashboard, label: 'Report Studio' },
       ]},
       { group: 'Cuenta', items: [
-        { path: '/finances', icon: Wallet,          label: 'Finanzas',     fullOnly: true },
+        { path: '/finances', icon: Wallet,          label: 'Finanzas' },
         { path: '/referrals',icon: Users,           label: 'Referidos'             },
-        { path: '/settings', icon: Settings,        label: 'Configuración', fullOnly: true },
+        { path: '/settings', icon: Settings,        label: 'Configuración' },
       ]},
     ],
     bottomNav: [],
@@ -93,36 +93,36 @@ const ROLE_CONFIG = {
     nav: [
       { group: null, items: [
         { path: '',           icon: LayoutDashboard, label: 'Dashboard',    end: true },
-        { path: '/inbox',     icon: MessageSquare,   label: 'Bandeja',      badge: true, fullOnly: true },
+        { path: '/inbox',     icon: MessageSquare,   label: 'Bandeja',      badge: true },
       ]},
       { group: 'Canales', items: [
         { path: '/channels',  icon: Radio,           label: 'Mis canales'        },
-        { path: '/discover',  icon: Compass,         label: 'Explorar briefs',   fullOnly: true },
-        { path: '/calendar',  icon: Calendar,        label: 'Calendario',        fullOnly: true },
+        { path: '/discover',  icon: Compass,         label: 'Explorar briefs' },
+        { path: '/calendar',  icon: Calendar,        label: 'Calendario' },
       ]},
       { group: 'Monetizar', items: [
-        { path: '/earnings',  icon: Wallet,          label: 'Ganancias',         fullOnly: true },
+        { path: '/earnings',  icon: Wallet,          label: 'Ganancias' },
         { path: '/links',     icon: Link2,           label: 'Mis enlaces'        },
-        { path: '/pricing',   icon: DollarSign,      label: 'Optimizar precios', fullOnly: true },
-        { path: '/billing',   icon: Receipt,         label: 'Facturación',       fullOnly: true },
+        { path: '/pricing',   icon: DollarSign,      label: 'Optimizar precios' },
+        { path: '/billing',   icon: Receipt,         label: 'Facturación' },
       ]},
       { group: 'Crecer', items: [
-        { path: '/analytics', icon: BarChart3,       label: 'Analíticas',        fullOnly: true },
-        { path: '/audience',  icon: Users,           label: 'Audiencia',         fullOnly: true },
-        { path: '/swaps',     icon: Repeat,          label: 'Colaboraciones',    fullOnly: true },
-        { path: '/compare',   icon: GitCompare,      label: 'Comparar',          fullOnly: true },
+        { path: '/analytics', icon: BarChart3,       label: 'Analíticas' },
+        { path: '/audience',  icon: Users,           label: 'Audiencia' },
+        { path: '/swaps',     icon: Repeat,          label: 'Colaboraciones' },
+        { path: '/compare',   icon: GitCompare,      label: 'Comparar' },
         { path: '/profile',   icon: UserIcon,        label: 'Perfil público' },
       ]},
       { group: 'Herramientas', items: [
-        { path: '/content',   icon: Sparkles,        label: 'Estudio de contenido', fullOnly: true },
-        { path: '/tools',     icon: Wrench,          label: 'Herramientas',      fullOnly: true },
-        { path: '/brands',    icon: Building2,       label: 'Mis marcas',        fullOnly: true },
+        { path: '/content',   icon: Sparkles,        label: 'Estudio de contenido' },
+        { path: '/tools',     icon: Wrench,          label: 'Herramientas' },
+        { path: '/brands',    icon: Building2,       label: 'Mis marcas' },
         { path: '/referrals', icon: Users,           label: 'Referidos'              },
       ]},
     ],
     bottomNav: [
       { path: '/notifications', icon: BellRing,  label: 'Notificaciones' },
-      { path: '/settings',      icon: Settings,  label: 'Configuración', fullOnly: true },
+      { path: '/settings',      icon: Settings,  label: 'Configuración' },
     ],
   },
   admin: {
@@ -136,6 +136,7 @@ const ROLE_CONFIG = {
       ]},
       { group: 'Gestión', items: [
         { path: '/users',      icon: Users,           label: 'Usuarios'              },
+        { path: '/waitlist',   icon: Clock,           label: 'Lista de espera'       },
         { path: '/channels',   icon: Radio,           label: 'Canales'               },
         { path: '/campaigns',  icon: Megaphone,       label: 'Campañas'              },
         { path: '/disputes',   icon: ShieldAlert,     label: 'Disputas'              },
@@ -673,7 +674,7 @@ function ThemeToggle() {
 // ─────────────────────────────────────────────────────────────────────────────
 export default function DashboardLayout({ role = 'advertiser' }) {
   const cfg = ROLE_CONFIG[role] || ROLE_CONFIG.advertiser
-  const { user, logout, isFullAccess } = useAuth()
+  const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const isMobile = useIsMobile()
@@ -724,7 +725,7 @@ export default function DashboardLayout({ role = 'advertiser' }) {
   // Nav is now grouped: [{ group: string|null, items: [...] }, ...]
   const visibleNavGroups = cfg.nav.map(g => ({
     group: g.group,
-    items: (g.items || []).filter(n => isFullAccess || !n.fullOnly).map(n => ({
+    items: (g.items || []).map(n => ({
       ...n,
       to: cfg.basePath + n.path,
     })),
@@ -732,7 +733,7 @@ export default function DashboardLayout({ role = 'advertiser' }) {
 
   // Flat list for breadcrumb + currentPage lookup
   const flatNav = visibleNavGroups.flatMap(g => g.items)
-  const visibleBottomNav = isFullAccess ? cfg.bottomNav : cfg.bottomNav.filter(n => !n.fullOnly)
+  const visibleBottomNav = cfg.bottomNav
   const fullBottomNav = visibleBottomNav.map(n => ({
     ...n,
     to: cfg.basePath + n.path,
@@ -1132,6 +1133,7 @@ export default function DashboardLayout({ role = 'advertiser' }) {
         }}>
           <EmailVerificationBanner />
           <FiscalDataBanner />
+          <BetaProBanner />
           <PageErrorBoundary accentColor={cfg.color}>
             <Outlet />
           </PageErrorBoundary>

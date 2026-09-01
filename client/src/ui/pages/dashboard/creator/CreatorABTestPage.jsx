@@ -9,6 +9,7 @@ import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, WARN, ERR, BLUE } from '../../../theme/tokens'
 import { ErrorBanner, useConfirm } from '../shared/DashComponents'
+import DemoDataBanner from '../../../components/DemoDataBanner'
 
 const ACCENT = GREEN
 const ga = greenAlpha
@@ -95,6 +96,7 @@ export default function CreatorABTestPage() {
 
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1100 }}>
+      <DemoDataBanner what="Las vistas, conversiones e ingresos de los tests se simulan en el navegador." />
 
       {confirmDialog}
       {loadError && (
