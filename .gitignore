@@ -115,3 +115,6 @@ scripts/_*
 # ── Outreach lists (generated from scraped data, change daily — never commit) ──
 outreach/lists/*
 !outreach/lists/.gitkeep
+
+# graphify knowledge-graph output: regenerable con /graphify, 7 MB de JSON
+graphify-out/

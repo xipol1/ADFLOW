@@ -36,7 +36,10 @@ const HerramientasPage = lazyWithRetry(() => import('../ui/pages/landing/Herrami
 const PricingPage = lazyWithRetry(() => import('../ui/pages/pricing/PricingPage'))
 const BillingPage = lazyWithRetry(() => import('../ui/pages/account/BillingPage'))
 const QueEsChanneladPage = lazyWithRetry(() => import('../ui/pages/landing/QueEsChanneladPage'))
-const BlogIndex = lazyWithRetry(() => import('../ui/pages/blog/BlogIndex'))
+// The blog is static HTML built by scripts/build-blog.js and served straight by
+// the rewrites in vercel.json — /blog and /blog/<slug> never reach this router.
+// The one exception is the pricing calculator, which needs React to run, so it
+// keeps its own route (and its own rewrite to the prerendered shell).
 const BlogPost = lazyWithRetry(() => import('../ui/pages/blog/BlogPost'))
 
 const PrivacyPage = lazyWithRetry(() => import('../ui/pages/legal/PrivacyPage'))
@@ -236,8 +239,7 @@ export default function AppRoutes() {
               </ProtectedRoute>
             }
           />
-          <Route path="blog" element={<BlogIndex />} />
-          <Route path="blog/:slug" element={<BlogPost />} />
+          <Route path="blog/calculadora-precios-publicidad" element={<BlogPost />} />
 
           <Route
             path="dashboard"

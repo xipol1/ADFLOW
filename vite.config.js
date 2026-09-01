@@ -1,6 +1,26 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import fs from 'fs'
+
+// Injects config/analytics-tag.html (Consent Mode v2 defaults + GTM loader +
+// consent-gated Ahrefs) into the SPA shell. scripts/build-blog.js injects the
+// very same file into the static blog, so the tag is defined once and cannot
+// drift between the two surfaces — it silently did, and the whole blog shipped
+// with no analytics at all. Read per-transform so edits show up without a
+// dev-server restart; fails the build loudly rather than shipping untagged HTML.
+function injectAnalyticsTag(rootDir) {
+  const tagPath = path.resolve(rootDir, 'config', 'analytics-tag.html')
+  return {
+    name: 'inject-analytics-tag',
+    transformIndexHtml(html) {
+      if (!html.includes('<!--ANALYTICS_TAG-->')) {
+        throw new Error('client/index.html lost its <!--ANALYTICS_TAG--> placeholder — the SPA would ship untagged')
+      }
+      return html.replace('<!--ANALYTICS_TAG-->', fs.readFileSync(tagPath, 'utf-8'))
+    },
+  }
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -15,7 +35,7 @@ export default defineConfig(({ mode }) => {
   const clientRoot = path.resolve(__dirname, 'client')
 
   return {
-    plugins: [react()],
+    plugins: [react(), injectAnalyticsTag(__dirname)],
     root: clientRoot,
     base: '/',
     // Vite would otherwise look for publicDir at <root>/public (i.e.

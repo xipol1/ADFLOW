@@ -24,7 +24,7 @@ So here's my honest breakdown of the best Telegram advertising platforms in 2026
 
 - [What I Look for After Spending $2,000+ on Telegram Ads](#what-i-look-for-after-spending-2000-on-telegram-ads)
 - [My Honest Telega.in Review After 15 Campaigns](#my-honest-telegain-review-after-15-campaigns)
-- [The Best Telegram Advertising Platforms I've Actually Used in 2026](#the-best-telegram-advertising-platforms-ive-actually-used-in-2026)
+- [The Best Telegram Advertising Platforms I've Actually Used in 2026](#the-best-telegram-advertising-platforms-i39ve-actually-used-in-2026)
 - [How I Run a Telegram Ad Campaign from Start to Finish](#how-i-run-a-telegram-ad-campaign-from-start-to-finish)
 - [Common Mistakes I See Advertisers Make on Telegram](#common-mistakes-i-see-advertisers-make-on-telegram)
 - [Is Telegram Advertising Worth It in 2026? My Take](#is-telegram-advertising-worth-it-in-2026-my-take)

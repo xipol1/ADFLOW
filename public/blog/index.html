@@ -29,7 +29,7 @@
     "url": "https://channelad.io/blog",
     "publisher": { "@type": "Organization", "name": "Channelad", "url": "https://channelad.io" },
     "author": { "@type": "Person", "name": "Rafa Ferrer", "jobTitle": "CEO", "worksFor": { "@type": "Organization", "name": "Channelad" } },
-    "numberOfItems": 60
+    "numberOfItems": 52
   }
   </script>
   <script type="application/ld+json">
@@ -133,6 +133,92 @@
       .filter-btn { padding: 6px 12px; font-size: 12px; }
     }
   </style>
+  <!-- Google Consent Mode v2 + Google Tag Manager.
+
+     SINGLE SOURCE OF TRUTH. This file is injected into every HTML surface we
+     ship, so the tag cannot drift between them again:
+       - the SPA shell, by the `inject-analytics-tag` plugin in vite.config.js,
+         which replaces the ANALYTICS_TAG comment placeholder in
+         client/index.html
+       - the static blog posts, by scripts/build-blog.js, which replaces the
+         analytics placeholder in content/blog/_template.html
+       - the static blog index, by scripts/build-blog.js (inline template)
+     Until August 2026 the blog carried no tag at all: every /blog/ pageview
+     — the entire SEO surface — was invisible to analytics. Hence one file.
+
+     Do not write a nested comment terminator or a template placeholder inside
+     this comment: the first would close it early and leak the rest as text, the
+     second would survive substitution and look like an unreplaced placeholder.
+
+     ORDER MATTERS. The consent defaults must execute *before* gtm.js so GTM
+     holds its tags instead of firing them with storage granted. Consent Mode v2
+     is required for EEA traffic. A returning visitor's stored choice is
+     replayed here synchronously, so their very first hit is already correct
+     rather than starting denied and being upgraded a moment later. -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  // The gtag shim must exist before GTM loads. Consent commands only work when
+  // pushed as an `arguments` object — dataLayer.push(['consent', ...]) with a
+  // plain array is silently ignored by GTM.
+  function gtag() { dataLayer.push(arguments); }
+  window.gtag = gtag;
+
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    analytics_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    functionality_storage: 'granted',
+    security_storage: 'granted',
+    wait_for_update: 500
+  });
+
+  (function () {
+    var stored = null;
+    try { stored = JSON.parse(localStorage.getItem('channelad-cookie-consent') || 'null'); } catch (e) {}
+    if (!stored) return;
+    window.__channeladConsent = stored;
+    gtag('consent', 'update', {
+      ad_storage: stored.marketing ? 'granted' : 'denied',
+      analytics_storage: stored.analytics ? 'granted' : 'denied',
+      ad_user_data: stored.marketing ? 'granted' : 'denied',
+      ad_personalization: stored.marketing ? 'granted' : 'denied'
+    });
+  })();
+
+  // Deferred past load to keep GTM off the critical path (TBT).
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      var j = document.createElement('script');
+      j.async = true;
+      j.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-5D2RGMVJ';
+      document.head.appendChild(j);
+    }, 1500);
+  });
+
+  // Ahrefs Web Analytics is cookieless, but the cookie banner offers a switch
+  // for it, so it must not load before analytics consent exists. The banner
+  // calls this on accept; previously CookieBanner.jsx referenced
+  // window.__channeladLoadAhrefs but nothing ever defined it, so the script
+  // loaded unconditionally and rejecting cookies did nothing.
+  window.__channeladLoadAhrefs = function () {
+    if (window.__channeladAhrefsLoaded) return;
+    window.__channeladAhrefsLoaded = true;
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://analytics.ahrefs.com/analytics.js';
+    s.dataset.key = 'fL5smjCwVE5/mjvICRXVVg';
+    document.head.appendChild(s);
+  };
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      if (window.__channeladConsent && window.__channeladConsent.analytics) {
+        window.__channeladLoadAhrefs();
+      }
+    }, 2000);
+  });
+</script>
+
 </head>
 <body>
   <svg class="grain"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
@@ -149,8 +235,8 @@
 
   <section class="stats">
     <div class="stats-grid">
-      <div class="stat"><div class="stat-value">60</div><div class="stat-label">Articulos</div></div>
-      <div class="stat"><div class="stat-value">828 min</div><div class="stat-label">Lectura total</div></div>
+      <div class="stat"><div class="stat-value">52</div><div class="stat-label">Articulos</div></div>
+      <div class="stat"><div class="stat-value">715 min</div><div class="stat-label">Lectura total</div></div>
       <div class="stat"><div class="stat-value">Julio 2026</div><div class="stat-label">Ultima actualizacion</div></div>
     </div>
   </section>
@@ -161,7 +247,7 @@
       <a href="/blog/como-monetizar-canal-telegram" class="pillar-card pillar-telegram">
         <div class="pillar-icon">✉️</div>
         <div class="pillar-tagline">Guía pilar · monetización</div>
-        <h3 class="pillar-title">Cómo monetizar un canal de Telegram en 2026: 7 métodos reales</h3>
+        <h3 class="pillar-title">Cómo monetizar un canal de Telegram: 7 métodos (2026)</h3>
         <p class="pillar-desc">Guía definitiva 2026 para monetizar un canal de Telegram. 7 métodos reales, CPMs por nicho, ingresos según tamaño y errores que cuestan dinero.</p>
         <span class="pillar-cta">Leer guía pilar →</span>
       </a>
@@ -190,21 +276,47 @@
 
   <div class="section-label">Todos los articulos</div>
   <div class="filter-bar">
-    <button class="filter-btn active" data-filter="Todos">Todos</button><button class="filter-btn" data-filter="Guias">Guias</button><button class="filter-btn" data-filter="Monetizacion">Monetizacion</button><button class="filter-btn" data-filter="Comparativas">Comparativas</button>
-    <span class="filter-count" id="filterCount">56 articulos</span>
+    <button class="filter-btn active" data-filter="Todos">Todos</button><button class="filter-btn" data-filter="Guias">Guias</button><button class="filter-btn" data-filter="Monetizacion">Monetizacion</button><button class="filter-btn" data-filter="Comparativas">Comparativas</button><button class="filter-btn" data-filter="Herramientas">Herramientas</button>
+    <span class="filter-count" id="filterCount">48 articulos</span>
   </div>
   <section class="grid" id="blogGrid">
     
-      <a href="/blog/admixer-telegram-vs-channelad" class="blog-card" data-category="Comparativas" data-platform="telegram">
+      <a href="/blog/cuanto-cobrar-publicidad-instagram-difusion" class="blog-card" data-category="Monetizacion">
         <div class="card-pills">
-          <span class="card-category card-cat-comparativas">Comparativas</span>
-          <span class="card-platform card-platform-telegram">telegram</span>
+          <span class="card-category card-cat-monetizacion">Monetizacion</span>
+          
         </div>
-        <h2>AdMixer Telegram vs Channelad: programmatic vs marketplace</h2>
-        <p>AdMixer hace programmatic en Telegram Mini Apps. Channelad es marketplace transparente con escrow. Comparativa honesta de modelos, precios y casos de uso.</p>
+        <h2>Cuánto cobrar publicidad canal difusión Instagram 2026</h2>
+        <p>La fórmula para poner precio a un patrocinio en tu canal de difusión de Instagram: miembros activos, multiplicadores por formato y cómo demostrar alcance.</p>
         <div class="card-footer">
-          <span>14 min</span>
-          <span>2026-07-10</span>
+          <span>12 min</span>
+          <span>2026-07-26</span>
+        </div>
+      </a>
+
+      <a href="/blog/herramientas-creador-whatsapp-2026" class="blog-card" data-category="Herramientas">
+        <div class="card-pills">
+          <span class="card-category card-cat-herramientas">Herramientas</span>
+          
+        </div>
+        <h2>Herramientas creador WhatsApp 2026: stack real y huecos</h2>
+        <p>El stack de un admin de canales de WhatsApp en 2026: qué existe, qué no existe y cómo se cubren los huecos. Analytics, medición de enlaces, diseño y facturación.</p>
+        <div class="card-footer">
+          <span>12 min</span>
+          <span>2026-07-26</span>
+        </div>
+      </a>
+
+      <a href="/blog/herramientas-creador-telegram-2026" class="blog-card" data-category="Herramientas" data-platform="all">
+        <div class="card-pills">
+          <span class="card-category card-cat-herramientas">Herramientas</span>
+          
+        </div>
+        <h2>Herramientas creador Telegram 2026: stack completo</h2>
+        <p>El stack real de un admin de Telegram con +20K subs: analytics, anti-spam, discovery, monetizacion y diseño. Precios, alternativas gratis y notas honestas.</p>
+        <div class="card-footer">
+          <span>13 min</span>
+          <span>2026-07-13</span>
         </div>
       </a>
 
@@ -221,19 +333,6 @@
         </div>
       </a>
 
-      <a href="/blog/telemetr-vs-channelad" class="blog-card" data-category="Comparativas" data-platform="telegram">
-        <div class="card-pills">
-          <span class="card-category card-cat-comparativas">Comparativas</span>
-          <span class="card-platform card-platform-telegram">telegram</span>
-        </div>
-        <h2>Telemetr vs Channelad: análisis vs comprar publicidad TG</h2>
-        <p>Telemetr.io es la mejor herramienta de inteligencia para Telegram en RU/ES. Channelad es la capa de transacción con escrow. Por qué casi nadie elige solo una.</p>
-        <div class="card-footer">
-          <span>14 min</span>
-          <span>2026-07-06</span>
-        </div>
-      </a>
-
       <a href="/blog/monetizar-canal-whatsapp-marketing" class="blog-card" data-category="Monetizacion" data-platform="whatsapp">
         <div class="card-pills">
           <span class="card-category card-cat-monetizacion">Monetizacion</span>
@@ -244,19 +343,6 @@
         <div class="card-footer">
           <span>14 min</span>
           <span>2026-07-03</span>
-        </div>
-      </a>
-
-      <a href="/blog/whop-vs-channelad-monetizacion-comunidad" class="blog-card" data-category="Comparativas" data-platform="discord">
-        <div class="card-pills">
-          <span class="card-category card-cat-comparativas">Comparativas</span>
-          <span class="card-platform card-platform-discord">discord</span>
-        </div>
-        <h2>Whop vs Channelad: monetizar comunidad Discord/Telegram</h2>
-        <p>Whop vende acceso premium, Channelad vende publicidad en tu canal gratis. Cuando elegir cada uno y por que la mayoria de creators combinan ambos.</p>
-        <div class="card-footer">
-          <span>13 min</span>
-          <span>2026-07-01</span>
         </div>
       </a>
 
@@ -273,19 +359,6 @@
         </div>
       </a>
 
-      <a href="/blog/tiktok-creator-marketplace-alternatives" class="blog-card" data-category="Comparativas" data-platform="all">
-        <div class="card-pills">
-          <span class="card-category card-cat-comparativas">Comparativas</span>
-          
-        </div>
-        <h2>TikTok Creator Marketplace alternativas 2026: 5 opciones</h2>
-        <p>5 alternativas reales a TikTok Creator Marketplace (TTCM) en 2026. Comparativa de Aspire, Grin, Upfluence, Tribe Dynamics y Channelad para creator marketing en ES y LATAM.</p>
-        <div class="card-footer">
-          <span>14 min</span>
-          <span>2026-06-26</span>
-        </div>
-      </a>
-
       <a href="/blog/monetizar-canal-difusion-instagram-nichos" class="blog-card" data-category="Monetizacion" data-platform="instagram">
         <div class="card-pills">
           <span class="card-category card-cat-monetizacion">Monetizacion</span>
@@ -299,19 +372,6 @@
         </div>
       </a>
 
-      <a href="/blog/youtube-brandconnect-vs-channelad" class="blog-card" data-category="Comparativas" data-platform="all">
-        <div class="card-pills">
-          <span class="card-category card-cat-comparativas">Comparativas</span>
-          
-        </div>
-        <h2>YouTube BrandConnect vs Channelad: dónde invertir 2026</h2>
-        <p>Comparativa real entre YouTube BrandConnect y Channelad: ticket medio, audiencia, formato, atribución y geografía. Cuándo elegir cada uno (o ambos).</p>
-        <div class="card-footer">
-          <span>14 min</span>
-          <span>2026-06-22</span>
-        </div>
-      </a>
-
       <a href="/blog/crear-canal-difusion-instagram-paso-paso" class="blog-card" data-category="Guias" data-platform="instagram">
         <div class="card-pills">
           <span class="card-category card-cat-guias">Guias</span>
@@ -322,19 +382,6 @@
         <div class="card-footer">
           <span>14 min</span>
           <span>2026-06-19</span>
-        </div>
-      </a>
-
-      <a href="/blog/substack-vs-channelad-newsletter-ads" class="blog-card" data-category="Comparativas" data-platform="newsletter">
-        <div class="card-pills">
-          <span class="card-category card-cat-comparativas">Comparativas</span>
-          <span class="card-platform card-platform-newsletter">newsletter</span>
-        </div>
-        <h2>Substack vs Channelad: monetización newsletter 2026</h2>
-        <p>Substack vs Channelad: suscripciones vs publicidad. Comparativa honesta de modelos, números reales por suscriptor y cuándo conviene usar ambos.</p>
-        <div class="card-footer">
-          <span>13 min</span>
-          <span>2026-06-17</span>
         </div>
       </a>
 
@@ -357,23 +404,10 @@
           
         </div>
         <h2>Plataformas de publicidad en Telegram 2026: comparativa</h2>
-        <p>Comparativa de plataformas para anunciarte en Telegram 2026: Telegram Ads, Telega.in, aitarget, adsgram, marketplaces y herramientas de analítica. Cuál elegir según tu caso.</p>
+        <p>Comparativa de plataformas para anunciarte en Telegram en 2026: Telegram Ads, Telega.in, aitarget, adsgram y marketplaces. Cuál elegir según tu caso.</p>
         <div class="card-footer">
           <span>13 min</span>
           <span>2026-06-14</span>
-        </div>
-      </a>
-
-      <a href="/blog/beehiiv-ads-vs-channelad" class="blog-card" data-category="Comparativas" data-platform="newsletter">
-        <div class="card-pills">
-          <span class="card-category card-cat-comparativas">Comparativas</span>
-          <span class="card-platform card-platform-newsletter">newsletter</span>
-        </div>
-        <h2>Beehiiv Ads vs Channelad: newsletter vs canales 2026</h2>
-        <p>Beehiiv Ads vs Channelad comparados de verdad: marketplace de newsletters US/EN frente a canales cerrados y newsletters en español. Cuándo elegir cada uno.</p>
-        <div class="card-footer">
-          <span>13 min</span>
-          <span>2026-06-12</span>
         </div>
       </a>
 
@@ -390,26 +424,13 @@
         </div>
       </a>
 
-      <a href="/blog/aitarget-one-alternatives" class="blog-card" data-category="Comparativas" data-platform="telegram">
-        <div class="card-pills">
-          <span class="card-category card-cat-comparativas">Comparativas</span>
-          <span class="card-platform card-platform-telegram">telegram</span>
-        </div>
-        <h2>Aitarget One alternativas: 5 opciones Telegram Ads 2026</h2>
-        <p>5 alternativas reales a Aitarget One para hacer Telegram Ads sin el mínimo de €1.500 de Fragment. Compara formatos, ticket mínimo, atribución y verificación.</p>
-        <div class="card-footer">
-          <span>14 min</span>
-          <span>2026-06-08</span>
-        </div>
-      </a>
-
       <a href="/blog/how-to-monetize-discord-server" class="blog-card" data-category="Monetizacion">
         <div class="card-pills">
           <span class="card-category card-cat-monetizacion">Monetizacion</span>
           
         </div>
         <h2>How to Monetize a Discord Server in 2026: 5 Proven Methods</h2>
-        <p>The 5 real ways to make money from your Discord server in 2026: sponsored posts, premium roles, sponsored events, affiliates and Discord-as-a-service — with earnings by server size.</p>
+        <p>The 5 real ways to make money from a Discord server in 2026: sponsored posts, premium roles, events and affiliates, with earnings by server size.</p>
         <div class="card-footer">
           <span>12 min</span>
           <span>2026-06-06</span>
@@ -422,7 +443,7 @@
           
         </div>
         <h2>How to Monetize a Telegram Channel in 2026: 7 Real Methods</h2>
-        <p>The complete 2026 guide to monetizing a Telegram channel: the 7 methods that actually pay, CPMs by niche, realistic earnings by channel size, and the costly mistakes to avoid.</p>
+        <p>The complete 2026 guide to monetizing a Telegram channel: the 7 methods that actually pay, CPMs by niche and realistic earnings by channel size.</p>
         <div class="card-footer">
           <span>18 min</span>
           <span>2026-06-06</span>
@@ -435,7 +456,7 @@
           
         </div>
         <h2>How to Monetize a WhatsApp Channel in 2026: 6 Real Methods</h2>
-        <p>A creator's step-by-step guide to making money from a WhatsApp channel in 2026: the 6 methods that actually work (sponsored posts, paid subscriptions, affiliates), earnings by niche, and how to start today.</p>
+        <p>A step-by-step guide to making money from a WhatsApp channel in 2026: the 6 methods that work, earnings by niche and how to start today.</p>
         <div class="card-footer">
           <span>16 min</span>
           <span>2026-06-06</span>
@@ -455,19 +476,6 @@
         </div>
       </a>
 
-      <a href="/blog/tgstat-vs-channelad" class="blog-card" data-category="Comparativas" data-platform="telegram">
-        <div class="card-pills">
-          <span class="card-category card-cat-comparativas">Comparativas</span>
-          <span class="card-platform card-platform-telegram">telegram</span>
-        </div>
-        <h2>TGStat vs Channelad: directorio vs marketplace 2026</h2>
-        <p>TGStat es el directorio más grande de canales Telegram; Channelad es el marketplace con escrow. Compara cuándo usar cada uno en 2026.</p>
-        <div class="card-footer">
-          <span>14 min</span>
-          <span>2026-06-03</span>
-        </div>
-      </a>
-
       <a href="/blog/media-kit-canal-whatsapp" class="blog-card" data-category="Guias" data-platform="whatsapp">
         <div class="card-pills">
           <span class="card-category card-cat-guias">Guias</span>
@@ -478,19 +486,6 @@
         <div class="card-footer">
           <span>14 min</span>
           <span>2026-06-01</span>
-        </div>
-      </a>
-
-      <a href="/blog/channelad-vs-combot" class="blog-card" data-category="Comparativas" data-platform="telegram">
-        <div class="card-pills">
-          <span class="card-category card-cat-comparativas">Comparativas</span>
-          <span class="card-platform card-platform-telegram">telegram</span>
-        </div>
-        <h2>Channelad vs Combot: marketplace vs analytics Telegram</h2>
-        <p>Combot y Channelad cubren necesidades distintas del admin Telegram: uno modera y analiza, otro vende publicidad. Cuándo usar cada uno (o ambos).</p>
-        <div class="card-footer">
-          <span>13 min</span>
-          <span>2026-05-29</span>
         </div>
       </a>
 
@@ -507,26 +502,13 @@
         </div>
       </a>
 
-      <a href="/blog/channelad-vs-collaborator" class="blog-card" data-category="Comparativas" data-platform="all">
-        <div class="card-pills">
-          <span class="card-category card-cat-comparativas">Comparativas</span>
-          
-        </div>
-        <h2>Channelad vs Collaborator: comparativa marketplaces 2026</h2>
-        <p>Comparativa honesta Channelad vs Collaborator en 2026: cobertura ES, comisiones, escrow, métricas verificadas y cuándo elegir cada marketplace para tu campaña.</p>
-        <div class="card-footer">
-          <span>14 min</span>
-          <span>2026-05-25</span>
-        </div>
-      </a>
-
       <a href="/blog/best-whatsapp-advertising-platforms" class="blog-card" data-category="Comparativas" data-platform="whatsapp">
         <div class="card-pills">
           <span class="card-category card-cat-comparativas">Comparativas</span>
           <span class="card-platform card-platform-whatsapp">whatsapp</span>
         </div>
-        <h2>Best WhatsApp Advertising Platforms in 2026 (Tested & Compared)</h2>
-        <p>The 6 best WhatsApp advertising platforms in 2026, compared. How brands buy WhatsApp channel promotions, real CPM benchmarks, escrow protection and the best setup for ecommerce.</p>
+        <h2>Best WhatsApp Advertising Platforms in 2026, Compared</h2>
+        <p>The 6 best WhatsApp advertising platforms in 2026, compared: how brands buy channel promotions, real CPM benchmarks and escrow protection.</p>
         <div class="card-footer">
           <span>13 min</span>
           <span>2026-05-22</span>
@@ -538,7 +520,7 @@
           <span class="card-category card-cat-comparativas">Comparativas</span>
           <span class="card-platform card-platform-telegram">telegram</span>
         </div>
-        <h2>Channelad vs Influencer Marketplaces: Which Delivers Better ROI? (2026)</h2>
+        <h2>Channelad vs Influencer Marketplaces: Better ROI in 2026?</h2>
         <p>Channelad vs influencer marketplaces compared on cost, verification and ROI. Why closed channels are measurable influencer marketing, and when to use each in 2026.</p>
         <div class="card-footer">
           <span>12 min</span>
@@ -551,8 +533,8 @@
           <span class="card-category card-cat-comparativas">Comparativas</span>
           <span class="card-platform card-platform-telegram">telegram</span>
         </div>
-        <h2>Channelad vs Meta Ads: A Real Cost & Performance Comparison (2026)</h2>
-        <p>Channelad vs Meta Ads compared on real CPM, CTR and ROI. Why Meta CPMs keep rising in 2026, where closed-channel ads win, and when to use each as a Meta Ads alternative.</p>
+        <h2>Channelad vs Meta Ads: Real Cost & Performance (2026)</h2>
+        <p>Channelad vs Meta Ads on real CPM, CTR and ROI: why Meta CPMs keep rising in 2026 and where closed-channel ads actually win.</p>
         <div class="card-footer">
           <span>12 min</span>
           <span>2026-05-22</span>
@@ -799,7 +781,7 @@
           <span class="card-platform card-platform-telegram">telegram</span>
         </div>
         <h2>Media kit canal Telegram 2026: 7 elementos + plantilla</h2>
-        <p>Crea el media kit que convierte tu canal de Telegram en negocio. Los 7 elementos clave, estadísticas vía TGStat y plantilla descargable gratis.</p>
+        <p>Cómo montar el media kit que convierte tu canal de Telegram en negocio: los 7 elementos, de dónde salen las métricas y una plantilla lista para copiar.</p>
         <div class="card-footer">
           <span>10 min</span>
           <span>2026-04-11</span>
@@ -939,5 +921,82 @@
       <a href="/soporte" style="color:#7C3AED;text-decoration:none">Soporte</a>
     </span>
   </footer>
+  <!-- Cookie consent banner for the STATIC blog only.
+
+     The SPA has the React one (client/src/ui/components/CookieBanner.jsx); the
+     static blog pages have no React, so without this a visitor arriving from
+     Google onto a /blog/* post — i.e. most organic traffic — would stay at
+     consent "denied" with no way to accept, and we would measure almost none of
+     the SEO traffic we spend the most effort on.
+
+     Writes the SAME localStorage key as the React banner
+     ('channelad-cookie-consent', same shape, same version) and is served from
+     the same origin, so a choice made on the blog carries over to the app and
+     vice versa. Keep the two in sync when either changes.
+
+     Injected by scripts/build-blog.js. Copy mirrors the React banner; review it
+     alongside that one if the wording is ever revised. -->
+<div id="cc-banner" role="dialog" aria-live="polite" aria-label="Aviso de cookies" hidden>
+  <div class="cc-inner">
+    <div class="cc-text">
+      <strong>Usamos cookies</strong>
+      Channelad y proveedores de confianza usamos cookies propias y de terceros para
+      fines t&eacute;cnicos, anal&iacute;ticos y, opcionalmente, de marketing. Puedes aceptarlas
+      o rechazarlas. M&aacute;s detalles en la
+      <a href="/privacidad">Pol&iacute;tica de privacidad</a>.
+    </div>
+    <div class="cc-actions">
+      <button type="button" id="cc-reject" class="cc-btn cc-btn-secondary">Rechazar</button>
+      <button type="button" id="cc-accept" class="cc-btn cc-btn-primary">Aceptar todas</button>
+    </div>
+  </div>
+</div>
+<style>
+  #cc-banner { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 9999; max-width: 640px; margin: 0 auto; background: #fff; color: #1D1D1F; border: 1px solid rgba(0,0,0,0.08); border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); padding: 18px 20px; font-family: 'DM Sans', system-ui, sans-serif; font-size: 14px; line-height: 1.55; }
+  #cc-banner[hidden] { display: none; }
+  .cc-inner { display: flex; flex-direction: column; gap: 12px; }
+  .cc-text strong { display: block; font-size: 15px; margin-bottom: 6px; }
+  .cc-text { color: #86868B; }
+  .cc-text a { color: #7C3AED; text-decoration: underline; }
+  .cc-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+  .cc-btn { padding: 10px 16px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .cc-btn-primary { background: #7C3AED; color: #fff; border: none; }
+  .cc-btn-secondary { background: transparent; color: #1D1D1F; border: 1px solid rgba(0,0,0,0.18); }
+</style>
+<script>
+  (function () {
+    var KEY = 'channelad-cookie-consent';
+    var el = document.getElementById('cc-banner');
+    if (!el) return;
+
+    var stored = null;
+    try { stored = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+    if (stored) return; // already decided, here or in the app
+
+    el.hidden = false;
+
+    function decide(granted) {
+      var consent = { necessary: true, analytics: granted, marketing: granted, ts: Date.now(), v: 1 };
+      try { localStorage.setItem(KEY, JSON.stringify(consent)); } catch (e) {}
+      window.__channeladConsent = consent;
+      if (typeof window.gtag === 'function') {
+        window.gtag('consent', 'update', {
+          ad_storage: granted ? 'granted' : 'denied',
+          analytics_storage: granted ? 'granted' : 'denied',
+          ad_user_data: granted ? 'granted' : 'denied',
+          ad_personalization: granted ? 'granted' : 'denied'
+        });
+      }
+      if (granted && typeof window.__channeladLoadAhrefs === 'function') {
+        window.__channeladLoadAhrefs();
+      }
+      el.hidden = true;
+    }
+
+    document.getElementById('cc-accept').addEventListener('click', function () { decide(true); });
+    document.getElementById('cc-reject').addEventListener('click', function () { decide(false); });
+  })();
+</script>
+
 </body>
 </html>

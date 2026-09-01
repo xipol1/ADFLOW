@@ -1,0 +1,76 @@
+<!-- Cookie consent banner for the STATIC blog only.
+
+     The SPA has the React one (client/src/ui/components/CookieBanner.jsx); the
+     static blog pages have no React, so without this a visitor arriving from
+     Google onto a /blog/* post — i.e. most organic traffic — would stay at
+     consent "denied" with no way to accept, and we would measure almost none of
+     the SEO traffic we spend the most effort on.
+
+     Writes the SAME localStorage key as the React banner
+     ('channelad-cookie-consent', same shape, same version) and is served from
+     the same origin, so a choice made on the blog carries over to the app and
+     vice versa. Keep the two in sync when either changes.
+
+     Injected by scripts/build-blog.js. Copy mirrors the React banner; review it
+     alongside that one if the wording is ever revised. -->
+<div id="cc-banner" role="dialog" aria-live="polite" aria-label="Aviso de cookies" hidden>
+  <div class="cc-inner">
+    <div class="cc-text">
+      <strong>Usamos cookies</strong>
+      Channelad y proveedores de confianza usamos cookies propias y de terceros para
+      fines t&eacute;cnicos, anal&iacute;ticos y, opcionalmente, de marketing. Puedes aceptarlas
+      o rechazarlas. M&aacute;s detalles en la
+      <a href="/privacidad">Pol&iacute;tica de privacidad</a>.
+    </div>
+    <div class="cc-actions">
+      <button type="button" id="cc-reject" class="cc-btn cc-btn-secondary">Rechazar</button>
+      <button type="button" id="cc-accept" class="cc-btn cc-btn-primary">Aceptar todas</button>
+    </div>
+  </div>
+</div>
+<style>
+  #cc-banner { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 9999; max-width: 640px; margin: 0 auto; background: #fff; color: #1D1D1F; border: 1px solid rgba(0,0,0,0.08); border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); padding: 18px 20px; font-family: 'DM Sans', system-ui, sans-serif; font-size: 14px; line-height: 1.55; }
+  #cc-banner[hidden] { display: none; }
+  .cc-inner { display: flex; flex-direction: column; gap: 12px; }
+  .cc-text strong { display: block; font-size: 15px; margin-bottom: 6px; }
+  .cc-text { color: #86868B; }
+  .cc-text a { color: #7C3AED; text-decoration: underline; }
+  .cc-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+  .cc-btn { padding: 10px 16px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .cc-btn-primary { background: #7C3AED; color: #fff; border: none; }
+  .cc-btn-secondary { background: transparent; color: #1D1D1F; border: 1px solid rgba(0,0,0,0.18); }
+</style>
+<script>
+  (function () {
+    var KEY = 'channelad-cookie-consent';
+    var el = document.getElementById('cc-banner');
+    if (!el) return;
+
+    var stored = null;
+    try { stored = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+    if (stored) return; // already decided, here or in the app
+
+    el.hidden = false;
+
+    function decide(granted) {
+      var consent = { necessary: true, analytics: granted, marketing: granted, ts: Date.now(), v: 1 };
+      try { localStorage.setItem(KEY, JSON.stringify(consent)); } catch (e) {}
+      window.__channeladConsent = consent;
+      if (typeof window.gtag === 'function') {
+        window.gtag('consent', 'update', {
+          ad_storage: granted ? 'granted' : 'denied',
+          analytics_storage: granted ? 'granted' : 'denied',
+          ad_user_data: granted ? 'granted' : 'denied',
+          ad_personalization: granted ? 'granted' : 'denied'
+        });
+      }
+      if (granted && typeof window.__channeladLoadAhrefs === 'function') {
+        window.__channeladLoadAhrefs();
+      }
+      el.hidden = true;
+    }
+
+    document.getElementById('cc-accept').addEventListener('click', function () { decide(true); });
+    document.getElementById('cc-reject').addEventListener('click', function () { decide(false); });
+  })();
+</script>
