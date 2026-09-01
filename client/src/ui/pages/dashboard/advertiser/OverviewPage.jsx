@@ -142,12 +142,7 @@ export default function OverviewPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <OnboardingChecklist
-        role="advertiser"
-        campaigns={campaigns}
-        transactions={transactions}
-        variant="banner"
-      />
+      <OnboardingChecklist role="advertiser" variant="banner" />
       <CustomizableDashboard data={dashboardData} />
     </div>
   )

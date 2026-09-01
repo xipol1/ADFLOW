@@ -340,7 +340,6 @@ export default function AppRoutes() {
           <Route path="links"    element={<CreatorLinksPage />} />
           <Route path="referrals" element={<CreatorReferralsPage />} />
           <Route path="disputes" element={<DisputesPage />} />
-          <Route path="notifications" element={<NotificationsPage />} />
           <Route path="settings" element={<CreatorSettingsPage />} />
         </Route>
 

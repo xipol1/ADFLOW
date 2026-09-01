@@ -169,9 +169,6 @@ export default function CreatorOverviewPage() {
       <FirstRunWelcome
         userName={dashboardData.userName}
         navigate={navigate}
-        channels={channels}
-        campaigns={creatorCampaigns}
-        requests={requests}
       />
     )
   }
@@ -189,12 +186,7 @@ export default function CreatorOverviewPage() {
         />
       )}
       <RefreshBar lastUpdated={lastUpdated} loading={loading} onRefresh={retry} />
-      <CreatorOnboardingChecklist
-        channels={channels}
-        campaigns={creatorCampaigns}
-        requests={requests}
-        variant="banner"
-      />
+      <CreatorOnboardingChecklist variant="banner" />
       <CreatorCustomizableDashboard data={dashboardData} />
     </div>
   )
@@ -246,7 +238,7 @@ function RefreshBar({ lastUpdated, loading, onRefresh }) {
 }
 
 // ─── First-run welcome (no channels yet) ────────────────────────────────────
-function FirstRunWelcome({ userName, navigate, channels, campaigns, requests }) {
+function FirstRunWelcome({ userName, navigate }) {
   const ga = greenAlpha
   return (
     <div style={{ fontFamily: FONT_BODY, display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 1100 }}>
@@ -284,13 +276,7 @@ function FirstRunWelcome({ userName, navigate, channels, campaigns, requests }) 
         </div>
       </div>
 
-      {/* Onboarding checklist — shows progress already (mostly 0%) */}
-      <CreatorOnboardingChecklist
-        channels={channels}
-        campaigns={campaigns}
-        requests={requests}
-        variant="banner"
-      />
+      <CreatorOnboardingChecklist variant="banner" />
 
       {/* Tips */}
       <div style={{

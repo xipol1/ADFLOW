@@ -129,6 +129,25 @@ const UsuarioSchema = new mongoose.Schema(
     // Campaign credits (welcome bonus for referred users, spent on campaigns)
     campaignCreditsBalance: { type: Number, default: 0 },
 
+    // Role profiles. These were validated in routes/auth.js and written by the
+    // settings pages, but never declared here — so Mongoose strict mode dropped
+    // every write and nothing was ever persisted. Same class of bug as the old
+    // `fullAccess`. Mixed because the shape is still moving and the validators
+    // in routes/auth.js are the real contract.
+    perfilCreador: { type: mongoose.Schema.Types.Mixed, default: {} },
+    perfilAnunciante: { type: mongoose.Schema.Types.Mixed, default: {} },
+
+    // Onboarding. Only what cannot be derived from real state lives here —
+    // everything else (channels, fiscal data, campaigns, tracking) is computed
+    // on demand by services/onboardingProgress.js. The checklist used to read
+    // all of it from localStorage, so progress reset on every browser change
+    // and disagreed with what the API actually enforced.
+    onboarding: {
+      pasosCompletados: { type: [String], default: [] },
+      dismissedAt: { type: Date, default: null },
+      completedAt: { type: Date, default: null },
+    },
+
     // Beta program — gates access to the /advertiser and /creator dashboards.
     // Admins are always beta. Normal users stay false until explicitly flipped
     // (via the admin panel or scripts/grant-beta.js).

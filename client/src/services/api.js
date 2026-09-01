@@ -377,6 +377,17 @@ class ApiService {
   async getAdminOverview() {
     return this.request('/admin/dashboard/overview');
   }
+  // ─── Onboarding ───────────────────────────────────────────────────
+  async getOnboardingProgress() {
+    return this.request('/onboarding/progreso');
+  }
+  async markOnboardingStep(paso) {
+    return this.request('/onboarding/progreso/paso', { method: 'POST', body: JSON.stringify({ paso }), headers: { 'Content-Type': 'application/json' } });
+  }
+  async dismissOnboarding(descartar = true) {
+    return this.request('/onboarding/progreso/descartar', { method: 'POST', body: JSON.stringify({ descartar }), headers: { 'Content-Type': 'application/json' } });
+  }
+
   // ─── Beta programme ───────────────────────────────────────────────
   async getBetaStatus() {
     return this.request('/beta/estado');
