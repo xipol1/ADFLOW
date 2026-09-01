@@ -16,14 +16,23 @@ function writeConsent(consent) {
   const payload = { ...consent, ts: Date.now(), v: 1 }
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)) } catch {}
 
-  if (typeof window.gtag === 'function') {
-    window.gtag('consent', 'update', {
-      ad_storage:           consent.marketing ? 'granted' : 'denied',
-      analytics_storage:    consent.analytics ? 'granted' : 'denied',
-      ad_user_data:         consent.marketing ? 'granted' : 'denied',
-      ad_personalization:   consent.marketing ? 'granted' : 'denied',
-    })
+  // config/analytics-tag.html defines window.gtag before GTM loads. Recreating
+  // the shim here rather than guarding on `typeof window.gtag === 'function'`
+  // is deliberate: that guard used to be false on every render — GTM alone never
+  // defines window.gtag — so the consent update was silently dropped and the
+  // banner governed nothing. Pushing an `arguments` object into dataLayer works
+  // whether or not GTM has loaded yet; it queues and is honoured on arrival.
+  const gtag = window.gtag || function () {
+    ;(window.dataLayer = window.dataLayer || []).push(arguments)
   }
+  window.gtag = gtag
+  window.__channeladConsent = payload
+  gtag('consent', 'update', {
+    ad_storage:           consent.marketing ? 'granted' : 'denied',
+    analytics_storage:    consent.analytics ? 'granted' : 'denied',
+    ad_user_data:         consent.marketing ? 'granted' : 'denied',
+    ad_personalization:   consent.marketing ? 'granted' : 'denied',
+  })
   if (consent.analytics && typeof window.__channeladLoadAhrefs === 'function') {
     window.__channeladLoadAhrefs()
   }

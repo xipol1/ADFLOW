@@ -1,5 +1,5 @@
 import React, { Suspense, useState, useEffect } from 'react'
-import { Link, useParams, Navigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import SEO from '../../components/SEO'
 import CrossLinks from '../../components/landing/CrossLinks'
@@ -178,7 +178,7 @@ function AuthorBox() {
         <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.55, marginBottom: 8, fontFamily: SANS }}>
           Escribo sobre publicidad en comunidades, monetizacion de canales y estrategias de marketing en WhatsApp, Telegram y Discord.
         </p>
-        <Link to="/blog" style={{ fontSize: 12, fontWeight: 600, color: PURPLE, textDecoration: 'none', fontFamily: SANS }}>Ver todos los articulos →</Link>
+        <a href="/blog" style={{ fontSize: 12, fontWeight: 600, color: PURPLE, textDecoration: 'none', fontFamily: SANS }}>Ver todos los articulos →</a>
       </div>
     </div>
   )
@@ -193,7 +193,7 @@ function RelatedPosts({ currentSlug }) {
       <h2 style={{ fontFamily: SERIF, fontSize: 28, fontWeight: 400, marginBottom: 28 }}>Tambien te puede interesar</h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 20 }}>
         {others.map(p => (
-          <Link key={p.slug} to={`/blog/${p.slug}`} style={{
+          <a key={p.slug} href={`/blog/${p.slug}`} style={{
             textDecoration: 'none', color: 'inherit', borderRadius: 12,
             background: 'var(--bg2)', border: '1px solid var(--border)',
             padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 12,
@@ -205,7 +205,7 @@ function RelatedPosts({ currentSlug }) {
             <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: PURPLE, fontFamily: SANS }}>{p.category}</span>
             <span style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 400, lineHeight: 1.3 }}>{p.title}</span>
             <span style={{ fontSize: 12, color: 'var(--muted)', marginTop: 'auto', fontFamily: SANS }}>{p.readTime} · {p.date}</span>
-          </Link>
+          </a>
         ))}
       </div>
     </div>
@@ -221,20 +221,20 @@ function PrevNextNav({ currentSlug }) {
   return (
     <nav style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
       {prev ? (
-        <Link to={`/blog/${prev.slug}`} style={{ textDecoration: 'none', color: 'inherit', padding: 16, borderRadius: 12, transition: 'background 0.2s' }}
+        <a href={`/blog/${prev.slug}`} style={{ textDecoration: 'none', color: 'inherit', padding: 16, borderRadius: 12, transition: 'background 0.2s' }}
           onMouseEnter={e => e.currentTarget.style.background = purpleAlpha(0.03)}
           onMouseLeave={e => e.currentTarget.style.background = ''}>
           <span style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600, display: 'block', marginBottom: 8, fontFamily: SANS }}>← Anterior</span>
           <span style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 400, lineHeight: 1.35 }}>{prev.title}</span>
-        </Link>
+        </a>
       ) : <div />}
       {next ? (
-        <Link to={`/blog/${next.slug}`} style={{ textDecoration: 'none', color: 'inherit', padding: 16, borderRadius: 12, textAlign: 'right', transition: 'background 0.2s' }}
+        <a href={`/blog/${next.slug}`} style={{ textDecoration: 'none', color: 'inherit', padding: 16, borderRadius: 12, textAlign: 'right', transition: 'background 0.2s' }}
           onMouseEnter={e => e.currentTarget.style.background = purpleAlpha(0.03)}
           onMouseLeave={e => e.currentTarget.style.background = ''}>
           <span style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600, display: 'block', marginBottom: 8, fontFamily: SANS }}>Siguiente →</span>
           <span style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 400, lineHeight: 1.35 }}>{next.title}</span>
-        </Link>
+        </a>
       ) : <div />}
     </nav>
   )
@@ -283,11 +283,15 @@ function TableOfContents() {
   )
 }
 
-export default function BlogPost() {
-  const { slug } = useParams()
-  const post = getPostBySlug(slug)
+// The only blog URL React still owns: the interactive pricing calculator.
+// Every other post is static HTML built by scripts/build-blog.js, so linking to
+// one from inside the app must be a real navigation (<a href>), never a <Link>.
+const SPA_SLUG = 'calculadora-precios-publicidad'
 
-  if (!post) return <Navigate to="/blog" replace />
+export default function BlogPost() {
+  const post = getPostBySlug(SPA_SLUG)
+
+  if (!post) return null
 
   const platformColor = PLATFORM_BRAND[post.platform]?.color || PURPLE
   const platformLabel = PLATFORM_BRAND[post.platform]?.label || post.platform
@@ -329,7 +333,7 @@ export default function BlogPost() {
         <nav style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, marginBottom: 32, flexWrap: 'wrap', fontFamily: SANS }}>
           <Link to="/" style={{ color: PURPLE, textDecoration: 'none', fontWeight: 500 }}>Inicio</Link>
           <span style={{ color: 'var(--border-heavy)', fontSize: 10 }}>›</span>
-          <Link to="/blog" style={{ color: PURPLE, textDecoration: 'none', fontWeight: 500 }}>Blog</Link>
+          <a href="/blog" style={{ color: PURPLE, textDecoration: 'none', fontWeight: 500 }}>Blog</a>
           <span style={{ color: 'var(--border-heavy)', fontSize: 10 }}>›</span>
           <span style={{ color: 'var(--muted)', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.title}</span>
         </nav>

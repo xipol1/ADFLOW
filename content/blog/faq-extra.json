@@ -1,57 +1,195 @@
 {
   "_comment": "FAQ data for markdown-only posts NOT registered in client/src/ui/pages/blog/blogPosts.js. build-blog.js merges this into the FAQ map so these posts also emit FAQPage schema. The React app never imports this file.",
-
   "how-to-monetize-whatsapp-channel": [
-    { "question": "Does WhatsApp pay channel creators?", "answer": "Meta enabled native monetization on WhatsApp from 2025: paid subscriptions for channels and ads in Status. Meta currently takes no commission on subscriptions (eventually an estimated 10%). For most creators, the bulk of income still comes from direct advertising with brands — sponsored posts — rather than from WhatsApp itself." },
-    { "question": "How many followers do I need to monetize a WhatsApp channel?", "answer": "For direct advertising, you can start from around 500 active followers. For Meta's paid subscriptions you need 1,000 followers and three months of consistent activity. What matters most is engagement and real view rates, not the absolute follower count." },
-    { "question": "How much can you earn with a WhatsApp channel?", "answer": "It depends on niche and subscribers. A channel with 5,000-15,000 active subscribers can generate roughly €350-1,200 per month combining sponsored posts, premium subscriptions and affiliate marketing. Premium niches like finance pay materially more per post." },
-    { "question": "Is WhatsApp or Telegram better for monetization?", "answer": "They are complementary. WhatsApp has higher open rates (75-90%) but a less mature advertising market. Telegram has higher CPMs and consolidated marketplaces. The optimal strategy is to run channels on both platforms and reuse most of the content." },
-    { "question": "Does WhatsApp charge commission on channel subscriptions?", "answer": "Not currently. Meta has announced it will eventually take around 10% of subscription sales, but for now 100% goes to the creator. It's worth taking advantage of the current window." },
-    { "question": "How do I find advertisers for my WhatsApp channel?", "answer": "Two routes: direct outreach to brands in your niche, or a marketplace such as Channelad that connects creators and advertisers with escrow (held) payments and verified metrics. The marketplace route is faster and protects you from non-payment." }
+    {
+      "question": "Does WhatsApp pay channel creators?",
+      "answer": "Meta enabled native monetization on WhatsApp from 2025: paid subscriptions for channels and ads in Status. Meta currently takes no commission on subscriptions (eventually an estimated 10%). For most creators, the bulk of income still comes from direct advertising with brands — sponsored posts — rather than from WhatsApp itself."
+    },
+    {
+      "question": "How many followers do I need to monetize a WhatsApp channel?",
+      "answer": "For direct advertising, you can start from around 500 active followers. For Meta's paid subscriptions you need 1,000 followers and three months of consistent activity. What matters most is engagement and real view rates, not the absolute follower count."
+    },
+    {
+      "question": "How much can you earn with a WhatsApp channel?",
+      "answer": "It depends on niche and subscribers. A channel with 5,000-15,000 active subscribers can generate roughly €350-1,200 per month combining sponsored posts, premium subscriptions and affiliate marketing. Premium niches like finance pay materially more per post."
+    },
+    {
+      "question": "Is WhatsApp or Telegram better for monetization?",
+      "answer": "They are complementary. WhatsApp has higher open rates (75-90%) but a less mature advertising market. Telegram has higher CPMs and consolidated marketplaces. The optimal strategy is to run channels on both platforms and reuse most of the content."
+    },
+    {
+      "question": "Does WhatsApp charge commission on channel subscriptions?",
+      "answer": "Not currently. Meta has announced it will eventually take around 10% of subscription sales, but for now 100% goes to the creator. It's worth taking advantage of the current window."
+    },
+    {
+      "question": "How do I find advertisers for my WhatsApp channel?",
+      "answer": "Two routes: direct outreach to brands in your niche, or a marketplace such as Channelad that connects creators and advertisers with escrow (held) payments and verified metrics. The marketplace route is faster and protects you from non-payment."
+    }
   ],
-
   "how-to-monetize-telegram-channel": [
-    { "question": "How many subscribers do I need to monetize a Telegram channel?", "answer": "You can start selling advertising from around 1,000-2,000 active subscribers if your niche has demand (finance, crypto, tech). What matters isn't the total count but real views per post and engagement: a small, very active channel monetizes better than a large, dormant one." },
-    { "question": "How much can you earn with a Telegram channel?", "answer": "It depends on niche and size. Using market CPMs, a 5,000 active-subscriber channel in a mid-tier niche can bill roughly €350-1,500 per month from sponsored posts; in premium niches like crypto or finance, considerably more. Most creators stack several streams: advertising, affiliates and paid content." },
-    { "question": "What is the best way to monetize a Telegram channel in 2026?", "answer": "The most profitable and scalable path is still selling sponsored posts to brands, ideally through a marketplace with guaranteed (escrow) payment to avoid non-payment. From there, diversify with affiliate marketing, premium content or memberships depending on your topic." },
-    { "question": "Does Telegram pay you directly for having a channel?", "answer": "Not directly just for having subscribers. Telegram shares revenue through its official Ad Revenue Sharing program (50%) for channels with 1,000+ subscribers, paid in TON. For most creators, real income comes from selling ads themselves or through a marketplace, not from Telegram directly." },
-    { "question": "Do I have to pay tax on Telegram channel income?", "answer": "In virtually every country, advertising income is taxable from the first euro or dollar. Whether you must register as self-employed depends on local thresholds and how regular the activity is. Check your local rules before billing regularly, and talk to an accountant." }
+    {
+      "question": "How many subscribers do I need to monetize a Telegram channel?",
+      "answer": "You can start selling advertising from around 1,000-2,000 active subscribers if your niche has demand (finance, crypto, tech). What matters isn't the total count but real views per post and engagement: a small, very active channel monetizes better than a large, dormant one."
+    },
+    {
+      "question": "How much can you earn with a Telegram channel?",
+      "answer": "It depends on niche and size. Using market CPMs, a 5,000 active-subscriber channel in a mid-tier niche can bill roughly €350-1,500 per month from sponsored posts; in premium niches like crypto or finance, considerably more. Most creators stack several streams: advertising, affiliates and paid content."
+    },
+    {
+      "question": "What is the best way to monetize a Telegram channel in 2026?",
+      "answer": "The most profitable and scalable path is still selling sponsored posts to brands, ideally through a marketplace with guaranteed (escrow) payment to avoid non-payment. From there, diversify with affiliate marketing, premium content or memberships depending on your topic."
+    },
+    {
+      "question": "Does Telegram pay you directly for having a channel?",
+      "answer": "Not directly just for having subscribers. Telegram shares revenue through its official Ad Revenue Sharing program (50%) for channels with 1,000+ subscribers, paid in TON. For most creators, real income comes from selling ads themselves or through a marketplace, not from Telegram directly."
+    },
+    {
+      "question": "Do I have to pay tax on Telegram channel income?",
+      "answer": "In virtually every country, advertising income is taxable from the first euro or dollar. Whether you must register as self-employed depends on local thresholds and how regular the activity is. Check your local rules before billing regularly, and talk to an accountant."
+    }
   ],
-
   "how-to-monetize-discord-server": [
-    { "question": "How do you make money from a Discord server?", "answer": "The main ways are sponsored brand posts in your announcements channel, paid premium roles, sponsored events (tournaments, Q&As, giveaways), affiliate links, and offering Discord-as-a-service to brands. Most server owners combine two or three of these rather than relying on one." },
-    { "question": "How many members do I need to monetize a Discord server?", "answer": "From around 500 total members and 50 daily active members you can start with premium roles and affiliates. Sponsored brand deals usually work from about 2,000 members. Active members and daily messages matter far more than the raw total count." },
-    { "question": "How much can a Discord server earn?", "answer": "It depends on active members and niche. A server with 5,000-15,000 active members can earn roughly €400-1,000 per month combining advertising and premium roles. The real 15,000-member gaming server in this guide bills around €520 a month across sponsored posts, premium roles, tournaments and affiliates." },
-    { "question": "Can you charge for Discord roles?", "answer": "Yes. Discord lets you create roles that unlock exclusive channels, content or support, and you can charge a monthly subscription for them. Premium roles are one of the most reliable recurring-income sources for community servers." },
-    { "question": "Is advertising in Discord servers allowed?", "answer": "Yes, sponsored posts are allowed as long as they comply with Discord's Terms of Service and you clearly label them as advertising. Using a marketplace with escrow protects both sides and keeps the deal transparent and verifiable." }
+    {
+      "question": "How do you make money from a Discord server?",
+      "answer": "The main ways are sponsored brand posts in your announcements channel, paid premium roles, sponsored events (tournaments, Q&As, giveaways), affiliate links, and offering Discord-as-a-service to brands. Most server owners combine two or three of these rather than relying on one."
+    },
+    {
+      "question": "How many members do I need to monetize a Discord server?",
+      "answer": "From around 500 total members and 50 daily active members you can start with premium roles and affiliates. Sponsored brand deals usually work from about 2,000 members. Active members and daily messages matter far more than the raw total count."
+    },
+    {
+      "question": "How much can a Discord server earn?",
+      "answer": "It depends on active members and niche. A server with 5,000-15,000 active members can earn roughly €400-1,000 per month combining advertising and premium roles. The real 15,000-member gaming server in this guide bills around €520 a month across sponsored posts, premium roles, tournaments and affiliates."
+    },
+    {
+      "question": "Can you charge for Discord roles?",
+      "answer": "Yes. Discord lets you create roles that unlock exclusive channels, content or support, and you can charge a monthly subscription for them. Premium roles are one of the most reliable recurring-income sources for community servers."
+    },
+    {
+      "question": "Is advertising in Discord servers allowed?",
+      "answer": "Yes, sponsored posts are allowed as long as they comply with Discord's Terms of Service and you clearly label them as advertising. Using a marketplace with escrow protects both sides and keeps the deal transparent and verifiable."
+    }
   ],
-
   "como-monetizar-canal-telegram": [
-    { "question": "¿Cuántos suscriptores necesito para monetizar un canal de Telegram?", "answer": "Puedes empezar a vender publicidad a partir de unos 1.000-2.000 suscriptores activos si tu nicho tiene demanda (finanzas, cripto, tecnología). Lo decisivo no es el número total, sino las vistas reales por publicación y el engagement: un canal pequeño y muy activo monetiza mejor que uno grande y dormido." },
-    { "question": "¿Cuánto se puede ganar con un canal de Telegram?", "answer": "Depende del nicho y del tamaño. Con la fórmula de CPM del mercado español, un canal de 5.000 suscriptores activos en un nicho medio puede facturar entre 150 y 400 EUR al mes combinando posts patrocinados; en nichos premium como cripto o finanzas, bastante más. Lo habitual es sumar varias vías: publicidad, afiliados y contenido de pago." },
-    { "question": "¿Cuál es la mejor forma de monetizar un canal de Telegram en 2026?", "answer": "La vía más rentable y escalable sigue siendo la venta de publicaciones patrocinadas a marcas, idealmente a través de un marketplace con pago garantizado para evitar impagos. A partir de ahí conviene diversificar con marketing de afiliación, contenido premium o membresías, según tu temática." },
-    { "question": "¿Telegram paga directamente por tener un canal?", "answer": "No de forma directa por el simple hecho de tener suscriptores. Telegram reparte ingresos a través de su programa oficial de anuncios (Telegram Ads) solo para canales grandes y bajo condiciones; para la mayoría de creadores, los ingresos reales llegan vendiendo publicidad por su cuenta o vía marketplace, no de Telegram directamente." },
-    { "question": "¿Necesito darme de alta como autónomo para cobrar publicidad?", "answer": "En España debes declarar todos los ingresos desde el primer euro. El alta en el RETA (autónomos) solo es obligatoria si superas determinados umbrales de actividad recurrente, pero la obligación fiscal de declarar existe siempre. Lo más seguro es informarte de tu situación concreta antes de empezar a facturar de forma regular." }
+    {
+      "question": "¿Cuántos suscriptores necesito para monetizar un canal de Telegram?",
+      "answer": "Puedes empezar a vender publicidad a partir de unos 1.000-2.000 suscriptores activos si tu nicho tiene demanda (finanzas, cripto, tecnología). Lo decisivo no es el número total, sino las vistas reales por publicación y el engagement: un canal pequeño y muy activo monetiza mejor que uno grande y dormido."
+    },
+    {
+      "question": "¿Cuánto se puede ganar con un canal de Telegram?",
+      "answer": "Depende del nicho y del tamaño. Con la fórmula de CPM del mercado español, un canal de 5.000 suscriptores activos en un nicho medio puede facturar entre 150 y 400 EUR al mes combinando posts patrocinados; en nichos premium como cripto o finanzas, bastante más. Lo habitual es sumar varias vías: publicidad, afiliados y contenido de pago."
+    },
+    {
+      "question": "¿Cuál es la mejor forma de monetizar un canal de Telegram en 2026?",
+      "answer": "La vía más rentable y escalable sigue siendo la venta de publicaciones patrocinadas a marcas, idealmente a través de un marketplace con pago garantizado para evitar impagos. A partir de ahí conviene diversificar con marketing de afiliación, contenido premium o membresías, según tu temática."
+    },
+    {
+      "question": "¿Telegram paga directamente por tener un canal?",
+      "answer": "No de forma directa por el simple hecho de tener suscriptores. Telegram reparte ingresos a través de su programa oficial de anuncios (Telegram Ads) solo para canales grandes y bajo condiciones; para la mayoría de creadores, los ingresos reales llegan vendiendo publicidad por su cuenta o vía marketplace, no de Telegram directamente."
+    },
+    {
+      "question": "¿Necesito darme de alta como autónomo para cobrar publicidad?",
+      "answer": "En España debes declarar todos los ingresos desde el primer euro. El alta en el RETA (autónomos) solo es obligatoria si superas determinados umbrales de actividad recurrente, pero la obligación fiscal de declarar existe siempre. Lo más seguro es informarte de tu situación concreta antes de empezar a facturar de forma regular."
+    }
   ],
-
   "telegram-publicidad-empresas": [
-    { "question": "¿Cómo puede una empresa anunciarse en Telegram?", "answer": "Una empresa tiene dos caminos: el sistema oficial de Telegram Ads, pensado para grandes presupuestos y con mínimos elevados, o comprar publicaciones patrocinadas directamente en canales del nicho de su público. Esta segunda opción es la más accesible para pymes y la que ofrece mejor segmentación por temática." },
-    { "question": "¿Cuánto cuesta la publicidad en Telegram para empresas?", "answer": "Una publicación patrocinada en un canal pequeño o mediano suele costar entre 15 y 150 EUR, según nicho, país y calidad de la audiencia. Es una de las formas de publicidad con CPM más bajo en 2026 frente a Instagram o TikTok, lo que la hace ideal para campañas de adquisición a coste controlado." },
-    { "question": "¿Qué formatos de publicidad existen en Telegram?", "answer": "Los más habituales son el post patrocinado (texto, imagen o vídeo con enlace), el post fijado durante 24-48 horas, las menciones o reseñas del producto y los paquetes de varias publicaciones. El post fijado es el de mayor impacto porque permanece visible en la parte superior del canal." },
-    { "question": "¿Es mejor Telegram Ads oficial o comprar posts en canales?", "answer": "Para grandes marcas con presupuesto alto y objetivos de alcance masivo, Telegram Ads tiene sentido. Para la mayoría de empresas, comprar posts en canales del nicho ofrece mejor segmentación, formatos más nativos y un coste de entrada mucho menor, sobre todo si se hace a través de un marketplace con métricas verificadas y pago protegido." }
+    {
+      "question": "¿Cómo puede una empresa anunciarse en Telegram?",
+      "answer": "Una empresa tiene dos caminos: el sistema oficial de Telegram Ads, pensado para grandes presupuestos y con mínimos elevados, o comprar publicaciones patrocinadas directamente en canales del nicho de su público. Esta segunda opción es la más accesible para pymes y la que ofrece mejor segmentación por temática."
+    },
+    {
+      "question": "¿Cuánto cuesta la publicidad en Telegram para empresas?",
+      "answer": "Una publicación patrocinada en un canal pequeño o mediano suele costar entre 15 y 150 EUR, según nicho, país y calidad de la audiencia. Es una de las formas de publicidad con CPM más bajo en 2026 frente a Instagram o TikTok, lo que la hace ideal para campañas de adquisición a coste controlado."
+    },
+    {
+      "question": "¿Qué formatos de publicidad existen en Telegram?",
+      "answer": "Los más habituales son el post patrocinado (texto, imagen o vídeo con enlace), el post fijado durante 24-48 horas, las menciones o reseñas del producto y los paquetes de varias publicaciones. El post fijado es el de mayor impacto porque permanece visible en la parte superior del canal."
+    },
+    {
+      "question": "¿Es mejor Telegram Ads oficial o comprar posts en canales?",
+      "answer": "Para grandes marcas con presupuesto alto y objetivos de alcance masivo, Telegram Ads tiene sentido. Para la mayoría de empresas, comprar posts en canales del nicho ofrece mejor segmentación, formatos más nativos y un coste de entrada mucho menor, sobre todo si se hace a través de un marketplace con métricas verificadas y pago protegido."
+    }
   ],
-
   "discord-vs-telegram-anunciantes": [
-    { "question": "¿Qué es mejor para anunciantes, Discord o Telegram?", "answer": "Depende del objetivo. Telegram es mejor para alcance rápido y campañas de respuesta directa gracias a su formato de canal de difusión. Discord destaca cuando buscas comunidad profunda y engagement sostenido en torno a un nicho (gaming, cripto, tech), con audiencias muy fieles aunque más pequeñas." },
-    { "question": "¿Dónde es más barata la publicidad, en Discord o Telegram?", "answer": "En términos de coste por impacto, Telegram suele ser algo más barato por su mayor volumen de visualizaciones por publicación. Discord puede tener un coste por acción más eficiente cuando el servidor está muy segmentado y el producto encaja con la comunidad, porque la conversión tiende a ser mayor." },
-    { "question": "¿Qué plataforma tiene mejor engagement?", "answer": "Discord gana en profundidad de engagement: sus miembros pasan mucho más tiempo dentro del servidor e interactúan en tiempo real. Telegram gana en velocidad y alcance de cada publicación. Para una marca, lo ideal suele ser combinar ambas según la fase del embudo." },
-    { "question": "¿Puedo anunciarme en Discord y Telegram a la vez?", "answer": "Sí, y suele ser la estrategia más rentable. Usar un mismo enlace de seguimiento en campañas paralelas de Discord y Telegram permite comparar coste por clic y conversión real entre plataformas, y reasignar presupuesto a la que mejor funcione para tu producto." }
+    {
+      "question": "¿Qué es mejor para anunciantes, Discord o Telegram?",
+      "answer": "Depende del objetivo. Telegram es mejor para alcance rápido y campañas de respuesta directa gracias a su formato de canal de difusión. Discord destaca cuando buscas comunidad profunda y engagement sostenido en torno a un nicho (gaming, cripto, tech), con audiencias muy fieles aunque más pequeñas."
+    },
+    {
+      "question": "¿Dónde es más barata la publicidad, en Discord o Telegram?",
+      "answer": "En términos de coste por impacto, Telegram suele ser algo más barato por su mayor volumen de visualizaciones por publicación. Discord puede tener un coste por acción más eficiente cuando el servidor está muy segmentado y el producto encaja con la comunidad, porque la conversión tiende a ser mayor."
+    },
+    {
+      "question": "¿Qué plataforma tiene mejor engagement?",
+      "answer": "Discord gana en profundidad de engagement: sus miembros pasan mucho más tiempo dentro del servidor e interactúan en tiempo real. Telegram gana en velocidad y alcance de cada publicación. Para una marca, lo ideal suele ser combinar ambas según la fase del embudo."
+    },
+    {
+      "question": "¿Puedo anunciarme en Discord y Telegram a la vez?",
+      "answer": "Sí, y suele ser la estrategia más rentable. Usar un mismo enlace de seguimiento en campañas paralelas de Discord y Telegram permite comparar coste por clic y conversión real entre plataformas, y reasignar presupuesto a la que mejor funcione para tu producto."
+    }
   ],
-
   "publicidad-canal-difusion-instagram": [
-    { "question": "¿Se puede hacer publicidad en canales de difusión de Instagram?", "answer": "Sí. Los canales de difusión de Instagram permiten al creador enviar mensajes de tipo broadcast a sus seguidores, y una marca puede patrocinar esas publicaciones. No existe todavía un gestor de anuncios nativo para este formato, así que se contrata directamente con el creador o a través de un marketplace." },
-    { "question": "¿Cuánto cuesta anunciarse en un canal de difusión de Instagram?", "answer": "El precio depende del tamaño y la fidelidad de la audiencia del canal. En canales pequeños y medianos las publicaciones patrocinadas suelen moverse en rangos similares a los de Telegram o WhatsApp, con un coste de entrada bajo que permite a marcas pequeñas probar varios creadores sin grandes presupuestos." },
-    { "question": "¿Cómo contacto con creadores de canales de difusión para anunciarme?", "answer": "Puedes contactar directamente con el creador por mensaje privado, pero lo más seguro es hacerlo a través de un marketplace que verifique las métricas del canal y proteja el pago con escrow, evitando impagos y datos inflados." },
-    { "question": "¿Vale la pena para una marca pequeña?", "answer": "Sí, especialmente para negocios locales o de nicho. Los canales de difusión tienen audiencias muy comprometidas y un coste de entrada bajo, por lo que una marca pequeña puede testar el formato con poco riesgo y medir resultados con enlaces de seguimiento antes de escalar." }
+    {
+      "question": "¿Se puede hacer publicidad en canales de difusión de Instagram?",
+      "answer": "Sí. Los canales de difusión de Instagram permiten al creador enviar mensajes de tipo broadcast a sus seguidores, y una marca puede patrocinar esas publicaciones. No existe todavía un gestor de anuncios nativo para este formato, así que se contrata directamente con el creador o a través de un marketplace."
+    },
+    {
+      "question": "¿Cuánto cuesta anunciarse en un canal de difusión de Instagram?",
+      "answer": "El precio depende del tamaño y la fidelidad de la audiencia del canal. En canales pequeños y medianos las publicaciones patrocinadas suelen moverse en rangos similares a los de Telegram o WhatsApp, con un coste de entrada bajo que permite a marcas pequeñas probar varios creadores sin grandes presupuestos."
+    },
+    {
+      "question": "¿Cómo contacto con creadores de canales de difusión para anunciarme?",
+      "answer": "Puedes contactar directamente con el creador por mensaje privado, pero lo más seguro es hacerlo a través de un marketplace que verifique las métricas del canal y proteja el pago con escrow, evitando impagos y datos inflados."
+    },
+    {
+      "question": "¿Vale la pena para una marca pequeña?",
+      "answer": "Sí, especialmente para negocios locales o de nicho. Los canales de difusión tienen audiencias muy comprometidas y un coste de entrada bajo, por lo que una marca pequeña puede testar el formato con poco riesgo y medir resultados con enlaces de seguimiento antes de escalar."
+    }
+  ],
+  "cuanto-cobrar-publicidad-instagram-difusion": [
+    {
+      "question": "¿Puedo cobrar por un canal de difusión de Instagram con menos de 1.000 miembros?",
+      "answer": "Sí, pero no con la fórmula de CPM: te saldrían cifras de 5-10 EUR que no compensan la gestión. Por debajo de 1.000 miembros el modelo que funciona es la afiliación, donde cobras por venta y no por impresión, o vender el canal en pack con el feed. La fórmula por miembros activos empieza a dar números defendibles a partir de 2.000-3.000 miembros."
+    },
+    {
+      "question": "¿Instagram permite vender publicidad en canales de difusión?",
+      "answer": "Instagram no ofrece un sistema nativo para vender espacios en tu canal, igual que no lo ofrece para los posts patrocinados del feed. Lo que sí exige es identificar el contenido comercial. En España, la Ley 34/2002 y el código de conducta de Autocontrol obligan a marcar la publicidad de forma clara: usa Publicidad o En colaboración con al inicio del mensaje, no al final."
+    },
+    {
+      "question": "¿Cobro por mensaje o por semana?",
+      "answer": "Por mensaje si el anunciante es nuevo, por paquete si repite. El paquete de 3-4 mensajes reparte el impacto de las bajas y te da previsibilidad de ingresos, que es lo que convierte el canal en un activo y no en un ingreso suelto."
+    },
+    {
+      "question": "¿Cuánto tardo en cobrar un patrocinio en un canal de difusión?",
+      "answer": "En acuerdo directo con la marca, el plazo habitual en España es de 30 a 60 días desde la factura. En un marketplace con escrow el dinero está retenido antes de que publiques y se libera al verificar la publicación. La diferencia no está en el importe, está en el riesgo de impago."
+    }
+  ],
+  "herramientas-creador-whatsapp-2026": [
+    {
+      "question": "¿Existe alguna herramienta que dé las vistas por publicación de un canal de WhatsApp?",
+      "answer": "No. WhatsApp expone de forma nativa el número de seguidores, las reacciones por publicación y los reenvíos, pero no las vistas por publicación, ni la demografía de la audiencia, ni la tasa de bajas. Cualquier herramienta que te prometa el número de vistas lo está estimando, no midiendo."
+    },
+    {
+      "question": "¿Merece la pena pagar por una herramienta de analytics para canales de WhatsApp?",
+      "answer": "Hoy no: no puede darte nada que la propia app no te dé, salvo estimaciones. La categoría que sí resuelve el problema es la medición de enlaces, porque convierte una métrica que no puedes demostrar (impresiones) en una que sí (clics verificados)."
+    },
+    {
+      "question": "Si no puedo demostrar impresiones, ¿qué le vendo al anunciante?",
+      "answer": "Clics. Un anunciante prefiere 900 clics verificados a 40.000 impresiones estimadas, porque los primeros los puede contrastar con su propio Analytics. Vender clics con enlaces medidos es la salida real a la falta de métricas nativas de WhatsApp."
+    }
+  ],
+  "plataformas-publicidad-telegram": [
+    {
+      "question": "¿Cuál es la diferencia entre Telegram Ads y un marketplace de posts patrocinados?",
+      "answer": "Telegram Ads es la red oficial: tus anuncios aparecen como mensajes patrocinados cortos bajo las publicaciones de canales de más de 1.000 suscriptores y se compran por pujas de CPM, segmentando por temática e idioma, no por canal concreto. En un marketplace de posts patrocinados eliges el canal y el post lo publica el propio creador, con su voz y su formato."
+    },
+    {
+      "question": "¿Puedo anunciarme en Telegram con 200 euros?",
+      "answer": "Con Telegram Ads oficial normalmente no: el mínimo de inversión y el pago vía wallet TON en Fragment dejan fuera a los presupuestos pequeños. Con un revendedor oficial como aitarget One el mínimo práctico baja y te facturan en euros, y con un marketplace de posts patrocinados compras por placement, desde unos pocos euros."
+    },
+    {
+      "question": "¿TGStat, Telemetr o Combot sirven para comprar publicidad?",
+      "answer": "No. Son herramientas de analítica y descubrimiento: sirven para el paso previo, encontrar y verificar canales antes de comprar. La compra se cierra después en una red de anuncios o en un marketplace."
+    }
   ]
 }

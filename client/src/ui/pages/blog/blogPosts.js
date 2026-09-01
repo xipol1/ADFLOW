@@ -1,13 +1,22 @@
 import { lazy } from 'react'
 
-// Blog post registry — add new posts here and they auto-appear on /blog and sitemap.
-// Content is rendered by each post's component (lazy-loaded).
-// Updated: 2026-05-25 — 31 posts total (May 2026 batch: anunciarse TG/WA, Discord crear+mediakit, TG Ads Fragment, impuestos, EN cluster vs Meta/Influencers/WhatsApp platforms)
+// Blog post registry — metadata only. The articles themselves live in
+// content/blog/*.md and are rendered to static HTML by scripts/build-blog.js,
+// which is what /blog/<slug> actually serves (see the rewrites in vercel.json).
+//
+// This file is read by that build script (as text, not as a module) for two
+// things: the FAQPage schema of each post and the slug → platform map used to
+// score related posts. Editing a `title` or `description` here changes neither
+// the page nor the sitemap — do that in the markdown.
+//
+// Only one entry still carries a `component`: the pricing calculator, the one
+// blog URL that needs React to run. Every JSX copy of the other articles was
+// deleted (2026-08-25) because nothing routed to them any more and their text
+// had drifted away from the markdown that ships.
 
 export const BLOG_POSTS = [
   {
     slug: 'impuestos-monetizar-canal-telegram-espana',
-    component: lazy(() => import('./posts/ImpuestosCanalTelegram')),
     title: 'Impuestos canal Telegram España 2026: IRPF, IVA, autónomo y cripto',
     description: 'Guía fiscal completa 2026 para creadores que monetizan canales o servidores en España: cuándo hacerse autónomo, IVA en publicidad, declarar TON y modelo 036/037 paso a paso.',
     category: 'Guias',
@@ -27,7 +36,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'best-whatsapp-advertising-platforms',
-    component: lazy(() => import('./posts/BestWhatsappAdvertisingPlatforms')),
     title: 'Best WhatsApp Advertising Platforms in 2026 (Tested & Compared)',
     description: 'The 6 best WhatsApp advertising platforms in 2026, compared. How brands buy WhatsApp channel promotions, real CPM benchmarks, escrow protection and the best setup for ecommerce.',
     category: 'Comparativas',
@@ -47,7 +55,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'channelad-vs-influencer-marketplaces',
-    component: lazy(() => import('./posts/ChanneladVsInfluencerMarketplaces')),
     title: 'Channelad vs Influencer Marketplaces: Which Delivers Better ROI? (2026)',
     description: 'Channelad vs influencer marketplaces compared on cost, verification and ROI. Why closed channels are measurable influencer marketing, and when to use each in 2026.',
     category: 'Comparativas',
@@ -67,7 +74,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'channelad-vs-meta-ads',
-    component: lazy(() => import('./posts/ChanneladVsMetaAds')),
     title: 'Channelad vs Meta Ads: A Real Cost & Performance Comparison (2026)',
     description: 'Channelad vs Meta Ads compared on real CPM, CTR and ROI. Why Meta CPMs keep rising in 2026, where closed-channel ads win, and when to use each as a Meta Ads alternative.',
     category: 'Comparativas',
@@ -81,13 +87,12 @@ export const BLOG_POSTS = [
       { question: 'Is Channelad a real alternative to Meta Ads?', answer: 'Channelad is a genuine alternative for a portion of your budget, not a full replacement. It delivers lower effective CPMs and far higher engagement by placing native ads inside opted-in closed channels, but it does not match Meta on scale or automated optimization. Most advertisers use Channelad alongside Meta Ads, shifting the marginal budget that Meta has made too expensive.' },
       { question: 'Why are Meta Ads CPMs rising in 2026?', answer: 'Meta Ads CPMs are rising because advertiser demand keeps growing against finite feed inventory, so auction prices climb. Privacy-driven signal loss also makes targeting less efficient, which raises the cost per result. The effect is strongest in competitive niches and high-value countries.' },
       { question: 'Can Channelad replace Meta Ads completely?', answer: 'For most advertisers, no. Channelad cannot absorb very large budgets or auto-optimize the way Meta Ads does. It is best used to capture efficient, incremental reach — the marginal budget where Meta CPMs have eroded your returns — while Meta continues to handle scale and retargeting.' },
-      { question: 'Which is cheaper, Channelad or Meta Ads?', answer: 'On effective CPM and cost per engaged click, Channelad placements are usually cheaper than Meta Ads in 2026, because there is no competitive auction and channel audiences are highly engaged. Meta can still be cheaper per total conversion at large scale thanks to automated optimization. The honest answer depends on niche, geo and how you measure.' },
+      { question: 'Which is cheaper, Channelad or Meta Ads?', answer: 'Per impression, neither is reliably cheaper: the real Meta CPM in Spain in 2026 sits around 5-7 EUR and closed-channel placements land in the same range. Channelad tends to win on cost per engaged click, because a well-matched channel converts attention at 8-20% CTR against 0.5-2% on Meta. Meta stays cheaper per total conversion at large scale thanks to automated optimization. If you are shopping purely on CPM, Channelad is not the cheap option.' },
       { question: 'Is closed-channel advertising better than Facebook and Instagram ads for ecommerce?', answer: 'It is better for a specific job: reaching engaged, niche audiences at a low cost per click without a "Sponsored" trust penalty. For ecommerce, the strongest setup pairs Meta Ads for scale and retargeting with closed-channel advertising for efficient cold-traffic acquisition, both tracked with the same links so you can compare honestly.' },
     ],
   },
   {
     slug: 'telegram-ads-fragment-guia-espana',
-    component: lazy(() => import('./posts/TelegramAdsFragment')),
     title: 'Telegram Ads y Fragment 2026: guía completa desde España (pago en TON)',
     description: 'Cómo cobrar de Telegram Ads desde España en 2026: requisitos, pagos en TON, conversión a euros, fiscalidad y por qué la publicidad directa sigue pagando 5-10x más.',
     category: 'Monetizacion',
@@ -107,7 +112,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'media-kit-servidor-discord',
-    component: lazy(() => import('./posts/MediaKitDiscord')),
     title: 'Media kit servidor Discord 2026: 8 elementos + plantilla gratuita',
     description: 'Cómo crear un media kit profesional para tu servidor de Discord en 2026: los 8 elementos clave, métricas que sí piden las marcas y plantilla descargable lista para usar.',
     category: 'Guias',
@@ -127,7 +131,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'crear-servidor-discord-monetizar',
-    component: lazy(() => import('./posts/CrearServidorDiscord')),
     title: 'Cómo crear un servidor de Discord y monetizarlo en 2026 (paso a paso)',
     description: 'Guía completa para crear un servidor de Discord rentable en España en 2026: nicho, estructura, primeros 1.000 miembros, fórmula de precios y los 5 errores que matan la monetización.',
     category: 'Guias',
@@ -147,7 +150,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'como-anunciarse-en-whatsapp',
-    component: lazy(() => import('./posts/ComoAnunciarseWhatsApp')),
     title: 'Cómo anunciarse en WhatsApp 2026: canales, grupos y precios reales',
     description: 'Guía paso a paso para hacer publicidad en canales y grupos de WhatsApp en 2026. Formatos, precios (30-200€/post), 80% open rate y cómo encontrar canales con métricas auditadas.',
     category: 'Guias',
@@ -167,7 +169,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'como-anunciarse-en-telegram',
-    component: lazy(() => import('./posts/ComoAnunciarseTelegram')),
     title: 'Cómo anunciarse en Telegram 2026: guía de precios y formatos para marcas',
     description: 'Todo para hacer publicidad en canales y grupos de Telegram en 2026. Formatos, precios (CPM 1-12€ por nicho), cómo encontrar canales verificados y los 5 errores del 80% de marcas.',
     category: 'Guias',
@@ -187,7 +188,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'negociar-publicidad-telegram',
-    component: lazy(() => import('./posts/NegociarPublicidadTelegram')),
     title: 'Negociar publicidad en Telegram 2026: scripts, precios y 6 objeciones',
     description: 'Scripts reales para negociar publicidad en tu canal de Telegram. Como responder a las 6 objeciones mas comunes, condiciones que siempre incluir y cuando decir no. Con ejemplos textuales.',
     category: 'Monetizacion',
@@ -207,7 +207,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'cuanto-cobrar-publicidad-whatsapp',
-    component: lazy(() => import('./posts/CuantoCobrarPublicidadWhatsApp')),
     title: 'Cu\u00e1nto cobrar publicidad WhatsApp 2026: f\u00f3rmula + tabla CPM por nicho',
     description: 'La f\u00f3rmula exacta para poner precio a un post patrocinado en tu canal de WhatsApp en 2026. Tabla de CPMs por nicho (4-18 EUR) y 3 ejemplos con n\u00fameros reales.',
     category: 'Monetizacion',
@@ -227,7 +226,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'monetizar-canal-difusion-instagram',
-    component: lazy(() => import('./posts/MonetizarInstagramBroadcast')),
     title: 'Monetizar canal de difusi\u00f3n de Instagram 2026: 5 m\u00e9todos (Broadcast Channels)',
     description: 'C\u00f3mo monetizar un canal de difusi\u00f3n de Instagram en 2026. CPMs reales (6-15 EUR), tasa de apertura 60-75%, 5 m\u00e9todos probados y c\u00f3mo conectar con marcas. Sin humo.',
     category: 'Monetizacion',
@@ -267,7 +265,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'casos-exito-monetizar-telegram-channelad',
-    component: lazy(() => import('./posts/CasosExito')),
     title: '5 casos reales: creadores que monetizan Telegram/Discord con Channelad',
     description: 'Datos reales, ingresos reales. 5 creadores que generan 200-3.000€/mes con publicidad en Telegram y Discord a través de Channelad. Nichos, estrategias e ingresos exactos.',
     category: 'Monetizacion',
@@ -285,7 +282,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'media-kit-canal-telegram',
-    component: lazy(() => import('./posts/MediaKitTelegram')),
     title: 'Media kit canal Telegram 2026: 7 elementos + plantilla gratuita',
     description: 'Crea el media kit que convierte tu canal de Telegram en un negocio. Los 7 elementos clave, cómo conseguir estadísticas fiables con TGStat y plantilla descargable gratis.',
     category: 'Guias',
@@ -302,7 +298,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'publicidad-comunidades-online-guia-anunciantes',
-    component: lazy(() => import('./posts/PublicidadComunidades')),
     title: 'Publicidad en comunidades online 2026: guía completa para anunciantes',
     description: 'Cómo anunciarse en comunidades de Telegram, WhatsApp y Discord en España en 2026. Estrategia, presupuesto (desde 200€), métricas y cómo medir el ROI. Con tabla comparativa.',
     category: 'Guias',
@@ -319,7 +314,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'telegram-vs-whatsapp-vs-discord-publicidad',
-    component: lazy(() => import('./posts/ComparativaPlataformas')),
     title: 'Telegram vs WhatsApp vs Discord 2026: dónde anunciarse (comparativa)',
     description: 'Comparativa 2026 de las 3 plataformas para publicidad en comunidades: CPM (1,5-12€), engagement (15-40%), formatos y recomendaciones por tipo de marca. Con datos reales.',
     category: 'Comparativas',
@@ -336,7 +330,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'publicidad-discord-marcas',
-    component: lazy(() => import('./posts/PublicidadDiscordMarcas')),
     title: 'Publicidad en Discord para marcas 2026: formatos, precios y engagement',
     description: 'Cómo anunciarse en servidores de Discord en 2026: formatos (posts, roles, eventos), precios reales (15-500€) y por qué el engagement en Discord supera al de cualquier red social.',
     category: 'Guias',
@@ -355,7 +348,6 @@ export const BLOG_POSTS = [
     slug: 'como-monetizar-servidor-discord',
     pillar: true,
     altLang: 'how-to-monetize-discord-server',
-    component: lazy(() => import('./posts/MonetizarDiscord')),
     title: 'Cómo monetizar un servidor de Discord 2026: 5 métodos probados',
     description: 'Las 5 formas reales de ganar dinero con tu servidor de Discord en 2026: publicidad, roles premium, merchandising, cursos y servicios. Con ingresos reales por tamaño.',
     category: 'Monetizacion',
@@ -373,7 +365,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'mejores-canales-whatsapp-espanol',
-    component: lazy(() => import('./posts/MejoresCanalesWhatsApp')),
     title: 'Los mejores canales de WhatsApp en español 2026 (por categoría)',
     description: 'Selección curada 2026 de los canales de WhatsApp más activos en español. Finanzas, tecnología, marketing, noticias, emprendimiento y fitness. Con métricas y reviews.',
     category: 'Guias',
@@ -391,7 +382,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'publicidad-canales-whatsapp-marcas',
-    component: lazy(() => import('./posts/PublicidadWhatsAppMarcas')),
     title: 'Publicidad en canales de WhatsApp para marcas 2026: guía y precios',
     description: 'Cómo anunciarse en canales de WhatsApp en 2026: formatos, precios reales (30-120€/post), cómo encontrar canales verificados y los errores que cometen las marcas al empezar.',
     category: 'Guias',
@@ -408,7 +398,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'crear-canal-telegram-monetizar',
-    component: lazy(() => import('./posts/CrearCanalTelegram')),
     title: 'Cómo crear un canal de Telegram y monetizarlo en 2026 (paso a paso)',
     description: 'Guía de 22 min para crear un canal de Telegram rentable en España en 2026: nicho, contenido, 1ª anunciante y fórmula de precios con CPMs por nicho. Sin humo.',
     category: 'Guias',
@@ -428,7 +417,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'cuanto-cobrar-publicidad-telegram',
-    component: lazy(() => import('./posts/CuantoCobrarPublicidad')),
     title: 'Precio publicidad Telegram 2026: fórmula + tabla CPM por nicho',
     description: 'La fórmula exacta para poner precio a un post patrocinado en tu canal de Telegram en 2026. Tabla de CPMs por nicho (finanzas, cripto, tech, gaming). Datos reales de España.',
     category: 'Monetizacion',
@@ -448,7 +436,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'cuanto-paga-telegram-por-canal',
-    component: lazy(() => import('./posts/CuantoPagaTelegram')),
     title: '¿Cuánto paga Telegram por canal en 2026? Cifras reales (30-1.500€)',
     description: 'Telegram no paga lo que crees. Un canal español gana 30-1.500€/mes reales. Descubre las 2 fuentes (Ad Revenue Sharing + publicidad directa) y cómo empezar con 1.000 subs.',
     category: 'Monetizacion',
@@ -468,7 +455,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'publicidad-en-discord-guia-completa',
-    component: lazy(() => import('./posts/PublicidadDiscord')),
     title: 'Publicidad en Discord 2026: precios, formatos y el error del 80% de marcas',
     description: 'Guía definitiva 2026 para anunciarse en servidores de Discord en España. Formatos que funcionan, CPMs reales (1,5-3€) y por qué Discord tiene 15% engagement vs 1-3% de IG.',
     category: 'Guias',
@@ -486,7 +472,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'monetizar-canal-telegram-espana',
-    component: lazy(() => import('./posts/MonetizarTelegram')),
     title: 'Monetizar canal Telegram España 2026: 6 métodos y cifras reales',
     description: 'Las 6 formas reales de ganar dinero con un canal de Telegram en España en 2026. CPMs por nicho (finanzas 5-10€, cripto 6-12€) y ejemplos que facturan 500-3.000€/mes.',
     category: 'Monetizacion',
@@ -507,7 +492,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'telega-in-alternatives',
-    component: lazy(() => import('./posts/TelegaAlternatives')),
     title: '5 Telega.in Alternatives for Telegram Advertising in 2026 (Reviewed)',
     description: 'Compare the 5 best Telega.in alternatives in 2026. Platforms with escrow payments, verified metrics and community-first approach. For buyers and sellers of Telegram ads.',
     category: 'Comparativas',
@@ -527,7 +511,6 @@ export const BLOG_POSTS = [
     slug: 'como-monetizar-canal-whatsapp',
     pillar: true,
     altLang: 'how-to-monetize-whatsapp-channel',
-    component: lazy(() => import('./posts/MonetizarWhatsApp')),
     title: 'Monetizar canal de WhatsApp 2026: 6 métodos reales (y cuánto pagan)',
     description: 'Guía paso a paso para ganar dinero con tu canal de WhatsApp en España en 2026. Las 6 formas reales (ads, suscripciones, afiliados), cifras por nicho y cómo empezar hoy.',
     category: 'Monetizacion',
@@ -548,7 +531,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'publicidad-en-whatsapp-guia-completa',
-    component: lazy(() => import('./posts/PublicidadWhatsApp')),
     title: 'Publicidad en WhatsApp 2026: guía sincera de precios y formatos',
     description: 'Cómo hacer publicidad en grupos y canales de WhatsApp en 2026. Precios reales (30-120€/post), 80% de open rate y cómo encontrar canales verificados. Sin humo.',
     category: 'Guias',
@@ -566,7 +548,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'escrow-publicidad-digital',
-    component: lazy(() => import('./posts/EscrowPublicidad')),
     title: 'Escrow en publicidad digital 2026: qué es y por qué protege tu inversión',
     description: 'Todo sobre el pago custodiado en publicidad 2026: cómo funciona, qué plataformas lo ofrecen y por qué es imprescindible para anunciarse en Telegram, WhatsApp y Discord.',
     category: 'Guias',
@@ -584,7 +565,6 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'publicidad-comunidades-vs-redes-sociales',
-    component: lazy(() => import('./posts/ComunidadesVsRedes')),
     title: 'Comunidades vs redes sociales 2026: comparativa CPM, CTR y ROI',
     description: 'Publicidad en Telegram/WhatsApp/Discord vs Instagram y TikTok Ads en 2026. CPM real, engagement (15-40% vs 1-3%) y qué rinde más según tu objetivo. Datos de campañas reales.',
     category: 'Comparativas',

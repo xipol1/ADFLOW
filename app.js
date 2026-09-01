@@ -59,6 +59,7 @@ try { _routes['./routes/founderWaitlist']     = require('./routes/founderWaitlis
 try { _routes['./routes/founders']            = require('./routes/founders');            } catch (e) { _routes['./routes/founders']            = e; }
 try { _routes['./routes/calculator']          = require('./routes/calculator');          } catch (e) { _routes['./routes/calculator']          = e; }
 try { _routes['./routes/features']            = require('./routes/features');            } catch (e) { _routes['./routes/features']            = e; }
+try { _routes['./routes/comunicaciones']      = require('./routes/comunicaciones');      } catch (e) { _routes['./routes/comunicaciones']      = e; }
 try { _routes['./routes/affiliateTrack']      = require('./routes/affiliateTrack');      } catch (e) { _routes['./routes/affiliateTrack']      = e; }
 try { _routes['./routes/beta']                = require('./routes/beta');                } catch (e) { _routes['./routes/beta']                = e; }
 
@@ -635,6 +636,7 @@ const enabledRoutes = [
   ['/api/founders',    './routes/founders'],
   ['/api/calculator',  './routes/calculator'],
   ['/api/features',    './routes/features'],
+  ['/api/comunicaciones', './routes/comunicaciones'],
 ];
 
 // ─── Vercel guard for Baileys ────────────────────────────────────────────────

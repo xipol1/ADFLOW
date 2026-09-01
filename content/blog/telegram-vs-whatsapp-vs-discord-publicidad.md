@@ -156,7 +156,7 @@ Primero, define tu audiencia objetivo y elige la plataforma que mejor se ajuste 
 
 Tercero, empieza con una campana piloto pequena: 2-3 canales, presupuesto de 100-300 EUR, y un objetivo medible (clics, registros, ventas). Cuarto, mide resultados de forma rigurosa y compara el coste de adquisicion con tus otros canales. En mi experiencia, en tech y B2B el CPA en comunidades suele salir por debajo del de Meta Ads — no por un CPM mas barato (es comparable), sino por la mayor intencion de la audiencia.
 
-Si quieres entender los numeros en detalle antes de lanzar tu primera campana, lee nuestra [guia sobre cuanto paga y cuanto cuesta la publicidad en Telegram](/blog/cuanto-paga-telegram) y nuestra [guia de monetizacion para propietarios de canal](/blog/monetizar-canal-telegram-espana).
+Si quieres entender los numeros en detalle antes de lanzar tu primera campana, lee nuestra [guia sobre cuanto paga y cuanto cuesta la publicidad en Telegram](/blog/cuanto-paga-telegram-por-canal) y nuestra [guia de monetizacion para propietarios de canal](/blog/monetizar-canal-telegram-espana).
 
 ## Conclusion: el futuro de la publicidad esta en las comunidades
 

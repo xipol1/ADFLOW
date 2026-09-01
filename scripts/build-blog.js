@@ -16,8 +16,37 @@ const ROOT = path.resolve(__dirname, '..');
 const CONTENT_DIR = path.join(ROOT, 'content', 'blog');
 const OUTPUT_DIR = path.join(ROOT, 'public', 'blog');
 const TEMPLATE_PATH = path.join(CONTENT_DIR, '_template.html');
+// Consent Mode v2 + GTM, shared verbatim with the SPA shell (vite.config.js
+// injects the same file). The blog shipped with no analytics at all until
+// August 2026 — every organic pageview was invisible — so this is deliberately
+// the same bytes on both surfaces rather than a second copy to keep in sync.
+// The banner is blog-only: static pages have no React CookieBanner, so without
+// it a visitor landing from Google could never move off consent "denied".
+const ANALYTICS_TAG = fs.readFileSync(path.join(ROOT, 'config', 'analytics-tag.html'), 'utf-8');
+const CONSENT_BANNER = fs.readFileSync(path.join(ROOT, 'config', 'analytics-consent-banner.html'), 'utf-8');
 const SITEMAP_PATH = path.join(ROOT, 'public', 'sitemap.xml');
 const DOMAIN = 'https://channelad.io';
+
+// ─── Retired posts: slugs that vercel.json 301s somewhere else ───
+// A post that redirects must never be rebuilt, linked from the index, listed in
+// the sitemap or pushed to the RSS feed — Google would otherwise crawl a URL
+// that answers 301 and every internal link would land on a hop. vercel.json is
+// the single source of truth: add the redirect there and the next build removes
+// the post from the blog (and deletes its stale HTML) on its own.
+const VERCEL_JSON_PATH = path.join(ROOT, 'vercel.json');
+function loadRetiredSlugs() {
+  try {
+    const cfg = JSON.parse(fs.readFileSync(VERCEL_JSON_PATH, 'utf-8'));
+    const slugs = (cfg.redirects || [])
+      .map(r => /^\/blog\/([a-z0-9-]+)$/.exec(r.source || ''))
+      .filter(Boolean)
+      .map(m => m[1]);
+    return new Set(slugs);
+  } catch (e) {
+    console.warn('⚠️  Could not read blog redirects from vercel.json:', e.message);
+    return new Set();
+  }
+}
 
 // ─── Frontmatter parser ───
 function parseFrontmatter(content) {
@@ -165,6 +194,12 @@ function escAttr(s) {
 // the markdown were authored against: lowercase, keep accents/ñ, strip
 // punctuation (: ( ) ¿ ? , …), spaces → hyphens. marked v18 adds NO heading ids
 // on its own, so without this the manual TOC anchors are dead links.
+// "la-fórmula" → "la-formula". Used only to reconcile manual TOC anchors with
+// the accented ids the slugger emits; the ids themselves keep their accents.
+function stripDiacritics(s) {
+  return s.normalize('NFD').replace(/\p{M}+/gu, '');
+}
+
 function makeSlugger() {
   const seen = new Map();
   return (text) => {
@@ -191,11 +226,36 @@ function makeSlugger() {
 function addHeadingIdsAndToc(htmlBody, lang) {
   const slugger = makeSlugger();
   const h2s = [];
-  const html = htmlBody.replace(/<h([23])>([\s\S]*?)<\/h\1>/g, (m, lvl, inner) => {
+  const ids = new Set();
+  let html = htmlBody.replace(/<h([23])>([\s\S]*?)<\/h\1>/g, (m, lvl, inner) => {
     const text = inner.replace(/<[^>]+>/g, '').trim();
     const id = slugger(text);
+    ids.add(id);
     if (lvl === '2') h2s.push({ id, text });
     return `<h${lvl} id="${id}">${inner}</h${lvl}>`;
+  });
+
+  // The corpus is authored inconsistently: some posts write their manual TOC
+  // anchors with accents ("#la-fórmula"), others without ("#la-formula"). Since
+  // the slugger keeps accents, the second group produced dead links — 106 of them
+  // across 23 posts before this. Rather than change the ids (which would break
+  // the first group and any external deep link), repoint anchors that match no
+  // id onto the one whose accent-stripped form is identical.
+  const byStripped = new Map();
+  for (const id of ids) {
+    const k = stripDiacritics(id);
+    if (!byStripped.has(k)) byStripped.set(k, id);
+  }
+  html = html.replace(/href="#([^"]+)"/g, (m, anchor) => {
+    if (ids.has(anchor)) return m;
+    // Some posts percent-encode their anchors ("#c%C3%B3mo-…"). Browsers decode
+    // the fragment before matching, so those already work — decode before
+    // comparing so we don't treat them as misses.
+    let decoded = anchor;
+    try { decoded = decodeURIComponent(anchor); } catch { /* malformed, use raw */ }
+    if (ids.has(decoded)) return m;
+    const hit = byStripped.get(stripDiacritics(decoded));
+    return hit ? `href="#${hit}"` : m;
   });
 
   const hasManualToc = /href="#[^"]/.test(htmlBody);
@@ -224,6 +284,27 @@ function resolvePostImages(slug, title) {
     ? `<figure class="article-hero"><img src="${heroSrc}" alt="${escAttr(title)}" width="1200" height="630"></figure>`
     : '';
   return { ogImage, heroHtml };
+}
+
+// ─── In-body images: intrinsic size + lazy loading ───
+// marked emits a bare <img src alt>. Without width/height the browser cannot
+// reserve the box and the text below jumps when the diagram paints (CLS); the
+// hero already ships both. Dimensions come from the SVG's own viewBox so the
+// ratio is always right. The hero is deliberately left eager — it is above the
+// fold on every post — so only body images get loading="lazy".
+function enhanceBodyImages(html) {
+  return html.replace(/<img src="([^"]+)"([^>]*)>/g, (tag, src, rest) => {
+    if (/\bwidth=/.test(rest)) return tag;
+    let dims = '';
+    if (src.startsWith('/blog/img/')) {
+      const file = path.join(ROOT, 'public', src.replace(/^\//, ''));
+      try {
+        const box = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(fs.readFileSync(file, 'utf-8'));
+        if (box) dims = ` width="${Math.round(+box[1])}" height="${Math.round(+box[2])}"`;
+      } catch { /* image not on disk yet — ship it without dimensions */ }
+    }
+    return `<img src="${src}"${rest}${dims} loading="lazy" decoding="async">`;
+  });
 }
 
 // ─── Format date as "24 de abril de 2026" ───
@@ -413,6 +494,80 @@ function hreflangAlternates(p) {
   ];
 }
 
+// ─── llms.txt: keep the article list in sync with what we actually publish ───
+// The hand-maintained list had drifted to 24 of 65 posts, none newer than April,
+// which is exactly the surface an answer engine reads to decide what Channelad
+// knows about. Everything between the markers is regenerated on every build;
+// the prose around them stays hand-written.
+const LLMS_TXT_PATH = path.join(ROOT, 'public', 'llms.txt');
+const LLMS_START = '<!-- blog:auto:start -->';
+const LLMS_END = '<!-- blog:auto:end -->';
+// Grouped by the post's own category, not by platform: `platform` lives in the
+// React registry and is wrong for a good part of the corpus (every EN
+// comparison is tagged telegram), while `category` comes from the markdown
+// frontmatter of each post and is therefore always right.
+const LLMS_GROUPS = [
+  ['Guias', 'Guías'],
+  ['Monetizacion', 'Monetización para creadores'],
+  ['Comparativas', 'Comparativas de plataformas'],
+  ['Herramientas', 'Herramientas'],
+];
+function updateLlmsTxt(posts) {
+  if (!fs.existsSync(LLMS_TXT_PATH)) return;
+  const current = fs.readFileSync(LLMS_TXT_PATH, 'utf-8');
+  if (!current.includes(LLMS_START) || !current.includes(LLMS_END)) {
+    console.warn('  ⚠️  llms.txt has no blog:auto markers — article list not refreshed');
+    return;
+  }
+  const byCategory = new Map(LLMS_GROUPS.map(([k]) => [k, []]));
+  for (const p of posts) {
+    const key = p.category || 'Guias';
+    byCategory.get(byCategory.has(key) ? key : 'Guias').push(p);
+  }
+
+  const sections = LLMS_GROUPS
+    .filter(([k]) => byCategory.get(k).length > 0)
+    .map(([k, label]) => {
+      const items = byCategory.get(k)
+        .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+        .map(p => `- [${p.title}](${DOMAIN}/blog/${p.slug}): ${p.description || ''}`)
+        .join('\n');
+      return `### ${label}\n\n${items}`;
+    }).join('\n\n');
+
+  const block = `${LLMS_START}\n## Blog (${posts.length} guías, actualizado ${new Date().toISOString().slice(0, 10)})\n\n${sections}\n${LLMS_END}`;
+  const next = current.slice(0, current.indexOf(LLMS_START)) + block + current.slice(current.indexOf(LLMS_END) + LLMS_END.length);
+  fs.writeFileSync(LLMS_TXT_PATH, next, 'utf-8');
+  console.log(`  ✅ llms.txt (${posts.length} articles listed)`);
+}
+
+// ─── Post-build link check ───
+// Every href="/blog/<slug>" in the generated HTML must resolve to a page we
+// actually ship. Catches the two failure modes this blog has already hit: a
+// typo'd slug in the markdown (dead 404, the rewrite never falls through to the
+// SPA) and a link to a post that has since been retired behind a 301.
+function validateInternalLinks(servedSlugs, retiredSlugs) {
+  const problems = [];
+  for (const file of fs.readdirSync(OUTPUT_DIR).filter(f => f.endsWith('.html'))) {
+    const html = fs.readFileSync(path.join(OUTPUT_DIR, file), 'utf-8');
+    const seen = new Set();
+    for (const m of html.matchAll(/href="\/blog\/([a-z0-9-]+)"/g)) {
+      const target = m[1];
+      if (seen.has(target)) continue;
+      seen.add(target);
+      if (servedSlugs.has(target)) continue;
+      problems.push(`${file} → /blog/${target} (${retiredSlugs.has(target) ? '301 retired post' : 'no such post'})`);
+    }
+  }
+  if (problems.length > 0) {
+    console.error(`\n❌ ${problems.length} broken internal link(s):`);
+    problems.forEach(p => console.error(`   ${p}`));
+    console.error('\nFix the link in content/blog/*.md (or drop the redirect) and rebuild.\n');
+    process.exit(1);
+  }
+  console.log('  🔗 internal links OK (0 broken, 0 pointing at a redirect)');
+}
+
 // ─── Main build ───
 function build() {
   console.log('\n\u{1F4DD} Channelad Blog Builder\n');
@@ -441,6 +596,24 @@ function build() {
       continue;
     }
     postsData.push({ ...meta, _body: body });
+  }
+
+  // ─── Filter: drop posts retired via a 301 in vercel.json ───
+  const retiredSlugs = loadRetiredSlugs();
+  const retiredFound = postsData.filter(p => retiredSlugs.has(p.slug)).map(p => p.slug);
+  if (retiredFound.length > 0) {
+    const kept = postsData.filter(p => !retiredSlugs.has(p.slug));
+    postsData.length = 0;
+    postsData.push(...kept);
+    console.log(`  🚫 ${retiredFound.length} retired post(s) skipped (301 in vercel.json): ${retiredFound.join(', ')}`);
+  }
+  // Delete HTML left behind by a build that ran before the redirect was added.
+  for (const slug of retiredSlugs) {
+    const stale = path.join(OUTPUT_DIR, `${slug}.html`);
+    if (fs.existsSync(stale)) {
+      fs.unlinkSync(stale);
+      console.log(`  🗑️  removed stale ${slug}.html (now a 301)`);
+    }
   }
 
   // ─── Filter: only build posts with date <= today (scheduled publication) ───
@@ -472,7 +645,7 @@ function build() {
 
   for (let i = 0; i < postsData.length; i++) {
     const meta = postsData[i];
-    let htmlBody = marked.parse(meta._body);
+    let htmlBody = enhanceBodyImages(marked.parse(meta._body));
 
     // Add heading ids (fixes anchor links) + auto-inject a TOC after the intro
     // for posts that don't already ship a manual "Índice".
@@ -535,7 +708,11 @@ function build() {
       .replace(/{{faq_schema}}/g, faqSchema)
       .replace(/{{howto_schema}}/g, howtoSchema)
       .replace(/{{ogLocale}}/g, ogLocale)
-      .replace(/{{wordCount}}/g, String(wordCount));
+      .replace(/{{wordCount}}/g, String(wordCount))
+      // Function replacements: the snippets are raw HTML, so a literal `$&` or
+      // `$1` in them must not be treated as a substitution pattern.
+      .replace(/{{analytics}}/g, () => ANALYTICS_TAG)
+      .replace(/{{consentBanner}}/g, () => CONSENT_BANNER);
 
     // Skip static HTML for posts that need SPA (interactive components)
     if (meta.spaOnly === 'true') {
@@ -781,6 +958,7 @@ function build() {
       .filter-btn { padding: 6px 12px; font-size: 12px; }
     }
   </style>
+  ${ANALYTICS_TAG}
 </head>
 <body>
   <svg class="grain"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
@@ -829,6 +1007,7 @@ function build() {
       <a href="/soporte" style="color:#7C3AED;text-decoration:none">Soporte</a>
     </span>
   </footer>
+  ${CONSENT_BANNER}
 </body>
 </html>`;
 
@@ -878,7 +1057,7 @@ function build() {
 
   // Include React-only posts (no markdown) in sitemap too
   const mdSlugs = new Set(posts.map(p => p.slug));
-  const reactOnlyPosts = loadReactOnlyPosts(mdSlugs);
+  const reactOnlyPosts = loadReactOnlyPosts(mdSlugs).filter(p => !retiredSlugs.has(p.slug));
   const reactEntries = reactOnlyPosts.map(p => ({
     url: `/blog/${p.slug}`,
     priority: PILLAR_SLUGS.has(p.slug) ? '0.9' : '0.7',
@@ -942,10 +1121,11 @@ ${children.map(c => `  <sitemap>
       <description><![CDATA[${p.description || ''}]]></description>
       <author>rafa@channelad.io (Rafa Ferrer)</author>
       <category>${p.category || 'Guias'}</category>
+      <dc:language>${p.lang === 'en' ? 'en' : 'es'}</dc:language>
     </item>`).join('\n');
 
   const rssFeed = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>Channelad Blog</title>
     <link>${DOMAIN}/blog</link>
@@ -967,6 +1147,18 @@ ${rssItems}
   const FEED_PATH = path.join(OUTPUT_DIR, 'feed.xml');
   fs.writeFileSync(FEED_PATH, rssFeed, 'utf-8');
   console.log(`  \u2705 feed.xml (${allPostsForFeed.length} items)`);
+
+  // \u2500\u2500\u2500 Verify every internal blog link resolves (fails the build if not) \u2500\u2500\u2500
+  // spaOnly posts (calculadora) have no static HTML but are served by the SPA
+  // through their own rewrite in vercel.json, so they count as reachable.
+  const servedSlugs = new Set([
+    ...posts.map(p => p.slug),
+    ...reactOnlyPosts.map(p => p.slug),
+  ]);
+  validateInternalLinks(servedSlugs, retiredSlugs);
+
+  // ─── Refresh the article list inside llms.txt ───
+  updateLlmsTxt(posts);
 
   console.log(`\n\u2728 Blog built: ${posts.length} articles \u2192 public/blog/\n`);
 }

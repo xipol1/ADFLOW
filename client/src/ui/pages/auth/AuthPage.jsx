@@ -33,6 +33,10 @@ export default function AuthPage({ defaultTab = 'login' }) {
   // Unchecked by default (RGPD art.7 / Planet49 — no pre-checked consent).
   const legalManifest = useLegalManifest()
   const [acceptedDocs, setAcceptedDocs] = useState({})
+  // Consentimiento OPCIONAL de emails comerciales (art. 6.1.a RGPD / art. 21
+  // LSSI). Va aparte de acceptedDocs a propósito: no es un documento legal que
+  // haya que aceptar, no condiciona el registro y no puede venir premarcado.
+  const [marketingOptIn, setMarketingOptIn] = useState(false)
   const [referral, setReferral] = useState(refCode)
   const [remember, setRemember] = useState(false)
   const [showPass, setShowPass] = useState(false)
@@ -192,6 +196,9 @@ export default function AuthPage({ defaultTab = 'login' }) {
     if (codeToApply) regData.referralCode = codeToApply
     // Clickwrap evidence: {slug, version} for every required (ticked) document.
     regData.consents = requiredDocs.map((d) => ({ slug: d.slug, version: d.version }))
+    // Solo se envía cuando la casilla está marcada; el backend guarda el texto
+    // literal y la versión como prueba del consentimiento (art. 7.1 RGPD).
+    if (marketingOptIn) regData.marketingOptIn = true
     const res = await register(regData)
     setLoading(false)
     if (res?.success) {
@@ -797,6 +804,29 @@ export default function AuthPage({ defaultTab = 'login' }) {
                   </label>
                 ))}
               </div>
+
+              {/* Consentimiento comercial — OPCIONAL, separado visualmente de
+                  los documentos legales y sin premarcar. No bloquea el envío:
+                  el consentimiento de marketing no puede ser condición para
+                  registrarse (art. 7.4 RGPD). */}
+              <label style={{
+                display: 'flex', alignItems: 'flex-start', gap: '8px',
+                fontSize: '12px', color: 'var(--muted)', cursor: 'pointer', lineHeight: 1.45,
+                marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--border)',
+              }}>
+                <input
+                  type="checkbox"
+                  checked={marketingOptIn}
+                  onChange={e => setMarketingOptIn(e.target.checked)}
+                  style={{ marginTop: '2px', width: '15px', height: '15px', accentColor: A, flexShrink: 0 }}
+                />
+                {/* Texto LITERAL del consentimiento. Debe coincidir palabra por
+                    palabra con MARKETING_CONSENT_TEXT en services/marketingConsent.js,
+                    que es lo que se guarda como prueba. */}
+                <span>
+                  Quiero recibir emails de Channelad con novedades de producto, funcionalidades nuevas y consejos para monetizar mi canal. Es opcional y puedo darme de baja cuando quiera desde el enlace de cualquier email o desde mi cuenta.
+                </span>
+              </label>
 
               <button type="submit" disabled={loading || !allConsented} style={{
                 background: (loading || !allConsented) ? 'var(--muted2)' : A,

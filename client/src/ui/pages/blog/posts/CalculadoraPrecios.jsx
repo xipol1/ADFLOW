@@ -109,7 +109,7 @@ export default function CalculadoraPrecios() {
         Sube tarifas cuando: tu canal crece un 20%+ en suscriptores, sube tu tasa de reacciones por post, tienes historial de campanas verificadas, o la demanda supera tu oferta. Si rechazas mas propuestas de las que aceptas, es senal de que tus tarifas se han quedado por debajo del mercado.
       </p>
       <p style={pStyle}>
-        Para mas detalles sobre como calcular precios en Telegram, lee la <Link to="/blog/cuanto-cobrar-publicidad-telegram" style={linkStyle}>guia completa de precios de publicidad en Telegram</Link>. Si quieres entender como funciona el mercado en WhatsApp, consulta la <Link to="/blog/como-monetizar-canal-whatsapp" style={linkStyle}>guia de monetizacion de canales de WhatsApp</Link>.
+        Para mas detalles sobre como calcular precios en Telegram, lee la <a href="/blog/cuanto-cobrar-publicidad-telegram" style={linkStyle}>guia completa de precios de publicidad en Telegram</a>. Si quieres entender como funciona el mercado en WhatsApp, consulta la <a href="/blog/como-monetizar-canal-whatsapp" style={linkStyle}>guia de monetizacion de canales de WhatsApp</a>.
       </p>
 
       <h2 style={h2Style}>Empieza a monetizar hoy</h2>

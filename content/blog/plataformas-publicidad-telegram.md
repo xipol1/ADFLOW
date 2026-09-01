@@ -1,9 +1,9 @@
 ---
 title: "Plataformas de publicidad en Telegram 2026: comparativa"
-description: "Comparativa de plataformas para anunciarte en Telegram 2026: Telegram Ads, Telega.in, aitarget, adsgram, marketplaces y herramientas de analítica. Cuál elegir según tu caso."
+description: "Comparativa de plataformas para anunciarte en Telegram en 2026: Telegram Ads, Telega.in, aitarget, adsgram y marketplaces. Cuál elegir según tu caso."
 slug: "plataformas-publicidad-telegram"
 date: "2026-06-14"
-dateModified: "2026-06-14"
+dateModified: "2026-08-25"
 category: "Comparativas"
 readTime: "13 min"
 lang: "es"

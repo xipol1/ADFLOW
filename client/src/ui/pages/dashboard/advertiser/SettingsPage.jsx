@@ -78,8 +78,12 @@ const Field = ({ label, type = 'text', value, onChange, placeholder, hint, requi
 }
 
 // ─── Toggle switch ─────────────────────────────────────────────────────────────
-const Toggle = ({ label, desc, defaultOn = true, badge }) => {
-  const [on, setOn] = useState(defaultOn)
+const Toggle = ({ label, desc, defaultOn = true, badge, on: onProp, onChange, disabled }) => {
+  const [onLocal, setOn] = useState(defaultOn)
+  // Controlado cuando llega `on` (el consentimiento de marketing, que se
+  // persiste al instante); si no, mantiene su estado interno como hasta ahora.
+  const controlado = onProp !== undefined
+  const on = controlado ? onProp : onLocal
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -94,9 +98,14 @@ const Toggle = ({ label, desc, defaultOn = true, badge }) => {
         <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.4 }}>{desc}</div>
       </div>
       <button
-        onClick={() => setOn(!on)}
+        type="button"
+        role="switch"
+        aria-checked={!!on}
+        aria-label={label}
+        disabled={disabled}
+        onClick={() => (controlado ? onChange?.(!on) : setOn(!on))}
         style={{
-          width: '46px', height: '26px', borderRadius: '13px', border: 'none', cursor: 'pointer',
+          width: '46px', height: '26px', borderRadius: '13px', border: 'none', cursor: disabled ? 'wait' : 'pointer',
           position: 'relative', flexShrink: 0,
           background: on ? PURPLE : 'var(--border)', transition: 'background .2s',
           boxShadow: on ? `0 2px 8px ${purpleAlpha(0.3)}` : 'none',
@@ -176,8 +185,39 @@ export default function SettingsPage() {
 
   const [notifs, setNotifs] = useState({
     campanaAprobada: true, campanaPublicada: true, hitoImpresiones: true,
-    campanaFinalizada: true, saldoBajo: true, resumenSemanal: false, newsletter: false,
+    campanaFinalizada: true, saldoBajo: true, resumenSemanal: false,
   })
+
+  // ── Consentimiento de emails comerciales ──
+  // Vive en su propio endpoint (/api/comunicaciones) y NO en
+  // preferenciasNotificacion: es otra base legal (consentimiento, art. 6.1.a
+  // RGPD) y necesita quedar registrado con fecha, texto e IP. Por eso se
+  // guarda al instante al pulsar, no con el botón "Guardar" de la pestaña.
+  const [marketingOptIn, setMarketingOptIn] = useState(false)
+  const [savingMarketing, setSavingMarketing] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    apiService.getCommunicationPreferences()
+      .then((r) => { if (!cancelled) setMarketingOptIn(r?.preferencias?.marketingOptIn === true) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  const toggleMarketing = async (next) => {
+    setSavingMarketing(true)
+    const previo = marketingOptIn
+    setMarketingOptIn(next)
+    try {
+      const res = await apiService.updateCommunicationPreferences(next)
+      if (!res?.success) throw new Error(res?.message)
+      setMarketingOptIn(res.preferencias?.marketingOptIn === true)
+    } catch {
+      setMarketingOptIn(previo)
+    } finally {
+      setSavingMarketing(false)
+    }
+  }
 
   const [security, setSecurity] = useState({ actual: '', nueva: '', confirmar: '' })
   const uSec = (k, v) => { setSecurity(p => ({ ...p, [k]: v })); setErrors(e => ({ ...e, [k]: null })) }
@@ -359,7 +399,13 @@ export default function SettingsPage() {
               <Toggle label="Campaña finalizada" desc="Aviso cuando termina el período de un anuncio" />
               <Toggle label="Saldo bajo" desc="Alerta cuando tu saldo baja de €50" badge="Importante" />
               <Toggle label="Resumen semanal" desc="Reporte de rendimiento cada lunes por la mañana" defaultOn={false} />
-              <Toggle label="Newsletter de ChannelAd" desc="Novedades, consejos y actualizaciones de la plataforma" defaultOn={false} />
+              <Toggle
+                label="Novedades de Channelad"
+                desc="Novedades de producto, funcionalidades nuevas y consejos. Opcional; se guarda al momento y puedes darte de baja cuando quieras."
+                on={marketingOptIn}
+                onChange={toggleMarketing}
+                disabled={savingMarketing}
+              />
             </div>
           </Card>
 

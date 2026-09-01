@@ -68,7 +68,7 @@ export default function ForCreatorsEN() {
             Channel<span style={{ color: PURPLE }}>ad</span>
           </Link>
           <nav style={{ display: 'flex', alignItems: 'center', gap: 20, fontSize: 14 }}>
-            <Link to="/blog/how-to-monetize-whatsapp-channel" style={{ color: MUTED, textDecoration: 'none' }}>Guides</Link>
+            <a href="/blog/how-to-monetize-whatsapp-channel" style={{ color: MUTED, textDecoration: 'none' }}>Guides</a>
             <a href="/para-canales" style={{ color: MUTED, textDecoration: 'none' }} hrefLang="es">ES</a>
             <Link to="/auth/register" style={{ ...btnPrimary, padding: '9px 18px', fontSize: 14 }}>Register channel</Link>
           </nav>
@@ -179,7 +179,7 @@ export default function ForCreatorsEN() {
           <span>© 2026 Channelad</span>
           <span style={{ display: 'flex', gap: 18 }}>
             <a href="/para-canales" hrefLang="es" style={{ color: MUTED, textDecoration: 'none' }}>Español</a>
-            <Link to="/blog/how-to-monetize-whatsapp-channel" style={{ color: MUTED, textDecoration: 'none' }}>Guides</Link>
+            <a href="/blog/how-to-monetize-whatsapp-channel" style={{ color: MUTED, textDecoration: 'none' }}>Guides</a>
             <Link to="/auth/register" style={{ color: PURPLE, textDecoration: 'none', fontWeight: 600 }}>Register channel</Link>
           </span>
         </div>

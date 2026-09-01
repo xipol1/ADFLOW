@@ -6,6 +6,7 @@ const database = require('../config/database');
 const logger = require('../lib/logger');
 const authAudit = require('../lib/authAudit');
 const legalConsent = require('../services/legalConsent');
+const marketingConsent = require('../services/marketingConsent');
 
 const env = process.env.NODE_ENV || 'development';
 const isDev = env !== 'production';
@@ -75,6 +76,14 @@ const buildUserResponse = (usuario) => {
     betaAccess,
     campaignCredits: usuario?.campaignCreditsBalance || 0,
     datosFacturacion,
+    // Preferencia de emails comerciales. El frontend la usa para pintar el
+    // interruptor de /account/comunicaciones; el backend nunca decide un envío
+    // a partir de esto (para eso está services/marketingConsent).
+    marketingOptIn: usuario?.comunicaciones?.marketingOptIn === true,
+    // Derivado (nunca se almacena): true cuando a esta cuenta todavía no se le
+    // ha preguntado si quiere emails comerciales. Dispara el diálogo
+    // MarketingConsentPrompt, igual que requiresTermsAcceptance dispara el suyo.
+    marketingPromptPending: marketingConsent.necesitaPrompt(usuario),
   };
 };
 
@@ -284,6 +293,17 @@ const registro = async (req, res) => {
     // are NOT trusted from the client) stamped with this request's IP + UA.
     const consentimientos = legalConsent.buildConsentEntries(rol, req);
 
+    // ── Consentimiento de marketing (art. 6.1.a RGPD / art. 21 LSSI) ──
+    // OPCIONAL y separado del clickwrap legal: `marketingOptIn` solo llega
+    // cuando el usuario marcó activamente una casilla que NO viene premarcada
+    // y que NO bloquea el registro. Si no llega, la cuenta se crea sin
+    // consentimiento y ningún email comercial podrá salir hacia ella
+    // (services/emailService.enviarEmailComercial lo bloquea).
+    const comunicaciones = marketingConsent.buildComunicacionesIniciales(
+      req.body?.marketingOptIn === true || req.body?.marketingOptIn === 'true',
+      req
+    );
+
     // Generate email verification token
     const crypto = require('crypto');
     const verificationToken = crypto.randomBytes(32).toString('hex');
@@ -298,6 +318,7 @@ const registro = async (req, res) => {
       emailVerificationToken: verificationToken,
       emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
       consentimientos,
+      comunicaciones,
     };
 
     // ── Bot token validation (founder *candidate*, not founder yet) ──
