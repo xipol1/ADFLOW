@@ -188,6 +188,99 @@ class BaileysSessionManager {
   }
 
   /**
+   * Fetch full metadata for a newsletter by its JID (channel must be one the
+   * session subscribes to / administers). Returns subscribers count, name,
+   * description, verification, picture.
+   *
+   * Tries multiple Baileys API surfaces because newsletter methods have
+   * varied across versions.
+   */
+  async fetchNewsletterMetadata(sessionId, jid) {
+    const entry = this.sockets.get(sessionId);
+    if (!entry || !entry.sock) throw new Error('Session not connected');
+    const sock = entry.sock;
+
+    // newer Baileys: sock.newsletterMetadata('jid', jid)
+    if (typeof sock.newsletterMetadata === 'function') {
+      try {
+        return await sock.newsletterMetadata('jid', jid);
+      } catch (_) { /* fallthrough */ }
+    }
+    // alt: sock.getNewsletterInfo(jid)
+    if (typeof sock.getNewsletterInfo === 'function') {
+      return await sock.getNewsletterInfo(jid);
+    }
+    throw new Error('newsletterMetadata not supported in this Baileys version');
+  }
+
+  /**
+   * Fetch the last N messages of a newsletter. Returns an array of normalized
+   * message objects: { id, timestamp, text, reactions: [{ emoji, count }] }.
+   *
+   * Reactions on newsletters are aggregated counts per emoji (anonymous).
+   */
+  async fetchNewsletterMessages(sessionId, jid, count = 20) {
+    const entry = this.sockets.get(sessionId);
+    if (!entry || !entry.sock) throw new Error('Session not connected');
+    const sock = entry.sock;
+
+    let raw = null;
+    // Try multiple known method names — Baileys varies across releases.
+    const candidates = [
+      'fetchNewsletterMessages',         // current alpha
+      'newsletterFetchMessages',         // legacy
+      'fetchMessagesFromNewsletter',
+    ];
+    for (const name of candidates) {
+      if (typeof sock[name] === 'function') {
+        try {
+          raw = await sock[name](jid, count);
+          if (raw) break;
+        } catch (err) {
+          // log & try the next variant
+          console.warn(`[baileys] ${name} failed: ${err.message}`);
+        }
+      }
+    }
+    if (!raw) {
+      throw new Error('fetchNewsletterMessages not supported in this Baileys version');
+    }
+
+    // Normalize. Different Baileys versions return slightly different shapes —
+    // we try to handle: arrays of WAMessage objects OR arrays of newsletter
+    // message envelopes with { messageId, viewCount, reactions, ... }.
+    const out = [];
+    for (const m of Array.isArray(raw) ? raw : raw.messages || []) {
+      const id = m.key?.id || m.id || m.serverId || m.messageId;
+      const ts = m.messageTimestamp || m.timestamp || m.serverTimestamp;
+      const timestamp = ts ? new Date((typeof ts === 'number' ? ts : Number(ts)) * 1000) : null;
+      const text =
+        m.message?.conversation ||
+        m.message?.extendedTextMessage?.text ||
+        m.text ||
+        '';
+      // Reactions: newsletters give aggregated { emoji: count } shape
+      let reactions = [];
+      if (m.reactions && typeof m.reactions === 'object') {
+        if (Array.isArray(m.reactions)) {
+          // Group by emoji
+          const tally = {};
+          for (const r of m.reactions) {
+            const e = r.text || r.emoji || '';
+            tally[e] = (tally[e] || 0) + 1;
+          }
+          reactions = Object.entries(tally).map(([emoji, count]) => ({ emoji, count }));
+        } else {
+          reactions = Object.entries(m.reactions).map(([emoji, count]) => ({ emoji, count: Number(count) || 0 }));
+        }
+      }
+      const viewCount = Number(m.viewCount || m.views || 0) || null;
+      out.push({ id, timestamp, text: String(text).slice(0, 1000), reactions, viewCount });
+    }
+    return out;
+  }
+
+  /**
    * Revoke a session. Clears credentials from DB and kills the socket.
    */
   async revokeSession(sessionId) {

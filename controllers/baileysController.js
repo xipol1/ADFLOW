@@ -230,6 +230,17 @@ async function linkNewsletterToCanal(req, res) {
       userAgent: clientUA(req),
     });
 
+    // Fire-and-forget primer intel sync: trae mensajes recientes, calcula
+    // engagement, crea el primer CanalScoreSnapshot. No bloquea la
+    // respuesta — el usuario ve "conectado" mientras esto corre en
+    // background. Errores se loguean pero no rompen el flow.
+    try {
+      const { syncCanalIntel } = require('../services/whatsappIntelService');
+      syncCanalIntel(canalId).catch((err) => {
+        console.warn(`[baileys] primer syncCanalIntel falló para ${canalId}: ${err.message}`);
+      });
+    } catch (_) { /* require failure no debe bloquear el linking */ }
+
     res.json({ success: true, canal: { id: canal._id, nombre: canal.nombreCanal } });
   } catch (err) {
     res.status(err.status || 500).json({ success: false, message: err.message });

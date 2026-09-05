@@ -30,6 +30,10 @@
       "schedule": "30 2 * * *"
     },
     {
+      "path": "/api/jobs/whatsapp-intel",
+      "schedule": "45 2 * * *"
+    },
+    {
       "path": "/api/jobs/tgstat-discover",
       "schedule": "0 5 * * 1"
     },

@@ -41,6 +41,7 @@ try { _routes['./routes/channelIntelligence'] = require('./routes/channelIntelli
 try { _routes['./routes/channelDemographics'] = require('./routes/channelDemographics'); } catch (e) { _routes['./routes/channelDemographics'] = e; }
 try { _routes['./routes/nicheIntelligence']   = require('./routes/nicheIntelligence');   } catch (e) { _routes['./routes/nicheIntelligence']   = e; }
 try { _routes['./routes/telegramIntel']       = require('./routes/telegramIntel');       } catch (e) { _routes['./routes/telegramIntel']       = e; }
+try { _routes['./routes/whatsappIntel']       = require('./routes/whatsappIntel');       } catch (e) { _routes['./routes/whatsappIntel']       = e; }
 try { _routes['./routes/multiplatformIntel']  = require('./routes/multiplatformIntel');  } catch (e) { _routes['./routes/multiplatformIntel']  = e; }
 try { _routes['./routes/channelCandidates']   = require('./routes/channelCandidates');   } catch (e) { _routes['./routes/channelCandidates']   = e; }
 try { _routes['./routes/baileys']             = require('./routes/baileys');             } catch (e) { _routes['./routes/baileys']             = e; }
@@ -504,6 +505,7 @@ const enabledRoutes = [
   ['/api/channels', './routes/channelDemographics'],
   ['/api/niche',    './routes/nicheIntelligence'],
   ['/api/jobs',     './routes/telegramIntel'],
+  ['/api/jobs',     './routes/whatsappIntel'],
   ['/api/jobs',     './routes/multiplatformIntel'],
   ['/api/jobs',     './routes/channelCandidates'],
   ['/api/channel-candidates', './routes/channelCandidates'],
