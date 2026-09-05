@@ -1152,7 +1152,12 @@ class ApiService {
   }
 
   /**
-   * Crear Stripe Checkout Session para recarga de saldo
+   * Crear Stripe Checkout Session para recarga de saldo.
+   *
+   * DISABLED server-side: the endpoint returns 503 unless WALLET_TOPUP_ENABLED
+   * === 'true', because main has no spendable balance to credit. Kept here so
+   * reviving the spendable wallet from feat/track-b-wallet only has to re-add
+   * the UI. No caller in the app — FinancesPage's recharge modal was removed.
    */
   async createCheckoutSession(amount) {
     return this.request('/transacciones/create-checkout-session', {
