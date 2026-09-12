@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Wallet, TrendingUp, ArrowDownLeft, ArrowUpRight, Download, Plus, X, CheckCircle, Clock, AlertCircle, Loader2, BarChart3, Receipt, CreditCard } from 'lucide-react'
+import { Wallet, TrendingUp, ArrowDownLeft, ArrowUpRight, Download, Plus, CheckCircle, Clock, AlertCircle, BarChart3, Receipt, CreditCard } from 'lucide-react'
 import apiService from '../../../../services/api'
 import { SkeletonPage } from '../../../components/Skeleton'
 import EmptyState from '../../../components/EmptyState'
@@ -19,11 +19,19 @@ const FIN_TABS = [
 
 
 // ─── Status config ───────────────────────────────────────────────────────────
+// Mirrors the Transaccion model. A tipo:'pago' row moves pending → escrow →
+// paid, where 'paid' means the escrow was RELEASED to the creator (both
+// campaignController and disputeController flip escrow→paid on release).
+// There is no 'released' status in the model — the old key here never matched,
+// which is why "Liberado a creadores" was permanently €0 while released money
+// was being reported as "En escrow".
 const STATUS_CFG = {
-  pending:  { label: 'Pendiente',  color: WARN, icon: Clock },
-  paid:     { label: 'En escrow',  color: BLUE, icon: Clock },
-  released: { label: 'Liberado',   color: OK,   icon: CheckCircle },
-  refunded: { label: 'Reembolsado',color: '#ef4444', icon: AlertCircle },
+  pending:    { label: 'Pendiente',   color: WARN, icon: Clock },
+  processing: { label: 'Procesando',  color: WARN, icon: Clock },
+  escrow:     { label: 'En escrow',   color: BLUE, icon: Clock },
+  paid:       { label: 'Liberado',    color: OK,   icon: CheckCircle },
+  refunded:   { label: 'Reembolsado', color: '#ef4444', icon: AlertCircle },
+  failed:     { label: 'Fallido',     color: '#ef4444', icon: AlertCircle },
 }
 
 // ─── Enhanced bar chart ────────────────────────────────────────────────────────
@@ -72,11 +80,13 @@ const BarChart = ({ data }) => {
 // ─── Transaction type icon ─────────────────────────────────────────────────────
 function TxIcon({ type }) {
   const cfg = {
-    escrow:  { icon: '🔒', color: BLUE, bg: `${BLUE}12` },
-    payout:  { icon: '💸', color: OK,   bg: `${OK}12`   },
-    refund:  { icon: '↩️', color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
-    recarga: { icon: '💳', color: OK,   bg: `${OK}12`   },
-    cargo:   { icon: '📢', color: PURPLE,    bg: purpleAlpha(0.1)     },
+    escrow:   { icon: '🔒', color: BLUE, bg: `${BLUE}12` },
+    released: { icon: '📢', color: PURPLE, bg: purpleAlpha(0.1) },
+    pending:  { icon: '🕓', color: WARN, bg: `${WARN}12` },
+    payout:   { icon: '💸', color: OK,   bg: `${OK}12`   },
+    refund:   { icon: '↩️', color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
+    recarga:  { icon: '💳', color: OK,   bg: `${OK}12`   },
+    referral: { icon: '🎁', color: OK,   bg: `${OK}12`   },
   }[type] || { icon: '💰', color: '#94a3b8', bg: 'rgba(148,163,184,0.1)' }
 
   return (
@@ -86,169 +96,64 @@ function TxIcon({ type }) {
   )
 }
 
-// ─── Recharge modal ────────────────────────────────────────────────────────────
-const RechargeModal = ({ onClose }) => {
-  const [amount, setAmount] = useState(500)
-  const [step, setStep]     = useState(1)
-  const [processing, setProcessing] = useState(false)
-  const [error, setError] = useState('')
-
-  const PRESETS = [100, 250, 500, 1000]
-
-  const handleRecharge = async () => {
-    setProcessing(true)
-    setError('')
-    try {
-      const res = await apiService.createCheckoutSession(amount)
-      if (res?.success) {
-        if (res.simulated) {
-          // Stripe not configured — show success screen
-          setStep(2)
-        } else if (res.url) {
-          // Redirect to Stripe Checkout
-          window.location.href = res.url
-        }
-      } else {
-        setError(res?.message || 'Error al procesar el pago')
-      }
-    } catch {
-      setError('No se pudo conectar con el servidor de pagos')
-    }
-    setProcessing(false)
-  }
-
-  if (step === 2) {
-    return (
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ background: 'var(--surface)', borderRadius: '22px', padding: '44px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 32px 80px rgba(0,0,0,0.45)' }}>
-          <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: `${OK}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-            <CheckCircle size={28} color={OK} strokeWidth={2} />
-          </div>
-          <h3 style={{ fontFamily: FONT_DISPLAY, fontSize: '22px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px' }}>Recarga exitosa</h3>
-          <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '8px', lineHeight: 1.6 }}>
-            Se han añadido <strong style={{ color: PURPLE }}>€{amount}</strong> a tu saldo disponible.
-          </p>
-          <p style={{ fontSize: '13px', color: 'var(--muted2)', marginBottom: '28px' }}>El saldo está listo para usar en campañas.</p>
-          <button onClick={onClose} style={{ background: PURPLE, color: '#fff', border: 'none', borderRadius: '12px', padding: '13px 32px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: FONT_BODY, boxShadow: `0 4px 16px ${purpleAlpha(0.35)}` }}>
-            Perfecto, gracias
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(4px)' }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div style={{ background: 'var(--surface)', borderRadius: '22px', width: '100%', maxWidth: '440px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.45)' }}>
-        <div style={{ height: '4px', background: `linear-gradient(90deg, ${PURPLE} 0%, #7c3aed 100%)` }} />
-        <div style={{ padding: '24px 28px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: '20px', fontWeight: 800, color: 'var(--text)' }}>Recargar saldo</h2>
-            <p style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '3px' }}>El saldo se acredita de forma instantánea</p>
-          </div>
-          <button onClick={onClose} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '9px', padding: '8px', cursor: 'pointer', color: 'var(--muted)', display: 'flex' }}>
-            <X size={16} />
-          </button>
-        </div>
-
-        <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Selecciona un importe</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '8px' }}>
-              {PRESETS.map(amt => (
-                <button key={amt} onClick={() => setAmount(amt)} style={{
-                  background: amount === amt ? PURPLE : 'var(--bg)',
-                  border: `1px solid ${amount === amt ? PURPLE : 'var(--border)'}`,
-                  borderRadius: '11px', padding: '12px 8px',
-                  fontFamily: FONT_DISPLAY, fontSize: '16px', fontWeight: 800,
-                  color: amount === amt ? '#fff' : 'var(--text)',
-                  cursor: 'pointer',
-                  boxShadow: amount === amt ? `0 3px 10px ${purpleAlpha(0.3)}` : 'none',
-                  transition: 'all .15s',
-                }}>
-                  €{amt}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>O introduce un importe</label>
-            <div style={{ position: 'relative' }}>
-              <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', fontSize: '18px', fontFamily: FONT_DISPLAY, fontWeight: 700 }}>€</span>
-              <input
-                type="number"
-                value={amount}
-                onChange={e => setAmount(Math.max(10, Number(e.target.value)))}
-                style={{
-                  width: '100%', boxSizing: 'border-box',
-                  background: 'var(--bg)', border: '1px solid var(--border-med)',
-                  borderRadius: '12px', padding: '13px 14px 13px 36px',
-                  fontSize: '20px', fontWeight: 800, color: 'var(--text)', fontFamily: FONT_DISPLAY, outline: 'none',
-                  transition: 'border-color .15s',
-                }}
-                onFocus={e => { e.target.style.borderColor = purpleAlpha(0.5) }}
-                onBlur={e => { e.target.style.borderColor = 'var(--border-med)' }}
-              />
-            </div>
-          </div>
-
-          <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ background: purpleAlpha(0.1), border: `1px solid ${purpleAlpha(0.2)}`, borderRadius: '8px', padding: '7px 11px', fontSize: '12px', fontWeight: 800, color: PURPLE, letterSpacing: '0.05em' }}>VISA</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>•••• •••• •••• 4242</div>
-              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Expira 12/2027</div>
-            </div>
-            <span style={{ background: `${OK}12`, color: OK, borderRadius: '6px', padding: '2px 8px', fontSize: '11px', fontWeight: 600 }}>Principal</span>
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button onClick={onClose} style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '11px', padding: '13px', fontSize: '14px', cursor: 'pointer', color: 'var(--text)', fontFamily: FONT_BODY }}>
-              Cancelar
-            </button>
-            {error && (
-              <div style={{ color: '#ef4444', fontSize: '12px', marginBottom: '8px', textAlign: 'center', width: '100%' }}>
-                {error}
-              </div>
-            )}
-            <button
-              onClick={handleRecharge}
-              disabled={processing}
-              style={{ flex: 2, background: processing ? purpleAlpha(0.6) : PURPLE, border: 'none', borderRadius: '11px', padding: '13px', fontSize: '14px', fontWeight: 700, cursor: processing ? 'not-allowed' : 'pointer', color: '#fff', fontFamily: FONT_BODY, boxShadow: `0 4px 14px ${purpleAlpha(0.35)}`, transition: 'transform .15s' }}
-              onMouseEnter={e => { if (!processing) e.currentTarget.style.transform = 'translateY(-1px)' }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'none' }}
-            >
-              {processing ? 'Procesando...' : `Recargar €${amount}`}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
+// NOTE: the "Recargar saldo" modal lived here and was removed deliberately.
+// It drove POST /api/transacciones/create-checkout-session, which charged a
+// real card for a balance that main has no way to credit or spend. The
+// endpoint now returns 503 unless WALLET_TOPUP_ENABLED === 'true'; restore
+// this UI together with the spendable wallet from feat/track-b-wallet.
 
 // ─── Helper: normalize API transactions to display format ─────────────────────
+// A tipo:'pago' row is advertiser spend; everything else is money or credit
+// coming IN and must never be counted as spend or as escrow.
+const isSpendTx = tx => !tx.tipo || tx.tipo === 'pago'
+
+// Money the advertiser has paid that is still held by the platform.
+const isEscrowTx = tx => isSpendTx(tx) && tx.status === 'escrow'
+
+// Money the advertiser paid that has since been released to the creator.
+const isReleasedTx = tx => isSpendTx(tx) && tx.status === 'paid'
+
 function normalizeTx(tx) {
   const id = tx._id || tx.id
   const date = tx.paidAt || tx.createdAt
   const dateStr = date ? new Date(date).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' }) : ''
-  const type = tx.type || 'escrow'
   const status = tx.status || 'pending'
   const amount = tx.amount || 0
 
+  // The API returns `tipo` (Transaccion model), never `type`. Reading `tx.type`
+  // meant every row was typed 'escrow', which broke the filters and the icons.
+  let type
+  if (tx.tipo === 'recarga') type = 'recarga'
+  else if (tx.tipo === 'referral') type = 'referral'
+  else if (tx.tipo === 'retiro') type = 'payout'
+  else if (tx.tipo === 'reembolso' || status === 'refunded') type = 'refund'
+  else if (status === 'paid') type = 'released'
+  else if (status === 'escrow') type = 'escrow'
+  else type = 'pending'
+
   // Build description from campaign info
   let desc = ''
-  if (tx.campaign?.content) {
+  if (tx.description) {
+    desc = tx.description.slice(0, 60)
+  } else if (tx.campaign?.content) {
     desc = tx.campaign.content.slice(0, 60)
   } else if (tx.campaign?.channel?.nombreCanal) {
     desc = `Campaña — ${tx.campaign.channel.nombreCanal}`
+  } else if (type === 'refund') {
+    desc = 'Reembolso de campaña'
+  } else if (type === 'recarga') {
+    desc = 'Recarga de saldo'
+  } else if (type === 'referral') {
+    desc = 'Crédito por referido'
+  } else if (type === 'payout') {
+    desc = 'Retiro'
   } else {
-    desc = type === 'refund' ? 'Reembolso de campaña' : 'Pago de campaña'
+    desc = 'Pago de campaña'
   }
 
-  return { id, date: dateStr, desc, type, amount: type === 'refund' ? Math.abs(amount) : -Math.abs(amount), status }
+  // Negative = out of the advertiser's pocket.
+  const incoming = type === 'refund' || type === 'recarga' || type === 'referral'
+  return { id, date: dateStr, desc, type, amount: incoming ? Math.abs(amount) : -Math.abs(amount), status }
 }
 
 // ─── Helper: build monthly spend from transactions ────────────────────────────
@@ -260,7 +165,9 @@ function buildMonthlySpend(transactions) {
     if (isNaN(d.getTime())) return
     const key = `${d.getFullYear()}-${d.getMonth()}`
     if (!months[key]) months[key] = { label: `${labels[d.getMonth()]}`, value: 0, ts: d.getTime() }
-    if (tx.type !== 'refund') months[key].value += Math.abs(tx.amount || 0)
+    // Campaign spend only: recargas, referral credits, retiros and refunds are
+    // not money spent on campaigns.
+    if (isSpendTx(tx) && tx.status !== 'refunded') months[key].value += Math.abs(tx.amount || 0)
   })
   return Object.values(months).sort((a, b) => a.ts - b.ts).slice(-12)
 }
@@ -273,7 +180,7 @@ function buildPlatformBreakdown(transactions) {
   const byPlatform = {}
   let total = 0
   transactions.forEach(tx => {
-    if (tx.type === 'refund') return
+    if (!isSpendTx(tx) || tx.status === 'refunded') return
     const raw = tx.campaign?.channel?.plataforma
     const plat = raw
       ? (PLAT_LABELS[String(raw).toLowerCase()] || (String(raw).charAt(0).toUpperCase() + String(raw).slice(1)))
@@ -296,8 +203,6 @@ function buildPlatformBreakdown(transactions) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function FinancesPage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const [showRecharge, setShowRecharge] = useState(false)
-  const [showRechargeSuccess, setShowRechargeSuccess] = useState(false)
   const [txFilter, setTxFilter] = useState('todos')
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -313,15 +218,6 @@ export default function FinancesPage() {
     else searchParams.set('tab', key)
     setSearchParams(searchParams, { replace: true })
   }
-
-  // Handle Stripe redirect callback
-  useEffect(() => {
-    const recharge = searchParams.get('recharge')
-    if (recharge === 'success') {
-      setShowRechargeSuccess(true)
-      setSearchParams({}, { replace: true })
-    }
-  }, [])
 
   useEffect(() => {
     let mounted = true
@@ -341,8 +237,12 @@ export default function FinancesPage() {
     return () => { mounted = false }
   }, [])
 
-  const balance     = rawTx.filter(t => t.status === 'paid').reduce((s, t) => s + (t.amount || 0), 0)
-  const totalSpend  = transactions.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0)
+  // Escrow = campaign money paid and still held by the platform. This used to
+  // be `status === 'paid'`, which summed released payments, recargas, referral
+  // credits and retiros — everything except the escrow it claimed to show.
+  const balance     = rawTx.filter(isEscrowTx).reduce((s, t) => s + Math.abs(t.amount || 0), 0)
+  const totalSpend  = rawTx.filter(t => isSpendTx(t) && t.status !== 'refunded' && t.status !== 'pending')
+                           .reduce((s, t) => s + Math.abs(t.amount || 0), 0)
   const txCount     = transactions.length
 
   const monthlyData = buildMonthlySpend(rawTx)
@@ -352,13 +252,13 @@ export default function FinancesPage() {
   // hover popover on the "En escrow" card
   const statusBreakdown = (() => {
     const buckets = {}
-    rawTx.forEach(tx => {
+    rawTx.filter(isSpendTx).forEach(tx => {
       const k = tx.status || 'other'
       if (!buckets[k]) buckets[k] = 0
       buckets[k] += Math.abs(tx.amount || 0)
     })
-    const colors = { paid: BLUE, released: OK, refunded: '#ef4444', recarga: PURPLE, other: '#94a3b8' }
-    const labels = { paid: 'En escrow', released: 'Liberado', refunded: 'Reembolsado', recarga: 'Recarga', other: 'Otros' }
+    const colors = { escrow: BLUE, paid: OK, pending: WARN, processing: WARN, refunded: '#ef4444', failed: '#ef4444', other: '#94a3b8' }
+    const labels = { escrow: 'En escrow', paid: 'Liberado', pending: 'Pendiente', processing: 'Procesando', refunded: 'Reembolsado', failed: 'Fallido', other: 'Otros' }
     return Object.entries(buckets)
       .filter(([, v]) => v > 0)
       .map(([k, v]) => ({ label: labels[k] || k, value: v, color: colors[k] || '#94a3b8' }))
@@ -377,7 +277,7 @@ export default function FinancesPage() {
   const monthlySparkReleased = (() => {
     const labels = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
     const buckets = {}
-    rawTx.filter(t => t.status === 'released').forEach(t => {
+    rawTx.filter(isReleasedTx).forEach(t => {
       const d = new Date(t.paidAt || t.createdAt)
       if (isNaN(d.getTime())) return
       const k = `${d.getFullYear()}-${d.getMonth()}`
@@ -395,7 +295,7 @@ export default function FinancesPage() {
       if (isNaN(d.getTime())) return
       const k = `${d.getFullYear()}-${d.getMonth()}`
       if (!buckets[k]) buckets[k] = { ts: d.getTime(), v: 0 }
-      if (t.status === 'paid') buckets[k].v += (t.amount || 0)
+      if (isEscrowTx(t)) buckets[k].v += Math.abs(t.amount || 0)
     })
     return Object.values(buckets).sort((a,b) => a.ts - b.ts).slice(-6).map(b => b.v)
   })()
@@ -404,7 +304,7 @@ export default function FinancesPage() {
     monthlySparkSpend[monthlySparkSpend.length - 1],
     monthlySparkSpend[monthlySparkSpend.length - 2],
   )
-  const releasedTotal = rawTx.filter(t => t.status === 'released').reduce((s,t) => s + Math.abs(t.amount||0), 0)
+  const releasedTotal = rawTx.filter(isReleasedTx).reduce((s,t) => s + Math.abs(t.amount||0), 0)
   const releasedDelta = computeDelta(
     monthlySparkReleased[monthlySparkReleased.length - 1],
     monthlySparkReleased[monthlySparkReleased.length - 2],
@@ -416,7 +316,8 @@ export default function FinancesPage() {
 
   const filteredTx = transactions.filter(tx => {
     if (txFilter === 'todos') return true
-    if (txFilter === 'escrow') return tx.type === 'escrow'
+    if (txFilter === 'escrow') return tx.type === 'escrow' || tx.type === 'pending'
+    if (txFilter === 'released') return tx.type === 'released'
     if (txFilter === 'refund') return tx.type === 'refund' || tx.type === 'payout'
     return tx.type === txFilter
   })
@@ -438,14 +339,6 @@ export default function FinancesPage() {
             {activeTab === 'pagos' && 'Tarjetas guardadas y métodos de pago'}
           </p>
         </div>
-        <button
-          onClick={() => setShowRecharge(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', background: PURPLE, color: '#fff', border: 'none', borderRadius: '12px', padding: '11px 22px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', fontFamily: FONT_BODY, boxShadow: `0 4px 16px ${purpleAlpha(0.35)}`, transition: 'transform .15s, box-shadow .15s' }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${purpleAlpha(0.4)}` }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 4px 16px ${purpleAlpha(0.35)}` }}
-        >
-          <Plus size={16} strokeWidth={2.5} /> Recargar saldo
-        </button>
       </div>
 
       {/* ── Tabs ── */}
@@ -485,12 +378,9 @@ export default function FinancesPage() {
             €{Math.abs(balance).toLocaleString('es')}
           </div>
           <div style={{ fontSize: '12px', opacity: 0.7 }}>Fondos retenidos en campañas activas</div>
-          <button
-            onClick={() => setShowRecharge(true)}
-            style={{ marginTop: '16px', background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '9px', padding: '8px 16px', fontSize: '13px', fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: FONT_BODY }}
-          >
-            Añadir fondos →
-          </button>
+          <div style={{ marginTop: '16px', fontSize: '12px', opacity: 0.7, lineHeight: 1.5 }}>
+            Cada campaña se paga con tarjeta al contratarla.
+          </div>
         </div>
 
         {/* KPI cards — Stripe-style with sparklines + deltas + drill-down */}
@@ -591,14 +481,14 @@ export default function FinancesPage() {
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '9px', overflow: 'hidden' }}>
-              {['todos', 'escrow', 'refund'].map(f => (
+              {['todos', 'escrow', 'released', 'refund'].map(f => (
                 <button key={f} onClick={() => setTxFilter(f)} style={{
                   background: txFilter === f ? purpleAlpha(0.12) : 'transparent', border: 'none',
                   padding: '6px 14px', fontSize: '12px', fontWeight: txFilter === f ? 600 : 400,
                   color: txFilter === f ? PURPLE : 'var(--muted)', cursor: 'pointer', fontFamily: FONT_BODY,
                   borderRight: f !== 'refund' ? '1px solid var(--border)' : 'none',
                 }}>
-                  {f === 'todos' ? 'Todos' : f === 'escrow' ? 'Escrow' : 'Reembolsos'}
+                  {f === 'todos' ? 'Todos' : f === 'escrow' ? 'Escrow' : f === 'released' ? 'Liberados' : 'Reembolsos'}
                 </button>
               ))}
             </div>
@@ -624,9 +514,7 @@ export default function FinancesPage() {
                     <EmptyState
                       icon={Wallet}
                       title="Sin transacciones"
-                      description={txFilter === 'todos' ? 'Aun no tienes movimientos. Recarga saldo para empezar a invertir en campanas.' : 'No hay transacciones en esta categoria.'}
-                      actionLabel={txFilter === 'todos' ? 'Recargar saldo' : undefined}
-                      onAction={txFilter === 'todos' ? () => setShowRecharge(true) : undefined}
+                      description={txFilter === 'todos' ? 'Aun no tienes movimientos. Apareceran aqui cuando contrates tu primera campana.' : 'No hay transacciones en esta categoria.'}
                     />
                   </td>
                 </tr>
@@ -733,7 +621,6 @@ export default function FinancesPage() {
 
       </React.Fragment>)}
 
-      {showRecharge && <RechargeModal onClose={() => setShowRecharge(false)} />}
     </div>
   )
 }

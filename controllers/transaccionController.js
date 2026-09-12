@@ -141,6 +141,29 @@ const procesarPago = async (req, res, next) => {
 // Creates a Stripe Checkout Session for wallet top-up
 const crearCheckoutSession = async (req, res, next) => {
   try {
+    // WALLET TOP-UP IS CLOSED.
+    //
+    // This endpoint charges a real card for "Recarga de saldo", and the webhook
+    // below faithfully records a Transaccion{tipo:'recarga', status:'paid'} —
+    // but nothing in main credits a spendable balance. Usuario has no `saldo`
+    // field; campaigns are paid by card or from `campaignCreditsBalance`, and
+    // neither is fed by a recarga. So a top-up takes the money and returns
+    // nothing the advertiser can spend.
+    //
+    // The spendable wallet lives on branch feat/track-b-wallet (6 commits,
+    // adds Usuario.saldo + debit/credit in campaignController) and has not been
+    // rebased onto main. Until it is reviewed and merged, the door stays shut.
+    //
+    // The webhook's recharge branches are deliberately left intact so that any
+    // in-flight or already-paid session still gets recorded (and is therefore
+    // refundable) rather than silently lost.
+    if (process.env.WALLET_TOPUP_ENABLED !== 'true') {
+      return next(httpError(
+        503,
+        'La recarga de saldo no está disponible. Las campañas se pagan con tarjeta en el momento de contratarlas.'
+      ));
+    }
+
     const userId = req.usuario?.id;
     if (!userId) return next(httpError(401, 'No autorizado'));
 
@@ -356,8 +379,13 @@ const obtenerEstadisticasFinancieras = async (req, res, next) => {
 
     const [total, paidAgg, pending] = await Promise.all([
       Transaccion.countDocuments({ advertiser: userId }),
+      // Only real campaign spend counts as "pagado". Excluding the non-spend
+      // rows matters because they are all stored with status:'paid' too:
+      // 'recarga' (money in, not spend), 'referral' (a credit granted) and
+      // 'retiro' (a creator withdrawal). Mirrors the filter already used in
+      // analyticsController's spend timeline.
       Transaccion.aggregate([
-        { $match: { advertiser: userObjectId, status: 'paid' } },
+        { $match: { advertiser: userObjectId, status: 'paid', tipo: { $nin: ['recarga', 'referral', 'retiro'] } } },
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
       Transaccion.countDocuments({ advertiser: userId, status: 'pending' }),

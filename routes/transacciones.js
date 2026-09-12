@@ -12,6 +12,10 @@ const router = express.Router();
 
 // Create Stripe Checkout Session for wallet top-up.
 // Gated by datos fiscales: cargar saldo implica una factura emitida → necesitamos NIF.
+//
+// DISABLED: the controller returns 503 unless WALLET_TOPUP_ENABLED === 'true'.
+// main has no spendable balance to credit, so a top-up would charge the card
+// and give nothing back. See the comment in transaccionController.crearCheckoutSession.
 router.post(
   '/create-checkout-session',
   autenticar,
