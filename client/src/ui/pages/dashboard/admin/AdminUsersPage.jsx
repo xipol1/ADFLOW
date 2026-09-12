@@ -16,6 +16,7 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState('')
   const [role, setRole] = useState('')
   const [updating, setUpdating] = useState('')
+  const [actionError, setActionError] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -33,9 +34,31 @@ export default function AdminUsersPage() {
 
   useEffect(() => { load() }, [load])
 
+  // Grant/revoke beta access. The field is `betaAccess` — writing `fullAccess`
+  // here (as this did) is silently dropped by Mongoose strict mode, so the
+  // toggle appeared to work and changed nothing.
   const toggleAccess = async (id, current) => {
+    let motivo = ''
+    if (!current) {
+      const respuesta = window.prompt(
+        'Conceder acceso beta.\n\nSe le enviará un email avisándole.\nMotivo (opcional):',
+        ''
+      )
+      if (respuesta === null) return // cancelado
+      motivo = respuesta
+    } else if (!window.confirm('¿Retirar el acceso beta a este usuario?')) {
+      return
+    }
+
     setUpdating(id)
-    await apiService.updateAdminUser(id, { fullAccess: !current })
+    setActionError('')
+    const res = await apiService.updateAdminUser(id, {
+      betaAccess: !current,
+      ...(motivo ? { betaGrantReason: motivo } : {}),
+    })
+    if (!res?.success) {
+      setActionError(res?.message || 'No se pudo actualizar el acceso')
+    }
     await load()
     setUpdating('')
   }
@@ -45,6 +68,12 @@ export default function AdminUsersPage() {
   return (
     <div style={{ maxWidth: 1080, margin: '0 auto' }}>
       <h1 style={{ color: 'var(--text)', fontSize: 22, fontWeight: 700, fontFamily: D, margin: '0 0 20px' }}>Usuarios</h1>
+
+      {actionError && (
+        <div role="alert" style={{ background: '#EF444414', border: '1px solid #EF444444', borderRadius: 10, padding: '10px 14px', marginBottom: 14, color: '#EF4444', fontSize: 13 }}>
+          {actionError}
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 200, position: 'relative' }}>
@@ -66,7 +95,7 @@ export default function AdminUsersPage() {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)' }}>
-              {['Nombre', 'Email', 'Rol', 'Verificado', 'Full Access', 'Registro', ''].map(h => (
+              {['Nombre', 'Email', 'Rol', 'Verificado', 'Beta', 'Registro', ''].map(h => (
                 <th key={h} style={{ padding: '12px 16px', textAlign: 'left', color: 'var(--muted2)', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
               ))}
             </tr>
@@ -83,11 +112,12 @@ export default function AdminUsersPage() {
                 <td style={{ padding: '10px 16px' }}>
                   <span style={{ background: `${ROLE_COLORS[u.rol] || '#64748b'}14`, color: ROLE_COLORS[u.rol] || '#64748b', padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600 }}>{u.rol}</span>
                 </td>
-                <td style={{ padding: '10px 16px', color: u.emailVerified ? '#10B981' : 'var(--muted2)', fontSize: 12 }}>{u.emailVerified ? 'Si' : 'No'}</td>
+                <td style={{ padding: '10px 16px', color: u.emailVerificado ? '#10B981' : 'var(--muted2)', fontSize: 12 }}>{u.emailVerificado ? 'Si' : 'No'}</td>
                 <td style={{ padding: '10px 16px' }}>
-                  <button onClick={() => toggleAccess(u._id, u.fullAccess)} disabled={updating === u._id}
-                    style={{ background: u.fullAccess ? '#10B98114' : 'var(--bg)', border: `1px solid ${u.fullAccess ? '#10B98144' : 'var(--border)'}`, borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 600, color: u.fullAccess ? '#10B981' : 'var(--muted2)', cursor: 'pointer' }}>
-                    {updating === u._id ? '...' : u.fullAccess ? 'Full' : 'Demo'}
+                  <button onClick={() => toggleAccess(u._id, u.betaAccess)} disabled={updating === u._id}
+                    title={u.betaGrantedAt ? `Acceso concedido el ${fmtDate(u.betaGrantedAt)}` : 'Sin acceso a los paneles'}
+                    style={{ background: u.betaAccess ? '#10B98114' : 'var(--bg)', border: `1px solid ${u.betaAccess ? '#10B98144' : 'var(--border)'}`, borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 600, color: u.betaAccess ? '#10B981' : 'var(--muted2)', cursor: 'pointer' }}>
+                    {updating === u._id ? '...' : u.betaAccess ? 'Beta' : 'Sin acceso'}
                   </button>
                 </td>
                 <td style={{ padding: '10px 16px', color: 'var(--muted2)', fontSize: 12, fontFamily: 'var(--font-mono)' }}>{fmtDate(u.createdAt)}</td>

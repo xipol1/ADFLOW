@@ -403,6 +403,29 @@ class ApiService {
   async getAdminOverview() {
     return this.request('/admin/dashboard/overview');
   }
+  // ─── Onboarding ───────────────────────────────────────────────────
+  async getOnboardingProgress() {
+    return this.request('/onboarding/progreso');
+  }
+  async markOnboardingStep(paso) {
+    return this.request('/onboarding/progreso/paso', { method: 'POST', body: JSON.stringify({ paso }), headers: { 'Content-Type': 'application/json' } });
+  }
+  async dismissOnboarding(descartar = true) {
+    return this.request('/onboarding/progreso/descartar', { method: 'POST', body: JSON.stringify({ descartar }), headers: { 'Content-Type': 'application/json' } });
+  }
+
+  // ─── Beta programme ───────────────────────────────────────────────
+  async getBetaStatus() {
+    return this.request('/beta/estado');
+  }
+  async joinBetaWaitlist(data) {
+    return this.request('/beta/waitlist', { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } });
+  }
+
+  async getAdminWaitlist(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request(`/admin/dashboard/waitlist${qs ? `?${qs}` : ''}`);
+  }
   async getAdminUsers(params = {}) {
     const qs = new URLSearchParams(params).toString();
     return this.request(`/admin/dashboard/users${qs ? `?${qs}` : ''}`);

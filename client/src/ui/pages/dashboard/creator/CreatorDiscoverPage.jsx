@@ -10,6 +10,7 @@ import { useAuth } from '../../../../auth/AuthContext'
 import apiService from '../../../../services/api'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, WARN, ERR, BLUE, PLAT_COLORS } from '../../../theme/tokens'
 import { ErrorBanner } from '../shared/DashComponents'
+import DemoDataBanner from '../../../components/DemoDataBanner'
 
 const ACCENT = GREEN
 const ga = greenAlpha
@@ -114,6 +115,7 @@ export default function CreatorDiscoverPage() {
 
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 1200 }}>
+      <DemoDataBanner what="Las fechas y plazos de los briefs se generan aquí, no vienen del anunciante." />
 
       {channelsError && (
         <ErrorBanner

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { FONT_BODY as F, FONT_DISPLAY as D, GREEN, greenAlpha, OK, BLUE, WARN } from '../../../theme/tokens'
 import { useConfirm } from '../shared/DashComponents'
+import DemoDataBanner from '../../../components/DemoDataBanner'
 
 const ACCENT = GREEN
 const ga = greenAlpha
@@ -118,6 +119,7 @@ export default function CreatorContentStudioPage() {
 
   return (
     <div style={{ fontFamily: F, display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1100 }}>
+      <DemoDataBanner what="El resultado del generador se elige de una lista de ejemplos; no hay IA detrás todavía." />
       {confirmDialog}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>

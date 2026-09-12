@@ -36,7 +36,9 @@ describe('Security fixes — anti-regression', () => {
     try {
       const mongoose = require('mongoose');
       const Usuario = mongoose.models.Usuario || require('../models/Usuario');
-      await Usuario.findOneAndUpdate({ email }, { emailVerificado: true });
+      // betaAccess: estos tests comprueban los gates de fiscal/saldo/produccion,
+      // que viven DETRAS del gate de beta (middleware/requiereBeta).
+      await Usuario.findOneAndUpdate({ email }, { emailVerificado: true, betaAccess: true });
     } catch (e) { /* if DB not available, login will 503 anyway */ }
     const login = await request(app).post('/api/auth/login').send({ email, password });
     setupTrace.push(`login ${email} → ${login.status}${!login.body?.token ? ' (no token)' : ''}`);

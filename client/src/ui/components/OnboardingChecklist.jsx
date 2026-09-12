@@ -9,96 +9,81 @@ import {
   FONT_BODY as F, FONT_DISPLAY as D,
   GREEN, greenAlpha, PURPLE, purpleAlpha, OK,
 } from '../theme/tokens'
+import apiService from '../../services/api'
 
 /**
  * OnboardingChecklist — universal "complete your setup" pattern.
  *
- * Works for both creator and advertiser dashboards. Role-aware in three
- * dimensions:
- *   - Accent color: green for creator, purple for advertiser
- *   - Steps: built from the role-specific buildSteps* helpers below
- *   - localStorage keys: namespaced by role so dismissals don't bleed
+ * Works for both creator and advertiser dashboards. Role-aware in two
+ * dimensions: accent colour (green for creator, purple for advertiser) and
+ * which list of steps it renders.
  *
- * Detects completion automatically from the data passed in (channels,
- * campaigns, requests, transactions), plus a few localStorage flags for
- * things that don't have a server-side state yet (profile drafts, fiscal
- * data).
+ * Completion is NOT computed here. It comes from GET /onboarding/progreso,
+ * which derives each step from the records the rest of the product enforces
+ * against — channels, datosFacturacion.completado, campaigns, tracking links.
+ * This used to read localStorage, which meant progress reset when the user
+ * changed browser and the "Datos fiscales" step disagreed with the API in
+ * both directions.
+ *
+ * The dismissal is stored on the user too, so hiding the checklist sticks
+ * across devices.
  *
  * Variants:
  *   - 'banner' (default): wide horizontal banner at the top of the dashboard
  *   - 'widget': compact card for a customizable dashboard grid
  */
-export default function OnboardingChecklist({
-  role = 'creator',
-  channels = [],
-  campaigns = [],
-  requests = [],
-  transactions = [],
-  variant = 'banner',
-  onDismiss,
-}) {
+export default function OnboardingChecklist({ role = 'creator', variant = 'banner', onDismiss }) {
   const navigate = useNavigate()
 
-  // Role-resolved tokens. Doing this inside the component (vs module-level)
-  // is the price for being polymorphic — pass them down to sub-components.
   const accent = role === 'advertiser' ? PURPLE : GREEN
   const ga = role === 'advertiser' ? purpleAlpha : greenAlpha
-  const dismissKey = `channelad-${role}-onboarding-dismissed-v1`
-  const completeKey = `channelad-${role}-onboarding-completed-v1`
+  const definiciones = role === 'advertiser' ? PASOS_ADVERTISER : PASOS_CREATOR
 
-  const [dismissed, setDismissed] = useState(() => loadFlag(dismissKey))
+  const [progreso, setProgreso] = useState(null)
+  const [cargando, setCargando] = useState(true)
+  const [dismissed, setDismissed] = useState(false)
   const [graduatedShown, setGraduatedShown] = useState(false)
 
-  const profile = (() => {
-    const key = role === 'advertiser'
-      ? 'channelad-advertiser-profile-draft'
-      : 'channelad-creator-profile-draft'
-    try { return JSON.parse(localStorage.getItem(key) || 'null') }
-    catch { return null }
-  })()
+  useEffect(() => {
+    let vivo = true
+    apiService.getOnboardingProgress().then(res => {
+      if (!vivo) return
+      if (res?.success) {
+        setProgreso(res.data)
+        setDismissed(Boolean(res.data.dismissedAt))
+      }
+      setCargando(false)
+    })
+    return () => { vivo = false }
+  }, [role])
 
   const steps = useMemo(
-    () => role === 'advertiser'
-      ? buildAdvertiserSteps({ campaigns, transactions, profile })
-      : buildCreatorSteps({ channels, campaigns, requests, profile }),
-    [role, channels, campaigns, requests, transactions, profile]
+    () => definiciones.map(d => ({ ...d, complete: Boolean(progreso?.pasos?.[d.id]) })),
+    [definiciones, progreso]
   )
-  const completedCount = steps.filter(s => s.complete).length
-  const total = steps.length
-  const pct = total > 0 ? Math.round((completedCount / total) * 100) : 0
-  const allDone = completedCount === total
 
-  useEffect(() => {
-    if (allDone) {
-      const wasShownGrad = localStorage.getItem(completeKey)
-      if (wasShownGrad) setGraduatedShown(true)
-    }
-  }, [allDone, completeKey])
+  const completedCount = progreso?.completados ?? 0
+  const total = progreso?.total ?? definiciones.length
+  const pct = total > 0 ? Math.round((completedCount / total) * 100) : 0
+  const allDone = total > 0 && completedCount === total
 
   const dismiss = () => {
-    saveFlag(dismissKey, 'true')
     setDismissed(true)
     onDismiss?.()
-    try {
-      import('../../services/api').then(mod => {
-        const apiService = mod.default || mod
-        const fieldKey = role === 'advertiser' ? 'perfilAnunciante' : 'perfilCreador'
-        apiService.request?.('/auth/perfil', {
-          method: 'PUT',
-          body: JSON.stringify({ [fieldKey]: { onboardingDismissedAt: new Date().toISOString() } }),
-        }).catch(() => {})
-      }).catch(() => {})
-    } catch {}
+    apiService.dismissOnboarding(true).catch(() => {})
   }
 
   const markGraduated = () => {
-    saveFlag(completeKey, String(Date.now()))
     setGraduatedShown(true)
+    // Graduating is a dismissal: the checklist has nothing left to say.
+    apiService.dismissOnboarding(true).catch(() => {})
   }
 
+  // Render nothing until the server answers, rather than flashing 0%.
+  if (cargando || !progreso) return null
   if (dismissed) return null
   if (allDone && graduatedShown) return null
-  if (allDone && !graduatedShown) {
+  if (allDone) {
     return <GraduatedView role={role} accent={accent} ga={ga} onClose={markGraduated} />
   }
 
@@ -302,64 +287,34 @@ function GraduatedView({ role, accent, ga, onClose }) {
 }
 
 // ─── Step builders ──────────────────────────────────────────────────────────
-function buildCreatorSteps({ channels, campaigns, requests, profile }) {
-  const completed = campaigns.filter(c => c.status === 'COMPLETED')
-  const hasOAuth = channels.some(c => c.verificacion?.tipoAcceso === 'oauth')
-  const hasCAS = channels.some(c => Number(c.CAS) > 0)
-  const profileComplete = profile && profile.displayName && profile.headline && profile.bio
-  const hasResponded = requests.some(r => r.status !== 'pendiente') || campaigns.some(c => c.status !== 'DRAFT')
-  const hasPricingSet = (profile?.packages || []).length > 0
+// ─── Step definitions ───────────────────────────────────────────────────────
+// Presentation only. Whether a step is done comes from GET /onboarding/progreso,
+// which derives it from real records — see services/onboardingProgress.js. These
+// used to compute `complete` here from localStorage, so progress reset on every
+// browser change and disagreed with what the API enforced.
+const PASOS_CREATOR = [
+  { id: 'channel', icon: Radio, title: 'Registra tu primer canal', description: 'Telegram, WhatsApp, Discord o Instagram', cta: 'Registrar canal', estimate: '~3 min', path: '/creator/channels/new' },
+  { id: 'oauth', icon: ShieldCheck, title: 'Conecta OAuth', description: 'Verifica métricas reales para subir tu Confianza', cta: 'Conectar', estimate: '~2 min', path: '/creator/channels' },
+  { id: 'cas', icon: Sparkles, title: 'Obtén tu CAS Score', description: 'Channel Authority Score — métrica que ven advertisers', cta: 'Calcular', estimate: 'Auto al verificar', path: '/creator/analytics' },
+  { id: 'profile', icon: User, title: 'Completa tu perfil público', description: 'Bio, headline, redes — lo que ven advertisers', cta: 'Editar perfil', estimate: '~5 min', path: '/creator/profile' },
+  { id: 'pricing', icon: DollarSign, title: 'Define tus tarifas', description: 'Packages standard/premium para tu media-kit', cta: 'Configurar pricing', estimate: '~3 min', path: '/creator/pricing' },
+  { id: 'discover', icon: Compass, title: 'Explora briefs abiertos', description: 'Aplica a campañas que encajan con tus canales', cta: 'Ver Discover', estimate: '~5 min', path: '/creator/discover' },
+  { id: 'first-campaign', icon: Trophy, title: 'Completa tu primera campaña', description: 'Acepta una solicitud, publica y cobra', cta: 'Ir al Inbox', estimate: 'Variable', path: '/creator/inbox' },
+  { id: 'fiscal', icon: Receipt, title: 'Datos fiscales', description: 'NIF, dirección, IRPF — para emitir facturas', cta: 'Configurar', estimate: '~3 min', path: '/creator/billing' },
+]
 
-  return [
-    { id: 'channel', icon: Radio, title: 'Registra tu primer canal', description: 'Telegram, WhatsApp, Discord o Instagram', cta: 'Registrar canal', estimate: '~3 min', complete: channels.length > 0, path: '/creator/channels/new' },
-    { id: 'oauth', icon: ShieldCheck, title: 'Conecta OAuth', description: 'Verifica métricas reales para subir tu Confianza', cta: 'Conectar', estimate: '~2 min', complete: hasOAuth, path: '/creator/channels' },
-    { id: 'cas', icon: Sparkles, title: 'Obtén tu CAS Score', description: 'Channel Authority Score — métrica que ven advertisers', cta: 'Calcular', estimate: 'Auto al verificar', complete: hasCAS, path: '/creator/analytics' },
-    { id: 'profile', icon: User, title: 'Completa tu perfil público', description: 'Bio, headline, redes — lo que ven advertisers', cta: 'Editar perfil', estimate: '~5 min', complete: profileComplete, path: '/creator/profile' },
-    { id: 'pricing', icon: DollarSign, title: 'Define tus tarifas', description: 'Packages standard/premium para tu media-kit', cta: 'Configurar pricing', estimate: '~3 min', complete: hasPricingSet, path: '/creator/pricing' },
-    { id: 'discover', icon: Compass, title: 'Explora briefs abiertos', description: 'Aplica a campañas que encajan con tus canales', cta: 'Ver Discover', estimate: '~5 min', complete: hasResponded || requests.length > 0, path: '/creator/discover' },
-    { id: 'first-campaign', icon: Trophy, title: 'Completa tu primera campaña', description: 'Acepta una solicitud, publica y cobra', cta: 'Ir al Inbox', estimate: 'Variable', complete: completed.length > 0, path: '/creator/inbox' },
-    { id: 'fiscal', icon: Receipt, title: 'Datos fiscales', description: 'NIF, dirección, IRPF — para emitir facturas', cta: 'Configurar', estimate: '~3 min', complete: hasFiscalData('channelad-creator-fiscal-v1'), path: '/creator/billing' },
-  ]
-}
-
-function buildAdvertiserSteps({ campaigns, transactions, profile }) {
-  const completed = campaigns.filter(c => c.status === 'COMPLETED')
-  const paid = campaigns.filter(c => ['PAID', 'PUBLISHED', 'COMPLETED'].includes(c.status))
-  const hasRecharge = transactions.some(t => t.tipo === 'recarga' && t.status === 'paid')
-  const hasTracking = (() => {
-    try { return localStorage.getItem('channelad-advertiser-tracking-configured-v1') === 'true' }
-    catch { return false }
-  })()
-  const profileComplete = profile && (profile.companyName || profile.brandName) && profile.industry
-
-  return [
-    { id: 'fiscal', icon: Receipt, title: 'Datos fiscales', description: 'NIF/CIF, dirección — obligatorio para crear campañas', cta: 'Configurar', estimate: '~3 min', complete: hasFiscalData('channelad-advertiser-fiscal-v1'), path: '/advertiser/settings' },
-    { id: 'brand', icon: User, title: 'Completa tu perfil de marca', description: 'Nombre, sector, logo — lo que ven los creators', cta: 'Editar perfil', estimate: '~4 min', complete: profileComplete, path: '/advertiser/settings' },
-    { id: 'recharge', icon: CreditCard, title: 'Recarga tu saldo', description: 'Pagas campañas desde tu wallet, no por transacción', cta: 'Recargar', estimate: '~2 min', complete: hasRecharge, path: '/advertiser/finances' },
-    { id: 'tracking', icon: Activity, title: 'Configura tracking', description: 'Pixel o postback para medir conversiones reales', cta: 'Configurar', estimate: '~5 min', complete: hasTracking, path: '/advertiser/tracking-setup' },
-    { id: 'explore', icon: Search, title: 'Explora el marketplace', description: 'Encuentra canales que encajan con tu audiencia', cta: 'Explorar', estimate: '~5 min', complete: paid.length > 0, path: '/advertiser/explore' },
-    { id: 'first-campaign', icon: Rocket, title: 'Lanza tu primera campaña', description: 'Wizard guiado: canal, copy, presupuesto, pago', cta: 'Crear campaña', estimate: '~10 min', complete: campaigns.length > 0, path: '/advertiser/campaigns/new' },
-    { id: 'completed-campaign', icon: Trophy, title: 'Cierra tu primera campaña', description: 'El creator publica, midamos ROI verificado', cta: 'Ver campañas', estimate: 'Variable', complete: completed.length > 0, path: '/advertiser/campaigns' },
-    { id: 'goal', icon: Target, title: 'Define un objetivo de spend', description: 'Marca un budget mensual y monitorea ROAS', cta: 'Ir a finanzas', estimate: '~2 min', complete: hasMonthlyGoal(), path: '/advertiser/finances' },
-  ]
-}
+const PASOS_ADVERTISER = [
+  { id: 'fiscal', icon: Receipt, title: 'Datos fiscales', description: 'NIF/CIF, dirección — obligatorio para crear campañas', cta: 'Configurar', estimate: '~3 min', path: '/advertiser/settings' },
+  { id: 'brand', icon: User, title: 'Completa tu perfil de marca', description: 'Nombre, sector, logo — lo que ven los creators', cta: 'Editar perfil', estimate: '~4 min', path: '/advertiser/settings' },
+  { id: 'recharge', icon: CreditCard, title: 'Recarga tu saldo', description: 'Pagas campañas desde tu wallet, no por transacción', cta: 'Recargar', estimate: '~2 min', path: '/advertiser/finances' },
+  { id: 'tracking', icon: Activity, title: 'Configura tracking', description: 'Pixel o postback para medir conversiones reales', cta: 'Configurar', estimate: '~5 min', path: '/advertiser/tracking-setup' },
+  { id: 'explore', icon: Search, title: 'Explora el marketplace', description: 'Encuentra canales que encajan con tu audiencia', cta: 'Explorar', estimate: '~5 min', path: '/advertiser/explore' },
+  { id: 'first-campaign', icon: Rocket, title: 'Lanza tu primera campaña', description: 'Wizard guiado: canal, copy, presupuesto, pago', cta: 'Crear campaña', estimate: '~10 min', path: '/advertiser/campaigns/new' },
+  { id: 'completed-campaign', icon: Trophy, title: 'Cierra tu primera campaña', description: 'El creator publica, midamos ROI verificado', cta: 'Ver campañas', estimate: 'Variable', path: '/advertiser/campaigns' },
+  { id: 'goal', icon: Target, title: 'Define un objetivo de spend', description: 'Marca un budget mensual y monitorea ROAS', cta: 'Ir a finanzas', estimate: '~2 min', path: '/advertiser/finances' },
+]
 
 // ─── Persistence helpers ────────────────────────────────────────────────────
-function loadFlag(key) {
-  try { return localStorage.getItem(key) === 'true' } catch { return false }
-}
-function saveFlag(key, value) {
-  try { localStorage.setItem(key, value) } catch {}
-}
-function hasFiscalData(key) {
-  try {
-    const f = JSON.parse(localStorage.getItem(key) || 'null')
-    return !!(f?.nif && f?.address && f?.businessName)
-  } catch { return false }
-}
-function hasMonthlyGoal() {
-  try { return !!localStorage.getItem('channelad-advertiser-monthly-budget-v1') } catch { return false }
-}
 
 // ─── Styles ─────────────────────────────────────────────────────────────────
 function primaryBtnStyle(accent, ga) {

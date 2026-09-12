@@ -61,6 +61,7 @@ try { _routes['./routes/calculator']          = require('./routes/calculator'); 
 try { _routes['./routes/features']            = require('./routes/features');            } catch (e) { _routes['./routes/features']            = e; }
 try { _routes['./routes/comunicaciones']      = require('./routes/comunicaciones');      } catch (e) { _routes['./routes/comunicaciones']      = e; }
 try { _routes['./routes/affiliateTrack']      = require('./routes/affiliateTrack');      } catch (e) { _routes['./routes/affiliateTrack']      = e; }
+try { _routes['./routes/beta']                = require('./routes/beta');                } catch (e) { _routes['./routes/beta']                = e; }
 
 // Pre-load for Vercel nft tracer (require only, don't execute swagger-jsdoc at top level)
 let _swaggerPathsJson;
@@ -558,13 +559,14 @@ app.get('/t/:code', trackingRateLimiter, trackingRedirectHandler);
 app.get('/r/:code', trackingRateLimiter, trackingRedirectHandler);
 app.get('/go/*', trackingRateLimiter, (req, res) => { req.params.code = 'go/' + req.params[0]; return trackingRedirectHandler(req, res); });
 
-const safeMount = (mountPath, modulePath) => {
+const safeMount = (mountPath, modulePath, guard) => {
   const preloaded = _routes[modulePath];
   const router = (preloaded instanceof Error) ? null : preloaded;
   const mountError = (preloaded instanceof Error) ? preloaded : null;
 
   if (router) {
-    app.use(mountPath, router);
+    if (guard) app.use(mountPath, guard, router);
+    else app.use(mountPath, router);
     return;
   }
 
@@ -610,6 +612,7 @@ const enabledRoutes = [
   ['/api/admin/scoring', './routes/adminScoring'],
   ['/api/admin/metrics', './routes/adminMetrics'],
   ['/api/admin/dashboard', './routes/adminDashboard'],
+  ['/api/beta', './routes/beta'],
   ['/api/channels', './routes/channelIntelligence'],
   ['/api/channels', './routes/channelDemographics'],
   ['/api/niche',    './routes/nicheIntelligence'],
@@ -660,7 +663,24 @@ if (RUNS_ON_VERCEL) {
   }
 }
 
-enabledRoutes.forEach(([mountPath, modulePath]) => safeMount(mountPath, modulePath));
+// Routes that move money or create commitments are closed to non-beta users.
+// The frontend gate (ProtectedRoute requireBeta) is UX; this is the real one.
+// Reads stay open — the /beta waiting room links to the public marketplace.
+const { requiereBeta } = require('./middleware/requiereBeta');
+const RUTAS_SOLO_BETA = new Set([
+  './routes/campaigns',
+  './routes/autobuy',
+  './routes/payouts',
+  './routes/transacciones',
+  // NOTE: ./routes/swaps is listed in enabledRoutes but never preloaded into
+  // _routes, so safeMount already serves it as a 503. Kept out of this set on
+  // purpose — gating a route that does not resolve would read as live policy.
+  // NOT ./routes/subscriptions: it also serves the public POST /contact-sales,
+  // which anonymous visitors use. That router is gated per-endpoint instead.
+]);
+
+enabledRoutes.forEach(([mountPath, modulePath]) =>
+  safeMount(mountPath, modulePath, RUTAS_SOLO_BETA.has(modulePath) ? requiereBeta : null));
 
 // ─── Static blog: serve pre-built HTML from public/blog/ ───
 const blogDir = path.join(__dirname, 'public', 'blog');

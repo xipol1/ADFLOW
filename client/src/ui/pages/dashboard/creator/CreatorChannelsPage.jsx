@@ -6,7 +6,7 @@ import {
   BarChart3, Eye, Zap, Globe, Instagram, Youtube, Twitter,
   AlertCircle, Tag, QrCode,
 } from 'lucide-react'
-import { PLATFORM_COLORS } from './mockDataCreator'
+import { PLATFORM_COLORS } from '../shared/platformColors'
 import apiService from '../../../../services/api'
 import { FONT_BODY, FONT_DISPLAY, OK as _OK, WARN, ERR, BLUE } from '../../../theme/tokens'
 import ChannelCard from '../../../components/ChannelCard'

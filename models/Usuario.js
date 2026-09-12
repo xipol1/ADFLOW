@@ -179,10 +179,39 @@ const UsuarioSchema = new mongoose.Schema(
     // Campaign credits (welcome bonus for referred users, spent on campaigns)
     campaignCreditsBalance: { type: Number, default: 0 },
 
+    // Role profiles. These were validated in routes/auth.js and written by the
+    // settings pages, but never declared here — so Mongoose strict mode dropped
+    // every write and nothing was ever persisted. Same class of bug as the old
+    // `fullAccess`. Mixed because the shape is still moving and the validators
+    // in routes/auth.js are the real contract.
+    perfilCreador: { type: mongoose.Schema.Types.Mixed, default: {} },
+    perfilAnunciante: { type: mongoose.Schema.Types.Mixed, default: {} },
+
+    // Onboarding. Only what cannot be derived from real state lives here —
+    // everything else (channels, fiscal data, campaigns, tracking) is computed
+    // on demand by services/onboardingProgress.js. The checklist used to read
+    // all of it from localStorage, so progress reset on every browser change
+    // and disagreed with what the API actually enforced.
+    onboarding: {
+      pasosCompletados: { type: [String], default: [] },
+      dismissedAt: { type: Date, default: null },
+      completedAt: { type: Date, default: null },
+    },
+
     // Beta program — gates access to the /advertiser and /creator dashboards.
     // Admins are always beta. Normal users stay false until explicitly flipped
-    // (via admin panel, seed script, or manual DB update).
+    // (via the admin panel or scripts/grant-beta.js).
+    //
+    // NOTE: the flag is `betaAccess`, not `fullAccess`. `fullAccess` is only an
+    // output alias built in authController.buildUserResponse for legacy frontend
+    // consumers — it is NOT a schema field, so writing it is silently dropped by
+    // Mongoose strict mode. Always write `betaAccess`.
     betaAccess: { type: Boolean, default: false, index: true },
+    // Provenance of the beta grant, so we can answer "who let this user in and
+    // why" without digging through the audit collection.
+    betaGrantedAt: { type: Date, default: null },
+    betaGrantedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', default: null },
+    betaGrantReason: { type: String, default: '', maxlength: 300 },
 
     // Google OAuth
     googleId: { type: String, default: null, sparse: true, index: true },

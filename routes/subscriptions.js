@@ -15,6 +15,7 @@
 const express = require('express');
 const router = express.Router();
 const { autenticar } = require('../middleware/auth');
+const { requiereBeta } = require('../middleware/requiereBeta');
 const { ensureDb } = require('../lib/ensureDb');
 const config = require('../config/config');
 const subscriptionService = require('../services/subscriptionService');
@@ -49,7 +50,7 @@ router.get('/me', autenticar, async (req, res) => {
 });
 
 // ─── POST /checkout ─────────────────────────────────────────────────────────
-router.post('/checkout', autenticar, async (req, res) => {
+router.post('/checkout', autenticar, requiereBeta, async (req, res) => {
   try {
     if (!(await ensureDb())) return res.status(503).json({ success: false, message: 'DB unavailable' });
     const { plan, interval } = req.body || {};
