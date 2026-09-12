@@ -57,6 +57,8 @@ const ChannelCandidateSchema = new mongoose.Schema(
         'wachannelsfinder',
         'cheetah_groups',
         'igrupos_whatsapp',
+        'canaleswpp',
+        'whts_club',
         // Multi-platform
         'igrupos',
         // Newsletter sources
