@@ -4,11 +4,17 @@ const EstadisticaSchema = new mongoose.Schema(
   {
     entidadId: { type: mongoose.Schema.Types.ObjectId, index: true },
     tipoEntidad: { type: String, required: true, index: true },
-    // `periodo` no lo escribe nadie: de los 889.064 documentos de la colección,
-    // CERO tienen el campo (los escribe el pipeline de scrapers, que usa otra
-    // forma). Los índices sobre periodo.* ocupaban 21 MB indexando la nada, y
-    // en agosto de 2026 eso agotó la cuota de 512 MB de Atlas y bloqueó TODAS
-    // las escrituras del cluster. Sin `index: true` para que no se recreen.
+    // De los 889.064 documentos que habia en la coleccion, CERO tenian
+    // `periodo`: el upsert de SocialSyncService.updateEstadisticaGlobal
+    // filtraba por rango, Mongo no copia operadores al doc que inserta y cada
+    // sync creaba un documento nuevo. Los indices sobre periodo.* ocupaban
+    // 21 MB indexando la nada y en agosto de 2026 agotaron la cuota de 512 MB
+    // de Atlas, bloqueando TODAS las escrituras del cluster.
+    //
+    // El escritor ya esta arreglado (filtro por valor exacto), asi que los
+    // documentos nuevos si traen `periodo`. Siguen sin `index: true` a
+    // proposito: la busqueda va por entidadId, que ya tiene su indice, y a un
+    // documento por entidad y dia no hace falta nada mas.
     periodo: {
       inicio: { type: Date },
       fin: { type: Date }
