@@ -567,16 +567,24 @@ class SocialSyncService {
   }
 
   async updateEstadisticaGlobal(entidadId, tipoEntidad, metricasNuevas) {
-    const hoy = new Date();
-    const inicioDia = new Date(hoy.setHours(0, 0, 0, 0));
-    const finDia = new Date(hoy.setHours(23, 59, 59, 999));
+    // El filtro del upsert se hace por valor exacto, NO por rango. Con rangos
+    // ($gte/$lte) Mongo no puede copiar el operador al documento que inserta:
+    // el doc nuevo nacia sin `periodo`, con lo que la siguiente sync no lo
+    // encontraba y volvia a insertar. Cada pasada del sync creaba un documento
+    // nuevo por canal, para siempre — de ahi los 889.064 documentos con CERO
+    // `periodo` que agotaron la cuota de Atlas en agosto de 2026. Con valores
+    // exactos el upsert los graba y el documento del dia se reutiliza.
+    const inicioDia = new Date();
+    inicioDia.setHours(0, 0, 0, 0);
+    const finDia = new Date(inicioDia);
+    finDia.setHours(23, 59, 59, 999);
 
     await Estadistica.findOneAndUpdate(
       {
         entidadId,
         tipoEntidad,
-        'periodo.inicio': { $gte: inicioDia },
-        'periodo.fin': { $lte: finDia },
+        'periodo.inicio': inicioDia,
+        'periodo.fin': finDia,
       },
       {
         $set: {
