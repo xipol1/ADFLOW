@@ -677,7 +677,7 @@ function build() {
     // wordCount for Article schema — strip markdown noise, count tokens by whitespace.
     const wordCount = (meta._body || '')
       .replace(/```[\s\S]*?```/g, ' ')
-      .replace(/[*#_>`~|\-]+/g, ' ')
+      .replace(/[*#_>`~|-]+/g, ' ')
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
       .split(/\s+/).filter(Boolean).length;
 
@@ -785,7 +785,6 @@ function build() {
     }).join('')}
     </section>` : '';
 
-  const cardsByCategory = (cat) => restPosts.filter(p => cat === 'Todos' || p.category === cat);
   const gridCards = restPosts.map(p => {
     const cat = p.category || 'Guias';
     const platform = p.platform ? ` data-platform="${p.platform}"` : '';
