@@ -35,7 +35,7 @@ const APPLY = args.includes('--apply');
 const LIMIT = (() => { const i = args.indexOf('--limit'); return i >= 0 ? Number(args[i + 1]) : Infinity; })();
 
 // ── Relevance heuristics (kept identical to the sizing probe) ──────────────
-const NON_LATIN = /[؀-ۿЀ-ӿऀ-ॿ一-鿿가-힯֐-׿฀-๿ሀ-፿]/;
+const NON_LATIN = /[\p{Script=Arabic}\p{Script=Cyrillic}\p{Script=Devanagari}\p{Script=Han}\p{Script=Hangul}\p{Script=Hebrew}\p{Script=Thai}\p{Script=Ethiopic}]/u;
 const SPANISH_TOKENS = /\b(espa[nñ]ol|canal|grupo|gratis|noticias|recetas?|cocina|diet[ao]|salud|finanzas|cripto(monedas)?|inversi[oó]n(es)?|negocios?|emprendimiento|comunidad|ofertas?|descuentos?|trucos?|consejos?|aprende|curso|empleo|trabajo|f[uú]tbol|m[uú]sica|peliculas?|series|memes?|humor|tecnolog[ií]a|marketing|viajes?|moda|belleza|fitness|mascotas)\b/i;
 const SPANISH_CHARS = /[ñ¿¡]|(?:ci[oó]n\b)/i;
 const BAD_NAME = /<|>|&#|Ã|Ð|ð|š|�/;
@@ -54,7 +54,7 @@ function cleanCategory(cat) {
 }
 
 // ── Per-platform Canal builders (mirror existing creation paths) ───────────
-function buildTelegramCanal(c, Canal) {
+function buildTelegramCanal(c, _Canal) {
   const m = c.raw_metrics || {};
   const username = (c.username || '').replace(/^@/, '');
   const subs = m.subscribers || 0;
